@@ -13,9 +13,15 @@
 	"dependencies": {
 		"@ocean-dataview/db": "workspace:*",
 		"@ocean-dataview/env": "workspace:*",
+		"@ocean-dataview/shared": "workspace:*",
 		"@trpc/client": "catalog:",
 		"@trpc/server": "catalog:",
-		"dotenv": "catalog:",
+		"date-fns": "catalog:",
+		"drizzle-orm": "catalog:",
+		"hono": "catalog:",
+		"pino": "catalog:",
+		"pino-pretty": "catalog:",
+		"superjson": "catalog:",
 		"zod": "catalog:"
 	},
 	"devDependencies": {
