@@ -74,7 +74,7 @@ When asked to fix:
 {
   "dependencies": {
     "react": "catalog:",
-    "@dashseller/ui": "workspace:*"
+    "@ocean-dataview/ui": "workspace:*"
   },
   "devDependencies": {
     "typescript": "catalog:"

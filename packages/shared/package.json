@@ -1,0 +1,31 @@
+{
+	"name": "@ocean-dataview/shared",
+	"type": "module",
+	"exports": {
+		"./types": {
+			"default": "./src/types/index.ts"
+		},
+		"./utils": {
+			"default": "./src/utils/index.ts"
+		},
+		"./lib": {
+			"default": "./src/lib/index.ts"
+		},
+		"./config": {
+			"default": "./src/config/index.ts"
+		}
+	},
+	"dependencies": {
+		"@ocean-dataview/db": "workspace:*",
+		"drizzle-zod": "catalog:",
+		"nuqs": "catalog:",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@ocean-dataview/config": "workspace:*",
+		"@types/react": "catalog:"
+	},
+	"peerDependencies": {
+		"typescript": "catalog:"
+	}
+}

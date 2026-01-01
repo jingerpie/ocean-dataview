@@ -1,0 +1,16 @@
+{
+	"extends": "@ocean-dataview/config/tsconfig.base.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@ocean-dataview/ui/*": ["./src/*"]
+		},
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+		"outDir": "dist",
+		"composite": true,
+		"jsx": "react-jsx",
+		"lib": ["DOM", "DOM.Iterable", "ESNext"]
+	}
+}

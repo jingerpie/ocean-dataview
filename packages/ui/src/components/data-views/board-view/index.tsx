@@ -1,0 +1,530 @@
+"use client";
+
+import { Badge } from "@ocean-dataview/ui/components/badge";
+import { Card, CardContent } from "@ocean-dataview/ui/components/card";
+import type { GroupedDataItem } from "@ocean-dataview/ui/lib/data-views/hooks";
+import {
+	useDisplayProperties,
+	useGroupConfig,
+} from "@ocean-dataview/ui/lib/data-views/hooks";
+import { PropertyDisplay } from "@ocean-dataview/ui/lib/data-views/properties";
+import type {
+	DataViewProperty,
+	PaginationContext,
+} from "@ocean-dataview/ui/lib/data-views/types";
+import {
+	transformData,
+	validatePropertyKeys,
+} from "@ocean-dataview/ui/lib/data-views/utils";
+import { cn } from "@ocean-dataview/ui/lib/utils";
+import { AlertCircle, Columns3 } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useMemo, useRef } from "react";
+import { EmptyState } from "../shared";
+import { BoardColumnCard } from "./board-column-card";
+import { useBoardContext } from "./board-context";
+
+export interface BoardViewProps<
+	TData,
+	TProperties extends
+		readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
+> {
+	/**
+	 * Layout configuration
+	 */
+	layout?: {
+		/** Property ID for card preview image (references property.id, not data key) */
+		cardPreview?: TProperties[number]["id"];
+		cardSize?: "small" | "medium" | "large"; // default: 'medium'
+		wrapAllProperties?: boolean; // default: false
+		colorColumns?: boolean; // default: false
+		showPropertyNames?: boolean; // default: false
+	};
+
+	/**
+	 * View configuration
+	 */
+	view?: {
+		propertyVisibility?: TProperties[number]["id"][];
+
+		/**
+		 * Group By configuration - creates board columns
+		 * If not specified, will auto-select the first status or select property
+		 */
+		group?: {
+			/** Property ID to group by (references property.id, not data key) */
+			groupBy?: TProperties[number]["id"];
+			/**
+			 * How to group the data:
+			 * - For date properties: 'day' | 'week' | 'month' | 'year' | 'relative' (default: 'relative')
+			 * - For status properties: 'option' (group by status value) | 'group' (group by status group like todo/inProgress/complete) (default: 'option')
+			 * - For select/multi-select: 'option' (group by option value) (default behavior)
+			 */
+			showAs?:
+				| "day"
+				| "week"
+				| "month"
+				| "year"
+				| "relative"
+				| "group"
+				| "option";
+			/** Week start day (only for showAs: 'week') */
+			startWeekOn?: "monday" | "sunday";
+			/** Sort groups by property value (default: 'propertyAscending') */
+			sort?: "propertyAscending" | "propertyDescending";
+			/** Hide groups with no items (default: true) */
+			hideEmptyGroups?: boolean;
+			/** Display aggregation counts in column headers (default: true) */
+			showAggregation?: boolean;
+		};
+
+		/**
+		 * Sub-Group By configuration - secondary grouping within columns (optional)
+		 */
+		subGroup?: {
+			/** Property ID to sub-group by (references property.id, not data key) */
+			subGroupBy: TProperties[number]["id"];
+			/**
+			 * How to sub-group the data:
+			 * - For date properties: 'day' | 'week' | 'month' | 'year' | 'relative' (default: 'relative')
+			 * - For status properties: 'option' (group by status value) | 'group' (group by status group like todo/inProgress/complete) (default: 'option')
+			 * - For select/multi-select: 'option' (group by option value) (default behavior)
+			 */
+			showAs?:
+				| "day"
+				| "week"
+				| "month"
+				| "year"
+				| "relative"
+				| "group"
+				| "option";
+			/** Week start day (only for showAs: 'week') */
+			startWeekOn?: "monday" | "sunday";
+			/** Sort sub-groups by property value (default: 'propertyAscending') */
+			sort?: "propertyAscending" | "propertyDescending";
+			/** Hide sub-groups with no items (default: true) */
+			hideEmptyGroups?: boolean;
+			/** Default expanded sub-groups (array of group keys) */
+			defaultExpanded?: string[];
+		};
+	};
+
+	/**
+	 * Card click handler
+	 */
+	onCardClick?: (item: TData) => void;
+
+	/**
+	 * Function to extract unique key from item
+	 */
+	keyExtractor?: (item: TData, index: number) => string;
+
+	/**
+	 * Pagination render function
+	 * Receives normalized context that works with both LoadMorePagination and PagePagination
+	 * For boards: renders at bottom of each column
+	 */
+	pagination?: (context: PaginationContext) => React.ReactNode;
+
+	/**
+	 * Additional className
+	 */
+	className?: string;
+}
+
+/**
+ * BoardView with property-based display
+ * Displays data as Kanban board with grouped columns
+ */
+export function BoardView<
+	TData,
+	TProperties extends
+		readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
+>({
+	layout = {},
+	view = {},
+	onCardClick,
+	keyExtractor = (item, index) => String((item as { id?: string }).id || index),
+	pagination,
+	className,
+}: BoardViewProps<TData, TProperties>) {
+	// Get data and properties from context
+	const { data, properties, setExcludedPropertyIds, setPropertyVisibility } =
+		useBoardContext<TData, TProperties>();
+
+	// Apply layout defaults
+	const {
+		cardPreview,
+		cardSize = "medium",
+		wrapAllProperties = false,
+		colorColumns = false,
+		showPropertyNames = false,
+	} = layout;
+
+	// Extract view configuration with defaults
+	const {
+		propertyVisibility: viewPropertyVisibility,
+		group: groupConfig,
+		subGroup: subGroupConfig,
+	} = view;
+
+	// Sync view.propertyVisibility to context state ONLY on mount (initial state)
+	const hasInitialized = useRef(false);
+	useEffect(() => {
+		if (!hasInitialized.current && viewPropertyVisibility) {
+			setPropertyVisibility(viewPropertyVisibility);
+			hasInitialized.current = true;
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [viewPropertyVisibility, setPropertyVisibility]);
+
+	// Always use context state (which can be controlled by DataViewOptions)
+	const { propertyVisibility } = useBoardContext<TData, TProperties>();
+
+	// Update excluded properties when groupBy or subGroupBy changes
+	useEffect(() => {
+		const excluded: TProperties[number]["id"][] = [];
+		if (groupConfig?.groupBy) {
+			excluded.push(groupConfig.groupBy);
+		}
+		if (subGroupConfig?.subGroupBy) {
+			excluded.push(subGroupConfig.subGroupBy);
+		}
+		setExcludedPropertyIds(excluded);
+	}, [
+		groupConfig?.groupBy,
+		subGroupConfig?.subGroupBy,
+		setExcludedPropertyIds,
+	]);
+
+	// Validate property keys
+	const propertyValidationError = useMemo(
+		() => validatePropertyKeys(properties),
+		[properties],
+	);
+
+	// Transform data FIRST before grouping (so grouping only works with property IDs)
+	const transformedData = useMemo(() => {
+		return transformData(data as TData[], properties) as TData[];
+	}, [data, properties]);
+
+	// Use shared hook for primary group configuration (with auto-selection)
+	const {
+		groupedData,
+		validationError: primaryValidationError,
+		groupByProperty,
+	} = useGroupConfig(
+		transformedData,
+		properties,
+		groupConfig
+			? {
+					groupBy: String(groupConfig.groupBy),
+					showAs: groupConfig.showAs,
+					startWeekOn: groupConfig.startWeekOn,
+					sort: groupConfig.sort,
+					hideEmptyGroups: groupConfig.hideEmptyGroups,
+				}
+			: undefined,
+		{ required: true, autoSelectGroupBy: true },
+	);
+
+	// Grouped data is already transformed
+
+	// Use shared hook for sub-group configuration (if present)
+	const { validationError: subGroupValidationError } = useGroupConfig(
+		transformedData,
+		properties,
+		subGroupConfig
+			? {
+					groupBy: String(subGroupConfig.subGroupBy),
+					showAs: subGroupConfig.showAs,
+					startWeekOn: subGroupConfig.startWeekOn,
+					sort: subGroupConfig.sort,
+					hideEmptyGroups: subGroupConfig.hideEmptyGroups,
+				}
+			: undefined,
+	);
+
+	// Combine validation errors
+	const validationError =
+		primaryValidationError ||
+		subGroupValidationError ||
+		propertyValidationError;
+
+	// Prepare effectiveSubGroupConfig for DataBoard component
+	const effectiveSubGroupConfig = useMemo(() => {
+		if (!subGroupConfig) return undefined;
+
+		return {
+			subGroupBy: subGroupConfig.subGroupBy,
+			showAs: subGroupConfig.showAs,
+			startWeekOn: subGroupConfig.startWeekOn,
+			sort: subGroupConfig.sort ?? "propertyAscending",
+			hideEmptyGroups: subGroupConfig.hideEmptyGroups ?? true,
+			defaultExpanded: subGroupConfig.defaultExpanded,
+		};
+	}, [subGroupConfig]);
+
+	// Get group options from property config
+	const groupOptions = useMemo(() => {
+		if (!groupByProperty) return [];
+
+		if (
+			groupByProperty.type === "select" ||
+			groupByProperty.type === "status"
+		) {
+			return groupByProperty.config?.options || [];
+		}
+
+		if (groupByProperty.type === "multi-select") {
+			return groupByProperty.config?.options || [];
+		}
+
+		return [];
+	}, [groupByProperty]);
+
+	// Use shared hook for display properties filtering (exclude groupBy and preview)
+	const activeGroupBy = groupByProperty?.id;
+	const excludeKeys = [cardPreview, activeGroupBy].filter(
+		(key): key is string => key !== undefined,
+	);
+	const displayProperties = useDisplayProperties(
+		properties,
+		propertyVisibility,
+		excludeKeys,
+	);
+
+	// Get card dimensions based on size
+	const getCardDimensions = () => {
+		switch (cardSize) {
+			case "small":
+				return { imageHeight: 120, columnWidth: "w-64" }; // 256px
+			case "large":
+				return { imageHeight: 200, columnWidth: "w-96" }; // 384px
+			default: // medium
+				return { imageHeight: 150, columnWidth: "w-80" }; // 320px
+		}
+	};
+
+	const { imageHeight, columnWidth } = getCardDimensions();
+
+	// Get card content
+	const getCardContent = (item: TData) => {
+		// Handle cardPreview - if it's an array, use the first element
+		const previewValue = cardPreview
+			? (item as Record<string, unknown>)[cardPreview]
+			: null;
+		const imageUrl = Array.isArray(previewValue)
+			? previewValue[0]
+			: (previewValue as string);
+
+		return (
+			<Card
+				className={cn(
+					"gap-0 overflow-hidden py-0 transition-all hover:shadow-lg",
+					onCardClick && "cursor-pointer",
+				)}
+				onClick={() => onCardClick?.(item)}
+			>
+				{/* Image Preview */}
+				{imageUrl && (
+					<div className="relative bg-muted" style={{ height: imageHeight }}>
+						<Image
+							src={imageUrl}
+							alt="Preview"
+							fill
+							className="object-cover"
+							loading="lazy"
+						/>
+					</div>
+				)}
+
+				{/* Card Content */}
+				<CardContent className="flex flex-col gap-2 p-3">
+					{displayProperties.map((property) => {
+						const value = (item as Record<string, unknown>)[property.id];
+
+						return (
+							<div
+								key={String(property.id)}
+								className={cn(
+									"flex flex-col items-start",
+									(property.type === "select" ||
+										property.type === "multi-select" ||
+										property.type === "status" ||
+										property.type === "files-media") &&
+										"gap-1",
+								)}
+							>
+								{showPropertyNames && (
+									<span className="text-muted-foreground text-xs">
+										{property.label ?? String(property.id)}
+									</span>
+								)}
+								<PropertyDisplay
+									value={value}
+									property={property}
+									item={item}
+									wrap={wrapAllProperties}
+								/>
+							</div>
+						);
+					})}
+				</CardContent>
+			</Card>
+		);
+	};
+
+	// Get column background color based on property configuration
+	// Returns transparent for non-badge types, colored backgrounds for badge types (select, multi-select, status)
+	const getColumnBgClass = (groupName: string): string => {
+		// Use transparent background for non-badge types or when colorColumns is disabled
+		if (
+			!colorColumns ||
+			!groupByProperty ||
+			(groupByProperty.type !== "select" &&
+				groupByProperty.type !== "multi-select" &&
+				groupByProperty.type !== "status")
+		) {
+			return "bg-transparent";
+		}
+
+		// Helper to convert color name to background class
+		const getBgClass = (color: string) => `bg-badge-${color}-subtle/30`;
+
+		// For status properties with showAs: "group"
+		if (groupByProperty.type === "status" && groupConfig?.showAs === "group") {
+			const statusGroupMap: Record<string, string> = {
+				"To Do": "gray",
+				"In Progress": "blue",
+				Complete: "green",
+				Canceled: "red",
+			};
+			const color = statusGroupMap[groupName];
+			if (color) return getBgClass(color);
+		}
+
+		// Find the option by value or label
+		const option = groupOptions.find(
+			(opt) => opt.value === groupName || opt.label === groupName,
+		);
+
+		if (!option) return getBgClass("gray");
+
+		// For select and multi-select types - use color if defined
+		if ("color" in option) {
+			const color = option.color || "gray";
+			return getBgClass(color);
+		}
+
+		// For status type (when showAs: "option")
+		if ("group" in option) {
+			const colorMap: Record<string, string> = {
+				todo: "gray",
+				inProgress: "blue",
+				complete: "green",
+				canceled: "red",
+			};
+			const color = colorMap[option.group] || "gray";
+			return getBgClass(color);
+		}
+
+		return getBgClass("gray");
+	};
+
+	// Get column header content using property-based rendering
+	const getColumnHeader = (groupName: string, count: number) => {
+		const showAggregation = groupConfig?.showAggregation ?? true;
+
+		return (
+			<div className="flex items-center gap-2">
+				{groupByProperty ? (
+					<PropertyDisplay
+						value={groupName}
+						property={groupByProperty}
+						item={{} as TData}
+					/>
+				) : (
+					<Badge variant="gray-subtle" size="md">
+						{groupName}
+					</Badge>
+				)}
+				{showAggregation && (
+					<span className="font-medium text-muted-foreground text-xs">
+						{count}
+					</span>
+				)}
+			</div>
+		);
+	};
+
+	// Error state
+	if (validationError) {
+		return (
+			<div className="flex flex-col items-center justify-center rounded-lg border border-destructive/50 bg-destructive/5 p-8">
+				<AlertCircle className="mb-4 h-12 w-12 text-destructive" />
+				<p className="font-medium text-destructive">
+					Invalid board configuration
+				</p>
+				<p className="mt-2 text-muted-foreground text-sm">{validationError}</p>
+			</div>
+		);
+	}
+
+	// Empty state
+	if (Array.isArray(data) && (data.length === 0 || !groupedData)) {
+		return (
+			<EmptyState
+				icon={Columns3}
+				title="No items available"
+				description="There are no items to display"
+			/>
+		);
+	}
+
+	// Use groupedData from useGroupConfig
+	const groups: GroupedDataItem<TData>[] = groupedData || [];
+
+	// Build pagination context getter for each column
+	const getColumnPaginationContext = (
+		_groupKey: string,
+	): PaginationContext | undefined => {
+		if (!pagination) {
+			return undefined;
+		}
+
+		return {} as PaginationContext;
+	};
+
+	return (
+		<BoardColumnCard
+			groups={groups}
+			properties={properties}
+			subGroup={effectiveSubGroupConfig}
+			cardContent={getCardContent}
+			keyExtractor={keyExtractor}
+			columnHeader={getColumnHeader}
+			getColumnBgClass={getColumnBgClass}
+			columnWidth={columnWidth}
+			renderColumnFooter={
+				pagination
+					? (groupKey) => {
+							const ctx = getColumnPaginationContext(groupKey);
+							return ctx ? pagination(ctx) : null;
+						}
+					: undefined
+			}
+			className={className}
+		/>
+	);
+}
+
+export {
+	DataViewOptions,
+	type DataViewOptionsProps,
+} from "@ocean-dataview/ui/components/data-views/shared/data-view-options";
+export type { BoardContextValue } from "./board-context";
+export { useBoardContext } from "./board-context";
+export type { BoardProviderProps } from "./board-provider";
+// Export components and types
+export { BoardProvider } from "./board-provider";
