@@ -1,0 +1,3 @@
+{
+  "extends": "@ocean-dataview/config/tsconfig.base.json"
+}
