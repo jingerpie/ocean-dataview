@@ -1,7 +1,7 @@
 import { trpcServer } from "@hono/trpc-server";
-import { createContext } from "@ocean-dataview/api/context";
-import { appRouter } from "@ocean-dataview/api/routers/index";
 import { env } from "@ocean-dataview/env/server";
+import { createContext } from "@ocean-dataview/trpc/context";
+import { appRouter } from "@ocean-dataview/trpc/routers/index";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";

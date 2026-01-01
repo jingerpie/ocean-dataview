@@ -1,5 +1,5 @@
 {
-	"name": "@ocean-dataview/api",
+	"name": "@ocean-dataview/trpc",
 	"type": "module",
 	"exports": {
 		".": {

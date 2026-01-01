@@ -15,9 +15,9 @@
       "name": "server",
       "dependencies": {
         "@hono/trpc-server": "catalog:",
-        "@ocean-dataview/api": "workspace:*",
         "@ocean-dataview/db": "workspace:*",
         "@ocean-dataview/env": "workspace:*",
+        "@ocean-dataview/trpc": "workspace:*",
         "@trpc/server": "catalog:",
         "dotenv": "catalog:",
         "hono": "catalog:",
@@ -35,8 +35,8 @@
       "version": "0.1.0",
       "dependencies": {
         "@base-ui/react": "catalog:",
-        "@ocean-dataview/api": "workspace:*",
         "@ocean-dataview/env": "workspace:*",
+        "@ocean-dataview/trpc": "workspace:*",
         "@tanstack/react-form": "catalog:",
         "@tanstack/react-query": "catalog:",
         "@trpc/client": "catalog:",
@@ -65,21 +65,6 @@
         "@types/react": "catalog:",
         "@types/react-dom": "catalog:",
         "tailwindcss": "catalog:",
-        "typescript": "catalog:",
-      },
-    },
-    "packages/api": {
-      "name": "@ocean-dataview/api",
-      "dependencies": {
-        "@ocean-dataview/db": "workspace:*",
-        "@ocean-dataview/env": "workspace:*",
-        "@trpc/client": "catalog:",
-        "@trpc/server": "catalog:",
-        "dotenv": "catalog:",
-        "zod": "catalog:",
-      },
-      "devDependencies": {
-        "@ocean-dataview/config": "workspace:*",
         "typescript": "catalog:",
       },
     },
@@ -115,6 +100,21 @@
       "devDependencies": {
         "@ocean-dataview/config": "workspace:*",
         "@types/bun": "catalog:",
+        "typescript": "catalog:",
+      },
+    },
+    "packages/trpc": {
+      "name": "@ocean-dataview/trpc",
+      "dependencies": {
+        "@ocean-dataview/db": "workspace:*",
+        "@ocean-dataview/env": "workspace:*",
+        "@trpc/client": "catalog:",
+        "@trpc/server": "catalog:",
+        "dotenv": "catalog:",
+        "zod": "catalog:",
+      },
+      "devDependencies": {
+        "@ocean-dataview/config": "workspace:*",
         "typescript": "catalog:",
       },
     },
@@ -433,13 +433,13 @@
 
     "@nodelib/fs.walk": ["@nodelib/fs.walk@1.2.8", "", { "dependencies": { "@nodelib/fs.scandir": "2.1.5", "fastq": "^1.6.0" } }, "sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg=="],
 
-    "@ocean-dataview/api": ["@ocean-dataview/api@workspace:packages/api"],
-
     "@ocean-dataview/config": ["@ocean-dataview/config@workspace:packages/config"],
 
     "@ocean-dataview/db": ["@ocean-dataview/db@workspace:packages/db"],
 
     "@ocean-dataview/env": ["@ocean-dataview/env@workspace:packages/env"],
+
+    "@ocean-dataview/trpc": ["@ocean-dataview/trpc@workspace:packages/trpc"],
 
     "@open-draft/deferred-promise": ["@open-draft/deferred-promise@2.2.0", "", {}, "sha512-CecwLWx3rhxVQF6V4bAgPS5t+So2sTbPgAzafKkVizyi7tlwpcFpdFqq+wqF2OwNBmqFuu6tOyouTuxgpMfzmA=="],
 
