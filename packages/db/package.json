@@ -15,17 +15,17 @@
 		"db:studio": "drizzle-kit studio",
 		"db:migrate": "drizzle-kit migrate"
 	},
-	"devDependencies": {
-		"drizzle-kit": "^0.31.8",
-		"@types/pg": "^8.15.6",
-		"typescript": "catalog:",
-		"@ocean-dataview/config": "workspace:*"
-	},
 	"dependencies": {
-		"drizzle-orm": "^0.45.1",
-		"pg": "^8.16.3",
+		"@ocean-dataview/env": "workspace:*",
 		"dotenv": "catalog:",
-		"zod": "catalog:",
-		"@ocean-dataview/env": "workspace:*"
+		"drizzle-orm": "catalog:",
+		"pg": "catalog:",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@ocean-dataview/config": "workspace:*",
+		"@types/pg": "catalog:",
+		"drizzle-kit": "catalog:",
+		"typescript": "catalog:"
 	}
 }

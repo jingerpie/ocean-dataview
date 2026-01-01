@@ -10,17 +10,16 @@
 		}
 	},
 	"scripts": {},
-	"devDependencies": {
-		"typescript": "catalog:",
-		"@ocean-dataview/config": "workspace:*"
-	},
 	"dependencies": {
-		"@trpc/server": "catalog:",
-		"@trpc/client": "catalog:",
-		"hono": "catalog:",
-		"dotenv": "catalog:",
-		"zod": "catalog:",
+		"@ocean-dataview/db": "workspace:*",
 		"@ocean-dataview/env": "workspace:*",
-		"@ocean-dataview/db": "workspace:*"
+		"@trpc/client": "catalog:",
+		"@trpc/server": "catalog:",
+		"dotenv": "catalog:",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@ocean-dataview/config": "workspace:*",
+		"typescript": "catalog:"
 	}
 }

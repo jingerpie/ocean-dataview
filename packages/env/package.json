@@ -8,14 +8,14 @@
 		"./web": "./src/web.ts"
 	},
 	"dependencies": {
-		"zod": "catalog:",
-		"@t3-oss/env-nextjs": "^0.13.1",
-		"@t3-oss/env-core": "^0.13.1",
-		"dotenv": "catalog:"
+		"@t3-oss/env-core": "catalog:",
+		"@t3-oss/env-nextjs": "catalog:",
+		"dotenv": "catalog:",
+		"zod": "catalog:"
 	},
 	"devDependencies": {
-		"typescript": "catalog:",
+		"@ocean-dataview/config": "workspace:*",
 		"@types/bun": "catalog:",
-		"@ocean-dataview/config": "workspace:*"
+		"typescript": "catalog:"
 	}
 }

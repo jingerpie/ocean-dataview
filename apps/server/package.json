@@ -10,19 +10,19 @@
 		"start": "bun run dist/index.js"
 	},
 	"dependencies": {
-		"hono": "catalog:",
-		"@trpc/server": "catalog:",
-		"@hono/trpc-server": "^0.4.0",
-		"dotenv": "catalog:",
-		"zod": "catalog:",
-		"@ocean-dataview/env": "workspace:*",
+		"@hono/trpc-server": "catalog:",
 		"@ocean-dataview/api": "workspace:*",
-		"@ocean-dataview/db": "workspace:*"
+		"@ocean-dataview/db": "workspace:*",
+		"@ocean-dataview/env": "workspace:*",
+		"@trpc/server": "catalog:",
+		"dotenv": "catalog:",
+		"hono": "catalog:",
+		"zod": "catalog:"
 	},
 	"devDependencies": {
+		"@ocean-dataview/config": "workspace:*",
 		"@types/bun": "catalog:",
-		"typescript": "catalog:",
-		"tsdown": "^0.16.5",
-		"@ocean-dataview/config": "workspace:*"
+		"tsdown": "catalog:",
+		"typescript": "catalog:"
 	}
 }
