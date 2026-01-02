@@ -1,6 +1,9 @@
+import { cn } from "@ocean-dataview/ui/lib/utils";
 import type { Metadata } from "next";
-
 import { Geist, Geist_Mono } from "next/font/google";
+import ClientProviders from "@/components/client-providers";
+import { SiteHeader } from "@/components/layouts/site-header";
+import ServerProviders from "@/components/server-providers";
 
 import "../index.css";
 
@@ -27,9 +30,19 @@ export default function RootLayout({
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+				className={cn(
+					"min-h-screen bg-background font-sans antialiased",
+					`${geistSans.variable} ${geistMono.variable}`,
+				)}
 			>
-				{children}
+				<ServerProviders>
+					<ClientProviders>
+						<div className="relative flex min-h-screen flex-col">
+							<SiteHeader />
+							<main className="container flex-1 py-8">{children}</main>
+						</div>
+					</ClientProviders>
+				</ServerProviders>
 			</body>
 		</html>
 	);
