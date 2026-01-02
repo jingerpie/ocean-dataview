@@ -43,18 +43,6 @@ export interface TableViewProps<
 		readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 > {
 	/**
-	 * Controlled expansion state - which groups are expanded
-	 * Required when using server-side grouped pagination
-	 */
-	expandedGroups?: string[];
-
-	/**
-	 * Callback when expansion state changes
-	 * Required when using server-side grouped pagination
-	 */
-	onExpandedChange?: (groups: string[]) => void;
-
-	/**
 	 * Layout configuration
 	 */
 	layout?: {
@@ -96,6 +84,10 @@ export interface TableViewProps<
 			hideEmptyGroups?: boolean;
 			/** Display aggregation counts in group headers (default: true) */
 			showAggregation?: boolean;
+			/** Controlled expansion state (array of expanded group keys) */
+			expandedGroups?: string[];
+			/** Callback when expansion state changes */
+			onExpandedChange?: (groups: string[]) => void;
 		};
 	};
 
@@ -137,8 +129,6 @@ export function TableView<
 	TProperties extends
 		readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
-	expandedGroups,
-	onExpandedChange,
 	layout = {},
 	view = {},
 	onRowClick,
@@ -423,8 +413,8 @@ export function TableView<
 			<div className={className}>
 				<GroupAccordion
 					type="multiple"
-					value={expandedGroups ?? []}
-					onValueChange={onExpandedChange}
+					value={groupBy.expandedGroups ?? []}
+					onValueChange={groupBy.onExpandedChange}
 				>
 					{groupedData.map((group: GroupedDataItem<TData>) => {
 						// Find matching pagination group to build context

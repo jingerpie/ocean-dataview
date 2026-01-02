@@ -30,16 +30,6 @@ export interface ListViewProps<
 		readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 > {
 	/**
-	 * Controlled expansion state - which groups are expanded
-	 */
-	expandedGroups?: string[];
-
-	/**
-	 * Callback when expansion state changes
-	 */
-	onExpandedChange?: (groups: string[]) => void;
-
-	/**
 	 * Layout configuration
 	 */
 	layout?: {
@@ -80,6 +70,10 @@ export interface ListViewProps<
 			hideEmptyGroups?: boolean;
 			/** Display aggregation counts in group headers (default: true) */
 			showAggregation?: boolean;
+			/** Controlled expansion state (array of expanded group keys) */
+			expandedGroups?: string[];
+			/** Callback when expansion state changes */
+			onExpandedChange?: (groups: string[]) => void;
 		};
 	};
 
@@ -111,8 +105,6 @@ export function ListView<
 	TProperties extends
 		readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
-	expandedGroups,
-	onExpandedChange,
 	layout = {},
 	view = {},
 	onItemClick,
@@ -247,8 +239,8 @@ export function ListView<
 			<div className={className}>
 				<GroupAccordion
 					type="multiple"
-					value={expandedGroups ?? []}
-					onValueChange={onExpandedChange}
+					value={groupBy.expandedGroups ?? []}
+					onValueChange={groupBy.onExpandedChange}
 				>
 					{groupedData.map((group: GroupedDataItem<TData>) => {
 						// Build pagination context for this group using shared utility

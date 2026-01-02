@@ -108,8 +108,12 @@ export interface BoardViewProps<
 			sort?: "propertyAscending" | "propertyDescending";
 			/** Hide sub-groups with no items (default: true) */
 			hideEmptyGroups?: boolean;
-			/** Default expanded sub-groups (array of group keys) */
+			/** Default expanded sub-groups (array of group keys) - for uncontrolled mode */
 			defaultExpanded?: string[];
+			/** Controlled sub-group expansion state (array of expanded sub-group keys) */
+			expandedSubGroups?: string[];
+			/** Callback when sub-group expansion changes */
+			onExpandedSubGroupsChange?: (groups: string[]) => void;
 		};
 	};
 
@@ -310,6 +314,8 @@ export function BoardView<
 			sort: subGroupConfig.sort ?? "propertyAscending",
 			hideEmptyGroups: subGroupConfig.hideEmptyGroups ?? true,
 			defaultExpanded: subGroupConfig.defaultExpanded,
+			expandedSubGroups: subGroupConfig.expandedSubGroups,
+			onExpandedSubGroupsChange: subGroupConfig.onExpandedSubGroupsChange,
 		};
 	}, [subGroupConfig]);
 

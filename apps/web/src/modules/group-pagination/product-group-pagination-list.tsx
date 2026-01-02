@@ -95,9 +95,14 @@ export const ProductGroupPaginationList = () => {
 			</div>
 
 			<ListView
-				expandedGroups={expandedGroups}
-				onExpandedChange={handleAccordionChange}
-				view={{ group: { groupBy: "familyGroup", showAggregation: true } }}
+				view={{
+					group: {
+						groupBy: "familyGroup",
+						showAggregation: true,
+						expandedGroups,
+						onExpandedChange: handleAccordionChange,
+					},
+				}}
 				pagination={(context) => <PagePagination {...context} />}
 			/>
 		</ListProvider>

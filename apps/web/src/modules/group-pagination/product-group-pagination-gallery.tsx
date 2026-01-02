@@ -100,9 +100,14 @@ export const ProductGroupPaginationGallery = () => {
 					cardSize: "medium",
 					fitImage: true,
 				}}
-				expandedGroups={expandedGroups}
-				onExpandedChange={handleAccordionChange}
-				view={{ group: { groupBy: "familyGroup", showAggregation: true } }}
+				view={{
+					group: {
+						groupBy: "familyGroup",
+						showAggregation: true,
+						expandedGroups,
+						onExpandedChange: handleAccordionChange,
+					},
+				}}
 				pagination={(context) => <PagePagination {...context} />}
 			/>
 		</GalleryProvider>

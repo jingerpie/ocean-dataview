@@ -11,6 +11,10 @@ export interface GroupConfig {
 	hideEmptyGroups?: boolean;
 	/** Display aggregation counts in group headers (default: true) */
 	showAggregation?: boolean;
+	/** Controlled expansion state (array of expanded group keys) */
+	expandedGroups?: string[];
+	/** Callback when expansion state changes */
+	onExpandedChange?: (groups: string[]) => void;
 }
 
 export interface GroupedDataItem<TData> {

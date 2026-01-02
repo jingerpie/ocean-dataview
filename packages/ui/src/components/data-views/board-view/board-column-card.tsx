@@ -52,8 +52,12 @@ export interface BoardColumnCardProps<
 		sort?: "propertyAscending" | "propertyDescending";
 		/** Hide sub-groups with no items (default: true) */
 		hideEmptyGroups?: boolean;
-		/** Default expanded sub-groups */
+		/** Default expanded sub-groups (for uncontrolled mode) */
 		defaultExpanded?: string[];
+		/** Controlled sub-group expansion state (array of expanded sub-group keys) */
+		expandedSubGroups?: string[];
+		/** Callback when sub-group expansion changes */
+		onExpandedSubGroupsChange?: (groups: string[]) => void;
 	};
 
 	/**
@@ -118,10 +122,17 @@ export function BoardColumnCard<
 		return properties.find((prop) => prop.id === subGroupConfig.subGroupBy);
 	}, [properties, subGroupConfig]);
 
-	// Shared accordion state for synchronized sub-group expansion across all columns
-	const [expandedSubGroups, setExpandedSubGroups] = useState<string[]>(
+	// Support controlled/uncontrolled pattern for sub-group expansion
+	const isControlled = subGroupConfig?.expandedSubGroups !== undefined;
+	const [internalExpanded, setInternalExpanded] = useState<string[]>(
 		subGroupConfig?.defaultExpanded || [],
 	);
+	const expandedSubGroups = isControlled
+		? (subGroupConfig.expandedSubGroups as string[])
+		: internalExpanded;
+	const handleExpandedChange = isControlled
+		? subGroupConfig.onExpandedSubGroupsChange
+		: setInternalExpanded;
 
 	// Compute all possible sub-groups across all data (for hideEmptyGroups: false)
 	const allSubGroupKeys = useMemo(() => {
@@ -284,7 +295,7 @@ export function BoardColumnCard<
 						subGroupedData={subGroupedDataForColumn}
 						subGroupByPropertyDef={subGroupByPropertyDef}
 						expandedSubGroups={expandedSubGroups}
-						onExpandedSubGroupsChange={setExpandedSubGroups}
+						onExpandedSubGroupsChange={handleExpandedChange}
 						renderFooter={
 							renderColumnFooter
 								? () => renderColumnFooter(groupName)
