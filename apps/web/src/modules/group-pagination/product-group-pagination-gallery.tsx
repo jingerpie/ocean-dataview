@@ -8,7 +8,7 @@ import {
 import { PagePagination } from "@ocean-dataview/ui/components/data-views/shared/page-pagination";
 import {
 	useGroupExpansion,
-	usePagination,
+	useGroupPagination,
 } from "@ocean-dataview/ui/lib/data-views/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/utils/trpc/client";
@@ -38,7 +38,7 @@ export const ProductGroupPaginationGallery = () => {
 	});
 
 	// 3. Pagination with declarative query options
-	const { data, pagination } = usePagination<Product>({
+	const { data, pagination } = useGroupPagination<Product>({
 		expandedGroups,
 		counts: groupCounts,
 		groupBy: "familyGroup",
@@ -73,10 +73,7 @@ export const ProductGroupPaginationGallery = () => {
 	}
 
 	// Empty state (covers errors and empty results)
-	const isEmpty =
-		pagination.mode === "grouped" &&
-		pagination.groups &&
-		pagination.groups.length === 0;
+	const isEmpty = pagination.groups.length === 0;
 
 	if (groupError || isEmpty) {
 		return (

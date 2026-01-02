@@ -1,10 +1,10 @@
 "use client";
 
 import {
+	BoardProvider,
+	BoardView,
 	DataViewOptions,
-	ListProvider,
-	ListView,
-} from "@ocean-dataview/ui/components/data-views/list-view";
+} from "@ocean-dataview/ui/components/data-views/board-view";
 import { PagePagination } from "@ocean-dataview/ui/components/data-views/shared/page-pagination";
 import {
 	useGroupExpansion,
@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "./group-pagination-tabs";
 import { type Product, productProperties } from "./product-properties";
+
 /**
  * Listings Table View
  *
@@ -22,7 +23,7 @@ import { type Product, productProperties } from "./product-properties";
  * 2. usePagination uses expandedGroups to control which queries are enabled
  * 3. TableView receives controlled expansion props
  */
-export const ProductGroupPaginationList = () => {
+export const ProductGroupPaginationBoard = () => {
 	const trpc = useTRPC();
 
 	// 1. Fetch group counts
@@ -84,7 +85,7 @@ export const ProductGroupPaginationList = () => {
 	}
 
 	return (
-		<ListProvider
+		<BoardProvider
 			data={data}
 			properties={productProperties}
 			pagination={pagination}
@@ -94,12 +95,12 @@ export const ProductGroupPaginationList = () => {
 				<DataViewOptions />
 			</div>
 
-			<ListView
+			<BoardView
 				expandedGroups={expandedGroups}
 				onExpandedChange={handleAccordionChange}
 				view={{ group: { groupBy: "familyGroup", showAggregation: true } }}
 				pagination={(context) => <PagePagination {...context} />}
 			/>
-		</ListProvider>
+		</BoardProvider>
 	);
 };
