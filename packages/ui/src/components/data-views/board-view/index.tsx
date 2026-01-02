@@ -2,7 +2,10 @@
 
 import { Badge } from "@ocean-dataview/ui/components/badge";
 import { Card, CardContent } from "@ocean-dataview/ui/components/card";
-import type { GroupedDataItem } from "@ocean-dataview/ui/lib/data-views/hooks";
+import type {
+	GroupedDataItem,
+	GroupInfo,
+} from "@ocean-dataview/ui/lib/data-views/hooks";
 import {
 	useDisplayProperties,
 	useGroupConfig,
@@ -13,6 +16,7 @@ import type {
 	PaginationContext,
 } from "@ocean-dataview/ui/lib/data-views/types";
 import {
+	buildPaginationContext,
 	transformData,
 	validatePropertyKeys,
 } from "@ocean-dataview/ui/lib/data-views/utils";
@@ -149,8 +153,18 @@ export function BoardView<
 	className,
 }: BoardViewProps<TData, TProperties>) {
 	// Get data and properties from context
-	const { data, properties, setExcludedPropertyIds, setPropertyVisibility } =
-		useBoardContext<TData, TProperties>();
+	const {
+		data,
+		properties,
+		pagination: contextPagination,
+		counts,
+		setExcludedPropertyIds,
+		setPropertyVisibility,
+	} = useBoardContext<TData, TProperties>();
+
+	// Check if we're using grouped pagination from context
+	const hasGroupedPagination =
+		contextPagination && "groups" in contextPagination;
 
 	// Apply layout defaults
 	const {
@@ -208,27 +222,61 @@ export function BoardView<
 		return transformData(data as TData[], properties) as TData[];
 	}, [data, properties]);
 
-	// Use shared hook for primary group configuration (with auto-selection)
-	const {
-		groupedData,
-		validationError: primaryValidationError,
-		groupByProperty,
-	} = useGroupConfig(
-		transformedData,
-		properties,
-		groupConfig
-			? {
-					groupBy: String(groupConfig.groupBy),
-					showAs: groupConfig.showAs,
-					startWeekOn: groupConfig.startWeekOn,
-					sort: groupConfig.sort,
-					hideEmptyGroups: groupConfig.hideEmptyGroups,
-				}
-			: undefined,
-		{ required: true, autoSelectGroupBy: true },
-	);
+	// Prepare group configuration (only needed for client-side grouping)
+	const clientGroupConfig = useMemo(() => {
+		if (!groupConfig || hasGroupedPagination) return undefined;
+		return {
+			groupBy: String(groupConfig.groupBy),
+			showAs: groupConfig.showAs,
+			startWeekOn: groupConfig.startWeekOn,
+			sort: groupConfig.sort,
+			hideEmptyGroups: groupConfig.hideEmptyGroups,
+		};
+	}, [groupConfig, hasGroupedPagination]);
 
-	// Grouped data is already transformed
+	// Use shared hook for primary group configuration (with auto-selection)
+	// Skip if using grouped pagination from context
+	const {
+		groupedData: clientGroupedData,
+		validationError: primaryValidationError,
+		groupByProperty: clientGroupByProperty,
+	} = useGroupConfig(transformedData, properties, clientGroupConfig, {
+		required: !hasGroupedPagination,
+		autoSelectGroupBy: !hasGroupedPagination,
+	});
+
+	// Get groupBy property for header display
+	const groupByProperty = useMemo(() => {
+		if (hasGroupedPagination && groupConfig?.groupBy) {
+			// Server pagination - find property manually
+			return properties.find(
+				(p) => String(p.id) === String(groupConfig.groupBy),
+			);
+		}
+		// Client grouping - use from hook
+		return clientGroupByProperty;
+	}, [hasGroupedPagination, groupConfig, properties, clientGroupByProperty]);
+
+	// Choose grouped data source: pagination.groups (server) or useGroupConfig (client)
+	const groupedData = useMemo(() => {
+		if (hasGroupedPagination && "groups" in contextPagination) {
+			// Convert pagination.groups to GroupedDataItem format
+			return contextPagination.groups.map((group: GroupInfo<TData>) => ({
+				key: group.key,
+				items: transformData(group.items, properties) as TData[],
+				count: group.count,
+				displayCount: group.displayCount,
+				sortValue: group.value,
+			}));
+		}
+		return clientGroupedData;
+	}, [hasGroupedPagination, contextPagination, clientGroupedData, properties]);
+
+	// Build Map for O(1) lookup of pagination groups
+	const paginationGroupsMap = useMemo(
+		() => new Map(contextPagination?.groups?.map((g) => [g.key, g]) ?? []),
+		[contextPagination?.groups],
+	);
 
 	// Use shared hook for sub-group configuration (if present)
 	const { validationError: subGroupValidationError } = useGroupConfig(
@@ -471,8 +519,12 @@ export function BoardView<
 		);
 	}
 
-	// Empty state
-	if (Array.isArray(data) && (data.length === 0 || !groupedData)) {
+	// Empty state - check both client-side and server-side cases
+	const isEmpty = hasGroupedPagination
+		? contextPagination.groups.length === 0
+		: Array.isArray(data) && (data.length === 0 || !groupedData);
+
+	if (isEmpty) {
 		return (
 			<EmptyState
 				icon={Columns3}
@@ -487,13 +539,12 @@ export function BoardView<
 
 	// Build pagination context getter for each column
 	const getColumnPaginationContext = (
-		_groupKey: string,
+		groupKey: string,
 	): PaginationContext | undefined => {
-		if (!pagination) {
+		if (!pagination || !hasGroupedPagination) {
 			return undefined;
 		}
-
-		return {} as PaginationContext;
+		return buildPaginationContext(contextPagination, groupKey);
 	};
 
 	return (
@@ -523,7 +574,11 @@ export {
 	DataViewOptions,
 	type DataViewOptionsProps,
 } from "@ocean-dataview/ui/components/data-views/shared/data-view-options";
-export type { BoardContextValue } from "./board-context";
+export type {
+	BoardContextValue,
+	GroupCounts,
+	GroupCountsWithSubGroups,
+} from "./board-context";
 export { useBoardContext } from "./board-context";
 export type { BoardProviderProps } from "./board-provider";
 // Export components and types

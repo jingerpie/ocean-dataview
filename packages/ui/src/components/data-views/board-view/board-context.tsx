@@ -1,7 +1,21 @@
 "use client";
 
+import type { GroupedPaginationOutput } from "@ocean-dataview/ui/lib/data-views/hooks/use-group-pagination";
 import type { DataViewProperty } from "@ocean-dataview/ui/lib/data-views/types";
 import { createContext, useContext } from "react";
+
+/** Single-level group counts */
+export type GroupCounts = Record<string, { count: number; hasMore: boolean }>;
+
+/** Two-level group counts (with sub-groups) */
+export type GroupCountsWithSubGroups = Record<
+	string,
+	{
+		count: number;
+		hasMore: boolean;
+		subGroups: Record<string, { count: number; hasMore: boolean }>;
+	}
+>;
 
 export interface BoardContextValue<
 	TData,
@@ -10,6 +24,10 @@ export interface BoardContextValue<
 	// Core data
 	data: TData[];
 	properties: TProperties;
+
+	// Pagination support (for server-side grouping)
+	pagination?: GroupedPaginationOutput<TData>;
+	counts?: GroupCounts | GroupCountsWithSubGroups;
 
 	// Property visibility state
 	propertyVisibility: TProperties[number]["id"][];

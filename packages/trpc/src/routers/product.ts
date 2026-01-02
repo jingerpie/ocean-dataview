@@ -107,14 +107,57 @@ export const productRouter = router({
 			z.object({
 				channelId: z.string().optional(),
 				groupBy: z.enum(["type", "familyGroup"]),
+				subGroupBy: z.enum(["type", "familyGroup", "tag"]).optional(),
 			}),
 		)
 		.query(async ({ input }) => {
-			const { groupBy } = input;
+			const { groupBy, subGroupBy } = input;
 
 			const groupByColumn = product[groupBy];
 
-			// Get counts per group
+			// Two-level grouping (for BoardView sub-groups)
+			if (subGroupBy) {
+				const subGroupByColumn = product[subGroupBy];
+
+				const groupedCounts = await db
+					.select({
+						group: groupByColumn,
+						subGroup: subGroupByColumn,
+						count: count(),
+					})
+					.from(product)
+					.groupBy(groupByColumn, subGroupByColumn)
+					.orderBy(desc(count()));
+
+				// Transform into nested structure
+				const result: Record<
+					string,
+					{
+						count: number;
+						hasMore: boolean;
+						subGroups: Record<string, { count: number; hasMore: boolean }>;
+					}
+				> = {};
+
+				for (const { group, subGroup, count: c } of groupedCounts) {
+					const groupKey = String(group ?? "null");
+					const subGroupKey = String(subGroup ?? "null");
+
+					if (!result[groupKey]) {
+						result[groupKey] = { count: 0, hasMore: false, subGroups: {} };
+					}
+					result[groupKey].count += c;
+					result[groupKey].hasMore = result[groupKey].count >= 100;
+					result[groupKey].subGroups[subGroupKey] = {
+						count: Math.min(c, 100),
+						hasMore: c >= 100,
+					};
+				}
+
+				return result;
+			}
+
+			// Single-level grouping (existing logic)
 			const groupedCounts = await db
 				.select({
 					group: groupByColumn,

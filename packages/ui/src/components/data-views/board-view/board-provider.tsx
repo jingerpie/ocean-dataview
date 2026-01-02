@@ -1,10 +1,16 @@
 "use client";
 
+import type { GroupedPaginationOutput } from "@ocean-dataview/ui/lib/data-views/hooks/use-group-pagination";
 import type { DataViewProperty } from "@ocean-dataview/ui/lib/data-views/types";
 import { cn } from "@ocean-dataview/ui/lib/utils";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { BoardContext, type BoardContextValue } from "./board-context";
+import {
+	BoardContext,
+	type BoardContextValue,
+	type GroupCounts,
+	type GroupCountsWithSubGroups,
+} from "./board-context";
 
 export interface BoardProviderProps<
 	TData,
@@ -12,6 +18,10 @@ export interface BoardProviderProps<
 > {
 	data: TData[];
 	properties: TProperties;
+	/** Pagination state from useGroupPagination (for server-side grouping) */
+	pagination?: GroupedPaginationOutput<TData>;
+	/** Group counts from getGroup API (for rendering all column headers) */
+	counts?: GroupCounts | GroupCountsWithSubGroups;
 	children: ReactNode;
 	className?: string;
 }
@@ -23,6 +33,8 @@ export function BoardProvider<
 >({
 	data,
 	properties,
+	pagination,
+	counts,
 	children,
 	className,
 }: BoardProviderProps<TData, TProperties>) {
@@ -69,6 +81,8 @@ export function BoardProvider<
 		() => ({
 			data,
 			properties,
+			pagination,
+			counts,
 			propertyVisibility,
 			setPropertyVisibility,
 			excludedPropertyIds,
@@ -80,6 +94,8 @@ export function BoardProvider<
 		[
 			data,
 			properties,
+			pagination,
+			counts,
 			propertyVisibility,
 			excludedPropertyIds,
 			toggleProperty,

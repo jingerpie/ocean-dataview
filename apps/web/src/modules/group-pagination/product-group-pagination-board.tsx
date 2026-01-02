@@ -6,22 +6,17 @@ import {
 	DataViewOptions,
 } from "@ocean-dataview/ui/components/data-views/board-view";
 import { PagePagination } from "@ocean-dataview/ui/components/data-views/shared/page-pagination";
-import {
-	useGroupExpansion,
-	useGroupPagination,
-} from "@ocean-dataview/ui/lib/data-views/hooks";
+import { useGroupPagination } from "@ocean-dataview/ui/lib/data-views/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "./group-pagination-tabs";
 import { type Product, productProperties } from "./product-properties";
 
 /**
- * Listings Table View
+ * BoardView with server-side pagination
  *
- * Uses controlled expansion pattern:
- * 1. useGroupExpansion manages URL state for expanded groups
- * 2. usePagination uses expandedGroups to control which queries are enabled
- * 3. TableView receives controlled expansion props
+ * Unlike Table/List/Gallery, BoardView columns are always visible (no accordion).
+ * All group keys are passed to useGroupPagination so all columns fetch data.
  */
 export const ProductGroupPaginationBoard = () => {
 	const trpc = useTRPC();
@@ -33,14 +28,13 @@ export const ProductGroupPaginationBoard = () => {
 		error: groupError,
 	} = useQuery(trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" }));
 
-	// 2. Expansion state (controlled)
-	const { expandedGroups, handleAccordionChange } = useGroupExpansion({
-		defaultExpanded: [],
-	});
+	// 2. All columns need data - no useGroupExpansion needed for BoardView
+	// All group keys are "expanded" so all columns fetch data
+	const allGroupKeys = Object.keys(groupCounts || {});
 
 	// 3. Pagination with declarative query options
 	const { data, pagination } = useGroupPagination<Product>({
-		expandedGroups,
+		expandedGroups: allGroupKeys, // All columns fetch data (always "expanded")
 		counts: groupCounts,
 		groupBy: "familyGroup",
 		createQueryOptions: (groupKey, after, before, limit) =>
@@ -89,6 +83,7 @@ export const ProductGroupPaginationBoard = () => {
 			data={data}
 			properties={productProperties}
 			pagination={pagination}
+			counts={groupCounts}
 		>
 			<div className="flex items-center justify-between">
 				<GroupPaginationTabs />
@@ -96,9 +91,10 @@ export const ProductGroupPaginationBoard = () => {
 			</div>
 
 			<BoardView
-				expandedGroups={expandedGroups}
-				onExpandedChange={handleAccordionChange}
-				view={{ group: { groupBy: "familyGroup", showAggregation: true } }}
+				view={{
+					group: { groupBy: "familyGroup", showAggregation: true },
+					subGroup: { subGroupBy: "tag" },
+				}}
 				pagination={(context) => <PagePagination {...context} />}
 			/>
 		</BoardProvider>
