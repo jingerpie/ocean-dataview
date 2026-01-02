@@ -1,5 +1,6 @@
 "use client";
 
+import { useGroupTriggerRef } from "@ocean-dataview/ui/components/data-views/shared";
 import {
 	Table,
 	TableBody,
@@ -84,12 +85,6 @@ interface DataTableProps<TData> {
 	 * Additional className for the table wrapper
 	 */
 	className?: string;
-
-	/**
-	 * Optional ref to group accordion trigger (for grouped tables)
-	 * Used to calculate correct sticky header offset
-	 */
-	groupTriggerRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 /**
@@ -110,10 +105,11 @@ export function DataTable<TData>({
 	header = true,
 	offset = 0,
 	className,
-	groupTriggerRef,
 }: DataTableProps<TData>) {
 	const tableHeaderRef = useRef<HTMLTableSectionElement>(null);
 	const tableContainerRef = useRef<HTMLDivElement>(null);
+	// Get group trigger ref from context (provided by GroupSection when in grouped layout)
+	const groupTriggerRef = useGroupTriggerRef();
 
 	const headerConfig: HeaderConfig =
 		typeof header === "boolean"

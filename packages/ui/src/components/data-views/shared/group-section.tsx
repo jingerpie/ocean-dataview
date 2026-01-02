@@ -5,6 +5,7 @@ import {
 	GroupAccordionItem,
 	GroupAccordionTrigger,
 } from "@ocean-dataview/ui/components/data-views/shared/group-accordion";
+import { GroupTriggerRefProvider } from "@ocean-dataview/ui/components/data-views/shared/group-trigger-ref-context";
 import { PropertyDisplay } from "@ocean-dataview/ui/lib/data-views/properties";
 import type { DataViewProperty } from "@ocean-dataview/ui/lib/data-views/types";
 import { Loader2 } from "lucide-react";
@@ -96,17 +97,10 @@ export function GroupSection<TData>({
 						<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
 					</div>
 				) : (
-					<>
-						{React.cloneElement(
-							children as React.ReactElement<{
-								groupTriggerRef?: React.RefObject<HTMLButtonElement | null>;
-							}>,
-							{
-								groupTriggerRef,
-							},
-						)}
+					<GroupTriggerRefProvider value={groupTriggerRef}>
+						{children}
 						{renderFooter}
-					</>
+					</GroupTriggerRefProvider>
 				)}
 			</GroupAccordionContent>
 		</GroupAccordionItem>
