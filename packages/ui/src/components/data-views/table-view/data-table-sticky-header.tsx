@@ -15,7 +15,6 @@ interface DataTableStickyHeaderProps<TData> {
 	enabled: boolean;
 	tableHeaderRef: React.RefObject<HTMLTableSectionElement | null>;
 	tableContainerRef: React.RefObject<HTMLDivElement | null>;
-	groupTriggerRef?: React.RefObject<HTMLButtonElement | null>;
 	offset?: number;
 }
 
@@ -24,7 +23,6 @@ export function DataTableStickyHeader<TData>({
 	enabled,
 	tableHeaderRef,
 	tableContainerRef,
-	groupTriggerRef,
 	offset = 0,
 }: DataTableStickyHeaderProps<TData>) {
 	const stickyHeaderScrollRef = useRef<HTMLDivElement>(null);
@@ -51,14 +49,8 @@ export function DataTableStickyHeader<TData>({
 		const containerElement = tableContainerRef.current;
 		if (!headerElement || !containerElement) return;
 
-		// Calculate sticky top offset - add group trigger height if exists
+		// Sticky header position (accounts for site header/navbar)
 		const calculateStickyOffset = (): number => {
-			if (groupTriggerRef?.current) {
-				const triggerHeight =
-					groupTriggerRef.current.getBoundingClientRect().height;
-				return triggerHeight - 2;
-			}
-			// No group trigger - flat table uses base offset
 			return offset;
 		};
 
@@ -135,7 +127,6 @@ export function DataTableStickyHeader<TData>({
 
 		// Update on resize
 		const resizeObserver = new ResizeObserver(() => {
-			// Recalculate sticky offset in case accordion trigger height changes
 			setStickyTopOffset(calculateStickyOffset());
 			updateColumnWidths();
 			updateContainerRect();
@@ -160,7 +151,7 @@ export function DataTableStickyHeader<TData>({
 			window.removeEventListener("scroll", handleScroll);
 			containerElement.removeEventListener("scroll", handleTableScroll);
 		};
-	}, [enabled, tableHeaderRef, tableContainerRef, groupTriggerRef, offset]);
+	}, [enabled, tableHeaderRef, tableContainerRef, offset]);
 
 	// Effect for sticky header scroll synchronization
 	useEffect(() => {

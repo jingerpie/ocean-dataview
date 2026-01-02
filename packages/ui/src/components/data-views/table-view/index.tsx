@@ -470,7 +470,7 @@ export function TableView<
 									onRowSelectionChange={setRowSelection}
 									actionBar={actionBar}
 									header={{ enabled: true, sticky: true }}
-									offset={48}
+									offset={56}
 								/>
 							</GroupSection>
 						);
@@ -503,7 +503,7 @@ export function TableView<
 				onRowSelectionChange={setRowSelection}
 				actionBar={actionBar}
 				header={{ enabled: true, sticky: true }}
-				offset={48}
+				offset={56}
 			/>
 		</div>
 	);

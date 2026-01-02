@@ -8,7 +8,6 @@ export { EmptyState } from "./empty-state";
 export type { FilterDefinition, FilterOption } from "./filter-dropdown";
 export { FilterDropdown } from "./filter-dropdown";
 export { GroupSection } from "./group-section";
-export { useGroupTriggerRef } from "./group-trigger-ref-context";
 export { GroupedLayout } from "./grouped-layout";
 export { LoadMorePagination } from "./load-more-pagination";
 export { LoadingSkeleton } from "./loading-skeleton";

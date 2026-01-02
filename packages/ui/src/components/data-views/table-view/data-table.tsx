@@ -1,6 +1,5 @@
 "use client";
 
-import { useGroupTriggerRef } from "@ocean-dataview/ui/components/data-views/shared";
 import {
 	Table,
 	TableBody,
@@ -108,8 +107,6 @@ export function DataTable<TData>({
 }: DataTableProps<TData>) {
 	const tableHeaderRef = useRef<HTMLTableSectionElement>(null);
 	const tableContainerRef = useRef<HTMLDivElement>(null);
-	// Get group trigger ref from context (provided by GroupSection when in grouped layout)
-	const groupTriggerRef = useGroupTriggerRef();
 
 	const headerConfig: HeaderConfig =
 		typeof header === "boolean"
@@ -146,7 +143,6 @@ export function DataTable<TData>({
 				enabled={!!headerConfig.sticky}
 				tableHeaderRef={tableHeaderRef}
 				tableContainerRef={tableContainerRef}
-				groupTriggerRef={groupTriggerRef}
 				offset={offset}
 			/>
 

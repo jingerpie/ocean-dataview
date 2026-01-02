@@ -5,11 +5,10 @@ import {
 	GroupAccordionItem,
 	GroupAccordionTrigger,
 } from "@ocean-dataview/ui/components/data-views/shared/group-accordion";
-import { GroupTriggerRefProvider } from "@ocean-dataview/ui/components/data-views/shared/group-trigger-ref-context";
 import { PropertyDisplay } from "@ocean-dataview/ui/lib/data-views/properties";
 import type { DataViewProperty } from "@ocean-dataview/ui/lib/data-views/types";
 import { Loader2 } from "lucide-react";
-import * as React from "react";
+import type * as React from "react";
 
 interface GroupSectionProps<TData> {
 	/**
@@ -63,14 +62,9 @@ export function GroupSection<TData>({
 	isLoading = false,
 	showAggregation = true,
 }: GroupSectionProps<TData>) {
-	const groupTriggerRef = React.useRef<HTMLButtonElement>(null);
-
 	return (
 		<GroupAccordionItem value={group.key}>
-			<GroupAccordionTrigger
-				ref={groupTriggerRef}
-				className="py-3 hover:no-underline"
-			>
+			<GroupAccordionTrigger className="py-3 hover:no-underline">
 				<div className="flex items-center gap-2">
 					{groupByPropertyDef ? (
 						<PropertyDisplay
@@ -97,10 +91,10 @@ export function GroupSection<TData>({
 						<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
 					</div>
 				) : (
-					<GroupTriggerRefProvider value={groupTriggerRef}>
+					<>
 						{children}
 						{renderFooter}
-					</GroupTriggerRefProvider>
+					</>
 				)}
 			</GroupAccordionContent>
 		</GroupAccordionItem>
