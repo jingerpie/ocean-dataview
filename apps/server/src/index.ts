@@ -14,6 +14,7 @@ app.use(
 	cors({
 		origin: env.CORS_ORIGIN,
 		allowMethods: ["GET", "POST", "OPTIONS"],
+		credentials: true,
 	}),
 );
 
@@ -21,7 +22,9 @@ app.use(
 	"/trpc/*",
 	trpcServer({
 		router: appRouter,
-		createContext,
+		createContext: (_opts, context) => {
+			return createContext({ context });
+		},
 	}),
 );
 

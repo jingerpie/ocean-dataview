@@ -36,7 +36,9 @@
       "dependencies": {
         "@base-ui/react": "catalog:",
         "@ocean-dataview/env": "workspace:*",
+        "@ocean-dataview/shared": "workspace:*",
         "@ocean-dataview/trpc": "workspace:*",
+        "@ocean-dataview/ui": "workspace:*",
         "@tanstack/react-form": "catalog:",
         "@tanstack/react-query": "catalog:",
         "@trpc/client": "catalog:",
@@ -49,10 +51,12 @@
         "lucide-react": "catalog:",
         "next": "catalog:",
         "next-themes": "catalog:",
+        "nuqs": "catalog:",
         "react": "catalog:",
         "react-dom": "catalog:",
         "shadcn": "catalog:",
         "sonner": "catalog:",
+        "superjson": "catalog:",
         "tailwind-merge": "catalog:",
         "tw-animate-css": "catalog:",
         "zod": "catalog:",
@@ -2031,6 +2035,8 @@
     "@turbo/workspaces/semver": ["semver@7.6.2", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-FNAIBWCx9qcRhoHcgcJ0gvU7SN1lYU2ZXuSfl04bSC5OpvDHFyJCjdNHomPXxjQlCBU67YW64PzY7/VIEH7F2w=="],
 
     "@types/inquirer/rxjs": ["rxjs@6.6.7", "", { "dependencies": { "tslib": "^1.9.0" } }, "sha512-hTdwr+7yYNIT5n4AMYp85KA6yw2Va0FLa3Rguvbpa4W3I5xynaBZo41cM3XM+4Q6fRMj3sBYIR1VAmZMXYJvRQ=="],
+
+    "@types/minimatch/minimatch": ["minimatch@10.1.1", "", { "dependencies": { "@isaacs/brace-expansion": "^5.0.0" } }, "sha512-enIvLvRAFZYXJzkCYG5RKmPfrFArdLv+R+lbQ53BmIMLIry74bjKzX6iHAm8WYamJkhSSEabrWN5D97XnKObjQ=="],
 
     "ansi-escapes/type-fest": ["type-fest@0.21.3", "", {}, "sha512-t0rzBq87m3fVcduHDUFhKmyyX+9eo6WQjZvf51Ea/M0Q7+T374Jp1aUiyUl0GKxp8M/OETVHSDvmkyPgvX+X2w=="],
 
