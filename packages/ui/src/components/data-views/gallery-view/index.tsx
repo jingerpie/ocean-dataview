@@ -172,7 +172,7 @@ export function GalleryView<
 
 	// Check if we're using grouped pagination from context
 	const hasGroupedPagination =
-		contextPagination && contextPagination.mode === "grouped";
+		contextPagination && "groups" in contextPagination;
 
 	// Prepare group configuration (only needed for client-side grouping)
 	const groupConfig = useMemo(() => {
@@ -206,7 +206,7 @@ export function GalleryView<
 
 	// Choose grouped data source: pagination.groups (server) or useGroupConfig (client)
 	const groupedData = useMemo(() => {
-		if (hasGroupedPagination && contextPagination.mode === "grouped") {
+		if (hasGroupedPagination && "groups" in contextPagination) {
 			// Convert pagination.groups to GroupedDataItem format
 			return contextPagination.groups.map((group: GroupInfo<TData>) => ({
 				key: group.key,

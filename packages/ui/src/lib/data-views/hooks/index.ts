@@ -19,6 +19,13 @@ export type {
 	GroupInfo,
 	GroupQueryResult,
 	SmartPaginationOutput,
+} from "./use-group-pagination";
+export { useGroupPagination } from "./use-group-pagination";
+export type {
+	PaginationInput,
+	PaginationOutput,
+	PaginationState,
+	QueryResult,
 } from "./use-pagination";
 export { usePagination } from "./use-pagination";
 export { usePaginationParams } from "./use-pagination-params";

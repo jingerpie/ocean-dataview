@@ -1,4 +1,4 @@
-import type { GroupedPaginationOutput } from "../hooks/use-pagination";
+import type { GroupedPaginationOutput } from "../hooks/use-group-pagination";
 import type { PaginationContext } from "../types/pagination";
 
 /**
@@ -13,7 +13,7 @@ export function buildPaginationContext<TData>(
 	pagination: GroupedPaginationOutput<TData> | undefined,
 	groupKey: string,
 ): PaginationContext | undefined {
-	if (pagination?.mode !== "grouped") return undefined;
+	if (!pagination?.groups) return undefined;
 
 	const group = pagination.groups.find((g) => g.key === groupKey);
 	if (!group) return undefined;
