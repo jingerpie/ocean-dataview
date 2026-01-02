@@ -1,14 +1,15 @@
 import { db } from "@ocean-dataview/db";
 import { product } from "@ocean-dataview/db/schema/product";
 import { productSearchParamsSchema } from "@ocean-dataview/shared/types";
-import { and, asc, desc, sql } from "drizzle-orm";
+import { and, asc, count, desc, sql } from "drizzle-orm";
+import { z } from "zod";
 import { publicProcedure, router } from "../index";
 import { filterColumns } from "../lib/filter-columns";
 
 export const productRouter = router({
 	getMany: publicProcedure
 		.input(productSearchParamsSchema)
-		.query(async ({ input, ctx }) => {
+		.query(async ({ input }) => {
 			const { after, before, limit, filters, sort, joinOperator } = input;
 
 			const advancedWhere = filterColumns({
@@ -71,7 +72,6 @@ export const productRouter = router({
 			}
 
 			const data = await db.query.product.findMany({
-				with: { variantItems: true },
 				where,
 				orderBy,
 				limit: limit + 1,
@@ -101,5 +101,40 @@ export const productRouter = router({
 				hasNextPage: isBackward ? true : hasMoreInDirection,
 				hasPreviousPage: isBackward ? hasMoreInDirection : !!after,
 			};
+		}),
+	getGroup: publicProcedure
+		.input(
+			z.object({
+				channelId: z.string().optional(),
+				groupBy: z.enum(["type", "familyGroup"]),
+			}),
+		)
+		.query(async ({ input }) => {
+			const { groupBy } = input;
+
+			const groupByColumn = product[groupBy];
+
+			// Get counts per group
+			const groupedCounts = await db
+				.select({
+					group: groupByColumn,
+					count: count(),
+				})
+				.from(product)
+				.groupBy(groupByColumn)
+				.orderBy(desc(count()));
+
+			// Build result with counts capped at 100 and hasMore flag
+			const result: Record<string, { count: number; hasMore: boolean }> = {};
+
+			for (const { group, count: groupCount } of groupedCounts) {
+				const groupKey = String(group ?? "null");
+				result[groupKey] = {
+					count: Math.min(groupCount, 100),
+					hasMore: groupCount >= 100,
+				};
+			}
+
+			return result;
 		}),
 });

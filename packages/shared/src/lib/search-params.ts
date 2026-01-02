@@ -106,8 +106,8 @@ export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 	});
 
 	const baseSchema = z.object({
-		after: z.string().nullish(), // Forward cursor
-		before: z.string().nullish(), // Backward cursor
+		after: z.coerce.string().nullish(), // Forward cursor (coerce number to string)
+		before: z.coerce.string().nullish(), // Backward cursor (coerce number to string)
 		limit: z.number().int().min(1).max(200).default(DEFAULT_LIMIT),
 		filters: z.array(filterSchema).default([]),
 		sort: z.array(sortSchema).default([]),

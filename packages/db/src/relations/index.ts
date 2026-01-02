@@ -1,5 +1,7 @@
 import { relations } from "drizzle-orm/relations";
-import { price, product, restaurant } from "../schema";
+import { price } from "../schema/price";
+import { product } from "../schema/product";
+import { restaurant } from "../schema/restaurant";
 
 export const priceRelations = relations(price, ({ one }) => ({
 	product: one(product, {
