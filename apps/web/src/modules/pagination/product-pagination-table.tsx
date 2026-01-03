@@ -1,11 +1,9 @@
 "use client";
 
+import { DataViewOptions } from "@ocean-dataview/ui/components/data-views/shared/data-view-options";
+import { DataViewProvider } from "@ocean-dataview/ui/components/data-views/shared/data-view-provider";
 import { PagePagination } from "@ocean-dataview/ui/components/data-views/shared/page-pagination";
-import {
-	DataViewOptions,
-	TableProvider,
-	TableView,
-} from "@ocean-dataview/ui/components/data-views/table-view";
+import { TableView } from "@ocean-dataview/ui/components/data-views/table-view";
 import { usePagination } from "@ocean-dataview/ui/lib/data-views/hooks";
 import { useTRPC } from "@/utils/trpc/client";
 import { PaginationTabs } from "./pagination-tabs";
@@ -56,7 +54,7 @@ export const ProductPaginationTable = () => {
 	}
 
 	return (
-		<TableProvider data={data} properties={productProperties}>
+		<DataViewProvider data={data} properties={productProperties}>
 			<div className="flex items-center justify-between">
 				<PaginationTabs />
 				<DataViewOptions />
@@ -65,6 +63,6 @@ export const ProductPaginationTable = () => {
 			<TableView layout={{ showVerticalLines: false, wrapAllColumns: false }} />
 
 			<PagePagination {...pagination} />
-		</TableProvider>
+		</DataViewProvider>
 	);
 };

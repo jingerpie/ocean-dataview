@@ -5,9 +5,12 @@ import type { DataViewProperty } from "@ocean-dataview/ui/lib/data-views/types";
 import { cn } from "@ocean-dataview/ui/lib/utils";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { TableContext, type TableContextValue } from "./table-context";
+import {
+	DataViewContext,
+	type DataViewContextValue,
+} from "./data-view-context";
 
-export interface TableProviderProps<
+export interface DataViewProviderProps<
 	TData,
 	TProperties extends readonly DataViewProperty<TData>[],
 > {
@@ -18,7 +21,7 @@ export interface TableProviderProps<
 	pagination?: GroupedPaginationOutput<TData> | undefined;
 }
 
-export function TableProvider<
+export function DataViewProvider<
 	TData = unknown,
 	TProperties extends
 		readonly DataViewProperty<TData>[] = readonly DataViewProperty<TData>[],
@@ -28,7 +31,7 @@ export function TableProvider<
 	children,
 	className,
 	pagination,
-}: TableProviderProps<TData, TProperties>) {
+}: DataViewProviderProps<TData, TProperties>) {
 	const [propertyVisibility, setPropertyVisibility] = useState<
 		TProperties[number]["id"][]
 	>(() => properties.map((prop) => prop.id));
@@ -68,7 +71,7 @@ export function TableProvider<
 		setPropertyVisibility([]);
 	}, []);
 
-	const contextValue = useMemo<TableContextValue<TData, TProperties>>(
+	const contextValue = useMemo<DataViewContextValue<TData, TProperties>>(
 		() => ({
 			data,
 			properties,
@@ -94,8 +97,8 @@ export function TableProvider<
 	);
 
 	return (
-		<TableContext.Provider value={contextValue}>
+		<DataViewContext.Provider value={contextValue}>
 			<div className={cn("flex flex-col gap-3", className)}>{children}</div>
-		</TableContext.Provider>
+		</DataViewContext.Provider>
 	);
 }

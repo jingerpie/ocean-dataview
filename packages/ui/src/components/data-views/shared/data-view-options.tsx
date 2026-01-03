@@ -17,7 +17,7 @@ import {
 import { cn } from "@ocean-dataview/ui/lib/utils";
 import { Check, ChevronsUpDown, Settings2 } from "lucide-react";
 import * as React from "react";
-import { useDataViewContext } from "./use-data-view-context";
+import { useDataViewContext } from "./data-view-context";
 
 export interface DataViewOptionsProps {
 	variant?: "default" | "icon";

@@ -4,7 +4,7 @@ import type { GroupedPaginationOutput } from "@ocean-dataview/ui/lib/data-views/
 import type { DataViewProperty } from "@ocean-dataview/ui/lib/data-views/types";
 import { createContext, useContext } from "react";
 
-export interface TableContextValue<
+export interface DataViewContextValue<
 	TData,
 	TProperties extends readonly DataViewProperty<TData>[],
 > {
@@ -12,11 +12,11 @@ export interface TableContextValue<
 	data: TData[];
 	properties: TProperties;
 
-	// Column visibility state
+	// Property visibility state
 	propertyVisibility: TProperties[number]["id"][];
 	setPropertyVisibility: (visibility: TProperties[number]["id"][]) => void;
 
-	// Excluded properties (e.g., grouped column) - set by TableView
+	// Excluded properties (e.g., grouped column) - set by view component
 	excludedPropertyIds: TProperties[number]["id"][];
 	setExcludedPropertyIds: (ids: TProperties[number]["id"][]) => void;
 
@@ -25,21 +25,23 @@ export interface TableContextValue<
 	showAllProperties: () => void;
 	hideAllProperties: () => void;
 
-	// Optional pagination data
+	// Grouped pagination
 	pagination?: GroupedPaginationOutput<TData> | undefined;
 }
 
-export const TableContext = createContext<
-	TableContextValue<any, any> | undefined
+export const DataViewContext = createContext<
+	DataViewContextValue<any, any> | undefined
 >(undefined);
 
-export function useTableContext<
+export function useDataViewContext<
 	TData,
 	TProperties extends readonly DataViewProperty<TData>[],
 >() {
-	const context = useContext(TableContext);
+	const context = useContext(DataViewContext);
 	if (!context) {
-		throw new Error("TableView must be used within a TableProvider");
+		throw new Error(
+			"useDataViewContext must be used within a DataViewProvider",
+		);
 	}
-	return context as TableContextValue<TData, TProperties>;
+	return context as DataViewContextValue<TData, TProperties>;
 }

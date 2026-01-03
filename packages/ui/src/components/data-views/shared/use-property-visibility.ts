@@ -1,5 +1,5 @@
 import type { DataViewProperty } from "@ocean-dataview/ui/lib/data-views/types";
-import { useDataViewContext } from "./use-data-view-context";
+import { useDataViewContext } from "./data-view-context";
 
 /**
  * Hook to get the effective property visibility

@@ -1,11 +1,8 @@
 "use client";
 
-import {
-	BoardProvider,
-	BoardView,
-	DataViewOptions,
-} from "@ocean-dataview/ui/components/data-views/board-view";
-import { PagePagination } from "@ocean-dataview/ui/components/data-views/shared/page-pagination";
+import { BoardView } from "@ocean-dataview/ui/components/data-views/board-view";
+import { DataViewOptions } from "@ocean-dataview/ui/components/data-views/shared/data-view-options";
+import { DataViewProvider } from "@ocean-dataview/ui/components/data-views/shared/data-view-provider";
 import { useGroupPagination } from "@ocean-dataview/ui/lib/data-views/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/utils/trpc/client";
@@ -79,11 +76,10 @@ export const ProductSubGroupPaginationBoard = () => {
 	}
 
 	return (
-		<BoardProvider
+		<DataViewProvider
 			data={data}
 			properties={productProperties}
 			pagination={pagination}
-			counts={groupCounts}
 		>
 			<div className="flex items-center justify-between">
 				<GroupPaginationTabs />
@@ -95,7 +91,8 @@ export const ProductSubGroupPaginationBoard = () => {
 					group: { groupBy: "familyGroup", showAggregation: true },
 					subGroup: { subGroupBy: "tag" },
 				}}
+				counts={groupCounts}
 			/>
-		</BoardProvider>
+		</DataViewProvider>
 	);
 };

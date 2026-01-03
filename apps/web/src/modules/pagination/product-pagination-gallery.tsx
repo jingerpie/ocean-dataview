@@ -1,10 +1,8 @@
 "use client";
 
-import {
-	DataViewOptions,
-	GalleryProvider,
-	GalleryView,
-} from "@ocean-dataview/ui/components/data-views/gallery-view";
+import { GalleryView } from "@ocean-dataview/ui/components/data-views/gallery-view";
+import { DataViewOptions } from "@ocean-dataview/ui/components/data-views/shared/data-view-options";
+import { DataViewProvider } from "@ocean-dataview/ui/components/data-views/shared/data-view-provider";
 import { PagePagination } from "@ocean-dataview/ui/components/data-views/shared/page-pagination";
 import { usePagination } from "@ocean-dataview/ui/lib/data-views/hooks";
 import { useTRPC } from "@/utils/trpc/client";
@@ -51,7 +49,7 @@ export const ProductPaginationGallery = () => {
 	}
 
 	return (
-		<GalleryProvider data={data} properties={productProperties}>
+		<DataViewProvider data={data} properties={productProperties}>
 			<div className="flex items-center justify-between">
 				<PaginationTabs />
 				<DataViewOptions />
@@ -66,6 +64,6 @@ export const ProductPaginationGallery = () => {
 			/>
 
 			<PagePagination {...pagination} />
-		</GalleryProvider>
+		</DataViewProvider>
 	);
 };

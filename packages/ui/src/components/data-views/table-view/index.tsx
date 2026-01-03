@@ -34,8 +34,8 @@ import type {
 } from "@tanstack/react-table";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useDataViewContext } from "../shared/data-view-context";
 import { DataTable } from "./data-table";
-import { useTableContext } from "./table-context";
 
 export interface TableViewProps<
 	TData,
@@ -138,7 +138,7 @@ export function TableView<
 }: TableViewProps<TData, TProperties>) {
 	// Get data and properties from context
 	const { data, properties, setExcludedPropertyIds, setPropertyVisibility } =
-		useTableContext<TData, TProperties>();
+		useDataViewContext<TData, TProperties>();
 
 	const { showVerticalLines = true, wrapAllColumns = true } = layout;
 	const { propertyVisibility: viewPropertyVisibility, group: groupBy } = view;
@@ -154,10 +154,8 @@ export function TableView<
 	}, [viewPropertyVisibility, setPropertyVisibility]);
 
 	// Always use context state (which can be controlled by DataViewOptions)
-	const { propertyVisibility, pagination: contextPagination } = useTableContext<
-		TData,
-		TProperties
-	>();
+	const { propertyVisibility, pagination: contextPagination } =
+		useDataViewContext<TData, TProperties>();
 
 	// Update excluded properties when groupBy changes
 	useEffect(() => {
@@ -513,8 +511,8 @@ export {
 	DataViewOptions,
 	type DataViewOptionsProps,
 } from "@ocean-dataview/ui/components/data-views/shared/data-view-options";
-export type { TableContextValue } from "./table-context";
-export { useTableContext } from "./table-context";
-export type { TableProviderProps } from "./table-provider";
-// Export components and types
-export { TableProvider } from "./table-provider";
+// Re-export from shared with view-specific aliases
+export type { DataViewContextValue as TableContextValue } from "../shared/data-view-context";
+export { useDataViewContext as useTableContext } from "../shared/data-view-context";
+export type { DataViewProviderProps as TableProviderProps } from "../shared/data-view-provider";
+export { DataViewProvider as TableProvider } from "../shared/data-view-provider";

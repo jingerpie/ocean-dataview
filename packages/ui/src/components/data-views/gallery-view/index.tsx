@@ -21,8 +21,8 @@ import {
 } from "@ocean-dataview/ui/lib/data-views/utils";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
+import { useDataViewContext } from "../shared/data-view-context";
 import { GalleryCard } from "./gallery-card";
-import { useGalleryContext } from "./gallery-context";
 
 export interface GalleryViewProps<
 	TData,
@@ -118,7 +118,7 @@ export function GalleryView<
 }: GalleryViewProps<TData, TProperties>) {
 	// Get data and properties from context
 	const { data, properties, setExcludedPropertyIds, setPropertyVisibility } =
-		useGalleryContext<TData, TProperties>();
+		useDataViewContext<TData, TProperties>();
 
 	const {
 		cardPreview,
@@ -140,7 +140,7 @@ export function GalleryView<
 
 	// Always use context state (which can be controlled by DataViewOptions)
 	const { propertyVisibility, pagination: contextPagination } =
-		useGalleryContext<TData, TProperties>();
+		useDataViewContext<TData, TProperties>();
 
 	// Update excluded properties when groupBy changes
 	useEffect(() => {
@@ -349,8 +349,8 @@ export {
 	DataViewOptions,
 	type DataViewOptionsProps,
 } from "@ocean-dataview/ui/components/data-views/shared/data-view-options";
-export type { GalleryContextValue } from "./gallery-context";
-export { useGalleryContext } from "./gallery-context";
-export type { GalleryProviderProps } from "./gallery-provider";
-// Export components and types
-export { GalleryProvider } from "./gallery-provider";
+// Re-export from shared with view-specific aliases
+export type { DataViewContextValue as GalleryContextValue } from "../shared/data-view-context";
+export { useDataViewContext as useGalleryContext } from "../shared/data-view-context";
+export type { DataViewProviderProps as GalleryProviderProps } from "../shared/data-view-provider";
+export { DataViewProvider as GalleryProvider } from "../shared/data-view-provider";

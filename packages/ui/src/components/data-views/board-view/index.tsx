@@ -25,9 +25,23 @@ import { AlertCircle, Columns3 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useRef } from "react";
 import { EmptyState } from "../shared";
+import { useDataViewContext } from "../shared/data-view-context";
 import { BoardColumnCard } from "./board-column-card";
-import { useBoardContext } from "./board-context";
 import { BoardRowLayout } from "./board-row-layout";
+
+// Board-specific types for group counts
+/** Single-level group counts */
+export type GroupCounts = Record<string, { count: number; hasMore: boolean }>;
+
+/** Two-level group counts (with sub-groups) */
+export type GroupCountsWithSubGroups = Record<
+	string,
+	{
+		count: number;
+		hasMore: boolean;
+		subGroups: Record<string, { count: number; hasMore: boolean }>;
+	}
+>;
 
 export interface BoardViewProps<
 	TData,
@@ -139,6 +153,12 @@ export interface BoardViewProps<
 	 * Additional className
 	 */
 	className?: string;
+
+	/**
+	 * Group counts from server (for rendering column headers with server-side counts)
+	 * Only needed when using server-side pagination
+	 */
+	counts?: GroupCounts | GroupCountsWithSubGroups;
 }
 
 /**
@@ -156,16 +176,16 @@ export function BoardView<
 	keyExtractor = (item, index) => String((item as { id?: string }).id || index),
 	pagination,
 	className,
+	counts: _counts,
 }: BoardViewProps<TData, TProperties>) {
 	// Get data and properties from context
 	const {
 		data,
 		properties,
 		pagination: contextPagination,
-		counts,
 		setExcludedPropertyIds,
 		setPropertyVisibility,
-	} = useBoardContext<TData, TProperties>();
+	} = useDataViewContext<TData, TProperties>();
 
 	// Check if we're using grouped pagination from context
 	const hasGroupedPagination =
@@ -198,7 +218,7 @@ export function BoardView<
 	}, [viewPropertyVisibility, setPropertyVisibility]);
 
 	// Always use context state (which can be controlled by DataViewOptions)
-	const { propertyVisibility } = useBoardContext<TData, TProperties>();
+	const { propertyVisibility } = useDataViewContext<TData, TProperties>();
 
 	// Update excluded properties when groupBy or subGroupBy changes
 	useEffect(() => {
@@ -610,12 +630,9 @@ export {
 	DataViewOptions,
 	type DataViewOptionsProps,
 } from "@ocean-dataview/ui/components/data-views/shared/data-view-options";
-export type {
-	BoardContextValue,
-	GroupCounts,
-	GroupCountsWithSubGroups,
-} from "./board-context";
-export { useBoardContext } from "./board-context";
-export type { BoardProviderProps } from "./board-provider";
-// Export components and types
-export { BoardProvider } from "./board-provider";
+// Re-export from shared with view-specific aliases
+export type { DataViewContextValue as BoardContextValue } from "../shared/data-view-context";
+export { useDataViewContext as useBoardContext } from "../shared/data-view-context";
+export type { DataViewProviderProps as BoardProviderProps } from "../shared/data-view-provider";
+export { DataViewProvider as BoardProvider } from "../shared/data-view-provider";
+// Note: GroupCounts and GroupCountsWithSubGroups are exported at top of file

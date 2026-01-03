@@ -21,7 +21,7 @@ import {
 } from "@ocean-dataview/ui/lib/data-views/utils";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
-import { useListContext } from "./list-context";
+import { useDataViewContext } from "../shared/data-view-context";
 import { ListRow } from "./list-row";
 
 export interface ListViewProps<
@@ -113,7 +113,7 @@ export function ListView<
 }: ListViewProps<TData, TProperties>) {
 	// Get data and properties from context
 	const { data, properties, setExcludedPropertyIds, setPropertyVisibility } =
-		useListContext<TData, TProperties>();
+		useDataViewContext<TData, TProperties>();
 
 	const { showDividers = true } = layout;
 	const { propertyVisibility: viewPropertyVisibility, group: groupBy } = view;
@@ -129,10 +129,8 @@ export function ListView<
 	}, [viewPropertyVisibility, setPropertyVisibility]);
 
 	// Always use context state (which can be controlled by DataViewOptions)
-	const { propertyVisibility, pagination: contextPagination } = useListContext<
-		TData,
-		TProperties
-	>();
+	const { propertyVisibility, pagination: contextPagination } =
+		useDataViewContext<TData, TProperties>();
 
 	// Update excluded properties when groupBy changes
 	useEffect(() => {
@@ -301,8 +299,8 @@ export {
 	DataViewOptions,
 	type DataViewOptionsProps,
 } from "@ocean-dataview/ui/components/data-views/shared/data-view-options";
-export type { ListContextValue } from "./list-context";
-export { useListContext } from "./list-context";
-export type { ListProviderProps } from "./list-provider";
-// Export components and types
-export { ListProvider } from "./list-provider";
+// Re-export from shared with view-specific aliases
+export type { DataViewContextValue as ListContextValue } from "../shared/data-view-context";
+export { useDataViewContext as useListContext } from "../shared/data-view-context";
+export type { DataViewProviderProps as ListProviderProps } from "../shared/data-view-provider";
+export { DataViewProvider as ListProvider } from "../shared/data-view-provider";

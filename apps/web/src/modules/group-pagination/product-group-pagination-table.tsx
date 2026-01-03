@@ -1,11 +1,9 @@
 "use client";
 
+import { DataViewOptions } from "@ocean-dataview/ui/components/data-views/shared/data-view-options";
+import { DataViewProvider } from "@ocean-dataview/ui/components/data-views/shared/data-view-provider";
 import { PagePagination } from "@ocean-dataview/ui/components/data-views/shared/page-pagination";
-import {
-	DataViewOptions,
-	TableProvider,
-	TableView,
-} from "@ocean-dataview/ui/components/data-views/table-view";
+import { TableView } from "@ocean-dataview/ui/components/data-views/table-view";
 import {
 	useGroupExpansion,
 	useGroupPagination,
@@ -84,7 +82,7 @@ export const ProductGroupPaginationTable = () => {
 	}
 
 	return (
-		<TableProvider
+		<DataViewProvider
 			data={data}
 			properties={productProperties}
 			pagination={pagination}
@@ -106,6 +104,6 @@ export const ProductGroupPaginationTable = () => {
 				layout={{ showVerticalLines: false, wrapAllColumns: false }}
 				pagination={(context) => <PagePagination {...context} />}
 			/>
-		</TableProvider>
+		</DataViewProvider>
 	);
 };
