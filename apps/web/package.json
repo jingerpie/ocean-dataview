@@ -9,6 +9,7 @@
 	},
 	"dependencies": {
 		"@ocean-dataview/shared": "workspace:*",
+		"@ocean-dataview/dataview": "workspace:*",
 		"@ocean-dataview/ui": "workspace:*",
 		"@base-ui/react": "catalog:",
 		"@ocean-dataview/trpc": "workspace:*",

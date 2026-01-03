@@ -1,5 +1,5 @@
+import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
 import type { AppRouter } from "@ocean-dataview/trpc/routers/index";
-import type { DataViewProperty } from "@ocean-dataview/ui/lib/data-views/types";
 import type { inferRouterOutputs } from "@trpc/server";
 
 type RouterOutput = inferRouterOutputs<AppRouter>;

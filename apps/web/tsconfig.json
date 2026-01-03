@@ -21,7 +21,7 @@
 		],
 		"paths": {
 			"@/*": ["./src/*"],
-			"@ocean-dataview/ui/*": ["../../packages/ui/src/*"]
+			"@ocean-dataview/dataview/*": ["../../packages/ui/src/*"]
 		}
 	},
 	"include": [

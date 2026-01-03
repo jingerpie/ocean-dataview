@@ -1,10 +1,10 @@
 "use client";
 
-import { GalleryView } from "@ocean-dataview/ui/components/data-views/gallery-view";
-import { DataViewOptions } from "@ocean-dataview/ui/components/data-views/shared/data-view-options";
-import { DataViewProvider } from "@ocean-dataview/ui/components/data-views/shared/data-view-provider";
-import { PagePagination } from "@ocean-dataview/ui/components/data-views/shared/page-pagination";
-import { usePagination } from "@ocean-dataview/ui/lib/data-views/hooks";
+import { GalleryView } from "@ocean-dataview/dataview/components/data-views/gallery-view";
+import { DataViewOptions } from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
+import { DataViewProvider } from "@ocean-dataview/dataview/components/data-views/shared/data-view-provider";
+import { PagePagination } from "@ocean-dataview/dataview/components/data-views/shared/page-pagination";
+import { usePagination } from "@ocean-dataview/dataview/lib/data-views/hooks";
 import { useTRPC } from "@/utils/trpc/client";
 import { PaginationTabs } from "./pagination-tabs";
 import { type Product, productProperties } from "./product-properties";

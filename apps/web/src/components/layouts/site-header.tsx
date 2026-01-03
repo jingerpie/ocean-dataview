@@ -1,4 +1,4 @@
-import { Button } from "@ocean-dataview/ui/components/button";
+import { Button } from "@ocean-dataview/dataview/components/button";
 import { LayoutGrid } from "lucide-react";
 import Link from "next/link";
 import { ModeToggle } from "@/components/layouts/mode-toggle";

@@ -1,9 +1,9 @@
 "use client";
 
-import { BoardView } from "@ocean-dataview/ui/components/data-views/board-view";
-import { DataViewOptions } from "@ocean-dataview/ui/components/data-views/shared/data-view-options";
-import { DataViewProvider } from "@ocean-dataview/ui/components/data-views/shared/data-view-provider";
-import { useGroupPagination } from "@ocean-dataview/ui/lib/data-views/hooks";
+import { BoardView } from "@ocean-dataview/dataview/components/data-views/board-view";
+import { DataViewOptions } from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
+import { DataViewProvider } from "@ocean-dataview/dataview/components/data-views/shared/data-view-provider";
+import { useGroupPagination } from "@ocean-dataview/dataview/lib/data-views/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "./group-pagination-tabs";

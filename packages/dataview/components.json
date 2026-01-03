@@ -1,0 +1,20 @@
+{
+	"$schema": "https://ui.shadcn.com/schema.json",
+	"style": "new-york",
+	"rsc": true,
+	"tsx": true,
+	"tailwind": {
+		"config": "",
+		"css": "src/styles/globals.css",
+		"baseColor": "neutral",
+		"cssVariables": true
+	},
+	"iconLibrary": "lucide",
+	"aliases": {
+		"components": "@ocean-dataview/dataview/components",
+		"utils": "@ocean-dataview/dataview/lib/utils",
+		"hooks": "@ocean-dataview/dataview/hooks",
+		"lib": "@ocean-dataview/dataview/lib",
+		"ui": "@ocean-dataview/dataview/components"
+	}
+}
