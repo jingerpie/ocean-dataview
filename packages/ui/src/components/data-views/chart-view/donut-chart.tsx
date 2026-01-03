@@ -5,6 +5,7 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@ocean-dataview/ui/components/chart";
+import { useInteractiveLegend } from "@ocean-dataview/ui/lib/data-views/hooks";
 import type { DataLabelFormatType } from "@ocean-dataview/ui/lib/data-views/types/chart-types";
 import type { ChartDataPoint } from "@ocean-dataview/ui/lib/data-views/utils/compute-data";
 import { useMemo } from "react";
@@ -16,7 +17,6 @@ import {
 	PieChart as RechartsPieChart,
 } from "recharts";
 import { ChartPaginatedLegend } from "./chart-paginated-legend";
-import { useInteractiveLegend } from "./hooks";
 
 interface DonutChartProps {
 	data: ChartDataPoint[];

@@ -5,6 +5,7 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@ocean-dataview/ui/components/chart";
+import { useInteractiveLegend } from "@ocean-dataview/ui/lib/data-views/hooks";
 import type {
 	AxisNameType,
 	GridLineType,
@@ -18,7 +19,6 @@ import {
 	YAxis,
 } from "recharts";
 import { ChartPaginatedLegend } from "./chart-paginated-legend";
-import { useInteractiveLegend } from "./hooks";
 
 interface LineChartProps {
 	data: ChartDataPoint[];

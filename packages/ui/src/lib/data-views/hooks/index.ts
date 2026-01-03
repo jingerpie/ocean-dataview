@@ -21,6 +21,7 @@ export type {
 	SmartPaginationOutput,
 } from "./use-group-pagination";
 export { useGroupPagination } from "./use-group-pagination";
+export { useInteractiveLegend } from "./use-interactive-legend";
 export type {
 	PaginationInput,
 	PaginationOutput,
