@@ -9,8 +9,11 @@ import { PagePagination } from "@ocean-dataview/ui/components/data-views/shared/
 import { useGroupPagination } from "@ocean-dataview/ui/lib/data-views/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/utils/trpc/client";
-import { GroupPaginationTabs } from "./group-pagination-tabs";
-import { type Product, productProperties } from "./product-properties";
+import { GroupPaginationTabs } from "../group-pagination/group-pagination-tabs";
+import {
+	type Product,
+	productProperties,
+} from "../group-pagination/product-properties";
 
 /**
  * BoardView with server-side pagination
@@ -93,7 +96,6 @@ export const ProductGroupPaginationBoard = () => {
 			<BoardView
 				view={{
 					group: { groupBy: "familyGroup", showAggregation: true },
-					subGroup: { subGroupBy: "tag" },
 				}}
 			/>
 		</BoardProvider>

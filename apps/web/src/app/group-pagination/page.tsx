@@ -1,8 +1,9 @@
 import { Tabs, TabsContent } from "@ocean-dataview/ui/components/tabs";
-import { ProductGroupPaginationBoard } from "@/modules/group-pagination/product-group-pagination-board";
 import { ProductGroupPaginationGallery } from "@/modules/group-pagination/product-group-pagination-gallery";
 import { ProductGroupPaginationList } from "@/modules/group-pagination/product-group-pagination-list";
 import { ProductGroupPaginationTable } from "@/modules/group-pagination/product-group-pagination-table";
+import { ProductSubGroupPaginationBoard } from "@/modules/group-pagination/product-sub-group-pagination-board";
+import { ProductGroupPaginationBoard } from "@/modules/pagination/product-group-pagination-board";
 
 export default function GroupPaginationPage() {
 	return (
@@ -17,7 +18,7 @@ export default function GroupPaginationPage() {
 				<ProductGroupPaginationGallery />
 			</TabsContent>
 			<TabsContent value="board">
-				<ProductGroupPaginationBoard />
+				<ProductSubGroupPaginationBoard />
 			</TabsContent>
 		</Tabs>
 	);
