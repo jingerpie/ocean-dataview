@@ -95,7 +95,6 @@ export const ProductGroupPaginationBoard = () => {
 					group: { groupBy: "familyGroup", showAggregation: true },
 					subGroup: { subGroupBy: "tag" },
 				}}
-				pagination={(context) => <PagePagination {...context} />}
 			/>
 		</BoardProvider>
 	);
