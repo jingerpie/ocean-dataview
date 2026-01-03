@@ -27,6 +27,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { EmptyState } from "../shared";
 import { BoardColumnCard } from "./board-column-card";
 import { useBoardContext } from "./board-context";
+import { BoardRowLayout } from "./board-row-layout";
 
 export interface BoardViewProps<
 	TData,
@@ -489,6 +490,7 @@ export function BoardView<
 	// Get column header content using property-based rendering
 	const getColumnHeader = (groupName: string, count: number) => {
 		const showAggregation = groupConfig?.showAggregation ?? true;
+		const displayCount = count > 99 ? "99+" : count;
 
 		return (
 			<div className="flex items-center gap-2">
@@ -505,7 +507,7 @@ export function BoardView<
 				)}
 				{showAggregation && (
 					<span className="font-medium text-muted-foreground text-xs">
-						{count}
+						{displayCount}
 					</span>
 				)}
 			</div>
@@ -553,11 +555,39 @@ export function BoardView<
 		return buildPaginationContext(contextPagination, groupKey);
 	};
 
+	// Use BoardRowLayout for sub-grouped boards (Notion-style full-width sub-groups)
+	// Use BoardColumnCard for non-sub-grouped boards (flat columns)
+	if (effectiveSubGroupConfig) {
+		return (
+			<BoardRowLayout
+				groups={groups}
+				properties={properties}
+				subGroup={effectiveSubGroupConfig}
+				cardContent={getCardContent}
+				keyExtractor={keyExtractor}
+				columnHeader={getColumnHeader}
+				getColumnBgClass={getColumnBgClass}
+				columnWidth={columnWidth}
+				renderColumnFooter={
+					pagination
+						? (groupKey) => {
+								const ctx = getColumnPaginationContext(groupKey);
+								return ctx ? pagination(ctx) : null;
+							}
+						: undefined
+				}
+				className={className}
+				stickyHeader={{
+					enabled: true,
+					offset: 56,
+				}}
+			/>
+		);
+	}
+
 	return (
 		<BoardColumnCard
 			groups={groups}
-			properties={properties}
-			subGroup={effectiveSubGroupConfig}
 			cardContent={getCardContent}
 			keyExtractor={keyExtractor}
 			columnHeader={getColumnHeader}

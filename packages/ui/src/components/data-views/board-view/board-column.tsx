@@ -1,9 +1,6 @@
 "use client";
 
 import { Badge } from "@ocean-dataview/ui/components/badge";
-import { GroupSection } from "@ocean-dataview/ui/components/data-views/shared";
-import { GroupAccordion } from "@ocean-dataview/ui/components/data-views/shared/group-accordion";
-import type { DataViewProperty } from "@ocean-dataview/ui/lib/data-views/types";
 import { cn } from "@ocean-dataview/ui/lib/utils";
 import type { ReactNode } from "react";
 
@@ -15,24 +12,13 @@ interface BoardColumnProps<TData> {
 	columnHeader?: (groupName: string, count: number) => ReactNode;
 	columnBgClass?: string;
 	columnWidth?: string;
-
-	// Sub-grouping support
-	subGroupedData?: Array<{
-		key: string;
-		items: TData[];
-		count: number;
-		sortValue: string | number;
-	}>;
-	subGroupByPropertyDef?: DataViewProperty<TData>;
-
-	// Controlled accordion state (synchronized across all columns)
-	expandedSubGroups?: string[];
-	onExpandedSubGroupsChange?: (value: string[]) => void;
-
-	// Footer renderer (for pagination)
 	renderFooter?: () => ReactNode;
 }
 
+/**
+ * BoardColumn - Single column for flat (non-sub-grouped) boards
+ * For sub-grouped boards, use BoardRowLayout instead
+ */
 export function BoardColumn<TData>({
 	groupName,
 	items,
@@ -41,28 +27,8 @@ export function BoardColumn<TData>({
 	columnHeader,
 	columnBgClass,
 	columnWidth,
-	subGroupedData,
-	subGroupByPropertyDef,
-	expandedSubGroups,
-	onExpandedSubGroupsChange,
 	renderFooter,
 }: BoardColumnProps<TData>) {
-	// Helper function to render cards for a given set of items
-	const renderCards = (cardItems: TData[]) => {
-		if (cardItems.length === 0) {
-			return (
-				<div className="flex h-32 items-center justify-center text-muted-foreground text-sm">
-					No items
-				</div>
-			);
-		}
-
-		return cardItems.map((item, index) => {
-			const key = keyExtractor(item, index);
-			return <div key={key}>{cardContent(item, index)}</div>;
-		});
-	};
-
 	return (
 		<div
 			className={cn(
@@ -83,28 +49,18 @@ export function BoardColumn<TData>({
 				</div>
 			)}
 
-			{/* Cards - either sub-grouped or flat */}
+			{/* Cards */}
 			<div className="flex min-h-[200px] flex-1 flex-col gap-2 overflow-y-auto">
-				{subGroupedData && subGroupedData.length > 0 ? (
-					<GroupAccordion
-						type="multiple"
-						value={expandedSubGroups}
-						onValueChange={onExpandedSubGroupsChange}
-					>
-						{subGroupedData.map((subGroup) => (
-							<GroupSection
-								key={subGroup.key}
-								group={subGroup}
-								groupByPropertyDef={subGroupByPropertyDef}
-							>
-								<div className="flex flex-col gap-2 pt-2">
-									{renderCards(subGroup.items)}
-								</div>
-							</GroupSection>
-						))}
-					</GroupAccordion>
+				{items.length === 0 ? (
+					<div className="flex h-32 items-center justify-center text-muted-foreground text-sm">
+						No items
+					</div>
 				) : (
-					renderCards(items)
+					items.map((item, index) => (
+						<div key={keyExtractor(item, index)}>
+							{cardContent(item, index)}
+						</div>
+					))
 				)}
 			</div>
 
