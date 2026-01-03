@@ -16,12 +16,12 @@ export const productProperties = [
 	{
 		id: "tag",
 		label: "Tag",
-		type: "text",
+		type: "select",
 	},
 	{
 		id: "type",
 		label: "Type",
-		type: "text",
+		type: "select",
 	},
 	{
 		id: "familyGroup",
