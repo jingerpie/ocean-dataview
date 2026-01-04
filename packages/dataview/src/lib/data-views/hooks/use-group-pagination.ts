@@ -89,7 +89,7 @@ export interface GroupedPaginationOutput<TData> {
  * Flexible enough to accept TRPC queryOptions or TanStack Query options
  * Uses Record type to be compatible with various query option structures
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: Flexible type for TRPC/TanStack Query compatibility
 export type QueryOptionsLike = Record<string, any> & {
 	queryKey: readonly unknown[];
 };

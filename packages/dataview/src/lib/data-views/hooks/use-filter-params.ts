@@ -47,7 +47,7 @@ export function useFilterParams<T = unknown>() {
 	};
 
 	// Remove a filter by propertyId
-	const removeFilter = (propertyId: Extract<keyof T, string>) => {
+	const removeFilter = (propertyId: string) => {
 		setFilters(filters.filter((f) => f.propertyId !== propertyId));
 	};
 

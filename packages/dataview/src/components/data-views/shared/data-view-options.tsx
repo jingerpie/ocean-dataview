@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import {
 	Command,
 	CommandEmpty,
@@ -7,17 +8,21 @@ import {
 	CommandInput,
 	CommandItem,
 	CommandList,
-} from "@ocean-dataview/dataview/components/command";
+} from "@ocean-dataview/dataview/components/ui/command";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
-} from "@ocean-dataview/dataview/components/popover";
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
+} from "@ocean-dataview/dataview/components/ui/popover";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { Check, ChevronsUpDown, Settings2 } from "lucide-react";
 import * as React from "react";
 import { useDataViewContext } from "./data-view-context";
+
+interface PropertyLike {
+	id: string | number;
+	label?: string;
+}
 
 export interface DataViewOptionsProps {
 	variant?: "default" | "icon";
@@ -34,52 +39,60 @@ export function DataViewOptions({
 	} = useDataViewContext();
 	const columns = React.useMemo(
 		() =>
-			(properties as any[])
-				.filter((property: any) => !excludedPropertyIds.includes(property.id))
-				.map((property: any) => ({
+			(properties as readonly PropertyLike[])
+				.filter(
+					(property) => !excludedPropertyIds.some((id) => id === property.id),
+				)
+				.map((property) => ({
 					id: String(property.id),
 					label: property.label ?? String(property.id),
-					isVisible: propertyVisibility.includes(property.id),
+					isVisible: propertyVisibility.some((id) => id === property.id),
 				})),
 		[properties, propertyVisibility, excludedPropertyIds],
 	);
 
 	return (
 		<Popover>
-			<PopoverTrigger asChild>
-				{variant === "icon" ? (
-					<Button
-						aria-label="Toggle columns"
-						role="combobox"
-						variant="outline"
-						size="sm"
-						className="h-8 w-8 p-0"
-					>
-						<Settings2 className="h-4 w-4" />
-					</Button>
-				) : (
-					<Button
-						aria-label="Toggle columns"
-						role="combobox"
-						variant="outline"
-						size="sm"
-						className="hidden h-8 lg:flex"
-					>
-						<Settings2 />
-						Property
-						<ChevronsUpDown className="ml-auto opacity-50" />
-					</Button>
-				)}
-			</PopoverTrigger>
+			{variant === "icon" ? (
+				<PopoverTrigger
+					render={
+						<Button
+							aria-label="Toggle columns"
+							role="combobox"
+							variant="outline"
+							size="sm"
+							className="h-8 w-8 p-0"
+						/>
+					}
+				>
+					<Settings2 className="h-4 w-4" />
+				</PopoverTrigger>
+			) : (
+				<PopoverTrigger
+					render={
+						<Button
+							aria-label="Toggle columns"
+							role="combobox"
+							variant="outline"
+							size="sm"
+							className="hidden h-8 lg:flex"
+						/>
+					}
+				>
+					<Settings2 />
+					Property
+					<ChevronsUpDown className="ml-auto opacity-50" />
+				</PopoverTrigger>
+			)}
 			<PopoverContent align="end" className="w-44 p-0">
 				<Command>
 					<CommandInput placeholder="Search columns..." />
 					<CommandList>
 						<CommandEmpty>No columns found.</CommandEmpty>
 						<CommandGroup>
-							{columns.map((column: any) => {
-								const propertyId = (properties as any[]).find(
-									(p: any) => String(p.id) === column.id,
+							{columns.map((column) => {
+								const propertyId = (properties as readonly PropertyLike[]).find(
+									(p) => String(p.id) === column.id,
 								)?.id;
 								return (
 									<CommandItem
@@ -87,7 +100,7 @@ export function DataViewOptions({
 										value={column.id}
 										onSelect={() => {
 											if (propertyId !== undefined) {
-												toggleProperty(propertyId);
+												toggleProperty(propertyId as string);
 											}
 										}}
 									>

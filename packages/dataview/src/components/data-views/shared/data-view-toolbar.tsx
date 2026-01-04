@@ -51,6 +51,7 @@ export interface DataViewToolbarProps<T = unknown> {
 
 /**
  * Auto-generate filter definitions from properties
+ * Now includes variant for proper operator inference
  */
 function generateFiltersFromProperties<T>(
 	properties: DataViewProperty<T>[],
@@ -81,6 +82,7 @@ function generateFiltersFromProperties<T>(
 					result.push({
 						field,
 						label,
+						variant: "select",
 						options: prop.config.options.map((opt) => ({
 							value: opt.value,
 							label: opt.label,
@@ -94,6 +96,7 @@ function generateFiltersFromProperties<T>(
 					result.push({
 						field,
 						label,
+						variant: "multiSelect",
 						options: prop.config.options.map((opt) => ({
 							value: opt.value,
 							label: opt.label,
@@ -106,6 +109,7 @@ function generateFiltersFromProperties<T>(
 				result.push({
 					field,
 					label,
+					variant: "boolean",
 					options: [
 						{ value: "true", label: "Yes" },
 						{ value: "false", label: "No" },
@@ -116,7 +120,6 @@ function generateFiltersFromProperties<T>(
 			case "date":
 			case "number":
 				// For date and number, we can add filter options later
-				// For now, skip them as the current FilterDropdown doesn't support them
 				break;
 		}
 	}
@@ -152,7 +155,7 @@ export function DataViewToolbar<T = unknown>({
 	className,
 }: DataViewToolbarProps<T>) {
 	// Auto-generate filters and sort options from properties
-	const filters = useMemo(() => {
+	const filterDefinitions = useMemo(() => {
 		return generateFiltersFromProperties(properties);
 	}, [properties]);
 
@@ -163,7 +166,7 @@ export function DataViewToolbar<T = unknown>({
 	// URL state management
 	const [search, setSearch] = useSearchParams();
 	const { sortBy, sortOrder, setSort } = useSortParams<string>();
-	const { filtersObject, setFilter, clearFilters } = useFilterParams();
+	const { filters, setFilter, removeFilter, clearFilters } = useFilterParams();
 
 	const hasAnyControls = enableSearch || enableFilters || enableSort || actions;
 
@@ -186,11 +189,12 @@ export function DataViewToolbar<T = unknown>({
 
 			{/* Right side: Filters, Sort, Actions */}
 			<div className="flex flex-wrap items-center gap-2">
-				{enableFilters && filters.length > 0 && (
+				{enableFilters && filterDefinitions.length > 0 && (
 					<FilterDropdown
-						filters={filters}
-						activeFilters={filtersObject}
+						filterDefinitions={filterDefinitions}
+						activeFilters={filters}
 						onFilterChange={setFilter}
+						onRemoveFilter={removeFilter}
 						onClearAll={clearFilters}
 					/>
 				)}

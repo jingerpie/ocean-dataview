@@ -10,6 +10,11 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@ocean-dataview/dataview/components/ui/dropdown-menu";
+import type {
+	FilterOperator,
+	FilterVariant,
+	PropertyFilter,
+} from "@ocean-dataview/shared/types";
 import { Filter, X } from "lucide-react";
 
 export interface FilterOption {
@@ -21,28 +26,49 @@ export interface FilterDefinition {
 	field: string;
 	label: string;
 	options: FilterOption[];
+	variant?: FilterVariant;
 }
 
-interface FilterDropdownProps {
-	filters: FilterDefinition[];
-	activeFilters: Record<string, unknown>;
-	onFilterChange: (field: string, value: unknown) => void;
+/**
+ * Default operator inference based on filter variant
+ */
+const defaultOperatorForVariant: Record<FilterVariant, FilterOperator> = {
+	text: "iLike",
+	number: "eq",
+	range: "isBetween",
+	date: "eq",
+	dateRange: "isBetween",
+	boolean: "eq",
+	select: "eq",
+	multiSelect: "inArray",
+};
+
+interface FilterDropdownProps<T = unknown> {
+	filterDefinitions: FilterDefinition[];
+	activeFilters: PropertyFilter<T>[];
+	onFilterChange: (filter: PropertyFilter<T>) => void;
+	onRemoveFilter: (propertyId: string) => void;
 	onClearAll: () => void;
 }
 
 /**
  * Dropdown component for applying filters
- * Updates URL parameters via callbacks
+ * Uses PropertyFilter for full type safety and operator support
  */
-export function FilterDropdown({
-	filters,
+export function FilterDropdown<T = unknown>({
+	filterDefinitions,
 	activeFilters,
 	onFilterChange,
+	onRemoveFilter,
 	onClearAll,
-}: FilterDropdownProps) {
-	const activeCount = Object.keys(activeFilters).length;
+}: FilterDropdownProps<T>) {
+	const activeCount = activeFilters.length;
 
-	if (filters.length === 0) {
+	// Helper to get current filter value
+	const getFilterValue = (propertyId: string) =>
+		activeFilters.find((f) => f.propertyId === propertyId)?.value;
+
+	if (filterDefinitions.length === 0) {
 		return null;
 	}
 
@@ -64,38 +90,51 @@ export function FilterDropdown({
 					<DropdownMenuLabel>Filter by</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 
-					{filters.map((filter) => (
-						<div key={filter.field}>
-							<DropdownMenuLabel className="px-2 py-1.5 font-normal text-muted-foreground text-xs">
-								{filter.label}
-							</DropdownMenuLabel>
-							{filter.options.map((option) => {
-								const isActive = activeFilters[filter.field] === option.value;
+					{filterDefinitions.map((definition) => {
+						const currentValue = getFilterValue(definition.field);
 
-								return (
-									<DropdownMenuItem
-										key={option.value}
-										onClick={() =>
-											onFilterChange(
-												filter.field,
-												isActive ? null : option.value,
-											)
-										}
-										className="pl-6"
-									>
-										<div className="flex w-full items-center justify-between">
-											<span>{option.label}</span>
-											{isActive && (
-												<Badge variant="default" className="h-5 text-xs">
-													Active
-												</Badge>
-											)}
-										</div>
-									</DropdownMenuItem>
-								);
-							})}
-						</div>
-					))}
+						return (
+							<div key={definition.field}>
+								<DropdownMenuLabel className="px-2 py-1.5 font-normal text-muted-foreground text-xs">
+									{definition.label}
+								</DropdownMenuLabel>
+								{definition.options.map((option) => {
+									const isActive = currentValue === option.value;
+									const variant = definition.variant ?? "select";
+
+									return (
+										<DropdownMenuItem
+											key={option.value}
+											onClick={() => {
+												if (isActive) {
+													onRemoveFilter(definition.field);
+												} else {
+													onFilterChange({
+														propertyId:
+															definition.field as PropertyFilter<T>["propertyId"],
+														value: option.value,
+														variant,
+														operator: defaultOperatorForVariant[variant],
+														filterId: definition.field,
+													});
+												}
+											}}
+											className="pl-6"
+										>
+											<div className="flex w-full items-center justify-between">
+												<span>{option.label}</span>
+												{isActive && (
+													<Badge variant="default" className="h-5 text-xs">
+														Active
+													</Badge>
+												)}
+											</div>
+										</DropdownMenuItem>
+									);
+								})}
+							</div>
+						);
+					})}
 
 					{activeCount > 0 && (
 						<>
@@ -115,22 +154,30 @@ export function FilterDropdown({
 			{/* Active filter badges */}
 			{activeCount > 0 && (
 				<div className="flex flex-wrap items-center gap-2">
-					{Object.entries(activeFilters).map(([field, value]) => {
-						const filter = filters.find((f) => f.field === field);
-						const option = filter?.options.find((o) => o.value === value);
+					{activeFilters.map((activeFilter) => {
+						const definition = filterDefinitions.find(
+							(d) => d.field === activeFilter.propertyId,
+						);
+						const option = definition?.options.find(
+							(o) => o.value === activeFilter.value,
+						);
 
-						if (!filter || !option) return null;
+						if (!definition || !option) return null;
 
 						return (
-							<Badge key={field} variant="secondary" className="gap-1 pr-1">
+							<Badge
+								key={activeFilter.propertyId}
+								variant="secondary"
+								className="gap-1 pr-1"
+							>
 								<span className="text-xs">
-									{filter.label}: {option.label}
+									{definition.label}: {option.label}
 								</span>
 								<Button
 									variant="ghost"
 									size="sm"
 									className="h-4 w-4 p-0 hover:bg-transparent"
-									onClick={() => onFilterChange(field, null)}
+									onClick={() => onRemoveFilter(activeFilter.propertyId)}
 								>
 									<X className="h-3 w-3" />
 									<span className="sr-only">Remove filter</span>

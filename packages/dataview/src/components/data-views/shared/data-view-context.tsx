@@ -30,6 +30,7 @@ export interface DataViewContextValue<
 }
 
 export const DataViewContext = createContext<
+	// biome-ignore lint/suspicious/noExplicitAny: Generic context - type safety enforced via useDataViewContext<T>()
 	DataViewContextValue<any, any> | undefined
 >(undefined);
 
