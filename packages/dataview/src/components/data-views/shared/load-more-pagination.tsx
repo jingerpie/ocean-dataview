@@ -53,14 +53,16 @@ export function LoadMorePagination({
 			</Button>
 
 			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<Button
-						variant="ghost"
-						disabled={isLoading}
-						className="px-2 font-normal text-muted-foreground hover:text-foreground"
-					>
-						•••
-					</Button>
+				<DropdownMenuTrigger
+					render={
+						<Button
+							variant="ghost"
+							disabled={isLoading}
+							className="px-2 font-normal text-muted-foreground hover:text-foreground"
+						/>
+					}
+				>
+					•••
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="start">
 					<DropdownMenuLabel>Show on first load</DropdownMenuLabel>

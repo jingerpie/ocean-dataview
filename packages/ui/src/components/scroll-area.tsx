@@ -1,14 +1,13 @@
 "use client";
 
+import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area";
 import { cn } from "@ocean-dataview/ui/lib/utils";
-import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
-import type * as React from "react";
 
 function ScrollArea({
 	className,
 	children,
 	...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
+}: ScrollAreaPrimitive.Root.Props) {
 	return (
 		<ScrollAreaPrimitive.Root
 			data-slot="scroll-area"
@@ -31,26 +30,23 @@ function ScrollBar({
 	className,
 	orientation = "vertical",
 	...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>) {
+}: ScrollAreaPrimitive.Scrollbar.Props) {
 	return (
-		<ScrollAreaPrimitive.ScrollAreaScrollbar
+		<ScrollAreaPrimitive.Scrollbar
 			data-slot="scroll-area-scrollbar"
+			data-orientation={orientation}
 			orientation={orientation}
 			className={cn(
-				"flex touch-none select-none p-px transition-colors",
-				orientation === "vertical" &&
-					"h-full w-2.5 border-l border-l-transparent",
-				orientation === "horizontal" &&
-					"h-2.5 flex-col border-t border-t-transparent",
+				"flex touch-none select-none p-px transition-colors data-horizontal:h-2.5 data-vertical:h-full data-vertical:w-2.5 data-horizontal:flex-col data-horizontal:border-t data-horizontal:border-t-transparent data-vertical:border-l data-vertical:border-l-transparent",
 				className,
 			)}
 			{...props}
 		>
-			<ScrollAreaPrimitive.ScrollAreaThumb
+			<ScrollAreaPrimitive.Thumb
 				data-slot="scroll-area-thumb"
 				className="relative flex-1 rounded-full bg-border"
 			/>
-		</ScrollAreaPrimitive.ScrollAreaScrollbar>
+		</ScrollAreaPrimitive.Scrollbar>
 	);
 }
 

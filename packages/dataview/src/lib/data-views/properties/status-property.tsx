@@ -53,7 +53,7 @@ export function StatusProperty<T>({ value, property }: StatusPropertyProps<T>) {
 		return (
 			<Badge
 				variant={variant}
-				icon={<div className={`h-2 w-2 rounded-full ${dotColor}`} />}
+				render={<div className={`h-2 w-2 rounded-full ${dotColor}`} />}
 			>
 				{stringValue}
 			</Badge>
@@ -71,7 +71,7 @@ export function StatusProperty<T>({ value, property }: StatusPropertyProps<T>) {
 		return (
 			<Badge
 				variant={variant}
-				icon={<div className={`h-2 w-2 rounded-full ${dotColor}`} />}
+				render={<div className={`h-2 w-2 rounded-full ${dotColor}`} />}
 			>
 				{stringValue}
 			</Badge>
@@ -84,7 +84,7 @@ export function StatusProperty<T>({ value, property }: StatusPropertyProps<T>) {
 	return (
 		<Badge
 			variant={variant}
-			icon={<div className={`h-2 w-2 rounded-full ${dotColor}`} />}
+			render={<div className={`h-2 w-2 rounded-full ${dotColor}`} />}
 		>
 			{option.label}
 		</Badge>

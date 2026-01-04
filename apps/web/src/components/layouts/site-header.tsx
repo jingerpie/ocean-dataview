@@ -7,10 +7,14 @@ export function SiteHeader() {
 	return (
 		<header className="sticky top-0 z-50 w-full border-border/40 border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
 			<div className="container flex h-14 items-center">
-				<Button variant="ghost" size="icon" className="size-8" asChild>
-					<Link href="/">
-						<LayoutGrid />
-					</Link>
+				<Button
+					variant="ghost"
+					size="icon"
+					className="size-8"
+					render={<Link href="/" />}
+					nativeButton={false}
+				>
+					<LayoutGrid />
 				</Button>
 				<nav className="flex w-full items-center gap-4 text-sm">
 					{/* <Link href="/simple">Simple</Link> */}

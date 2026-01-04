@@ -49,16 +49,16 @@ export function FilterDropdown({
 	return (
 		<div className="flex items-center gap-2">
 			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<Button variant="outline" size="sm" className="h-9">
-						<Filter className="mr-2 h-4 w-4" />
-						Filters
-						{activeCount > 0 && (
-							<Badge variant="secondary" className="ml-2 h-5 px-1.5">
-								{activeCount}
-							</Badge>
-						)}
-					</Button>
+				<DropdownMenuTrigger
+					render={<Button variant="outline" size="sm" className="h-9" />}
+				>
+					<Filter className="mr-2 h-4 w-4" />
+					Filters
+					{activeCount > 0 && (
+						<Badge variant="secondary" className="ml-2 h-5 px-1.5">
+							{activeCount}
+						</Badge>
+					)}
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" className="w-56">
 					<DropdownMenuLabel>Filter by</DropdownMenuLabel>

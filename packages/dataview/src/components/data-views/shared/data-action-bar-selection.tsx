@@ -57,15 +57,17 @@ export function DataActionBarSelection<TData>({
 			</span>
 			<Separator orientation="vertical" className="mr-1 ml-2 h-4" />
 			<Tooltip>
-				<TooltipTrigger asChild>
-					<Button
-						variant="ghost"
-						size="icon"
-						className="size-6"
-						onClick={handleClearSelection}
-					>
-						<X className="size-4" />
-					</Button>
+				<TooltipTrigger
+					render={
+						<Button
+							variant="ghost"
+							size="icon"
+							className="size-6"
+							onClick={handleClearSelection}
+						/>
+					}
+				>
+					<X className="size-4" />
 				</TooltipTrigger>
 				<TooltipContent
 					sideOffset={10}

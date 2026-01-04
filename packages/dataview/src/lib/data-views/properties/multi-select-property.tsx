@@ -35,7 +35,7 @@ export function MultiSelectProperty<T>({
 				// If option not found, still render as badge with gray color
 				if (!option) {
 					return (
-						<Badge key={stringValue} variant="gray-subtle" size="sm">
+						<Badge key={stringValue} variant="gray-subtle">
 							{stringValue}
 						</Badge>
 					);
@@ -44,16 +44,12 @@ export function MultiSelectProperty<T>({
 				const variant = getBadgeVariant(option.color);
 
 				return (
-					<Badge key={option.value} variant={variant} size="sm">
+					<Badge key={option.value} variant={variant}>
 						{option.label}
 					</Badge>
 				);
 			})}
-			{remainingCount > 0 && (
-				<Badge variant="outline" size="sm">
-					+{remainingCount}
-				</Badge>
-			)}
+			{remainingCount > 0 && <Badge variant="outline">+{remainingCount}</Badge>}
 		</div>
 	);
 }

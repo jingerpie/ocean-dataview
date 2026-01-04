@@ -1,8 +1,8 @@
 "use client";
 
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
-import { Button } from "@ocean-dataview/ui/components/button";
-import { cn } from "@ocean-dataview/ui/lib/utils";
+import { Button } from "@ocean-dataview/dataview/components/ui/button";
+import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { XIcon } from "lucide-react";
 import type * as React from "react";
 

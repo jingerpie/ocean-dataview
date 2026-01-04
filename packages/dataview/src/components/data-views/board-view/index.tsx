@@ -297,12 +297,6 @@ export function BoardView<
 		return clientGroupedData;
 	}, [hasGroupedPagination, contextPagination, clientGroupedData, properties]);
 
-	// Build Map for O(1) lookup of pagination groups
-	const paginationGroupsMap = useMemo(
-		() => new Map(contextPagination?.groups?.map((g) => [g.key, g]) ?? []),
-		[contextPagination?.groups],
-	);
-
 	// Use shared hook for sub-group configuration (if present)
 	const { validationError: subGroupValidationError } = useGroupConfig(
 		transformedData,
@@ -521,9 +515,7 @@ export function BoardView<
 						item={{} as TData}
 					/>
 				) : (
-					<Badge variant="gray-subtle" size="md">
-						{groupName}
-					</Badge>
+					<Badge variant="gray-subtle">{groupName}</Badge>
 				)}
 				{showAggregation && (
 					<span className="font-medium text-muted-foreground text-xs">

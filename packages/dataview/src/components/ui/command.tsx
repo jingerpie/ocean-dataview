@@ -6,12 +6,12 @@ import {
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-} from "@ocean-dataview/ui/components/dialog";
+} from "@ocean-dataview/dataview/components/ui/dialog";
 import {
 	InputGroup,
 	InputGroupAddon,
-} from "@ocean-dataview/ui/components/input-group";
-import { cn } from "@ocean-dataview/ui/lib/utils";
+} from "@ocean-dataview/dataview/components/ui/input-group";
+import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { Command as CommandPrimitive } from "cmdk";
 import { CheckIcon, SearchIcon } from "lucide-react";
 import type * as React from "react";

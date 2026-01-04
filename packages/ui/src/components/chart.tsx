@@ -3,14 +3,6 @@
 import { cn } from "@ocean-dataview/ui/lib/utils";
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
-import type { LegendPayload } from "recharts/types/component/DefaultLegendContent";
-import type {
-	NameType,
-	Payload,
-	ValueType,
-} from "recharts/types/component/DefaultTooltipContent";
-import type { Props as LegendProps } from "recharts/types/component/Legend";
-import type { TooltipContentProps } from "recharts/types/component/Tooltip";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
@@ -27,49 +19,6 @@ export type ChartConfig = {
 
 type ChartContextProps = {
 	config: ChartConfig;
-};
-
-export type CustomTooltipProps = Partial<
-	TooltipContentProps<ValueType, NameType>
-> & {
-	className?: string;
-	hideLabel?: boolean;
-	hideIndicator?: boolean;
-	hideZeroValues?: boolean;
-	indicator?: "line" | "dot" | "dashed";
-	nameKey?: string;
-	labelKey?: string;
-	labelFormatter?: (
-		label: TooltipContentProps<number, string>["label"],
-		payload: TooltipContentProps<number, string>["payload"],
-	) => React.ReactNode;
-	formatter?: (
-		value: number | string,
-		name: string,
-		item: Payload<number | string, string>,
-		index: number,
-		payload: ReadonlyArray<Payload<number | string, string>>,
-	) => React.ReactNode;
-	labelClassName?: string;
-	color?: string;
-};
-
-export type ChartLegendContentProps = Pick<
-	LegendProps,
-	"verticalAlign" | "align" | "layout" | "iconType" | "formatter"
-> & {
-	className?: string;
-	hideIcon?: boolean;
-	payload?: ReadonlyArray<LegendPayload>;
-	nameKey?: string;
-	onClick?: LegendProps["onClick"];
-	onMouseOver?: LegendProps["onMouseEnter"];
-	onMouseOut?: LegendProps["onMouseLeave"];
-	// Interactive legend styling state (optional)
-	legendState?: {
-		hiddenItems: Record<string, boolean>;
-		hoveredItem: string | null;
-	};
 };
 
 const ChartContext = React.createContext<ChartContextProps | null>(null);
@@ -124,35 +73,32 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 		([, config]) => config.theme || config.color,
 	);
 
-	const styleRef = React.useRef<HTMLStyleElement>(null);
-
-	React.useEffect(() => {
-		if (styleRef.current) {
-			const cssContent = Object.entries(THEMES)
-				.map(
-					([theme, prefix]) => `
-            ${prefix} [data-chart=${id}] {
-            ${colorConfig
-							.map(([key, itemConfig]) => {
-								const color =
-									itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
-									itemConfig.color;
-								return color ? `  --color-${key}: ${color};` : null;
-							})
-							.join("\n")}
-            }
-            `,
-				)
-				.join("\n");
-			styleRef.current.textContent = cssContent;
-		}
-	}, [id, colorConfig]);
-
 	if (!colorConfig.length) {
 		return null;
 	}
 
-	return <style ref={styleRef} />;
+	return (
+		<style
+			dangerouslySetInnerHTML={{
+				__html: Object.entries(THEMES)
+					.map(
+						([theme, prefix]) => `
+${prefix} [data-chart=${id}] {
+${colorConfig
+	.map(([key, itemConfig]) => {
+		const color =
+			itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
+			itemConfig.color;
+		return color ? `  --color-${key}: ${color};` : null;
+	})
+	.join("\n")}
+}
+`,
+					)
+					.join("\n"),
+			}}
+		/>
+	);
 };
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
@@ -160,19 +106,25 @@ const ChartTooltip = RechartsPrimitive.Tooltip;
 function ChartTooltipContent({
 	active,
 	payload,
-	label,
 	className,
 	indicator = "dot",
 	hideLabel = false,
 	hideIndicator = false,
-	hideZeroValues = false,
+	label,
 	labelFormatter,
-	formatter,
 	labelClassName,
+	formatter,
 	color,
 	nameKey,
 	labelKey,
-}: CustomTooltipProps) {
+}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+	React.ComponentProps<"div"> & {
+		hideLabel?: boolean;
+		hideIndicator?: boolean;
+		indicator?: "line" | "dot" | "dashed";
+		nameKey?: string;
+		labelKey?: string;
+	}) {
 	const { config } = useChart();
 
 	const tooltipLabel = React.useMemo(() => {
@@ -183,14 +135,10 @@ function ChartTooltipContent({
 		const [item] = payload;
 		const key = `${labelKey || item?.dataKey || item?.name || "value"}`;
 		const itemConfig = getPayloadConfigFromPayload(config, item, key);
-		const value = (() => {
-			const v =
-				!labelKey && typeof label === "string"
-					? (config[label as keyof typeof config]?.label ?? label)
-					: itemConfig?.label;
-
-			return typeof v === "string" || typeof v === "number" ? v : undefined;
-		})();
+		const value =
+			!labelKey && typeof label === "string"
+				? config[label as keyof typeof config]?.label || label
+				: itemConfig?.label;
 
 		if (labelFormatter) {
 			return (
@@ -231,17 +179,7 @@ function ChartTooltipContent({
 			{!nestLabel ? tooltipLabel : null}
 			<div className="grid gap-1.5">
 				{payload
-					.filter((item) => {
-						// Filter out zero values if hideZeroValues is enabled
-						if (hideZeroValues) {
-							return (
-								item.value !== 0 &&
-								item.value !== null &&
-								item.value !== undefined
-							);
-						}
-						return item.value !== null && item.value !== undefined;
-					})
+					.filter((item) => item.type !== "none")
 					.map((item, index) => {
 						const key = `${nameKey || item.name || item.dataKey || "value"}`;
 						const itemConfig = getPayloadConfigFromPayload(config, item, key);
@@ -285,7 +223,7 @@ function ChartTooltipContent({
 										)}
 										<div
 											className={cn(
-												"flex flex-1 justify-between gap-2 leading-none",
+												"flex flex-1 justify-between leading-none",
 												nestLabel ? "items-end" : "items-center",
 											)}
 										>
@@ -318,136 +256,57 @@ function ChartLegendContent({
 	hideIcon = false,
 	payload,
 	verticalAlign = "bottom",
-	align = "center",
 	nameKey,
-	onClick,
-	onMouseOver,
-	onMouseOut,
-	legendState,
-}: ChartLegendContentProps) {
+}: React.ComponentProps<"div"> &
+	Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
+		hideIcon?: boolean;
+		nameKey?: string;
+	}) {
 	const { config } = useChart();
 
 	if (!payload?.length) {
 		return null;
 	}
 
-	// Filter out items without a valid dataKey or with empty values (e.g., label bars)
-	const filteredPayload = payload.filter((item) => {
-		const dataKeyStr = String(item.dataKey || "");
-		const itemConfig = getPayloadConfigFromPayload(config, item, dataKeyStr);
-		// Keep items that have a label in config or a non-empty value
-		return itemConfig?.label || (item.value && item.value !== "");
-	});
-
-	if (!filteredPayload.length) {
-		return null;
-	}
-
-	// Helper to check if interactive styling should be applied
-	const hasInteractiveState = !!legendState;
-
-	// Calculate visible items count for hover dimming logic
-	const visibleCount = hasInteractiveState
-		? filteredPayload.filter((item) => {
-				const key = String(item.dataKey);
-				return !legendState.hiddenItems[key];
-			}).length
-		: filteredPayload.length;
-
-	const enableHoverDimming = hasInteractiveState && visibleCount > 1;
-
 	return (
 		<div
 			className={cn(
-				"flex flex-wrap items-center gap-4",
+				"flex items-center justify-center gap-4",
 				verticalAlign === "top" ? "pb-3" : "pt-3",
-				align === "left" && "justify-start",
-				align === "center" && "justify-center",
-				align === "right" && "justify-end",
 				className,
 			)}
 		>
-			{filteredPayload.map((item, index) => {
-				const key = `${nameKey || item.dataKey || "value"}`;
-				const itemConfig = getPayloadConfigFromPayload(config, item, key);
-				const uniqueKey = item.dataKey
-					? String(item.dataKey)
-					: item.value || index;
-				const dataKeyStr = String(item.dataKey);
+			{payload
+				.filter((item) => item.type !== "none")
+				.map((item) => {
+					const key = `${nameKey || item.dataKey || "value"}`;
+					const itemConfig = getPayloadConfigFromPayload(config, item, key);
 
-				// Compute interactive states
-				const isHidden =
-					hasInteractiveState && legendState.hiddenItems[dataKeyStr];
-				const isHovered =
-					hasInteractiveState && legendState.hoveredItem === dataKeyStr;
-				const isDimmed =
-					enableHoverDimming &&
-					legendState?.hoveredItem &&
-					!isHovered &&
-					!isHidden;
-
-				const legendContent = (
-					<>
-						{itemConfig?.icon && !hideIcon ? (
-							<itemConfig.icon />
-						) : (
-							<div
-								className={cn(
-									"h-2 w-2 shrink-0 rounded-[2px]",
-									hasInteractiveState && "transition-opacity",
-								)}
-								style={{
-									backgroundColor: item.color,
-									opacity: isHidden ? 0.4 : 1,
-								}}
-							/>
-						)}
-						<span>{itemConfig?.label}</span>
-					</>
-				);
-
-				const baseClassName = cn(
-					"flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground",
-					hasInteractiveState && "transition-opacity",
-					isHidden && "line-through opacity-40",
-					isDimmed && "opacity-60",
-				);
-
-				if (onClick) {
 					return (
-						<button
-							key={uniqueKey}
-							type="button"
+						<div
+							key={item.value}
 							className={cn(
-								baseClassName,
-								"cursor-pointer select-none border-0 bg-transparent p-0",
+								"flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground",
 							)}
-							onClick={(e) => onClick?.(item, index, e)}
-							onMouseOver={(e) => onMouseOver?.(item, index, e)}
-							onMouseOut={(e) => onMouseOut?.(item, index, e)}
-							onFocus={(e) =>
-								onMouseOver?.(item, index, e as unknown as React.MouseEvent)
-							}
-							onBlur={(e) =>
-								onMouseOut?.(item, index, e as unknown as React.MouseEvent)
-							}
 						>
-							{legendContent}
-						</button>
+							{itemConfig?.icon && !hideIcon ? (
+								<itemConfig.icon />
+							) : (
+								<div
+									className="h-2 w-2 shrink-0 rounded-[2px]"
+									style={{
+										backgroundColor: item.color,
+									}}
+								/>
+							)}
+							{itemConfig?.label}
+						</div>
 					);
-				}
-
-				return (
-					<div key={uniqueKey} className={baseClassName}>
-						{legendContent}
-					</div>
-				);
-			})}
+				})}
 		</div>
 	);
 }
 
-// Helper to extract item config from a payload.
 function getPayloadConfigFromPayload(
 	config: ChartConfig,
 	payload: unknown,
@@ -493,5 +352,4 @@ export {
 	ChartLegend,
 	ChartLegendContent,
 	ChartStyle,
-	type LegendPayload,
 };

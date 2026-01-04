@@ -1,6 +1,9 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
+import {
+	Button,
+	type ButtonProps,
+} from "@ocean-dataview/dataview/components/ui/button";
 import {
 	Tooltip,
 	TooltipContent,
@@ -8,9 +11,8 @@ import {
 } from "@ocean-dataview/dataview/components/ui/tooltip";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { Loader } from "lucide-react";
-import type * as React from "react";
 
-interface DataActionBarActionProps extends React.ComponentProps<typeof Button> {
+type DataActionBarActionProps = ButtonProps & {
 	/**
 	 * Tooltip text to display on hover
 	 */
@@ -21,7 +23,7 @@ interface DataActionBarActionProps extends React.ComponentProps<typeof Button> {
 	 * Shows a spinner when true
 	 */
 	isPending?: boolean;
-}
+};
 
 /**
  * DataActionBarAction - Action button for bulk operations
@@ -57,7 +59,7 @@ export function DataActionBarAction({
 
 	return (
 		<Tooltip>
-			<TooltipTrigger asChild>{trigger}</TooltipTrigger>
+			<TooltipTrigger render={trigger} />
 			<TooltipContent
 				sideOffset={6}
 				className="border bg-accent font-semibold text-foreground"

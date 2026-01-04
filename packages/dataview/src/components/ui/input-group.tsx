@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@ocean-dataview/ui/components/button";
-import { Input } from "@ocean-dataview/ui/components/input";
-import { Textarea } from "@ocean-dataview/ui/components/textarea";
-import { cn } from "@ocean-dataview/ui/lib/utils";
+import { Button } from "@ocean-dataview/dataview/components/ui/button";
+import { Input } from "@ocean-dataview/dataview/components/ui/input";
+import { Textarea } from "@ocean-dataview/dataview/components/ui/textarea";
+import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 

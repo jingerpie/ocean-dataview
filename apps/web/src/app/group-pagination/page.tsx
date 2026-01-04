@@ -3,7 +3,6 @@ import { ProductGroupPaginationGallery } from "@/modules/group-pagination/produc
 import { ProductGroupPaginationList } from "@/modules/group-pagination/product-group-pagination-list";
 import { ProductGroupPaginationTable } from "@/modules/group-pagination/product-group-pagination-table";
 import { ProductSubGroupPaginationBoard } from "@/modules/group-pagination/product-sub-group-pagination-board";
-import { ProductGroupPaginationBoard } from "@/modules/pagination/product-group-pagination-board";
 
 export default function GroupPaginationPage() {
 	return (

@@ -273,9 +273,10 @@ export function TableView<
 				id: "select",
 				header: ({ table }) => (
 					<Checkbox
-						checked={
-							table.getIsAllPageRowsSelected() ||
-							(table.getIsSomePageRowsSelected() && "indeterminate")
+						checked={table.getIsAllPageRowsSelected()}
+						indeterminate={
+							!table.getIsAllPageRowsSelected() &&
+							table.getIsSomePageRowsSelected()
 						}
 						onCheckedChange={(value) =>
 							table.toggleAllPageRowsSelected(!!value)

@@ -43,23 +43,23 @@ export function SortDropdown({
 	return (
 		<div className="flex items-center gap-2">
 			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<Button variant="outline" size="sm" className="h-9">
-						<ArrowUpDown className="mr-2 h-4 w-4" />
-						Sort
-						{activeOption && (
-							<Badge
-								variant="secondary"
-								className="ml-2 flex h-5 items-center gap-1 px-1.5"
-							>
-								{currentOrder === "asc" ? (
-									<ArrowUp className="h-3 w-3" />
-								) : (
-									<ArrowDown className="h-3 w-3" />
-								)}
-							</Badge>
-						)}
-					</Button>
+				<DropdownMenuTrigger
+					render={<Button variant="outline" size="sm" className="h-9" />}
+				>
+					<ArrowUpDown className="mr-2 h-4 w-4" />
+					Sort
+					{activeOption && (
+						<Badge
+							variant="secondary"
+							className="ml-2 flex h-5 items-center gap-1 px-1.5"
+						>
+							{currentOrder === "asc" ? (
+								<ArrowUp className="h-3 w-3" />
+							) : (
+								<ArrowDown className="h-3 w-3" />
+							)}
+						</Badge>
+					)}
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" className="w-48">
 					<DropdownMenuLabel>Sort by</DropdownMenuLabel>

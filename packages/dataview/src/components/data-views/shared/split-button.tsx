@@ -103,13 +103,15 @@ export function SplitButton({
 				</span>
 			</Button>
 			<DropdownMenu open={open} onOpenChange={setOpen}>
-				<DropdownMenuTrigger asChild>
-					<Button
-						className={cn("rounded-l-none", currentSize.dropdownWidth)}
-						size={size}
-					>
-						<MoreVertical className={currentSize.icon} />
-					</Button>
+				<DropdownMenuTrigger
+					render={
+						<Button
+							className={cn("rounded-l-none", currentSize.dropdownWidth)}
+							size={size}
+						/>
+					}
+				>
+					<MoreVertical className={currentSize.icon} />
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
 					{dropdownActions.map((action, index) => (
