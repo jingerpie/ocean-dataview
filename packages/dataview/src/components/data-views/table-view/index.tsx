@@ -517,3 +517,5 @@ export type { DataViewContextValue as TableContextValue } from "../shared/data-v
 export { useDataViewContext as useTableContext } from "../shared/data-view-context";
 export type { DataViewProviderProps as TableProviderProps } from "../shared/data-view-provider";
 export { DataViewProvider as TableProvider } from "../shared/data-view-provider";
+// Skeleton
+export { TableSkeleton } from "./table-skeleton";

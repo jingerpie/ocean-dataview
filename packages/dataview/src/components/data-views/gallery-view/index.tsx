@@ -354,3 +354,5 @@ export type { DataViewContextValue as GalleryContextValue } from "../shared/data
 export { useDataViewContext as useGalleryContext } from "../shared/data-view-context";
 export type { DataViewProviderProps as GalleryProviderProps } from "../shared/data-view-provider";
 export { DataViewProvider as GalleryProvider } from "../shared/data-view-provider";
+// Skeleton
+export { GallerySkeleton } from "./gallery-skeleton";

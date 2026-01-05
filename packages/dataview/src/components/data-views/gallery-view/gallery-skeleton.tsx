@@ -1,0 +1,138 @@
+"use client";
+
+import { Card, CardContent } from "@ocean-dataview/dataview/components/ui/card";
+import { Skeleton } from "@ocean-dataview/dataview/components/ui/skeleton";
+import { cn } from "@ocean-dataview/dataview/lib/utils";
+
+interface GallerySkeletonProps extends React.ComponentProps<"div"> {
+	/**
+	 * Number of cards to display
+	 * @default 6
+	 */
+	cardCount?: number;
+	/**
+	 * Card size preset
+	 * @default "medium"
+	 */
+	cardSize?: "small" | "medium" | "large";
+	/**
+	 * Show toolbar skeleton
+	 * @default true
+	 */
+	withToolbar?: boolean;
+	/**
+	 * Show pagination skeleton
+	 * @default true
+	 */
+	withPagination?: boolean;
+	/**
+	 * Show image placeholder in cards
+	 * @default true
+	 */
+	withImage?: boolean;
+	/**
+	 * Number of property lines per card
+	 * @default 2
+	 */
+	propertyCount?: number;
+}
+
+export function GallerySkeleton({
+	cardCount = 6,
+	cardSize = "medium",
+	withToolbar = true,
+	withPagination = true,
+	withImage = true,
+	propertyCount = 2,
+	className,
+	...props
+}: GallerySkeletonProps) {
+	// Grid columns and image height based on card size
+	const getCardDimensions = () => {
+		switch (cardSize) {
+			case "small":
+				return {
+					imageHeight: 150,
+					cols: "grid-cols-1 sm:grid-cols-3 lg:grid-cols-5",
+				};
+			case "large":
+				return {
+					imageHeight: 260,
+					cols: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+				};
+			default: // medium
+				return {
+					imageHeight: 200,
+					cols: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+				};
+		}
+	};
+
+	const { imageHeight, cols } = getCardDimensions();
+
+	return (
+		<div
+			className={cn("flex w-full flex-col gap-2.5 overflow-auto", className)}
+			{...props}
+		>
+			{/* Toolbar */}
+			{withToolbar && (
+				<div className="flex w-full items-center justify-between gap-2 overflow-auto p-1">
+					<div className="flex flex-1 items-center gap-2">
+						<Skeleton className="h-7 w-[4.5rem] border-dashed" />
+						<Skeleton className="h-7 w-[4.5rem] border-dashed" />
+					</div>
+					<Skeleton className="ml-auto hidden h-7 w-[4.5rem] lg:flex" />
+				</div>
+			)}
+
+			{/* Card Grid */}
+			<div className={cn("grid gap-4", cols)}>
+				{Array.from({ length: cardCount }).map((_, i) => (
+					<Card key={i} className="gap-0 overflow-hidden py-0">
+						{/* Image placeholder */}
+						{withImage && (
+							<Skeleton
+								className="w-full rounded-none"
+								style={{ height: imageHeight }}
+							/>
+						)}
+
+						{/* Card content */}
+						<CardContent className="flex flex-col gap-2 p-3">
+							{Array.from({ length: propertyCount }).map((_, j) => (
+								<Skeleton
+									key={j}
+									className="h-4"
+									style={{ width: j === 0 ? "75%" : "50%" }}
+								/>
+							))}
+						</CardContent>
+					</Card>
+				))}
+			</div>
+
+			{/* Pagination */}
+			{withPagination && (
+				<div className="flex w-full items-center justify-between gap-4 overflow-auto p-1 sm:gap-8">
+					<Skeleton className="h-7 w-40 shrink-0" />
+					<div className="flex items-center gap-4 sm:gap-6 lg:gap-8">
+						<div className="flex items-center gap-2">
+							<Skeleton className="h-7 w-24" />
+							<Skeleton className="h-7 w-[4.5rem]" />
+						</div>
+						<div className="flex items-center justify-center font-medium text-sm">
+							<Skeleton className="h-7 w-20" />
+						</div>
+						<div className="flex items-center gap-2">
+							<Skeleton className="hidden size-7 lg:block" />
+							<Skeleton className="size-7" />
+							<Skeleton className="size-7" />
+							<Skeleton className="hidden size-7 lg:block" />
+						</div>
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}

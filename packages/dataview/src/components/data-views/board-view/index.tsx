@@ -627,4 +627,6 @@ export type { DataViewContextValue as BoardContextValue } from "../shared/data-v
 export { useDataViewContext as useBoardContext } from "../shared/data-view-context";
 export type { DataViewProviderProps as BoardProviderProps } from "../shared/data-view-provider";
 export { DataViewProvider as BoardProvider } from "../shared/data-view-provider";
+// Skeleton
+export { BoardSkeleton } from "./board-skeleton";
 // Note: GroupCounts and GroupCountsWithSubGroups are exported at top of file
