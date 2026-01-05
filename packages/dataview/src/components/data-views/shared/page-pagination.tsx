@@ -1,13 +1,13 @@
 "use client";
 
+import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from "@ocean-dataview/dataview/components/select";
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
+} from "@ocean-dataview/dataview/components/ui/select";
 import type { PaginationContext } from "@ocean-dataview/dataview/lib/data-views/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 

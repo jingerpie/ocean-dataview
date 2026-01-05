@@ -1,12 +1,12 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/button";
+import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
-} from "@ocean-dataview/dataview/components/dropdown-menu";
+} from "@ocean-dataview/dataview/components/ui/dropdown-menu";
 import { LaptopIcon, MoonIcon, SunIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 

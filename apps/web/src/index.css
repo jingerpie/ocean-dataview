@@ -1,1 +1,5 @@
+/* Import UI base styles and theme */
 @import "@ocean-dataview/ui/globals.css";
+
+/* Import dataview styles (adds @source for dataview components) */
+@import "@ocean-dataview/dataview/globals.css";
