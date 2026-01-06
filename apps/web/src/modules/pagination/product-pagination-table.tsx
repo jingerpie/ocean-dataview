@@ -3,8 +3,12 @@
 import { DataViewOptions } from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
 import { DataViewProvider } from "@ocean-dataview/dataview/components/data-views/shared/data-view-provider";
 import { PagePagination } from "@ocean-dataview/dataview/components/data-views/shared/page-pagination";
-import { TableView } from "@ocean-dataview/dataview/components/data-views/table-view";
+import {
+	TableSkeleton,
+	TableView,
+} from "@ocean-dataview/dataview/components/data-views/table-view";
 import { usePagination } from "@ocean-dataview/dataview/lib/data-views/hooks";
+import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { PaginationTabs } from "./pagination-tabs";
 import { type Product, productProperties } from "./product-properties";
@@ -17,10 +21,16 @@ import { type Product, productProperties } from "./product-properties";
  * - URL state for after/before/limit/start
  * - "Showing X-Y" display
  */
-export const ProductPaginationTable = () => {
+export const ProductPaginationTable = () => (
+	<Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
+		<ProductPaginationTableView />
+	</Suspense>
+);
+
+const ProductPaginationTableView = () => {
 	const trpc = useTRPC();
 
-	const { data, pagination, isLoading } = usePagination<Product>({
+	const { data, pagination } = usePagination<Product>({
 		createQueryOptions: (after, before, limit) =>
 			trpc.product.getMany.queryOptions({
 				after,
@@ -32,20 +42,8 @@ export const ProductPaginationTable = () => {
 		limitOptions: [10, 25, 50, 100],
 	});
 
-	// Loading state
-	if (isLoading && data.length === 0) {
-		return (
-			<div className="flex min-h-[400px] items-center justify-center">
-				<div className="text-center">
-					<div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-primary border-b-2" />
-					<p className="text-muted-foreground">Loading products...</p>
-				</div>
-			</div>
-		);
-	}
-
 	// Empty state
-	if (!isLoading && data.length === 0) {
+	if (data.length === 0) {
 		return (
 			<div className="flex min-h-[400px] items-center justify-center">
 				<p className="text-muted-foreground">No products found</p>

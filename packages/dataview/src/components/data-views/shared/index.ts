@@ -14,7 +14,6 @@ export { FilterDropdown } from "./filter-dropdown";
 export { GroupSection } from "./group-section";
 export { GroupedLayout } from "./grouped-layout";
 export { LoadMorePagination } from "./load-more-pagination";
-export { LoadingSkeleton } from "./loading-skeleton";
 export { PagePagination } from "./page-pagination";
 export { SearchBar } from "./search-bar";
 export type { SortOption } from "./sort-dropdown";

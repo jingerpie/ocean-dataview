@@ -1,6 +1,9 @@
 "use client";
 
-import { ListView } from "@ocean-dataview/dataview/components/data-views/list-view";
+import {
+	ListSkeleton,
+	ListView,
+} from "@ocean-dataview/dataview/components/data-views/list-view";
 import { DataViewOptions } from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
 import { DataViewProvider } from "@ocean-dataview/dataview/components/data-views/shared/data-view-provider";
 import { PagePagination } from "@ocean-dataview/dataview/components/data-views/shared/page-pagination";
@@ -8,29 +11,35 @@ import {
 	useGroupExpansion,
 	useGroupPagination,
 } from "@ocean-dataview/dataview/lib/data-views/hooks";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "./group-pagination-tabs";
 import { type Product, productProperties } from "./product-properties";
+
 /**
- * Listings Table View
+ * Listings List View
  *
  * Uses controlled expansion pattern:
  * 1. useGroupExpansion manages URL state for expanded groups
  * 2. usePagination uses expandedGroups to control which queries are enabled
- * 3. TableView receives controlled expansion props
+ * 3. ListView receives controlled expansion props
  */
-export const ProductGroupPaginationList = () => {
+export const ProductGroupPaginationList = () => (
+	<Suspense fallback={<ListSkeleton rowCount={8} />}>
+		<ProductGroupPaginationListView />
+	</Suspense>
+);
+
+const ProductGroupPaginationListView = () => {
 	const trpc = useTRPC();
 
-	// 1. Fetch group counts
-	const {
-		data: groupCounts,
-		isLoading: groupLoading,
-		error: groupError,
-	} = useQuery(trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" }));
+	// 1. Fetch group counts (suspends until data is ready)
+	const { data: groupCounts } = useSuspenseQuery(
+		trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" }),
+	);
 
-	// 2. Expansion state (controlled)
+	// 2. Expansion state (controlled via URL)
 	const { expandedGroups, handleAccordionChange } = useGroupExpansion({
 		defaultExpanded: [],
 	});
@@ -58,22 +67,9 @@ export const ProductGroupPaginationList = () => {
 			}),
 	});
 
-	// Loading state
-	if (groupLoading && !groupCounts) {
-		return (
-			<div className="flex min-h-[400px] items-center justify-center">
-				<div className="text-center">
-					<div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-primary border-b-2" />
-					<p className="text-muted-foreground">Loading products; ...</p>
-				</div>
-			</div>
-		);
-	}
-
-	// Empty state (covers errors and empty results)
+	// Empty state
 	const isEmpty = pagination.groups.length === 0;
-
-	if (groupError || isEmpty) {
+	if (isEmpty) {
 		return (
 			<div className="flex min-h-[400px] items-center justify-center">
 				<p className="text-muted-foreground">No products found</p>

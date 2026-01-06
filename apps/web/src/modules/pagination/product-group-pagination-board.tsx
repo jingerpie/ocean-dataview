@@ -1,10 +1,14 @@
 "use client";
 
-import { BoardView } from "@ocean-dataview/dataview/components/data-views/board-view";
+import {
+	BoardSkeleton,
+	BoardView,
+} from "@ocean-dataview/dataview/components/data-views/board-view";
 import { DataViewOptions } from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
 import { DataViewProvider } from "@ocean-dataview/dataview/components/data-views/shared/data-view-provider";
 import { useGroupPagination } from "@ocean-dataview/dataview/lib/data-views/hooks";
 import { useQuery } from "@tanstack/react-query";
+import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "../group-pagination/group-pagination-tabs";
 import {
@@ -18,15 +22,19 @@ import {
  * Unlike Table/List/Gallery, BoardView columns are always visible (no accordion).
  * All group keys are passed to useGroupPagination so all columns fetch data.
  */
-export const ProductGroupPaginationBoard = () => {
+export const ProductGroupPaginationBoard = () => (
+	<Suspense fallback={<BoardSkeleton columnCount={4} />}>
+		<ProductGroupPaginationBoardView />
+	</Suspense>
+);
+
+const ProductGroupPaginationBoardView = () => {
 	const trpc = useTRPC();
 
 	// 1. Fetch group counts
-	const {
-		data: groupCounts,
-		isLoading: groupLoading,
-		error: groupError,
-	} = useQuery(trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" }));
+	const { data: groupCounts, error: groupError } = useQuery(
+		trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" }),
+	);
 
 	// 2. All columns need data - no useGroupExpansion needed for BoardView
 	// All group keys are "expanded" so all columns fetch data
@@ -54,18 +62,6 @@ export const ProductGroupPaginationBoard = () => {
 				limit,
 			}),
 	});
-
-	// Loading state
-	if (groupLoading && !groupCounts) {
-		return (
-			<div className="flex min-h-[400px] items-center justify-center">
-				<div className="text-center">
-					<div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-primary border-b-2" />
-					<p className="text-muted-foreground">Loading products; ...</p>
-				</div>
-			</div>
-		);
-	}
 
 	// Empty state (covers errors and empty results)
 	const isEmpty = pagination.groups.length === 0;
