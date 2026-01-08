@@ -9,10 +9,6 @@ import {
 	SplitButton,
 } from "@ocean-dataview/dataview/components/views/shared";
 import { GroupAccordion } from "@ocean-dataview/dataview/components/views/shared/group-accordion";
-import {
-	type PaginationMode,
-	renderPagination,
-} from "@ocean-dataview/dataview/components/views/shared/pagination-renderer";
 import type {
 	GroupedDataItem,
 	GroupInfiniteInfo,
@@ -40,6 +36,7 @@ import type {
 } from "@tanstack/react-table";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { type PaginationMode, renderPagination } from "../../ui/paginations";
 import { useDataViewContext } from "../shared/data-view-context";
 import { DataTable } from "./data-table";
 

@@ -2,10 +2,6 @@
 
 import { GroupSection } from "@ocean-dataview/dataview/components/views/shared";
 import { GroupAccordion } from "@ocean-dataview/dataview/components/views/shared/group-accordion";
-import {
-	type PaginationMode,
-	renderPagination,
-} from "@ocean-dataview/dataview/components/views/shared/pagination-renderer";
 import type {
 	GroupedDataItem,
 	GroupInfiniteInfo,
@@ -23,6 +19,7 @@ import {
 } from "@ocean-dataview/dataview/lib/data-views/utils";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
+import { type PaginationMode, renderPagination } from "../../ui/paginations";
 import { useDataViewContext } from "../shared/data-view-context";
 import { ListRow } from "./list-row";
 

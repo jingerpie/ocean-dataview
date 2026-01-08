@@ -2,10 +2,6 @@
 
 import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
 import { Card, CardContent } from "@ocean-dataview/dataview/components/ui/card";
-import {
-	type PaginationMode,
-	renderPagination,
-} from "@ocean-dataview/dataview/components/views/shared/pagination-renderer";
 import type {
 	GroupedDataItem,
 	GroupInfiniteInfo,
@@ -26,6 +22,7 @@ import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { AlertCircle, Columns3 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useRef } from "react";
+import { type PaginationMode, renderPagination } from "../../ui/paginations";
 import { EmptyState } from "../shared";
 import { useDataViewContext } from "../shared/data-view-context";
 import { BoardColumnCard } from "./board-column-card";

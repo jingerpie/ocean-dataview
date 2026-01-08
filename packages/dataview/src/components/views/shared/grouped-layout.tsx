@@ -5,9 +5,9 @@ import type {
 	DataViewProperty,
 	PaginationContext,
 } from "@ocean-dataview/dataview/lib/data-views/types";
+import { type PaginationMode, renderPagination } from "../../ui/paginations";
 import { GroupAccordion } from "./group-accordion";
 import { GroupSection } from "./group-section";
-import { type PaginationMode, renderPagination } from "./pagination-renderer";
 
 interface GroupedLayoutProps<TData> {
 	/** Grouped data items to render */
