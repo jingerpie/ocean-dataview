@@ -2,9 +2,6 @@
 
 import { Checkbox } from "@ocean-dataview/dataview/components/ui/checkbox";
 import {
-	DataActionBar,
-	DataActionBarAction,
-	DataActionBarSelection,
 	GroupSection,
 	SplitButton,
 } from "@ocean-dataview/dataview/components/views/shared";
@@ -36,6 +33,11 @@ import type {
 } from "@tanstack/react-table";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+	DataActionBar,
+	DataActionBarAction,
+	DataActionBarSelection,
+} from "../../ui/action-bar";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
 import { useDataViewContext } from "../shared/data-view-context";
 import { DataTable } from "./data-table";
