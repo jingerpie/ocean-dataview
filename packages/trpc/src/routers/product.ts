@@ -10,7 +10,8 @@ export const productRouter = router({
 	getMany: publicProcedure
 		.input(productSearchParamsSchema)
 		.query(async ({ input }) => {
-			const { after, before, limit, filters, sort, joinOperator } = input;
+			const { after, before, cursor, limit, filters, sort, joinOperator } =
+				input;
 
 			const advancedWhere = filterColumns({
 				table: product,
@@ -18,9 +19,12 @@ export const productRouter = router({
 				joinOperator,
 			});
 
+			// cursor is alias for after (for TRPC infiniteQueryOptions)
+			const forwardCursor = cursor ?? after;
+
 			// Determine direction - cursor is just the ID string
 			const isBackward = !!before;
-			const cursorId = before || after;
+			const cursorId = before || forwardCursor;
 
 			// Build sort columns with `id` as final tiebreaker for stable pagination
 			// The `id` tiebreaker follows the same direction as the primary sort field
@@ -89,9 +93,9 @@ export const productRouter = router({
 			const firstItem = items[0];
 			const lastItem = items.at(-1);
 
-			// Cursors are just IDs - simple strings
-			const startCursor = firstItem?.id ?? null;
-			const endCursor = lastItem?.id ?? null;
+			// Cursors are just IDs converted to strings
+			const startCursor = firstItem ? String(firstItem.id) : null;
+			const endCursor = lastItem ? String(lastItem.id) : null;
 
 			return {
 				items,

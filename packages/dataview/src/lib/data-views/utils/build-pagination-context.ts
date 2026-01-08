@@ -1,12 +1,26 @@
-import type { GroupedPaginationOutput } from "../hooks/use-group-pagination";
-import type { FlatPaginationOutput } from "../hooks/use-pagination-controls";
+import type { GroupInfinitePaginationState } from "../hooks/use-group-infinite-pagination";
+import type { GroupPagePaginationState } from "../hooks/use-group-page-pagination";
+import type { InfinitePaginationState } from "../hooks/use-infinite-pagination";
+import type { PagePaginationResult } from "../hooks/use-page-pagination";
 import type { PaginationContext } from "../types/pagination";
+
+/**
+ * Flat pagination output types (from new hooks)
+ */
+type FlatPaginationOutput = PagePaginationResult | InfinitePaginationState;
+
+/**
+ * Grouped pagination output types (from new hooks)
+ */
+type GroupedPaginationOutput<TData> =
+	| GroupPagePaginationState<TData>
+	| GroupInfinitePaginationState<TData>;
 
 /**
  * Type guard to check if pagination is grouped (has groups array)
  */
 function isGroupedPagination<TData>(
-	pagination: FlatPaginationOutput<TData> | GroupedPaginationOutput<TData>,
+	pagination: FlatPaginationOutput | GroupedPaginationOutput<TData>,
 ): pagination is GroupedPaginationOutput<TData> {
 	return "groups" in pagination && Array.isArray(pagination.groups);
 }
@@ -15,7 +29,7 @@ function isGroupedPagination<TData>(
  * Union type for pagination - supports both flat and grouped pagination
  */
 type PaginationOutput<TData> =
-	| FlatPaginationOutput<TData>
+	| FlatPaginationOutput
 	| GroupedPaginationOutput<TData>;
 
 /**
@@ -42,15 +56,20 @@ export function buildPaginationContext<TData>(
 
 		return {
 			hasNext: group.hasNext,
-			hasPrev: group.hasPrev,
+			hasPrev: "hasPrev" in group ? group.hasPrev : false,
 			onNext: group.onNext,
-			onPrev: group.onPrev,
+			onPrev: "onPrev" in group ? group.onPrev : () => {},
 			isLoading: group.isLoading,
 			limit: pagination.limit,
 			onLimitChange: pagination.onLimitChange,
 			limitOptions: pagination.limitOptions,
-			displayStart: group.displayStart,
-			displayEnd: group.displayEnd,
+			displayStart: "displayStart" in group ? group.displayStart : 1,
+			displayEnd:
+				"displayEnd" in group
+					? group.displayEnd
+					: "totalLoaded" in group
+						? group.totalLoaded
+						: 0,
 		};
 	}
 
@@ -64,7 +83,12 @@ export function buildPaginationContext<TData>(
 		limit: pagination.limit,
 		onLimitChange: pagination.onLimitChange,
 		limitOptions: pagination.limitOptions,
-		displayStart: pagination.displayStart,
-		displayEnd: pagination.displayEnd,
+		displayStart: "displayStart" in pagination ? pagination.displayStart : 1,
+		displayEnd:
+			"displayEnd" in pagination
+				? pagination.displayEnd
+				: "totalLoaded" in pagination
+					? pagination.totalLoaded
+					: 0,
 	};
 }

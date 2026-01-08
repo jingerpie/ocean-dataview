@@ -13,6 +13,41 @@ import { makeQueryClient } from "./query-client";
 export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
 let browserQueryClient: QueryClient;
 
+// Standalone trpc client for direct API calls (e.g., infinite queries)
+let apiClient: ReturnType<typeof createTRPCClient<AppRouter>> | null = null;
+
+export function getApiClient() {
+	if (typeof window === "undefined") {
+		// Server: create new client each time
+		return createTRPCClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					url: `${env.NEXT_PUBLIC_SERVER_URL}/trpc`,
+					transformer: superjson,
+				}),
+			],
+		});
+	}
+	// Browser: singleton
+	if (!apiClient) {
+		apiClient = createTRPCClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					url: `${env.NEXT_PUBLIC_SERVER_URL}/trpc`,
+					fetch(url, options) {
+						return fetch(url, {
+							...options,
+							credentials: "include",
+						});
+					},
+					transformer: superjson,
+				}),
+			],
+		});
+	}
+	return apiClient;
+}
+
 function getQueryClient() {
 	if (typeof window === "undefined") {
 		// Server: always make a new query client

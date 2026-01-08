@@ -6,13 +6,8 @@ import {
 } from "@ocean-dataview/dataview/components/data-views/gallery-view";
 import { DataViewOptions } from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
 import { DataViewProvider } from "@ocean-dataview/dataview/components/data-views/shared/data-view-provider";
-import { useGroupData } from "@ocean-dataview/dataview/lib/data-views/hooks";
-import {
-	type CursorState,
-	getCursor,
-	getCursorParams,
-} from "@ocean-dataview/shared/types";
-import { useQueries, useSuspenseQuery } from "@tanstack/react-query";
+import { useGroupInfinitePagination } from "@ocean-dataview/dataview/lib/data-views/hooks";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "./group-pagination-tabs";
@@ -25,14 +20,16 @@ const DEFAULT_EXPANDED: string[] = [];
  */
 interface Props {
 	expanded: string[] | null;
-	cursors: CursorState[];
+	cursors: unknown; // Not used for infinite pagination, but passed from page
 	limit: number;
 }
 
 /**
- * Product Group Gallery with cursor-based pagination.
+ * Product Group Gallery with infinite load-more pagination per group.
  *
- * Pattern: Server prefetch → Props → Client uses props for query
+ * Pattern: Uses useGroupInfinitePagination for per-group data accumulation
+ * - Each group has its own "Load More" button
+ * - Data accumulates client-side per group
  */
 export const ProductGroupPaginationGallery = (props: Props) => (
 	<Suspense fallback={<GallerySkeleton cardCount={6} />}>
@@ -42,7 +39,6 @@ export const ProductGroupPaginationGallery = (props: Props) => (
 
 const ProductGroupPaginationGalleryView = ({
 	expanded: expandedProp,
-	cursors,
 	limit,
 }: Props) => {
 	const trpc = useTRPC();
@@ -55,45 +51,36 @@ const ProductGroupPaginationGalleryView = ({
 	// 2. Apply default on client
 	const expanded = expandedProp ?? DEFAULT_EXPANDED;
 
-	// 3. Get all group keys (stable order)
+	// 3. Get all group keys
 	const allGroupKeys = Object.keys(groupCounts);
 
-	// 4. useQueries with enabled flag - uses cursors from props
-	const groupQueries = useQueries({
-		queries: allGroupKeys.map((groupKey) => {
-			const cursor = getCursor(cursors, groupKey);
-			const { after, before } = getCursorParams(cursor);
-
-			return {
-				...trpc.product.getMany.queryOptions({
-					filters: [
-						{
-							propertyId: "familyGroup",
-							operator: "eq",
-							value: groupKey,
-							variant: "select",
-							filterId: "familyGroup-group",
-						},
-					],
-					sort: [{ propertyId: "updatedAt", desc: false }],
-					after,
-					before,
-					limit,
-				}),
-				enabled: expanded.includes(groupKey),
-			};
-		}),
-	});
-
-	// 5. useGroupData hook
-	const { data, pagination, handleAccordionChange } = useGroupData<Product>({
-		groupQueries,
-		allGroupKeys,
-		expanded,
-		cursors,
-		groupCounts,
-		limit,
-	});
+	// 4. Single hook call - creates queries internally using TRPC infiniteQueryOptions
+	const { data, pagination, handleAccordionChange } =
+		useGroupInfinitePagination<Product>({
+			allGroupKeys,
+			expanded,
+			groupCounts,
+			limit,
+			createQueryOptions: (groupKey) =>
+				trpc.product.getMany.infiniteQueryOptions(
+					{
+						filters: [
+							{
+								propertyId: "familyGroup",
+								operator: "eq",
+								value: groupKey,
+								variant: "select",
+								filterId: "familyGroup-group",
+							},
+						],
+						sort: [{ propertyId: "updatedAt", desc: false }],
+						limit,
+					},
+					{
+						getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
+					},
+				),
+		});
 
 	// Empty state
 	if (pagination.groups.length === 0) {
@@ -129,7 +116,7 @@ const ProductGroupPaginationGalleryView = ({
 						onExpandedChange: handleAccordionChange,
 					},
 				}}
-				pagination="page"
+				pagination="loadMore"
 			/>
 		</DataViewProvider>
 	);

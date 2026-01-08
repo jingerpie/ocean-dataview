@@ -6,15 +6,22 @@ import {
 	TableSkeleton,
 	TableView,
 } from "@ocean-dataview/dataview/components/data-views/table-view";
-import {
-	type PaginationProps,
-	usePaginationControls,
-} from "@ocean-dataview/dataview/lib/data-views/hooks";
+import { usePagePagination } from "@ocean-dataview/dataview/lib/data-views/hooks";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { PaginationTabs } from "./pagination-tabs";
-import { type Product, productProperties } from "./product-properties";
+import { productProperties } from "./product-properties";
+
+/**
+ * Props passed from server (parsed URL params)
+ */
+interface PaginationProps {
+	after: string | null;
+	before: string | null;
+	limit: number;
+	start: number;
+}
 
 /**
  * Product Table with simple cursor-based pagination.
@@ -22,7 +29,7 @@ import { type Product, productProperties } from "./product-properties";
  * Pattern: Server prefetch → Props → Client uses props for query
  * - Server parses URL, prefetches, passes props
  * - Client uses useSuspenseQuery with props (matches server prefetch = cache hit)
- * - usePaginationControls handles URL updates only (shallow: false)
+ * - usePagePagination handles URL updates (shallow: false)
  */
 export const ProductPaginationTable = (props: PaginationProps) => (
 	<Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
@@ -31,7 +38,7 @@ export const ProductPaginationTable = (props: PaginationProps) => (
 );
 
 const ProductPaginationTableView = (props: PaginationProps) => {
-	const { after, before, limit } = props;
+	const { after, before, limit, start } = props;
 	const trpc = useTRPC();
 
 	// Query with props (matches server prefetch)
@@ -44,10 +51,13 @@ const ProductPaginationTableView = (props: PaginationProps) => {
 		}),
 	);
 
-	// Pagination controls (URL setters only)
-	const pagination = usePaginationControls<Product>({
-		props,
-		queryData: data,
+	// Pagination controls using the new hook
+	const pagination = usePagePagination({
+		after,
+		before,
+		limit,
+		start,
+		data,
 		limitOptions: [10, 25, 50, 100],
 	});
 
@@ -73,7 +83,7 @@ const ProductPaginationTableView = (props: PaginationProps) => {
 
 			<TableView
 				layout={{ showVerticalLines: false, wrapAllColumns: false }}
-				pagination="loadMore"
+				pagination="page"
 			/>
 		</DataViewProvider>
 	);

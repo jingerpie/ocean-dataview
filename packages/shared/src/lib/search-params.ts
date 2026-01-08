@@ -109,6 +109,7 @@ export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 	const baseSchema = z.object({
 		after: z.coerce.string().nullish(), // Forward cursor (coerce number to string)
 		before: z.coerce.string().nullish(), // Backward cursor (coerce number to string)
+		cursor: z.coerce.string().nullish(), // Alias for after (for TRPC infiniteQueryOptions)
 		limit: z.number().int().min(1).max(200).default(DEFAULT_LIMIT),
 		filters: z.array(filterSchema).default([]),
 		sort: z.array(sortSchema).default([]),
@@ -195,22 +196,42 @@ export const parseAsCursors = parseAsJsonArray<CursorState>();
 export const parseAsExpanded = parseAsJsonArray<string>();
 
 // ============================================================================
-// Flat Pagination Params (for simple cursor-based pagination)
+// Unified Pagination Params
 // ============================================================================
 
-const DEFAULT_FLAT_LIMIT = 25;
+const DEFAULT_PAGINATION_LIMIT = 25;
 
 /**
- * Server-side parser for flat pagination URL params.
- * Used by /pagination page to prefetch data and pass props to client.
+ * Unified pagination params - works for both flat and grouped pagination.
+ *
+ * For flat pagination:
+ * - cursors: single item with key "$all" e.g. [{ key: "$all", cursor: "abc", dir: "after" }]
+ * - expanded: null (not used)
+ *
+ * For grouped pagination:
+ * - cursors: per-group items e.g. [{ key: "Electronics", cursor: "xyz", dir: "after" }]
+ * - expanded: array of expanded group keys e.g. ["Electronics", "Furniture"]
  *
  * @example
  * ```ts
  * // In Server Component
- * const params = await flatPaginationParams.parse(searchParams);
- * const { after, before, limit, start } = params;
+ * const params = await paginationParams.parse(searchParams);
+ * const { cursors, expanded, limit } = params;
  * ```
  */
+export const paginationParams = createSearchParamsCache({
+	cursors: parseAsJson(cursorsValidator).withDefault([]),
+	expanded: parseAsJson(expandedValidator), // null = flat or use default
+	limit: parseAsInteger.withDefault(DEFAULT_PAGINATION_LIMIT),
+});
+
+// ============================================================================
+// Legacy Pagination Params (deprecated - use paginationParams instead)
+// ============================================================================
+
+const DEFAULT_FLAT_LIMIT = 25;
+
+/** @deprecated Use paginationParams instead */
 export const flatPaginationParams = createSearchParamsCache({
 	after: parseAsString,
 	before: parseAsString,
@@ -218,28 +239,9 @@ export const flatPaginationParams = createSearchParamsCache({
 	start: parseAsInteger.withDefault(0),
 });
 
-// ============================================================================
-// Group Pagination Params (for per-group cursor pagination)
-// ============================================================================
-
 const DEFAULT_GROUP_LIMIT = 25;
 
-/**
- * Server-side parser for group pagination URL params.
- * Used by /group-pagination page to prefetch data and pass props to client.
- *
- * URL schema:
- * - expanded: string[] | null - which groups are expanded (null = use default)
- * - cursors: CursorState[] - cursor state per group for pagination
- * - limit: number - items per page per group
- *
- * @example
- * ```ts
- * // In Server Component
- * const params = await groupPaginationParams.parse(searchParams);
- * const { expanded, cursors, limit } = params;
- * ```
- */
+/** @deprecated Use paginationParams instead */
 export const groupPaginationParams = createSearchParamsCache({
 	expanded: parseAsJson(expandedValidator),
 	cursors: parseAsJson(cursorsValidator).withDefault([]),

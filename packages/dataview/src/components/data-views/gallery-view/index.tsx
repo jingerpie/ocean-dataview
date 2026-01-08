@@ -8,6 +8,7 @@ import {
 } from "@ocean-dataview/dataview/components/data-views/shared/pagination-renderer";
 import type {
 	GroupedDataItem,
+	GroupInfiniteInfo,
 	GroupInfo,
 } from "@ocean-dataview/dataview/lib/data-views/hooks";
 import {
@@ -205,13 +206,16 @@ export function GalleryView<
 	const groupedData = useMemo(() => {
 		if (hasGroupedPagination && "groups" in contextPagination) {
 			// Convert pagination.groups to GroupedDataItem format
-			return contextPagination.groups.map((group: GroupInfo<TData>) => ({
-				key: group.key,
-				items: transformData(group.items, properties) as TData[],
-				count: group.count,
-				displayCount: group.displayCount,
-				sortValue: group.value,
-			}));
+			// Groups can be either GroupInfo (page) or GroupInfiniteInfo (infinite)
+			return contextPagination.groups.map(
+				(group: GroupInfo<TData> | GroupInfiniteInfo<TData>) => ({
+					key: group.key,
+					items: transformData(group.items, properties) as TData[],
+					count: group.count,
+					displayCount: group.displayCount,
+					sortValue: group.value,
+				}),
+			);
 		}
 		return clientGroupedData;
 	}, [hasGroupedPagination, contextPagination, clientGroupedData, properties]);

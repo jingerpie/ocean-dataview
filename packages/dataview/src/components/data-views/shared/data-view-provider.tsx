@@ -1,9 +1,5 @@
 "use client";
 
-import type {
-	FlatPaginationOutput,
-	GroupedPaginationOutput,
-} from "@ocean-dataview/dataview/lib/data-views/hooks";
 import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { ReactNode } from "react";
@@ -11,14 +7,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	DataViewContext,
 	type DataViewContextValue,
+	type PaginationOutput,
 } from "./data-view-context";
-
-/**
- * Union type for pagination - supports both flat and grouped pagination
- */
-export type PaginationOutput<TData> =
-	| FlatPaginationOutput<TData>
-	| GroupedPaginationOutput<TData>;
 
 export interface DataViewProviderProps<
 	TData,
@@ -112,3 +102,6 @@ export function DataViewProvider<
 		</DataViewContext.Provider>
 	);
 }
+
+// Re-export PaginationOutput for backward compatibility
+export type { PaginationOutput } from "./data-view-context";

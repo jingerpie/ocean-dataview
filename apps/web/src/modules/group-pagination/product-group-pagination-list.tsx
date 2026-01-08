@@ -6,13 +6,9 @@ import {
 } from "@ocean-dataview/dataview/components/data-views/list-view";
 import { DataViewOptions } from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
 import { DataViewProvider } from "@ocean-dataview/dataview/components/data-views/shared/data-view-provider";
-import { useGroupData } from "@ocean-dataview/dataview/lib/data-views/hooks";
-import {
-	type CursorState,
-	getCursor,
-	getCursorParams,
-} from "@ocean-dataview/shared/types";
-import { useQueries, useSuspenseQuery } from "@tanstack/react-query";
+import { useGroupPagePagination } from "@ocean-dataview/dataview/lib/data-views/hooks";
+import type { CursorState } from "@ocean-dataview/shared/types";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "./group-pagination-tabs";
@@ -58,14 +54,16 @@ const ProductGroupPaginationListView = ({
 	// 3. Get all group keys (stable order)
 	const allGroupKeys = Object.keys(groupCounts);
 
-	// 4. useQueries with enabled flag - uses cursors from props
-	const groupQueries = useQueries({
-		queries: allGroupKeys.map((groupKey) => {
-			const cursor = getCursor(cursors, groupKey);
-			const { after, before } = getCursorParams(cursor);
-
-			return {
-				...trpc.product.getMany.queryOptions({
+	// 4. Single hook call - creates queries internally using TRPC queryOptions
+	const { data, pagination, handleAccordionChange } =
+		useGroupPagePagination<Product>({
+			allGroupKeys,
+			expanded,
+			cursors,
+			groupCounts,
+			limit,
+			createQueryOptions: (groupKey, { after, before }) =>
+				trpc.product.getMany.queryOptions({
 					filters: [
 						{
 							propertyId: "familyGroup",
@@ -80,20 +78,7 @@ const ProductGroupPaginationListView = ({
 					before,
 					limit,
 				}),
-				enabled: expanded.includes(groupKey),
-			};
-		}),
-	});
-
-	// 5. useGroupData hook
-	const { data, pagination, handleAccordionChange } = useGroupData<Product>({
-		groupQueries,
-		allGroupKeys,
-		expanded,
-		cursors,
-		groupCounts,
-		limit,
-	});
+		});
 
 	// Empty state
 	if (pagination.groups.length === 0) {

@@ -9,11 +9,14 @@ type LoadMorePaginationProps = Partial<PaginationContext>;
 /**
  * LoadMorePagination component for load-more pagination.
  * Shows "Load More" button that triggers loading the next page.
+ * Data is appended to existing items (not replaced).
  */
 export function LoadMorePagination({
 	hasNext = false,
 	onNext,
-	isLoading = false,
+	isFetchingNextPage = false,
+	totalLoaded,
+	error,
 }: LoadMorePaginationProps) {
 	// Don't show if no more items or no callback
 	if (!hasNext || !onNext) {
@@ -21,14 +24,20 @@ export function LoadMorePagination({
 	}
 
 	return (
-		<div className="flex items-center justify-center py-2">
+		<div className="flex flex-col items-center gap-2 py-4">
+			{error && <p className="text-destructive text-sm">Failed to load more</p>}
+			{totalLoaded != null && (
+				<span className="text-muted-foreground text-sm">
+					Showing {totalLoaded} items
+				</span>
+			)}
 			<Button
 				variant="ghost"
 				onClick={onNext}
-				disabled={isLoading}
+				disabled={isFetchingNextPage}
 				className="gap-2 font-normal text-muted-foreground hover:text-foreground"
 			>
-				{isLoading ? (
+				{isFetchingNextPage ? (
 					<>
 						<Loader2 className="h-4 w-4 animate-spin" />
 						Loading...

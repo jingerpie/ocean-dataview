@@ -6,50 +6,60 @@ import {
 } from "@ocean-dataview/dataview/components/data-views/gallery-view";
 import { DataViewOptions } from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
 import { DataViewProvider } from "@ocean-dataview/dataview/components/data-views/shared/data-view-provider";
-import {
-	type PaginationProps,
-	usePaginationControls,
-} from "@ocean-dataview/dataview/lib/data-views/hooks";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useInfinitePagination } from "@ocean-dataview/dataview/lib/data-views/hooks";
+import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { PaginationTabs } from "./pagination-tabs";
 import { type Product, productProperties } from "./product-properties";
 
+interface ProductPaginationGalleryProps {
+	limit: number;
+}
+
 /**
- * Product Gallery with simple cursor-based pagination.
+ * Product Gallery with infinite pagination (load more).
  *
- * Pattern: Server prefetch → Props → Client uses props for query
+ * Pattern: Uses useSuspenseInfiniteQuery for data accumulation
+ * - Data is appended when "Load More" is clicked
+ * - URL state is shallow (no server re-render for infinite scroll)
+ * - useInfinitePagination handles data flattening + pagination state
  */
-export const ProductPaginationGallery = (props: PaginationProps) => (
+export const ProductPaginationGallery = (
+	props: ProductPaginationGalleryProps,
+) => (
 	<Suspense fallback={<GallerySkeleton cardCount={6} />}>
 		<ProductPaginationGalleryView {...props} />
 	</Suspense>
 );
 
-const ProductPaginationGalleryView = (props: PaginationProps) => {
-	const { after, before, limit } = props;
+const ProductPaginationGalleryView = ({
+	limit: defaultLimit,
+}: ProductPaginationGalleryProps) => {
 	const trpc = useTRPC();
 
-	// Query with props (matches server prefetch)
-	const { data } = useSuspenseQuery(
-		trpc.product.getMany.queryOptions({
-			after: after ?? undefined,
-			before: before ?? undefined,
-			limit,
-			sort: [{ propertyId: "updatedAt", desc: true }],
-		}),
+	// Infinite query using TRPC infiniteQueryOptions
+	const infiniteQuery = useSuspenseInfiniteQuery(
+		trpc.product.getMany.infiniteQueryOptions(
+			{
+				limit: defaultLimit,
+				sort: [{ propertyId: "updatedAt", desc: true }],
+			},
+			{
+				getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
+			},
+		),
 	);
 
-	// Pagination controls (URL setters only)
-	const pagination = usePaginationControls<Product>({
-		props,
-		queryData: data,
+	// Use the new hook for pagination state
+	const { items, pagination } = useInfinitePagination<Product>({
+		infiniteQuery,
+		defaultLimit,
 		limitOptions: [10, 25, 50, 100],
 	});
 
 	// Empty state
-	if (data.items.length === 0) {
+	if (items.length === 0) {
 		return (
 			<div className="flex min-h-[400px] items-center justify-center">
 				<p className="text-muted-foreground">No products found</p>
@@ -59,7 +69,7 @@ const ProductPaginationGalleryView = (props: PaginationProps) => {
 
 	return (
 		<DataViewProvider
-			data={data.items}
+			data={items}
 			properties={productProperties}
 			pagination={pagination}
 		>
@@ -74,7 +84,7 @@ const ProductPaginationGalleryView = (props: PaginationProps) => {
 					cardSize: "medium",
 					fitImage: true,
 				}}
-				pagination="page"
+				pagination="loadMore"
 			/>
 		</DataViewProvider>
 	);

@@ -15,6 +15,7 @@ import {
 import { Checkbox } from "@ocean-dataview/dataview/components/ui/checkbox";
 import type {
 	GroupedDataItem,
+	GroupInfiniteInfo,
 	GroupInfo,
 } from "@ocean-dataview/dataview/lib/data-views/hooks";
 import {
@@ -231,13 +232,16 @@ export function TableView<
 	const groupedData = useMemo(() => {
 		if (hasGroupedPagination && "groups" in contextPagination) {
 			// Convert pagination.groups to GroupedDataItem format
-			return contextPagination.groups.map((group: GroupInfo<TData>) => ({
-				key: group.key,
-				items: transformData(group.items, properties) as TData[],
-				count: group.count,
-				displayCount: group.displayCount, // "99+" or actual count
-				sortValue: group.value,
-			}));
+			// Groups can be either GroupInfo (page) or GroupInfiniteInfo (infinite)
+			return contextPagination.groups.map(
+				(group: GroupInfo<TData> | GroupInfiniteInfo<TData>) => ({
+					key: group.key,
+					items: transformData(group.items, properties) as TData[],
+					count: group.count,
+					displayCount: group.displayCount, // "99+" or actual count
+					sortValue: group.value,
+				}),
+			);
 		}
 		return clientGroupedData;
 	}, [hasGroupedPagination, contextPagination, clientGroupedData, properties]);
@@ -426,29 +430,46 @@ export function TableView<
 				>
 					{groupedData.map((group: GroupedDataItem<TData>) => {
 						// Find matching pagination group to build context
+						// Groups can be either GroupInfo (page) or GroupInfiniteInfo (infinite)
 						const paginationGroup =
 							hasGroupedPagination &&
 							contextPagination &&
 							"groups" in contextPagination
 								? contextPagination.groups.find(
-										(g: GroupInfo<TData>) => g.key === group.key,
+										(g: GroupInfo<TData> | GroupInfiniteInfo<TData>) =>
+											g.key === group.key,
 									)
 								: null;
 
 						// Build pagination context for this group
+						// Handle both GroupInfo (page) and GroupInfiniteInfo (infinite) types
 						const paginationContext: PaginationContext | undefined =
 							paginationGroup && contextPagination
 								? {
 										hasNext: paginationGroup.hasNext,
-										hasPrev: paginationGroup.hasPrev,
+										hasPrev:
+											"hasPrev" in paginationGroup
+												? paginationGroup.hasPrev
+												: false,
 										onNext: paginationGroup.onNext,
-										onPrev: paginationGroup.onPrev,
+										onPrev:
+											"onPrev" in paginationGroup
+												? paginationGroup.onPrev
+												: () => {},
 										limit: contextPagination.limit,
 										onLimitChange: contextPagination.onLimitChange,
 										limitOptions: contextPagination.limitOptions,
 										isLoading: paginationGroup.isLoading,
-										displayStart: paginationGroup.displayStart,
-										displayEnd: paginationGroup.displayEnd,
+										displayStart:
+											"displayStart" in paginationGroup
+												? paginationGroup.displayStart
+												: 1,
+										displayEnd:
+											"displayEnd" in paginationGroup
+												? paginationGroup.displayEnd
+												: "totalLoaded" in paginationGroup
+													? paginationGroup.totalLoaded
+													: 0,
 										totalCount: paginationGroup.count,
 										hasMoreThanMax: paginationGroup.hasMore,
 									}

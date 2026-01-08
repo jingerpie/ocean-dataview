@@ -19,7 +19,7 @@ export default async function PaginationPage({ searchParams }: PageProps) {
 	// 2. Get query client
 	const queryClient = getQueryClient();
 
-	// 3. Prefetch with same query options as client
+	// 3. Prefetch data for table (page-based pagination)
 	void queryClient.prefetchQuery(
 		trpc.product.getMany.queryOptions({
 			after: after ?? undefined,
@@ -42,23 +42,13 @@ export default async function PaginationPage({ searchParams }: PageProps) {
 					/>
 				</TabsContent>
 				<TabsContent value="list">
-					<ProductPaginationList
-						after={after}
-						before={before}
-						limit={limit}
-						start={start}
-					/>
+					<ProductPaginationList limit={limit} />
 				</TabsContent>
 				<TabsContent value="gallery">
-					<ProductPaginationGallery
-						after={after}
-						before={before}
-						limit={limit}
-						start={start}
-					/>
+					<ProductPaginationGallery limit={limit} />
 				</TabsContent>
 				<TabsContent value="board">
-					<ProductGroupPaginationBoard />
+					<ProductGroupPaginationBoard limit={limit} />
 				</TabsContent>
 			</Tabs>
 		</HydrationBoundary>

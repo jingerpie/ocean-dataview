@@ -1,4 +1,4 @@
-import { groupPaginationParams } from "@ocean-dataview/shared/lib";
+import { paginationParams } from "@ocean-dataview/shared/lib";
 import { getCursor, getCursorParams } from "@ocean-dataview/shared/types";
 import { Tabs, TabsContent } from "@ocean-dataview/ui/components/tabs";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
@@ -13,8 +13,8 @@ interface PageProps {
 }
 
 export default async function GroupPaginationPage({ searchParams }: PageProps) {
-	// 1. Parse URL params server-side
-	const params = await groupPaginationParams.parse(searchParams);
+	// 1. Parse URL params server-side (unified params)
+	const params = await paginationParams.parse(searchParams);
 	const { expanded, cursors, limit } = params;
 
 	// 2. Get query client
@@ -76,7 +76,7 @@ export default async function GroupPaginationPage({ searchParams }: PageProps) {
 					/>
 				</TabsContent>
 				<TabsContent value="board">
-					<ProductSubGroupPaginationBoard />
+					<ProductSubGroupPaginationBoard cursors={cursors} limit={limit} />
 				</TabsContent>
 			</Tabs>
 		</HydrationBoundary>

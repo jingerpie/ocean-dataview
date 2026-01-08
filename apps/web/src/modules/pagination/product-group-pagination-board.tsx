@@ -6,8 +6,8 @@ import {
 } from "@ocean-dataview/dataview/components/data-views/board-view";
 import { DataViewOptions } from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
 import { DataViewProvider } from "@ocean-dataview/dataview/components/data-views/shared/data-view-provider";
-import { useGroupPagination } from "@ocean-dataview/dataview/lib/data-views/hooks";
-import { useQuery } from "@tanstack/react-query";
+import { useGroupInfinitePagination } from "@ocean-dataview/dataview/lib/data-views/hooks";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "../group-pagination/group-pagination-tabs";
@@ -16,57 +16,62 @@ import {
 	productProperties,
 } from "../group-pagination/product-properties";
 
+interface Props {
+	limit: number;
+}
+
 /**
- * BoardView with server-side pagination
+ * BoardView with infinite load-more pagination
  *
  * Unlike Table/List/Gallery, BoardView columns are always visible (no accordion).
- * All group keys are passed to useGroupPagination so all columns fetch data.
+ * All group keys are always "expanded" so all columns fetch data.
  */
-export const ProductGroupPaginationBoard = () => (
+export const ProductGroupPaginationBoard = (props: Props) => (
 	<Suspense fallback={<BoardSkeleton columnCount={4} />}>
-		<ProductGroupPaginationBoardView />
+		<ProductGroupPaginationBoardView {...props} />
 	</Suspense>
 );
 
-const ProductGroupPaginationBoardView = () => {
+const ProductGroupPaginationBoardView = ({ limit }: Props) => {
 	const trpc = useTRPC();
 
 	// 1. Fetch group counts
-	const { data: groupCounts, error: groupError } = useQuery(
+	const { data: groupCounts } = useSuspenseQuery(
 		trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" }),
 	);
 
-	// 2. All columns need data - no useGroupExpansion needed for BoardView
-	// All group keys are "expanded" so all columns fetch data
-	const allGroupKeys = Object.keys(groupCounts || {});
+	// 2. Get all group keys
+	const allGroupKeys = Object.keys(groupCounts);
 
-	// 3. Pagination with declarative query options
-	const { data, pagination } = useGroupPagination<Product>({
-		expandedGroups: allGroupKeys, // All columns fetch data (always "expanded")
-		counts: groupCounts,
-		groupBy: "familyGroup",
-		createQueryOptions: (groupKey, after, before, limit) =>
-			trpc.product.getMany.queryOptions({
-				filters: [
-					{
-						propertyId: "familyGroup",
-						operator: "eq",
-						value: groupKey,
-						variant: "select",
-						filterId: "familyGroup-group",
-					},
-				],
-				sort: [{ propertyId: "updatedAt", desc: false }],
-				after,
-				before,
-				limit,
-			}),
+	// 3. Single hook call using TRPC infiniteQueryOptions - all groups "expanded" for board
+	const { data, pagination } = useGroupInfinitePagination<Product>({
+		allGroupKeys,
+		expanded: allGroupKeys, // All columns visible
+		groupCounts,
+		limit,
+		createQueryOptions: (groupKey) =>
+			trpc.product.getMany.infiniteQueryOptions(
+				{
+					filters: [
+						{
+							propertyId: "familyGroup",
+							operator: "eq",
+							value: groupKey,
+							variant: "select",
+							filterId: "familyGroup-group",
+						},
+					],
+					sort: [{ propertyId: "updatedAt", desc: false }],
+					limit,
+				},
+				{
+					getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
+				},
+			),
 	});
 
-	// Empty state (covers errors and empty results)
-	const isEmpty = pagination.groups.length === 0;
-
-	if (groupError || isEmpty) {
+	// Empty state
+	if (pagination.groups.length === 0) {
 		return (
 			<div className="flex min-h-[400px] items-center justify-center">
 				<p className="text-muted-foreground">No products found</p>
@@ -90,7 +95,7 @@ const ProductGroupPaginationBoardView = () => {
 					group: { groupBy: "familyGroup", showAggregation: true },
 				}}
 				counts={groupCounts}
-				pagination="page"
+				pagination="loadMore"
 			/>
 		</DataViewProvider>
 	);

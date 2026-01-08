@@ -1,15 +1,9 @@
 /**
- * Unified pagination context for cursor-based pagination
- * TableView builds this context and passes it to the pagination render function
+ * Unified pagination context for cursor-based pagination.
+ * Used by pagination components (PagePagination, LoadMorePagination, InfiniteScrollPagination).
  */
 export interface PaginationContext {
-	// LoadMorePagination props
-	/** Callback to load more items (infinite scroll pattern) */
-	onLoadMore?: () => void;
-	/** Number of items remaining to load */
-	remainingCount?: number;
-
-	// Cursor-based PagePagination props
+	// Navigation
 	/** Whether there is a next page */
 	hasNext?: boolean;
 	/** Whether there is a previous page */
@@ -19,14 +13,12 @@ export interface PaginationContext {
 	/** Callback to navigate to previous page */
 	onPrev?: () => void;
 
-	// Shared props
-	/** Number of items per page/batch (renamed from pageSize for cursor pagination) */
+	// Limit/Page size
+	/** Number of items per page/batch */
 	limit?: number;
-	/** Callback to change limit/batch size (renamed from onPageSizeChange) */
+	/** Callback to change limit/batch size */
 	onLimitChange?: (limit: number) => void;
-	/** Loading state */
-	isLoading?: boolean;
-	/** Available limit options (renamed from pageSizeOptions) */
+	/** Available limit options */
 	limitOptions?: number[];
 
 	// Item range display ("X-Y of Total")
@@ -39,7 +31,38 @@ export interface PaginationContext {
 	/** Indicates if total count is capped (e.g., "100+") */
 	hasMoreThanMax?: boolean;
 
+	// Loading states
+	/**
+	 * isLoading: true when fetching with no cached data (initial load)
+	 * Use to avoid layout shift on initial load.
+	 */
+	isLoading?: boolean;
+	/**
+	 * isFetching: true when any request is in flight (initial or refetch)
+	 * Use to show subtle refresh indicators.
+	 */
+	isFetching?: boolean;
+	/**
+	 * isFetchingNextPage: true specifically when loading next page (infinite only)
+	 * Use for load-more/infinite-scroll spinners.
+	 */
+	isFetchingNextPage?: boolean;
+
+	// Error state
+	/** Error from the request */
+	error?: Error | null;
+	/** Whether the request errored */
+	isError?: boolean;
+
+	// Infinite scroll specific
+	/** Total items loaded across all pages (for load-more/infinite-scroll) */
+	totalLoaded?: number;
+
 	// Legacy support (deprecated, kept for backward compatibility)
+	/** @deprecated Use onNext instead */
+	onLoadMore?: () => void;
+	/** @deprecated Not used */
+	remainingCount?: number;
 	/** @deprecated Use limit instead */
 	pageSize?: number;
 	/** @deprecated Use onLimitChange instead */
