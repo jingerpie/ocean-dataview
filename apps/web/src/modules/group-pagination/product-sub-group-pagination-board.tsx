@@ -12,7 +12,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "./group-pagination-tabs";
-import { type Product, productProperties } from "./product-properties";
+import { productProperties } from "./product-properties";
 
 /**
  * Props passed from server (parsed URL params)
@@ -46,7 +46,7 @@ const ProductSubGroupPaginationBoardView = ({ cursors, limit }: Props) => {
 	const allGroupKeys = Object.keys(groupCounts);
 
 	// 3. Single hook call - creates queries internally using TRPC queryOptions
-	const { data, pagination } = useGroupPagePagination<Product>({
+	const { data, pagination } = useGroupPagePagination({
 		allGroupKeys,
 		expanded: allGroupKeys, // All columns visible
 		cursors,

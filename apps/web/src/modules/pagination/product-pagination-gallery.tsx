@@ -11,7 +11,7 @@ import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { PaginationTabs } from "./pagination-tabs";
-import { type Product, productProperties } from "./product-properties";
+import { productProperties } from "./product-properties";
 
 interface ProductPaginationGalleryProps {
 	limit: number;
@@ -52,7 +52,7 @@ const ProductPaginationGalleryView = ({
 	);
 
 	// Use the new hook for pagination state
-	const { items, pagination } = useInfinitePagination<Product>({
+	const { items, pagination } = useInfinitePagination({
 		infiniteQuery,
 		defaultLimit,
 		limitOptions: [10, 25, 50, 100],

@@ -11,28 +11,15 @@ import {
 import { useQueries } from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useCallback, useMemo, useTransition } from "react";
+import type {
+	BidirectionalPaginatedResponse,
+	GroupCounts,
+	InferItemsFromQueryOptions,
+} from "./pagination-types";
 
 // ============================================================================
 // Types
 // ============================================================================
-
-/**
- * Standard paginated response shape from API
- */
-export interface GroupPaginatedResponse<TData> {
-	items: TData[];
-	startCursor?: string | null;
-	endCursor?: string | null;
-	hasNextPage?: boolean;
-	hasPreviousPage?: boolean;
-}
-
-/**
- * Group counts format from API
- */
-export interface GroupCounts {
-	[key: string]: { count: number; hasMore: boolean };
-}
 
 /**
  * Query options for page-based query.
@@ -46,9 +33,14 @@ export interface GroupPageQueryOptions {
 }
 
 /**
- * Input options for useGroupPagePagination hook
+ * Input options for useGroupPagePagination hook.
+ * TQueryOptions is inferred from createQueryOptions callback.
+ * TData is automatically inferred from the query response's items array.
  */
-export interface UseGroupPagePaginationOptions<TData> {
+export interface UseGroupPagePaginationOptions<
+	TQueryOptions extends GroupPageQueryOptions,
+	TData = InferItemsFromQueryOptions<TQueryOptions>,
+> {
 	/** All group keys in stable order */
 	allGroupKeys: string[];
 	/** Currently expanded groups */
@@ -63,7 +55,7 @@ export interface UseGroupPagePaginationOptions<TData> {
 	createQueryOptions: (
 		groupKey: string,
 		cursorParams: { after?: string; before?: string },
-	) => GroupPageQueryOptions;
+	) => TQueryOptions;
 	/** Available limit options (default: [25, 50, 100, 200]) */
 	limitOptions?: number[];
 }
@@ -115,6 +107,7 @@ export interface GroupPagePaginationResult<TData> {
 // Constants
 // ============================================================================
 
+// Larger batch sizes for page-based pagination (single page shown at a time)
 const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
 
 // ============================================================================
@@ -129,6 +122,7 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
  * - Accordion expansion state management
  * - URL state for bookmarkable grouped views (shallow: false)
  * - Creates queries internally (handles React hooks rules)
+ * - Automatic type inference from createQueryOptions callback
  *
  * @example
  * ```tsx
@@ -142,24 +136,20 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
  *   const expanded = expandedProp ?? DEFAULT_EXPANDED;
  *   const allGroupKeys = Object.keys(groupCounts);
  *
- *   const { data, pagination, handleAccordionChange } = useGroupPagePagination<Product>({
+ *   // Type is inferred from TRPC's queryOptions return type
+ *   const { data, pagination, handleAccordionChange } = useGroupPagePagination({
  *     allGroupKeys,
  *     expanded,
  *     cursors,
  *     groupCounts,
  *     limit,
- *     createQueryOptions: (groupKey, { after, before }) => ({
- *       queryKey: ["product", "getMany", groupKey, { after, before, limit }],
- *       queryFn: async () => {
- *         const api = getApiClient();
- *         return api.product.getMany.query({
- *           filters: [{ propertyId: "familyGroup", operator: "eq", value: groupKey }],
- *           after,
- *           before,
- *           limit,
- *         });
- *       },
- *     }),
+ *     createQueryOptions: (groupKey, { after, before }) =>
+ *       trpc.product.getMany.queryOptions({
+ *         filters: [{ propertyId: "familyGroup", operator: "eq", value: groupKey }],
+ *         after,
+ *         before,
+ *         limit,
+ *       }),
  *   });
  *
  *   return (
@@ -179,8 +169,12 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
  * };
  * ```
  */
-export function useGroupPagePagination<TData>(
-	options: UseGroupPagePaginationOptions<TData>,
+// biome-ignore lint/correctness/noUnusedVariables: TData is used in options and return type
+export function useGroupPagePagination<
+	TQueryOptions extends GroupPageQueryOptions,
+	TData = InferItemsFromQueryOptions<TQueryOptions>,
+>(
+	options: UseGroupPagePaginationOptions<TQueryOptions, TData>,
 ): GroupPagePaginationResult<TData> {
 	const {
 		allGroupKeys,
@@ -232,7 +226,7 @@ export function useGroupPagePagination<TData>(
 			const isExpanded = expanded.includes(groupKey);
 			const countInfo = groupCounts[groupKey] ?? { count: 0, hasMore: false };
 			const queryData = query?.data as
-				| GroupPaginatedResponse<TData>
+				| BidirectionalPaginatedResponse<TData>
 				| undefined;
 			const items: TData[] = isExpanded ? (queryData?.items ?? []) : [];
 			const cursorState = getCursor(cursors, groupKey);

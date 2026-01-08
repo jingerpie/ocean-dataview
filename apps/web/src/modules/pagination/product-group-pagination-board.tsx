@@ -11,10 +11,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "../group-pagination/group-pagination-tabs";
-import {
-	type Product,
-	productProperties,
-} from "../group-pagination/product-properties";
+import { productProperties } from "../group-pagination/product-properties";
 
 interface Props {
 	limit: number;
@@ -44,7 +41,7 @@ const ProductGroupPaginationBoardView = ({ limit }: Props) => {
 	const allGroupKeys = Object.keys(groupCounts);
 
 	// 3. Single hook call using TRPC infiniteQueryOptions - all groups "expanded" for board
-	const { data, pagination } = useGroupInfinitePagination<Product>({
+	const { data, pagination } = useGroupInfinitePagination({
 		allGroupKeys,
 		expanded: allGroupKeys, // All columns visible
 		groupCounts,

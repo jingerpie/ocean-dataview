@@ -11,7 +11,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "./group-pagination-tabs";
-import { type Product, productProperties } from "./product-properties";
+import { productProperties } from "./product-properties";
 
 const DEFAULT_EXPANDED: string[] = [];
 
@@ -56,7 +56,7 @@ const ProductGroupPaginationGalleryView = ({
 
 	// 4. Single hook call - creates queries internally using TRPC infiniteQueryOptions
 	const { data, pagination, handleAccordionChange } =
-		useGroupInfinitePagination<Product>({
+		useGroupInfinitePagination({
 			allGroupKeys,
 			expanded,
 			groupCounts,

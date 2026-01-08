@@ -12,7 +12,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "./group-pagination-tabs";
-import { type Product, productProperties } from "./product-properties";
+import { productProperties } from "./product-properties";
 
 const DEFAULT_EXPANDED: string[] = [];
 
@@ -59,30 +59,29 @@ const ProductGroupPaginationTableView = ({
 	const allGroupKeys = Object.keys(groupCounts);
 
 	// 4. Single hook call - creates queries internally using TRPC queryOptions
-	const { data, pagination, handleAccordionChange } =
-		useGroupPagePagination<Product>({
-			allGroupKeys,
-			expanded,
-			cursors,
-			groupCounts,
-			limit,
-			createQueryOptions: (groupKey, { after, before }) =>
-				trpc.product.getMany.queryOptions({
-					filters: [
-						{
-							propertyId: "familyGroup",
-							operator: "eq",
-							value: groupKey,
-							variant: "select",
-							filterId: "familyGroup-group",
-						},
-					],
-					sort: [{ propertyId: "updatedAt", desc: false }],
-					after,
-					before,
-					limit,
-				}),
-		});
+	const { data, pagination, handleAccordionChange } = useGroupPagePagination({
+		allGroupKeys,
+		expanded,
+		cursors,
+		groupCounts,
+		limit,
+		createQueryOptions: (groupKey, { after, before }) =>
+			trpc.product.getMany.queryOptions({
+				filters: [
+					{
+						propertyId: "familyGroup",
+						operator: "eq",
+						value: groupKey,
+						variant: "select",
+						filterId: "familyGroup-group",
+					},
+				],
+				sort: [{ propertyId: "updatedAt", desc: false }],
+				after,
+				before,
+				limit,
+			}),
+	});
 
 	// Empty state
 	if (pagination.groups.length === 0) {

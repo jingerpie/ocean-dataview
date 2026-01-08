@@ -3,26 +3,19 @@
 import type { InfiniteData } from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useCallback, useMemo } from "react";
+import type { BasePaginatedResponse } from "./pagination-types";
 
 // ============================================================================
 // Types
 // ============================================================================
 
 /**
- * Standard paginated response shape from API
- */
-export interface InfinitePaginatedResponse<TData> {
-	items: TData[];
-	endCursor?: string | null;
-	hasNextPage?: boolean;
-}
-
-/**
  * Infinite query state (from useSuspenseInfiniteQuery or useInfiniteQuery)
- * Uses loose typing for error to accept TRPC's error type
+ * Uses loose typing to accept TRPC's query result type
  */
-export interface InfiniteQueryState<TData> {
-	data: InfiniteData<InfinitePaginatedResponse<TData>>;
+export interface InfiniteQueryState {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	data: InfiniteData<any>;
 	fetchNextPage: () => void;
 	hasNextPage: boolean;
 	isFetchingNextPage: boolean;
@@ -33,11 +26,29 @@ export interface InfiniteQueryState<TData> {
 }
 
 /**
- * Input options for useInfinitePagination hook
+ * Infer item type from infinite query's data pages.
+ * Extracts TData from InfiniteData<{ items: TData[], ... }>.
  */
-export interface UseInfinitePaginationOptions<TData> {
+type InferItemsFromInfiniteQuery<T> = T extends {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	data: InfiniteData<infer TPage>;
+}
+	? TPage extends { items: (infer U)[] }
+		? U
+		: never
+	: never;
+
+/**
+ * Input options for useInfinitePagination hook.
+ * TQuery is inferred from infiniteQuery parameter.
+ * TData is automatically inferred from the query data's items array.
+ */
+export interface UseInfinitePaginationOptions<
+	TQuery extends InfiniteQueryState,
+	TData = InferItemsFromInfiniteQuery<TQuery>,
+> {
 	/** Infinite query result from useSuspenseInfiniteQuery */
-	infiniteQuery: InfiniteQueryState<TData>;
+	infiniteQuery: TQuery;
 	/** Default limit (for URL state) */
 	defaultLimit?: number;
 	/** Available limit options (default: [10, 25, 50, 100]) */
@@ -87,6 +98,7 @@ export interface InfinitePaginationResult<TData> {
 // ============================================================================
 
 const DEFAULT_LIMIT = 25;
+// Smaller batch sizes for infinite scroll (data accumulates client-side)
 const DEFAULT_LIMIT_OPTIONS = [10, 25, 50, 100];
 
 // ============================================================================
@@ -100,6 +112,7 @@ const DEFAULT_LIMIT_OPTIONS = [10, 25, 50, 100];
  * - Takes infinite query result from useSuspenseInfiniteQuery
  * - Flattens pages into single items array
  * - URL state for limit only (shallow: false - server re-render for new limit)
+ * - Automatic type inference from infiniteQuery parameter
  *
  * URL State Strategy:
  * - Only `limit` is stored in URL (shallow: false for server re-render)
@@ -111,15 +124,14 @@ const DEFAULT_LIMIT_OPTIONS = [10, 25, 50, 100];
  * const ProductGallery = ({ limit: initialLimit }: Props) => {
  *   const trpc = useTRPC();
  *
- *   const infiniteQuery = useSuspenseInfiniteQuery({
- *     ...trpc.product.getMany.infiniteQueryOptions({
- *       limit: initialLimit,
- *       sort: [{ propertyId: "updatedAt", desc: true }],
- *     }),
- *     getNextPageParam: (lastPage) => lastPage.nextCursor,
- *     initialPageParam: undefined,
- *   });
+ *   const infiniteQuery = useSuspenseInfiniteQuery(
+ *     trpc.product.getMany.infiniteQueryOptions(
+ *       { limit: initialLimit, sort: [{ propertyId: "updatedAt", desc: true }] },
+ *       { getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined },
+ *     ),
+ *   );
  *
+ *   // Type is inferred from infiniteQuery result
  *   const { items, pagination } = useInfinitePagination({
  *     infiniteQuery,
  *     defaultLimit: initialLimit,
@@ -133,8 +145,12 @@ const DEFAULT_LIMIT_OPTIONS = [10, 25, 50, 100];
  * };
  * ```
  */
-export function useInfinitePagination<TData>(
-	options: UseInfinitePaginationOptions<TData>,
+// biome-ignore lint/correctness/noUnusedVariables: TData is used in options and return type
+export function useInfinitePagination<
+	TQuery extends InfiniteQueryState,
+	TData = InferItemsFromInfiniteQuery<TQuery>,
+>(
+	options: UseInfinitePaginationOptions<TQuery, TData>,
 ): InfinitePaginationResult<TData> {
 	const {
 		infiniteQuery,
@@ -165,7 +181,9 @@ export function useInfinitePagination<TData>(
 
 	// Flatten all pages into single array
 	const items = useMemo(() => {
-		return data.pages.flatMap((page) => page.items);
+		return data.pages.flatMap(
+			(page: BasePaginatedResponse<TData>) => page.items,
+		);
 	}, [data.pages]);
 
 	const onNext = useCallback(() => {

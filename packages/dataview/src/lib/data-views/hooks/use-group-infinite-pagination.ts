@@ -4,26 +4,15 @@ import { parseAsExpanded } from "@ocean-dataview/shared/lib";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useCallback, useMemo, useTransition } from "react";
+import type {
+	BasePaginatedResponse,
+	GroupCounts,
+	InferItemsFromQueryOptions,
+} from "./pagination-types";
 
 // ============================================================================
 // Types
 // ============================================================================
-
-/**
- * Standard paginated response shape from API
- */
-export interface GroupInfinitePaginatedResponse<TData> {
-	items: TData[];
-	endCursor?: string | number | null;
-	hasNextPage?: boolean;
-}
-
-/**
- * Group counts format from API
- */
-export interface GroupInfiniteCounts {
-	[key: string]: { count: number; hasMore: boolean };
-}
 
 /**
  * Query options for infinite query.
@@ -41,19 +30,24 @@ export interface GroupInfiniteQueryOptions {
 }
 
 /**
- * Input options for useGroupInfinitePagination hook
+ * Input options for useGroupInfinitePagination hook.
+ * TQueryOptions is inferred from createQueryOptions callback.
+ * TData is automatically inferred from the query response's items array.
  */
-export interface UseGroupInfinitePaginationOptions<TData> {
+export interface UseGroupInfinitePaginationOptions<
+	TQueryOptions extends GroupInfiniteQueryOptions,
+	TData = InferItemsFromQueryOptions<TQueryOptions>,
+> {
 	/** All group keys in stable order */
 	allGroupKeys: string[];
 	/** Currently expanded groups */
 	expanded: string[];
 	/** Group counts from API */
-	groupCounts: GroupInfiniteCounts;
+	groupCounts: GroupCounts;
 	/** Items per page/batch */
 	limit: number;
 	/** Factory to create query options for each group */
-	createQueryOptions: (groupKey: string) => GroupInfiniteQueryOptions;
+	createQueryOptions: (groupKey: string) => TQueryOptions;
 	/** Max groups to support (default: 10) */
 	maxGroups?: number;
 	/** Available limit options (default: [10, 25, 50, 100]) */
@@ -107,6 +101,7 @@ export interface GroupInfinitePaginationResult<TData> {
 // Constants
 // ============================================================================
 
+// Smaller batch sizes for infinite scroll (data accumulates client-side)
 const DEFAULT_LIMIT_OPTIONS = [10, 25, 50, 100];
 const DEFAULT_MAX_GROUPS = 10;
 
@@ -115,10 +110,11 @@ const DEFAULT_MAX_GROUPS = 10;
 // ============================================================================
 
 /**
- * Default getNextPageParam for infinite queries
+ * Default getNextPageParam for infinite queries.
+ * Used as fallback when TRPC's infiniteQueryOptions doesn't provide one.
  */
 const defaultGetNextPageParam = (
-	lastPage: GroupInfinitePaginatedResponse<unknown>,
+	lastPage: BasePaginatedResponse<unknown>,
 ): string | undefined =>
 	lastPage.hasNextPage && lastPage.endCursor
 		? String(lastPage.endCursor)
@@ -128,7 +124,7 @@ const defaultGetNextPageParam = (
  * Creates fixed number of infinite queries to satisfy React hooks rules.
  * Always calls maxGroups hooks, using enabled flag to control which run.
  */
-function useGroupInfiniteQueries<TData>(
+function useGroupInfiniteQueries(
 	allGroupKeys: string[],
 	expanded: string[],
 	maxGroups: number,
@@ -136,14 +132,14 @@ function useGroupInfiniteQueries<TData>(
 ) {
 	const queries = [];
 
-	// Placeholder options for unused slots
+	// Placeholder options for unused slots (items typed as unknown since never used)
 	const placeholderOptions = {
 		queryKey: ["__placeholder"] as const,
 		queryFn: async () =>
 			({
 				items: [],
 				hasNextPage: false,
-			}) as GroupInfinitePaginatedResponse<TData>,
+			}) as BasePaginatedResponse<unknown>,
 		getNextPageParam: () => undefined,
 		initialPageParam: "" as string,
 	};
@@ -187,6 +183,7 @@ function useGroupInfiniteQueries<TData>(
  * - Creates infinite queries internally (handles React hooks rules)
  * - URL state for expanded groups and limit
  * - Compatible with TRPC's infiniteQueryOptions
+ * - Automatic type inference from createQueryOptions callback
  *
  * @example
  * ```tsx
@@ -200,7 +197,8 @@ function useGroupInfiniteQueries<TData>(
  *   const expanded = expandedProp ?? DEFAULT_EXPANDED;
  *   const allGroupKeys = Object.keys(groupCounts);
  *
- *   const { data, pagination, handleAccordionChange } = useGroupInfinitePagination<Product>({
+ *   // Type is inferred from TRPC's infiniteQueryOptions return type
+ *   const { data, pagination, handleAccordionChange } = useGroupInfinitePagination({
  *     allGroupKeys,
  *     expanded,
  *     groupCounts,
@@ -232,8 +230,12 @@ function useGroupInfiniteQueries<TData>(
  * };
  * ```
  */
-export function useGroupInfinitePagination<TData>(
-	options: UseGroupInfinitePaginationOptions<TData>,
+// biome-ignore lint/correctness/noUnusedVariables: TData is used in options and return type
+export function useGroupInfinitePagination<
+	TQueryOptions extends GroupInfiniteQueryOptions,
+	TData = InferItemsFromQueryOptions<TQueryOptions>,
+>(
+	options: UseGroupInfinitePaginationOptions<TQueryOptions, TData>,
 ): GroupInfinitePaginationResult<TData> {
 	const {
 		allGroupKeys,
@@ -275,7 +277,7 @@ export function useGroupInfinitePagination<TData>(
 			// Flatten all pages for this group
 			const items = isExpanded
 				? ((query?.data?.pages?.flatMap(
-						(page) => (page as GroupInfinitePaginatedResponse<TData>).items,
+						(page) => (page as BasePaginatedResponse<TData>).items,
 					) ?? []) as TData[])
 				: ([] as TData[]);
 

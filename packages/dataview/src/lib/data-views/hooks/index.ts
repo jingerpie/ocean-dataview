@@ -15,33 +15,40 @@ export { useSortParams } from "./use-sort-params";
 // Pagination Hooks - 4 main hooks for all pagination use cases
 // ============================================================================
 
+// Shared pagination types
+// Legacy type aliases for backwards compatibility
+// These are re-exported from their original hook files
+export type {
+	BasePaginatedResponse,
+	BasePaginatedResponse as GroupInfinitePaginatedResponse,
+	BasePaginatedResponse as InfinitePaginatedResponse,
+	BidirectionalPaginatedResponse,
+	BidirectionalPaginatedResponse as GroupPaginatedResponse,
+	BidirectionalPaginatedResponse as PaginatedResponse,
+	GroupCounts,
+	GroupCounts as GroupInfiniteCounts,
+	InferItemsFromQueryOptions,
+} from "./pagination-types";
 // 4. useGroupInfinitePagination - Grouped infinite scroll / load-more
 export type {
-	GroupInfiniteCounts,
 	GroupInfiniteInfo,
-	GroupInfinitePaginatedResponse,
 	GroupInfinitePaginationResult,
 	GroupInfinitePaginationState,
 	GroupInfiniteQueryOptions,
 	UseGroupInfinitePaginationOptions,
 } from "./use-group-infinite-pagination";
 export { useGroupInfinitePagination } from "./use-group-infinite-pagination";
-
 // 2. useGroupPagePagination - Grouped page-based pagination (per-group Prev/Next)
 export type {
-	GroupCounts,
 	GroupInfo,
 	GroupPagePaginationResult,
 	GroupPagePaginationState,
 	GroupPageQueryOptions,
-	GroupPaginatedResponse,
 	UseGroupPagePaginationOptions,
 } from "./use-group-page-pagination";
 export { useGroupPagePagination } from "./use-group-page-pagination";
-
 // 3. useInfinitePagination - Flat infinite scroll / load-more
 export type {
-	InfinitePaginatedResponse,
 	InfinitePaginationResult,
 	InfinitePaginationState,
 	InfiniteQueryState,
@@ -51,7 +58,6 @@ export { useInfinitePagination } from "./use-infinite-pagination";
 // 1. usePagePagination - Flat page-based pagination (Prev/Next)
 export type {
 	PagePaginationResult,
-	PaginatedResponse,
 	UsePagePaginationOptions,
 } from "./use-page-pagination";
 export { usePagePagination } from "./use-page-pagination";

@@ -2,21 +2,11 @@
 
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { useCallback, useTransition } from "react";
+import type { BidirectionalPaginatedResponse } from "./pagination-types";
 
 // ============================================================================
 // Types
 // ============================================================================
-
-/**
- * Standard paginated response shape from API
- */
-export interface PaginatedResponse<TData> {
-	items: TData[];
-	startCursor?: string | null;
-	endCursor?: string | null;
-	hasNextPage?: boolean;
-	hasPreviousPage?: boolean;
-}
 
 /**
  * Input options for usePagePagination hook
@@ -31,7 +21,7 @@ export interface UsePagePaginationOptions<TData> {
 	/** Start offset for display (0-indexed) */
 	start?: number;
 	/** Query result from useSuspenseQuery */
-	data: PaginatedResponse<TData>;
+	data: BidirectionalPaginatedResponse<TData>;
 	/** Available limit options (default: [25, 50, 100, 200]) */
 	limitOptions?: number[];
 }
@@ -64,6 +54,7 @@ export interface PagePaginationResult {
 // Constants
 // ============================================================================
 
+// Larger batch sizes for page-based pagination (single page shown at a time)
 const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
 
 // ============================================================================
