@@ -1,16 +1,16 @@
 "use client";
 
-import {
-	GroupAccordion,
-	GroupAccordionContent,
-	GroupAccordionItem,
-	GroupAccordionTrigger,
-} from "@ocean-dataview/dataview/components/views/shared/group-accordion";
 import { PropertyDisplay } from "@ocean-dataview/dataview/lib/data-views/properties";
 import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
 import { groupByProperty as groupDataByProperty } from "@ocean-dataview/dataview/lib/data-views/utils";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { type ReactNode, useCallback, useMemo, useRef } from "react";
+import {
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger,
+} from "../../ui/accordion";
 import { BoardStickyHeader } from "./board-sticky-header";
 
 /**
@@ -280,19 +280,19 @@ export function BoardRowLayout<
 					</div>
 
 					{/* Sub-group rows */}
-					<GroupAccordion
-						type="multiple"
+					<Accordion
+						multiple
 						value={subGroupConfig.expandedSubGroups}
 						defaultValue={subGroupConfig.defaultExpanded}
 						onValueChange={subGroupConfig.onExpandedSubGroupsChange}
 					>
 						{visibleSubGroups.map((subGroup) => (
-							<GroupAccordionItem
+							<AccordionItem
 								key={subGroup.key}
 								value={subGroup.key}
 								className="border-b-0"
 							>
-								<GroupAccordionTrigger className="flex-initial py-2 hover:no-underline">
+								<AccordionTrigger className="flex-initial py-2 hover:no-underline">
 									<div className="flex items-center gap-2">
 										{subGroupByPropertyDef ? (
 											<PropertyDisplay
@@ -311,8 +311,8 @@ export function BoardRowLayout<
 											{subGroup.displayCount}
 										</span>
 									</div>
-								</GroupAccordionTrigger>
-								<GroupAccordionContent className="gap-0 pb-0">
+								</AccordionTrigger>
+								<AccordionContent className="gap-0 pb-0">
 									{/* Card grid for this sub-group */}
 									<div className="flex gap-3">
 										{groups.map((group) => {
@@ -347,10 +347,10 @@ export function BoardRowLayout<
 											);
 										})}
 									</div>
-								</GroupAccordionContent>
-							</GroupAccordionItem>
+								</AccordionContent>
+							</AccordionItem>
 						))}
-					</GroupAccordion>
+					</Accordion>
 
 					{/* Column footers (pagination) */}
 					{renderColumnFooter && (

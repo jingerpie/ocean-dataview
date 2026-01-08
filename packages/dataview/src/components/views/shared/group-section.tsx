@@ -1,14 +1,14 @@
 "use client";
 
-import {
-	GroupAccordionContent,
-	GroupAccordionItem,
-	GroupAccordionTrigger,
-} from "@ocean-dataview/dataview/components/views/shared/group-accordion";
 import { PropertyDisplay } from "@ocean-dataview/dataview/lib/data-views/properties";
 import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
 import { Loader2 } from "lucide-react";
 import type * as React from "react";
+import {
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger,
+} from "../../ui/accordion";
 
 interface GroupSectionProps<TData> {
 	/**
@@ -63,8 +63,8 @@ export function GroupSection<TData>({
 	showAggregation = true,
 }: GroupSectionProps<TData>) {
 	return (
-		<GroupAccordionItem value={group.key}>
-			<GroupAccordionTrigger className="py-3 hover:no-underline">
+		<AccordionItem value={group.key}>
+			<AccordionTrigger className="py-3 hover:no-underline">
 				<div className="flex items-center gap-2">
 					{groupByPropertyDef ? (
 						<PropertyDisplay
@@ -84,8 +84,8 @@ export function GroupSection<TData>({
 						</span>
 					)}
 				</div>
-			</GroupAccordionTrigger>
-			<GroupAccordionContent>
+			</AccordionTrigger>
+			<AccordionContent>
 				{isLoading && group.items.length === 0 ? (
 					<div className="flex items-center justify-center py-8">
 						<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -96,7 +96,7 @@ export function GroupSection<TData>({
 						{renderFooter}
 					</>
 				)}
-			</GroupAccordionContent>
-		</GroupAccordionItem>
+			</AccordionContent>
+		</AccordionItem>
 	);
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { GroupSection } from "@ocean-dataview/dataview/components/views/shared";
-import { GroupAccordion } from "@ocean-dataview/dataview/components/views/shared/group-accordion";
 import type {
 	GroupedDataItem,
 	GroupInfiniteInfo,
@@ -19,6 +18,7 @@ import {
 } from "@ocean-dataview/dataview/lib/data-views/utils";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
+import { Accordion } from "../../ui/accordion";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
 import { useDataViewContext } from "../shared/data-view-context";
 import { GalleryCard } from "./gallery-card";
@@ -281,8 +281,8 @@ export function GalleryView<
 	if (groupBy && groupedData) {
 		return (
 			<div className={className}>
-				<GroupAccordion
-					type="multiple"
+				<Accordion
+					multiple
 					value={groupBy.expandedGroups ?? []}
 					onValueChange={groupBy.onExpandedChange}
 				>
@@ -316,7 +316,7 @@ export function GalleryView<
 							</GroupSection>
 						);
 					})}
-				</GroupAccordion>
+				</Accordion>
 			</div>
 		);
 	}

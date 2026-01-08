@@ -5,8 +5,8 @@ import type {
 	DataViewProperty,
 	PaginationContext,
 } from "@ocean-dataview/dataview/lib/data-views/types";
+import { Accordion } from "../../ui/accordion";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
-import { GroupAccordion } from "./group-accordion";
 import { GroupSection } from "./group-section";
 
 interface GroupedLayoutProps<TData> {
@@ -55,8 +55,8 @@ export function GroupedLayout<TData>({
 }: GroupedLayoutProps<TData>) {
 	return (
 		<div className={className}>
-			<GroupAccordion
-				type="multiple"
+			<Accordion
+				multiple
 				defaultValue={defaultExpanded}
 				onValueChange={onAccordionChange}
 			>
@@ -76,7 +76,7 @@ export function GroupedLayout<TData>({
 						</GroupSection>
 					);
 				})}
-			</GroupAccordion>
+			</Accordion>
 		</div>
 	);
 }
