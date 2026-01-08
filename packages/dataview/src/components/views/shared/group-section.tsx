@@ -4,7 +4,7 @@ import {
 	GroupAccordionContent,
 	GroupAccordionItem,
 	GroupAccordionTrigger,
-} from "@ocean-dataview/dataview/components/data-views/shared/group-accordion";
+} from "@ocean-dataview/dataview/components/views/shared/group-accordion";
 import { PropertyDisplay } from "@ocean-dataview/dataview/lib/data-views/properties";
 import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
 import { Loader2 } from "lucide-react";

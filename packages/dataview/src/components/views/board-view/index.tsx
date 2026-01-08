@@ -1,11 +1,11 @@
 "use client";
 
+import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
+import { Card, CardContent } from "@ocean-dataview/dataview/components/ui/card";
 import {
 	type PaginationMode,
 	renderPagination,
-} from "@ocean-dataview/dataview/components/data-views/shared/pagination-renderer";
-import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
-import { Card, CardContent } from "@ocean-dataview/dataview/components/ui/card";
+} from "@ocean-dataview/dataview/components/views/shared/pagination-renderer";
 import type {
 	GroupedDataItem,
 	GroupInfiniteInfo,
@@ -614,7 +614,7 @@ export function BoardView<
 export {
 	DataViewOptions,
 	type DataViewOptionsProps,
-} from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
+} from "@ocean-dataview/dataview/components/views/shared/data-view-options";
 // Re-export from shared with view-specific aliases
 export type { DataViewContextValue as BoardContextValue } from "../shared/data-view-context";
 export { useDataViewContext as useBoardContext } from "../shared/data-view-context";

@@ -1,11 +1,11 @@
 "use client";
 
-import { GroupSection } from "@ocean-dataview/dataview/components/data-views/shared";
-import { GroupAccordion } from "@ocean-dataview/dataview/components/data-views/shared/group-accordion";
+import { GroupSection } from "@ocean-dataview/dataview/components/views/shared";
+import { GroupAccordion } from "@ocean-dataview/dataview/components/views/shared/group-accordion";
 import {
 	type PaginationMode,
 	renderPagination,
-} from "@ocean-dataview/dataview/components/data-views/shared/pagination-renderer";
+} from "@ocean-dataview/dataview/components/views/shared/pagination-renderer";
 import type {
 	GroupedDataItem,
 	GroupInfiniteInfo,
@@ -24,9 +24,9 @@ import {
 import { AlertCircle } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 import { useDataViewContext } from "../shared/data-view-context";
-import { GalleryCard } from "./gallery-card";
+import { ListRow } from "./list-row";
 
-export interface GalleryViewProps<
+export interface ListViewProps<
 	TData,
 	TProperties extends
 		readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
@@ -34,13 +34,8 @@ export interface GalleryViewProps<
 	/**
 	 * Layout configuration
 	 */
-	layout: {
-		/** Property ID for card preview image (references property.id, not data key) */
-		cardPreview?: TProperties[number]["id"];
-		cardSize?: "small" | "medium" | "large";
-		fitImage?: boolean;
-		wrapAllProperties?: boolean;
-		showPropertyNames?: boolean;
+	layout?: {
+		showDividers?: boolean;
 	};
 
 	/**
@@ -50,7 +45,7 @@ export interface GalleryViewProps<
 		propertyVisibility?: TProperties[number]["id"][];
 
 		/**
-		 * Group By configuration - creates collapsible groups in gallery
+		 * Group By configuration - creates collapsible groups in list
 		 */
 		group?: {
 			/** Property ID to group by (references property.id, not data key) */
@@ -85,19 +80,19 @@ export interface GalleryViewProps<
 	};
 
 	/**
-	 * Card click handler
+	 * Item click handler
 	 */
-	onCardClick?: (item: TData) => void;
+	onItemClick?: (item: TData) => void;
 
 	/**
-	 * Pagination mode for the gallery.
+	 * Pagination mode for the list.
 	 * - "page": Classic prev/next pagination with "Showing X-Y"
 	 * - "loadMore": "Load more" button
 	 * - "infiniteScroll": Auto-load on scroll
 	 * - undefined: No pagination UI
 	 *
-	 * For grouped galleries: renders inside each group
-	 * For flat galleries: renders below the gallery
+	 * For grouped lists: renders inside each group
+	 * For flat lists: renders below the list
 	 */
 	pagination?: PaginationMode;
 
@@ -108,31 +103,25 @@ export interface GalleryViewProps<
 }
 
 /**
- * GalleryView with property-based display
- * Displays data as cards in a responsive grid with images
+ * ListView with property-based display
+ * Auto-generates list item display from properties
  */
-export function GalleryView<
+export function ListView<
 	TData,
 	TProperties extends
 		readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
 	layout = {},
 	view = {},
-	onCardClick,
+	onItemClick,
 	pagination,
 	className,
-}: GalleryViewProps<TData, TProperties>) {
+}: ListViewProps<TData, TProperties>) {
 	// Get data and properties from context
 	const { data, properties, setExcludedPropertyIds, setPropertyVisibility } =
 		useDataViewContext<TData, TProperties>();
 
-	const {
-		cardPreview,
-		cardSize = "medium",
-		fitImage = true,
-		wrapAllProperties = false,
-		showPropertyNames = false,
-	} = layout;
+	const { showDividers = true } = layout;
 	const { propertyVisibility: viewPropertyVisibility, group: groupBy } = view;
 
 	// Sync view.propertyVisibility to context state ONLY on mount (initial state)
@@ -142,6 +131,7 @@ export function GalleryView<
 			setPropertyVisibility(viewPropertyVisibility);
 			hasInitialized.current = true;
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [viewPropertyVisibility, setPropertyVisibility]);
 
 	// Always use context state (which can be controlled by DataViewOptions)
@@ -220,44 +210,14 @@ export function GalleryView<
 		return clientGroupedData;
 	}, [hasGroupedPagination, contextPagination, clientGroupedData, properties]);
 
-	// Use shared hook for display properties filtering (exclude preview and groupBy)
-	const excludeKeys = [
-		cardPreview,
-		...(groupConfig ? [groupConfig.groupBy] : []),
-	].filter((key): key is string => key !== undefined);
+	// Use shared hook for display properties filtering
 	const displayProperties = useDisplayProperties(
 		properties,
 		propertyVisibility,
-		excludeKeys,
+		groupConfig ? [groupConfig.groupBy] : undefined,
 	);
 
-	// Get card dimensions based on size
-	const getCardDimensions = () => {
-		switch (cardSize) {
-			case "small":
-				return {
-					width: 200,
-					imageHeight: 150,
-					cols: "grid-cols-1 sm:grid-cols-3 lg:grid-cols-5",
-				};
-			case "large":
-				return {
-					width: 360,
-					imageHeight: 260,
-					cols: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
-				};
-			default: // medium
-				return {
-					width: 280,
-					imageHeight: 200,
-					cols: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
-				};
-		}
-	};
-
-	const { imageHeight, cols } = getCardDimensions();
-
-	// Transform flat data (for non-grouped view) - must be before early returns
+	// Transform flat data for non-grouped view (must be before early returns)
 	const transformedFlatData = useMemo(
 		() => transformData(data as TData[], properties) as TData[],
 		[data, properties],
@@ -269,7 +229,7 @@ export function GalleryView<
 			<div className="flex flex-col items-center justify-center rounded-lg border border-destructive/50 bg-destructive/5 p-8">
 				<AlertCircle className="mb-4 h-12 w-12 text-destructive" />
 				<p className="font-medium text-destructive">
-					Invalid gallery configuration
+					Invalid list configuration
 				</p>
 				<p className="mt-2 text-muted-foreground text-sm">
 					{validationError || propertyValidationError}
@@ -305,16 +265,11 @@ export function GalleryView<
 								showAggregation={groupBy?.showAggregation ?? true}
 								renderFooter={renderPagination(pagination, paginationContext)}
 							>
-								<GalleryCard
+								<ListRow
 									data={group.items}
 									displayProperties={displayProperties}
-									cardPreview={cardPreview}
-									imageHeight={imageHeight}
-									cols={cols}
-									fitImage={fitImage}
-									wrapAllProperties={wrapAllProperties}
-									showPropertyNames={showPropertyNames}
-									onCardClick={onCardClick}
+									showDividers={showDividers}
+									onItemClick={onItemClick}
 								/>
 							</GroupSection>
 						);
@@ -339,19 +294,14 @@ export function GalleryView<
 		"$all",
 	);
 
-	// STANDARD VIEW: Flat gallery without grouping
+	// STANDARD VIEW: Flat list without grouping
 	return (
 		<div className={className}>
-			<GalleryCard
+			<ListRow
 				data={transformedFlatData}
 				displayProperties={displayProperties}
-				cardPreview={cardPreview}
-				imageHeight={imageHeight}
-				cols={cols}
-				fitImage={fitImage}
-				wrapAllProperties={wrapAllProperties}
-				showPropertyNames={showPropertyNames}
-				onCardClick={onCardClick}
+				showDividers={showDividers}
+				onItemClick={onItemClick}
 			/>
 			{renderPagination(pagination, flatPaginationContext)}
 		</div>
@@ -361,11 +311,11 @@ export function GalleryView<
 export {
 	DataViewOptions,
 	type DataViewOptionsProps,
-} from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
+} from "@ocean-dataview/dataview/components/views/shared/data-view-options";
 // Re-export from shared with view-specific aliases
-export type { DataViewContextValue as GalleryContextValue } from "../shared/data-view-context";
-export { useDataViewContext as useGalleryContext } from "../shared/data-view-context";
-export type { DataViewProviderProps as GalleryProviderProps } from "../shared/data-view-provider";
-export { DataViewProvider as GalleryProvider } from "../shared/data-view-provider";
+export type { DataViewContextValue as ListContextValue } from "../shared/data-view-context";
+export { useDataViewContext as useListContext } from "../shared/data-view-context";
+export type { DataViewProviderProps as ListProviderProps } from "../shared/data-view-provider";
+export { DataViewProvider as ListProvider } from "../shared/data-view-provider";
 // Skeleton
-export { GallerySkeleton } from "./gallery-skeleton";
+export { ListSkeleton } from "./list-skeleton";

@@ -1,18 +1,18 @@
 "use client";
 
+import { Checkbox } from "@ocean-dataview/dataview/components/ui/checkbox";
 import {
 	DataActionBar,
 	DataActionBarAction,
 	DataActionBarSelection,
 	GroupSection,
 	SplitButton,
-} from "@ocean-dataview/dataview/components/data-views/shared";
-import { GroupAccordion } from "@ocean-dataview/dataview/components/data-views/shared/group-accordion";
+} from "@ocean-dataview/dataview/components/views/shared";
+import { GroupAccordion } from "@ocean-dataview/dataview/components/views/shared/group-accordion";
 import {
 	type PaginationMode,
 	renderPagination,
-} from "@ocean-dataview/dataview/components/data-views/shared/pagination-renderer";
-import { Checkbox } from "@ocean-dataview/dataview/components/ui/checkbox";
+} from "@ocean-dataview/dataview/components/views/shared/pagination-renderer";
 import type {
 	GroupedDataItem,
 	GroupInfiniteInfo,
@@ -544,7 +544,7 @@ export function TableView<
 export {
 	DataViewOptions,
 	type DataViewOptionsProps,
-} from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
+} from "@ocean-dataview/dataview/components/views/shared/data-view-options";
 // Re-export from shared with view-specific aliases
 export type { DataViewContextValue as TableContextValue } from "../shared/data-view-context";
 export { useDataViewContext as useTableContext } from "../shared/data-view-context";

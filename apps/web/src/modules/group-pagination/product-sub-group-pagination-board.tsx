@@ -3,9 +3,9 @@
 import {
 	BoardSkeleton,
 	BoardView,
-} from "@ocean-dataview/dataview/components/data-views/board-view";
-import { DataViewOptions } from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
-import { DataViewProvider } from "@ocean-dataview/dataview/components/data-views/shared/data-view-provider";
+} from "@ocean-dataview/dataview/components/views/board-view";
+import { DataViewOptions } from "@ocean-dataview/dataview/components/views/shared/data-view-options";
+import { DataViewProvider } from "@ocean-dataview/dataview/components/views/shared/data-view-provider";
 import { useGroupPagePagination } from "@ocean-dataview/dataview/lib/data-views/hooks";
 import type { CursorState } from "@ocean-dataview/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";

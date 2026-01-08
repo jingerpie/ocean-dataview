@@ -1,11 +1,11 @@
 "use client";
 
-import { DataViewOptions } from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
-import { DataViewProvider } from "@ocean-dataview/dataview/components/data-views/shared/data-view-provider";
+import { DataViewOptions } from "@ocean-dataview/dataview/components/views/shared/data-view-options";
+import { DataViewProvider } from "@ocean-dataview/dataview/components/views/shared/data-view-provider";
 import {
 	TableSkeleton,
 	TableView,
-} from "@ocean-dataview/dataview/components/data-views/table-view";
+} from "@ocean-dataview/dataview/components/views/table-view";
 import { usePagePagination } from "@ocean-dataview/dataview/lib/data-views/hooks";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";

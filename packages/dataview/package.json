@@ -9,9 +9,9 @@
 		"./lib/data-views/*": "./src/lib/data-views/*/index.ts",
 		"./lib/data-views/*/*": "./src/lib/data-views/*/*.ts",
 		"./components/*": "./src/components/*.tsx",
-		"./components/data-views/*": "./src/components/data-views/*/index.tsx",
-		"./components/data-views/shared": "./src/components/data-views/shared/index.ts",
-		"./components/data-views/shared/*": "./src/components/data-views/shared/*.tsx",
+		"./components/views/*": "./src/components/views/*/index.tsx",
+		"./components/views/shared": "./src/components/views/shared/index.ts",
+		"./components/views/shared/*": "./src/components/views/shared/*.tsx",
 		"./components/**/*": "./src/components/**/*.tsx",
 		"./hooks/*": "./src/hooks/*.ts"
 	},

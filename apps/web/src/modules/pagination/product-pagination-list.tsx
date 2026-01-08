@@ -3,9 +3,9 @@
 import {
 	ListSkeleton,
 	ListView,
-} from "@ocean-dataview/dataview/components/data-views/list-view";
-import { DataViewOptions } from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
-import { DataViewProvider } from "@ocean-dataview/dataview/components/data-views/shared/data-view-provider";
+} from "@ocean-dataview/dataview/components/views/list-view";
+import { DataViewOptions } from "@ocean-dataview/dataview/components/views/shared/data-view-options";
+import { DataViewProvider } from "@ocean-dataview/dataview/components/views/shared/data-view-provider";
 import { useInfinitePagination } from "@ocean-dataview/dataview/lib/data-views/hooks";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
