@@ -1,4 +1,5 @@
-import { productSearchParamsType } from "@ocean-dataview/shared/types";
+import { groupPaginationParams } from "@ocean-dataview/shared/lib";
+import { getCursor, getCursorParams } from "@ocean-dataview/shared/types";
 import { Tabs, TabsContent } from "@ocean-dataview/ui/components/tabs";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ProductGroupPaginationGallery } from "@/modules/group-pagination/product-group-pagination-gallery";
@@ -13,7 +14,8 @@ interface PageProps {
 
 export default async function GroupPaginationPage({ searchParams }: PageProps) {
 	// 1. Parse URL params server-side
-	const params = await productSearchParamsType.parse(searchParams);
+	const params = await groupPaginationParams.parse(searchParams);
+	const { expanded, cursors, limit } = params;
 
 	// 2. Get query client
 	const queryClient = getQueryClient();
@@ -23,9 +25,12 @@ export default async function GroupPaginationPage({ searchParams }: PageProps) {
 		trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" }),
 	);
 
-	// 4. Prefetch first expanded group's data (if URL has expanded groups)
-	const firstExpanded = params.expanded?.[0];
+	// 4. Prefetch first expanded group's data with cursor (if URL has expanded groups)
+	const firstExpanded = expanded?.[0];
 	if (firstExpanded) {
+		const cursor = getCursor(cursors, firstExpanded);
+		const { after, before } = getCursorParams(cursor);
+
 		void queryClient.prefetchQuery(
 			trpc.product.getMany.queryOptions({
 				filters: [
@@ -38,7 +43,9 @@ export default async function GroupPaginationPage({ searchParams }: PageProps) {
 					},
 				],
 				sort: [{ propertyId: "updatedAt", desc: false }],
-				limit: params.limit,
+				after,
+				before,
+				limit,
 			}),
 		);
 	}
@@ -48,13 +55,25 @@ export default async function GroupPaginationPage({ searchParams }: PageProps) {
 		<HydrationBoundary state={dehydrate(queryClient)}>
 			<Tabs defaultValue="table" className="w-full">
 				<TabsContent value="table">
-					<ProductGroupPaginationTable />
+					<ProductGroupPaginationTable
+						expanded={expanded}
+						cursors={cursors}
+						limit={limit}
+					/>
 				</TabsContent>
 				<TabsContent value="list">
-					<ProductGroupPaginationList />
+					<ProductGroupPaginationList
+						expanded={expanded}
+						cursors={cursors}
+						limit={limit}
+					/>
 				</TabsContent>
 				<TabsContent value="gallery">
-					<ProductGroupPaginationGallery />
+					<ProductGroupPaginationGallery
+						expanded={expanded}
+						cursors={cursors}
+						limit={limit}
+					/>
 				</TabsContent>
 				<TabsContent value="board">
 					<ProductSubGroupPaginationBoard />

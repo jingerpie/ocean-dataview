@@ -1,5 +1,9 @@
 "use client";
 
+import {
+	type PaginationMode,
+	renderPagination,
+} from "@ocean-dataview/dataview/components/data-views/shared/pagination-renderer";
 import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
 import { Card, CardContent } from "@ocean-dataview/dataview/components/ui/card";
 import type {
@@ -11,10 +15,7 @@ import {
 	useGroupConfig,
 } from "@ocean-dataview/dataview/lib/data-views/hooks";
 import { PropertyDisplay } from "@ocean-dataview/dataview/lib/data-views/properties";
-import type {
-	DataViewProperty,
-	PaginationContext,
-} from "@ocean-dataview/dataview/lib/data-views/types";
+import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
 import {
 	buildPaginationContext,
 	transformData,
@@ -143,11 +144,15 @@ export interface BoardViewProps<
 	keyExtractor?: (item: TData, index: number) => string;
 
 	/**
-	 * Pagination render function
-	 * Receives normalized context that works with both LoadMorePagination and PagePagination
+	 * Pagination mode for the board.
+	 * - "page": Classic prev/next pagination with "Showing X-Y"
+	 * - "loadMore": "Load more" button
+	 * - "infiniteScroll": Auto-load on scroll
+	 * - undefined: No pagination UI
+	 *
 	 * For boards: renders at bottom of each column
 	 */
-	pagination?: (context: PaginationContext) => React.ReactNode;
+	pagination?: PaginationMode;
 
 	/**
 	 * Additional className
@@ -557,15 +562,13 @@ export function BoardView<
 	// Use groupedData from useGroupConfig
 	const groups: GroupedDataItem<TData>[] = groupedData || [];
 
-	// Build pagination context getter for each column
-	const getColumnPaginationContext = (
-		groupKey: string,
-	): PaginationContext | undefined => {
-		if (!pagination || !hasGroupedPagination) {
-			return undefined;
-		}
-		return buildPaginationContext(contextPagination, groupKey);
-	};
+	// Build column footer renderer using pagination mode
+	const renderColumnFooter = pagination
+		? (groupKey: string) => {
+				const ctx = buildPaginationContext(contextPagination, groupKey);
+				return renderPagination(pagination, ctx);
+			}
+		: undefined;
 
 	// Use BoardRowLayout for sub-grouped boards (Notion-style full-width sub-groups)
 	// Use BoardColumnCard for non-sub-grouped boards (flat columns)
@@ -580,14 +583,7 @@ export function BoardView<
 				columnHeader={getColumnHeader}
 				getColumnBgClass={getColumnBgClass}
 				columnWidth={columnWidth}
-				renderColumnFooter={
-					pagination
-						? (groupKey) => {
-								const ctx = getColumnPaginationContext(groupKey);
-								return ctx ? pagination(ctx) : null;
-							}
-						: undefined
-				}
+				renderColumnFooter={renderColumnFooter}
 				className={className}
 				stickyHeader={{
 					enabled: true,
@@ -605,14 +601,7 @@ export function BoardView<
 			columnHeader={getColumnHeader}
 			getColumnBgClass={getColumnBgClass}
 			columnWidth={columnWidth}
-			renderColumnFooter={
-				pagination
-					? (groupKey) => {
-							const ctx = getColumnPaginationContext(groupKey);
-							return ctx ? pagination(ctx) : null;
-						}
-					: undefined
-			}
+			renderColumnFooter={renderColumnFooter}
 			className={className}
 		/>
 	);

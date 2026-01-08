@@ -90,6 +90,7 @@ const ProductGroupPaginationBoardView = () => {
 					group: { groupBy: "familyGroup", showAggregation: true },
 				}}
 				counts={groupCounts}
+				pagination="page"
 			/>
 		</DataViewProvider>
 	);

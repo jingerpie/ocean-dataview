@@ -2,12 +2,15 @@
 
 import { DataViewOptions } from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
 import { DataViewProvider } from "@ocean-dataview/dataview/components/data-views/shared/data-view-provider";
-import { PagePagination } from "@ocean-dataview/dataview/components/data-views/shared/page-pagination";
 import {
 	TableSkeleton,
 	TableView,
 } from "@ocean-dataview/dataview/components/data-views/table-view";
-import { usePagination } from "@ocean-dataview/dataview/lib/data-views/hooks";
+import {
+	type PaginationProps,
+	usePaginationControls,
+} from "@ocean-dataview/dataview/lib/data-views/hooks";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { PaginationTabs } from "./pagination-tabs";
@@ -16,34 +19,40 @@ import { type Product, productProperties } from "./product-properties";
 /**
  * Product Table with simple cursor-based pagination.
  *
- * Uses the usePagination hook for flat (non-grouped) pagination:
- * - Single query with cursor-based navigation
- * - URL state for after/before/limit/start
- * - "Showing X-Y" display
+ * Pattern: Server prefetch → Props → Client uses props for query
+ * - Server parses URL, prefetches, passes props
+ * - Client uses useSuspenseQuery with props (matches server prefetch = cache hit)
+ * - usePaginationControls handles URL updates only (shallow: false)
  */
-export const ProductPaginationTable = () => (
+export const ProductPaginationTable = (props: PaginationProps) => (
 	<Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
-		<ProductPaginationTableView />
+		<ProductPaginationTableView {...props} />
 	</Suspense>
 );
 
-const ProductPaginationTableView = () => {
+const ProductPaginationTableView = (props: PaginationProps) => {
+	const { after, before, limit } = props;
 	const trpc = useTRPC();
 
-	const { data, pagination } = usePagination<Product>({
-		createQueryOptions: (after, before, limit) =>
-			trpc.product.getMany.queryOptions({
-				after,
-				before,
-				limit,
-				sort: [{ propertyId: "updatedAt", desc: true }],
-			}),
-		defaultLimit: 25,
+	// Query with props (matches server prefetch)
+	const { data } = useSuspenseQuery(
+		trpc.product.getMany.queryOptions({
+			after: after ?? undefined,
+			before: before ?? undefined,
+			limit,
+			sort: [{ propertyId: "updatedAt", desc: true }],
+		}),
+	);
+
+	// Pagination controls (URL setters only)
+	const pagination = usePaginationControls<Product>({
+		props,
+		queryData: data,
 		limitOptions: [10, 25, 50, 100],
 	});
 
 	// Empty state
-	if (data.length === 0) {
+	if (data.items.length === 0) {
 		return (
 			<div className="flex min-h-[400px] items-center justify-center">
 				<p className="text-muted-foreground">No products found</p>
@@ -52,15 +61,20 @@ const ProductPaginationTableView = () => {
 	}
 
 	return (
-		<DataViewProvider data={data} properties={productProperties}>
+		<DataViewProvider
+			data={data.items}
+			properties={productProperties}
+			pagination={pagination}
+		>
 			<div className="flex items-center justify-between">
 				<PaginationTabs />
 				<DataViewOptions />
 			</div>
 
-			<TableView layout={{ showVerticalLines: false, wrapAllColumns: false }} />
-
-			<PagePagination {...pagination} />
+			<TableView
+				layout={{ showVerticalLines: false, wrapAllColumns: false }}
+				pagination="loadMore"
+			/>
 		</DataViewProvider>
 	);
 };

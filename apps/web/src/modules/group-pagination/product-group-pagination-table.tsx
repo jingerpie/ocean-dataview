@@ -2,74 +2,106 @@
 
 import { DataViewOptions } from "@ocean-dataview/dataview/components/data-views/shared/data-view-options";
 import { DataViewProvider } from "@ocean-dataview/dataview/components/data-views/shared/data-view-provider";
-import { PagePagination } from "@ocean-dataview/dataview/components/data-views/shared/page-pagination";
 import {
 	TableSkeleton,
 	TableView,
 } from "@ocean-dataview/dataview/components/data-views/table-view";
+import { useGroupData } from "@ocean-dataview/dataview/lib/data-views/hooks";
 import {
-	useGroupExpansion,
-	useGroupPagination,
-} from "@ocean-dataview/dataview/lib/data-views/hooks";
-import { useSuspenseQuery } from "@tanstack/react-query";
+	type CursorState,
+	getCursor,
+	getCursorParams,
+} from "@ocean-dataview/shared/types";
+import { useQueries, useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "./group-pagination-tabs";
 import { type Product, productProperties } from "./product-properties";
 
+const DEFAULT_EXPANDED: string[] = [];
+
 /**
- * Listings Table View
- *
- * Uses controlled expansion pattern:
- * 1. useGroupExpansion manages URL state for expanded groups
- * 2. usePagination uses expandedGroups to control which queries are enabled
- * 3. TableView receives controlled expansion props
+ * Props passed from server (parsed URL params)
  */
-export const ProductGroupPaginationTable = () => (
+interface Props {
+	expanded: string[] | null;
+	cursors: CursorState[];
+	limit: number;
+}
+
+/**
+ * Product Group Table with cursor-based pagination.
+ *
+ * Pattern: Server prefetch → Props → Client uses props for query
+ * - Server parses URL, prefetches group counts, passes props
+ * - Client uses useSuspenseQuery for group counts (matches server prefetch)
+ * - Client uses useQueries with enabled flag for group data
+ * - useGroupData builds data + pagination + handleAccordionChange
+ */
+export const ProductGroupPaginationTable = (props: Props) => (
 	<Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
-		<ProductGroupPaginationTableView />
+		<ProductGroupPaginationTableView {...props} />
 	</Suspense>
 );
 
-const ProductGroupPaginationTableView = () => {
+const ProductGroupPaginationTableView = ({
+	expanded: expandedProp,
+	cursors,
+	limit,
+}: Props) => {
 	const trpc = useTRPC();
 
-	// 1. Fetch group counts (suspends until data is ready)
+	// 1. Group counts (Suspense OK - matches server prefetch)
 	const { data: groupCounts } = useSuspenseQuery(
 		trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" }),
 	);
 
-	// 2. Expansion state (controlled via URL)
-	const { expandedGroups, handleAccordionChange } = useGroupExpansion({
-		defaultExpanded: [],
+	// 2. Apply default on client
+	const expanded = expandedProp ?? DEFAULT_EXPANDED;
+
+	// 3. Get all group keys (stable order)
+	const allGroupKeys = Object.keys(groupCounts);
+
+	// 4. useQueries with enabled flag - queries for ALL groups, only enabled for expanded
+	//    Uses cursors from props for per-group pagination
+	const groupQueries = useQueries({
+		queries: allGroupKeys.map((groupKey) => {
+			const cursor = getCursor(cursors, groupKey);
+			const { after, before } = getCursorParams(cursor);
+
+			return {
+				...trpc.product.getMany.queryOptions({
+					filters: [
+						{
+							propertyId: "familyGroup",
+							operator: "eq",
+							value: groupKey,
+							variant: "select",
+							filterId: "familyGroup-group",
+						},
+					],
+					sort: [{ propertyId: "updatedAt", desc: false }],
+					after,
+					before,
+					limit,
+				}),
+				enabled: expanded.includes(groupKey),
+			};
+		}),
 	});
 
-	// 3. Pagination with declarative query options
-	const { data, pagination } = useGroupPagination<Product>({
-		expandedGroups,
-		counts: groupCounts,
-		groupBy: "familyGroup",
-		createQueryOptions: (groupKey, after, before, limit) =>
-			trpc.product.getMany.queryOptions({
-				filters: [
-					{
-						propertyId: "familyGroup",
-						operator: "eq",
-						value: groupKey,
-						variant: "select",
-						filterId: "familyGroup-group",
-					},
-				],
-				sort: [{ propertyId: "updatedAt", desc: false }],
-				after,
-				before,
-				limit,
-			}),
+	// 5. useGroupData hook - builds data + pagination + URL handlers
+	const { data, pagination, handleAccordionChange } = useGroupData<Product>({
+		groupQueries,
+		allGroupKeys,
+		expanded,
+		cursors,
+		groupCounts,
+		limit,
 	});
 
 	// Empty state
-	const isEmpty = pagination.groups.length === 0;
-	if (isEmpty) {
+	if (pagination.groups.length === 0) {
 		return (
 			<div className="flex min-h-[400px] items-center justify-center">
 				<p className="text-muted-foreground">No products found</p>
@@ -93,12 +125,12 @@ const ProductGroupPaginationTableView = () => {
 					group: {
 						groupBy: "familyGroup",
 						showAggregation: true,
-						expandedGroups,
+						expandedGroups: expanded,
 						onExpandedChange: handleAccordionChange,
 					},
 				}}
 				layout={{ showVerticalLines: false, wrapAllColumns: false }}
-				pagination={(context) => <PagePagination {...context} />}
+				pagination="page"
 			/>
 		</DataViewProvider>
 	);

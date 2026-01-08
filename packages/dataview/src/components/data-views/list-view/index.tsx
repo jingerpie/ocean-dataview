@@ -2,6 +2,10 @@
 
 import { GroupSection } from "@ocean-dataview/dataview/components/data-views/shared";
 import { GroupAccordion } from "@ocean-dataview/dataview/components/data-views/shared/group-accordion";
+import {
+	type PaginationMode,
+	renderPagination,
+} from "@ocean-dataview/dataview/components/data-views/shared/pagination-renderer";
 import type {
 	GroupedDataItem,
 	GroupInfo,
@@ -10,10 +14,7 @@ import {
 	useDisplayProperties,
 	useGroupConfig,
 } from "@ocean-dataview/dataview/lib/data-views/hooks";
-import type {
-	DataViewProperty,
-	PaginationContext,
-} from "@ocean-dataview/dataview/lib/data-views/types";
+import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
 import {
 	buildPaginationContext,
 	transformData,
@@ -83,12 +84,16 @@ export interface ListViewProps<
 	onItemClick?: (item: TData) => void;
 
 	/**
-	 * Pagination render function
-	 * Receives normalized context that works with both LoadMorePagination and PagePagination
+	 * Pagination mode for the list.
+	 * - "page": Classic prev/next pagination with "Showing X-Y"
+	 * - "loadMore": "Load more" button
+	 * - "infiniteScroll": Auto-load on scroll
+	 * - undefined: No pagination UI
+	 *
 	 * For grouped lists: renders inside each group
-	 * For flat lists: renders outside list
+	 * For flat lists: renders below the list
 	 */
-	pagination?: (context: PaginationContext) => React.ReactNode;
+	pagination?: PaginationMode;
 
 	/**
 	 * Additional className
@@ -254,11 +259,7 @@ export function ListView<
 								groupByPropertyDef={groupByProperty}
 								isLoading={false}
 								showAggregation={groupBy?.showAggregation ?? true}
-								renderFooter={
-									pagination && paginationContext
-										? pagination(paginationContext)
-										: undefined
-								}
+								renderFooter={renderPagination(pagination, paginationContext)}
 							>
 								<ListRow
 									data={group.items}
@@ -283,15 +284,23 @@ export function ListView<
 		);
 	}
 
+	// Build pagination context for flat view
+	const flatPaginationContext = buildPaginationContext(
+		contextPagination,
+		"$all",
+	);
+
 	// STANDARD VIEW: Flat list without grouping
 	return (
-		<ListRow
-			data={transformedFlatData}
-			displayProperties={displayProperties}
-			showDividers={showDividers}
-			onItemClick={onItemClick}
-			className={className}
-		/>
+		<div className={className}>
+			<ListRow
+				data={transformedFlatData}
+				displayProperties={displayProperties}
+				showDividers={showDividers}
+				onItemClick={onItemClick}
+			/>
+			{renderPagination(pagination, flatPaginationContext)}
+		</div>
 	);
 }
 

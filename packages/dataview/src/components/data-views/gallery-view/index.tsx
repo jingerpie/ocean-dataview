@@ -2,6 +2,10 @@
 
 import { GroupSection } from "@ocean-dataview/dataview/components/data-views/shared";
 import { GroupAccordion } from "@ocean-dataview/dataview/components/data-views/shared/group-accordion";
+import {
+	type PaginationMode,
+	renderPagination,
+} from "@ocean-dataview/dataview/components/data-views/shared/pagination-renderer";
 import type {
 	GroupedDataItem,
 	GroupInfo,
@@ -10,10 +14,7 @@ import {
 	useDisplayProperties,
 	useGroupConfig,
 } from "@ocean-dataview/dataview/lib/data-views/hooks";
-import type {
-	DataViewProperty,
-	PaginationContext,
-} from "@ocean-dataview/dataview/lib/data-views/types";
+import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
 import {
 	buildPaginationContext,
 	transformData,
@@ -88,12 +89,16 @@ export interface GalleryViewProps<
 	onCardClick?: (item: TData) => void;
 
 	/**
-	 * Pagination render function
-	 * Receives normalized context that works with both LoadMorePagination and PagePagination
+	 * Pagination mode for the gallery.
+	 * - "page": Classic prev/next pagination with "Showing X-Y"
+	 * - "loadMore": "Load more" button
+	 * - "infiniteScroll": Auto-load on scroll
+	 * - undefined: No pagination UI
+	 *
 	 * For grouped galleries: renders inside each group
-	 * For flat galleries: renders outside gallery
+	 * For flat galleries: renders below the gallery
 	 */
-	pagination?: (context: PaginationContext) => React.ReactNode;
+	pagination?: PaginationMode;
 
 	/**
 	 * Additional className
@@ -294,11 +299,7 @@ export function GalleryView<
 								groupByPropertyDef={groupByProperty}
 								isLoading={false}
 								showAggregation={groupBy?.showAggregation ?? true}
-								renderFooter={
-									pagination && paginationContext
-										? pagination(paginationContext)
-										: undefined
-								}
+								renderFooter={renderPagination(pagination, paginationContext)}
 							>
 								<GalleryCard
 									data={group.items}
@@ -328,20 +329,28 @@ export function GalleryView<
 		);
 	}
 
+	// Build pagination context for flat view
+	const flatPaginationContext = buildPaginationContext(
+		contextPagination,
+		"$all",
+	);
+
 	// STANDARD VIEW: Flat gallery without grouping
 	return (
-		<GalleryCard
-			data={transformedFlatData}
-			displayProperties={displayProperties}
-			cardPreview={cardPreview}
-			imageHeight={imageHeight}
-			cols={cols}
-			fitImage={fitImage}
-			wrapAllProperties={wrapAllProperties}
-			showPropertyNames={showPropertyNames}
-			onCardClick={onCardClick}
-			className={className}
-		/>
+		<div className={className}>
+			<GalleryCard
+				data={transformedFlatData}
+				displayProperties={displayProperties}
+				cardPreview={cardPreview}
+				imageHeight={imageHeight}
+				cols={cols}
+				fitImage={fitImage}
+				wrapAllProperties={wrapAllProperties}
+				showPropertyNames={showPropertyNames}
+				onCardClick={onCardClick}
+			/>
+			{renderPagination(pagination, flatPaginationContext)}
+		</div>
 	);
 }
 

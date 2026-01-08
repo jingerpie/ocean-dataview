@@ -8,6 +8,13 @@ export type {
 } from "./use-group-config";
 export { useGroupConfig } from "./use-group-config";
 export type {
+	GroupCounts,
+	GroupQueryState,
+	UseGroupDataInput,
+	UseGroupDataOutput,
+} from "./use-group-data";
+export { useGroupData } from "./use-group-data";
+export type {
 	UseGroupExpansionOptions,
 	UseGroupExpansionResult,
 } from "./use-group-expansion";
@@ -29,6 +36,14 @@ export type {
 	QueryResult,
 } from "./use-pagination";
 export { usePagination } from "./use-pagination";
+export type {
+	FlatPaginationOutput,
+	PaginationControls,
+	PaginationProps,
+	PaginationQueryResult,
+	UsePaginationControlsInput,
+} from "./use-pagination-controls";
+export { usePaginationControls } from "./use-pagination-controls";
 export { usePaginationParams } from "./use-pagination-params";
 export { useSearchParams } from "./use-search-params";
 export { useSortParams } from "./use-sort-params";

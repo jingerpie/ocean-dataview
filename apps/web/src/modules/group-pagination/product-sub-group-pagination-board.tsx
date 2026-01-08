@@ -87,6 +87,7 @@ const ProductSubGroupPaginationBoardView = () => {
 					subGroup: { subGroupBy: "tag" },
 				}}
 				counts={groupCounts}
+				pagination="page"
 			/>
 		</DataViewProvider>
 	);

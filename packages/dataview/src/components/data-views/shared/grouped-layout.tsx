@@ -7,6 +7,7 @@ import type {
 } from "@ocean-dataview/dataview/lib/data-views/types";
 import { GroupAccordion } from "./group-accordion";
 import { GroupSection } from "./group-section";
+import { type PaginationMode, renderPagination } from "./pagination-renderer";
 
 interface GroupedLayoutProps<TData> {
 	/** Grouped data items to render */
@@ -24,8 +25,11 @@ interface GroupedLayoutProps<TData> {
 	/** Render function for group content */
 	renderGroupContent: (group: GroupedDataItem<TData>) => React.ReactNode;
 
-	/** Optional pagination render function */
-	pagination?: (context: PaginationContext) => React.ReactNode;
+	/** Pagination mode */
+	pagination?: PaginationMode;
+
+	/** Function to get pagination context for a group */
+	getPaginationContext?: (groupKey: string) => PaginationContext | undefined;
 
 	/** Optional className for the container */
 	className?: string;
@@ -45,6 +49,7 @@ export function GroupedLayout<TData>({
 	onAccordionChange,
 	renderGroupContent,
 	pagination,
+	getPaginationContext,
 	className,
 	showAggregation = true,
 }: GroupedLayoutProps<TData>) {
@@ -56,6 +61,8 @@ export function GroupedLayout<TData>({
 				onValueChange={onAccordionChange}
 			>
 				{groups.map((group) => {
+					const paginationContext = getPaginationContext?.(group.key);
+
 					return (
 						<GroupSection
 							key={group.key}
@@ -63,9 +70,7 @@ export function GroupedLayout<TData>({
 							groupByPropertyDef={groupByProperty}
 							isLoading={false}
 							showAggregation={showAggregation}
-							renderFooter={
-								pagination ? pagination({} as PaginationContext) : undefined
-							}
+							renderFooter={renderPagination(pagination, paginationContext)}
 						>
 							{renderGroupContent(group)}
 						</GroupSection>

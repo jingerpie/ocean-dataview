@@ -28,8 +28,8 @@ export interface CountsFormat {
  */
 export interface GroupQueryResult<TData> {
 	items: TData[];
-	startCursor: string | null;
-	endCursor: string | null;
+	startCursor: string | number | null;
+	endCursor: string | number | null;
 	hasNextPage?: boolean;
 	hasPreviousPage?: boolean;
 }
@@ -297,11 +297,11 @@ export function useGroupPagination<TData>(
 				displayEnd,
 
 				onNext: () => {
-					if (!endCursor) return;
+					if (endCursor == null) return;
 					setCursors(
 						setCursor(cursors, {
 							group: key,
-							after: endCursor,
+							after: String(endCursor),
 							start: groupStart + limit,
 						}),
 					);
@@ -313,11 +313,11 @@ export function useGroupPagination<TData>(
 					if (newStart === 0) {
 						setCursors(removeCursor(cursors, key));
 					} else {
-						if (!startCursor) return;
+						if (startCursor == null) return;
 						setCursors(
 							setCursor(cursors, {
 								group: key,
-								before: startCursor,
+								before: String(startCursor),
 								start: newStart,
 							}),
 						);

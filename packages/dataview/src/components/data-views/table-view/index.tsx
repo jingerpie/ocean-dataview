@@ -8,6 +8,10 @@ import {
 	SplitButton,
 } from "@ocean-dataview/dataview/components/data-views/shared";
 import { GroupAccordion } from "@ocean-dataview/dataview/components/data-views/shared/group-accordion";
+import {
+	type PaginationMode,
+	renderPagination,
+} from "@ocean-dataview/dataview/components/data-views/shared/pagination-renderer";
 import { Checkbox } from "@ocean-dataview/dataview/components/ui/checkbox";
 import type {
 	GroupedDataItem,
@@ -24,6 +28,7 @@ import type {
 	PaginationContext,
 } from "@ocean-dataview/dataview/lib/data-views/types";
 import {
+	buildPaginationContext,
 	transformData,
 	validatePropertyKeys,
 } from "@ocean-dataview/dataview/lib/data-views/utils";
@@ -97,12 +102,16 @@ export interface TableViewProps<
 	onRowClick?: (row: TData) => void;
 
 	/**
-	 * Pagination render function
-	 * Receives normalized context that works with both LoadMorePagination and PagePagination
+	 * Pagination mode for the table.
+	 * - "page": Classic prev/next pagination with "Showing X-Y"
+	 * - "loadMore": "Load more" button
+	 * - "infiniteScroll": Auto-load on scroll
+	 * - undefined: No pagination UI
+	 *
 	 * For grouped tables: renders inside each group
-	 * For flat tables: renders below the table (requires PaginatedData)
+	 * For flat tables: renders below the table
 	 */
-	pagination?: (context: PaginationContext) => React.ReactNode;
+	pagination?: PaginationMode;
 
 	/**
 	 * Actions for rows and bulk operations
@@ -452,11 +461,7 @@ export function TableView<
 								groupByPropertyDef={groupByProperty}
 								isLoading={false}
 								showAggregation={groupBy?.showAggregation ?? true}
-								renderFooter={
-									pagination && paginationContext
-										? pagination(paginationContext)
-										: undefined
-								}
+								renderFooter={renderPagination(pagination, paginationContext)}
 							>
 								<DataTable
 									data={group.items}
@@ -488,6 +493,12 @@ export function TableView<
 		);
 	}
 
+	// Build pagination context for flat view
+	const flatPaginationContext = buildPaginationContext(
+		contextPagination,
+		"$all",
+	);
+
 	// STANDARD VIEW: Flat table without grouping
 	return (
 		<div className={className}>
@@ -504,6 +515,7 @@ export function TableView<
 				header={{ enabled: true, sticky: true }}
 				offset={56}
 			/>
+			{renderPagination(pagination, flatPaginationContext)}
 		</div>
 	);
 }

@@ -3,6 +3,7 @@ import {
 	createSearchParamsCache,
 	parseAsInteger,
 	parseAsJson,
+	parseAsString,
 } from "nuqs/server";
 import { z } from "zod";
 import { dataTableConfig } from "../config/data-table";
@@ -192,3 +193,55 @@ export const parseAsCursors = parseAsJsonArray<CursorState>();
  * Client-side parser for expanded array
  */
 export const parseAsExpanded = parseAsJsonArray<string>();
+
+// ============================================================================
+// Flat Pagination Params (for simple cursor-based pagination)
+// ============================================================================
+
+const DEFAULT_FLAT_LIMIT = 25;
+
+/**
+ * Server-side parser for flat pagination URL params.
+ * Used by /pagination page to prefetch data and pass props to client.
+ *
+ * @example
+ * ```ts
+ * // In Server Component
+ * const params = await flatPaginationParams.parse(searchParams);
+ * const { after, before, limit, start } = params;
+ * ```
+ */
+export const flatPaginationParams = createSearchParamsCache({
+	after: parseAsString,
+	before: parseAsString,
+	limit: parseAsInteger.withDefault(DEFAULT_FLAT_LIMIT),
+	start: parseAsInteger.withDefault(0),
+});
+
+// ============================================================================
+// Group Pagination Params (for per-group cursor pagination)
+// ============================================================================
+
+const DEFAULT_GROUP_LIMIT = 25;
+
+/**
+ * Server-side parser for group pagination URL params.
+ * Used by /group-pagination page to prefetch data and pass props to client.
+ *
+ * URL schema:
+ * - expanded: string[] | null - which groups are expanded (null = use default)
+ * - cursors: CursorState[] - cursor state per group for pagination
+ * - limit: number - items per page per group
+ *
+ * @example
+ * ```ts
+ * // In Server Component
+ * const params = await groupPaginationParams.parse(searchParams);
+ * const { expanded, cursors, limit } = params;
+ * ```
+ */
+export const groupPaginationParams = createSearchParamsCache({
+	expanded: parseAsJson(expandedValidator),
+	cursors: parseAsJson(cursorsValidator).withDefault([]),
+	limit: parseAsInteger.withDefault(DEFAULT_GROUP_LIMIT),
+});
