@@ -4,7 +4,7 @@ import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
 import {
 	STATUS_LABEL_TO_GROUP,
 	type StatusGroup,
-} from "../../../lib/data-views/utils/status-constants";
+} from "../../../lib/utils/status-constants";
 import type { StatusPropertyType } from "../../../types/property-types";
 
 interface StatusPropertyProps<T> {

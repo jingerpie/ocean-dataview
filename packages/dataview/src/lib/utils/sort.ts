@@ -1,4 +1,4 @@
-import type { SortConfig } from "../../../types";
+import type { SortConfig } from "../../types";
 
 /**
  * Client-side sorting utility

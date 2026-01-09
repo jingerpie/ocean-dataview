@@ -9,3 +9,10 @@ export { sortData } from "./sort";
 export { transformData } from "./transform-data";
 export { validateGroupConfig, validateShowAs } from "./validate-group-config";
 export { validatePropertyKeys } from "./validate-properties";
+
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+	return twMerge(clsx(inputs));
+}

@@ -5,8 +5,8 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@ocean-dataview/dataview/components/ui/chart";
-import type { ChartColorScheme } from "@ocean-dataview/dataview/lib/data-views/utils/chart-colors";
-import type { ChartDataPoint } from "@ocean-dataview/dataview/lib/data-views/utils/compute-data";
+import type { ChartColorScheme } from "@ocean-dataview/dataview/lib/utils/chart-colors";
+import type { ChartDataPoint } from "@ocean-dataview/dataview/lib/utils/compute-data";
 import type {
 	AxisNameType,
 	GridLineType,

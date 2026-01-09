@@ -4,7 +4,7 @@ import type { Locale } from "date-fns";
 import { format, formatDistanceToNow, parseISO } from "date-fns";
 import * as locales from "date-fns/locale";
 import { useMemo } from "react";
-import { getUserLocale } from "../../../lib/data-views/utils/locale-helpers";
+import { getUserLocale } from "../../../lib/utils/locale-helpers";
 import type { DatePropertyType } from "../../../types/property-types";
 
 /**

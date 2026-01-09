@@ -4,10 +4,10 @@ import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
 import { Card, CardContent } from "@ocean-dataview/dataview/components/ui/card";
 import {
 	buildPaginationContext,
+	cn,
 	transformData,
 	validatePropertyKeys,
-} from "@ocean-dataview/dataview/lib/data-views/utils";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
+} from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { AlertCircle, Columns3 } from "lucide-react";
 import Image from "next/image";

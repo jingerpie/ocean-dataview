@@ -2,7 +2,7 @@
 
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { useMemo } from "react";
-import { getUserLocale } from "../../../lib/data-views/utils/locale-helpers";
+import { getUserLocale } from "../../../lib/utils/locale-helpers";
 import type { NumberPropertyType } from "../../../types/property-types";
 
 interface NumberPropertyProps<T> {

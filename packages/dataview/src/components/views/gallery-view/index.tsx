@@ -5,7 +5,7 @@ import {
 	buildPaginationContext,
 	transformData,
 	validatePropertyKeys,
-} from "@ocean-dataview/dataview/lib/data-views/utils";
+} from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";

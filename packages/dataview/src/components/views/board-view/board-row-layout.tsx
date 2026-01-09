@@ -1,7 +1,9 @@
 "use client";
 
-import { groupByProperty as groupDataByProperty } from "@ocean-dataview/dataview/lib/data-views/utils";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
+import {
+	cn,
+	groupByProperty as groupDataByProperty,
+} from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { type ReactNode, useCallback, useMemo, useRef } from "react";
 import {

@@ -3,7 +3,7 @@
 import {
 	getChartColors,
 	getChartHeight,
-} from "@ocean-dataview/dataview/lib/data-views/utils/chart-colors";
+} from "@ocean-dataview/dataview/lib/utils/chart-colors";
 import {
 	type ChartDataPoint,
 	type ComputationType,
@@ -12,9 +12,9 @@ import {
 	getGroupCounts,
 	groupByProperty,
 	transformToChartData,
-} from "@ocean-dataview/dataview/lib/data-views/utils/compute-data";
-import { transformData } from "@ocean-dataview/dataview/lib/data-views/utils/transform-data";
-import { validateChartConfig } from "@ocean-dataview/dataview/lib/data-views/utils/validate-chart-config";
+} from "@ocean-dataview/dataview/lib/utils/compute-data";
+import { transformData } from "@ocean-dataview/dataview/lib/utils/transform-data";
+import { validateChartConfig } from "@ocean-dataview/dataview/lib/utils/validate-chart-config";
 import type {
 	ChartViewProps,
 	DateGroupingType,

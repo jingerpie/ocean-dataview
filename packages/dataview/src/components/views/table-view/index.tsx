@@ -9,7 +9,7 @@ import {
 	buildPaginationContext,
 	transformData,
 	validatePropertyKeys,
-} from "@ocean-dataview/dataview/lib/data-views/utils";
+} from "@ocean-dataview/dataview/lib/utils";
 import type {
 	Action,
 	DataViewProperty,

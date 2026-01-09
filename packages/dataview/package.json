@@ -4,10 +4,7 @@
 	"exports": {
 		"./globals.css": "./src/styles/globals.css",
 		"./postcss.config": "./postcss.config.mjs",
-		"./lib/*": "./src/lib/*.ts",
-		"./lib/data-views": "./src/lib/data-views/index.ts",
-		"./lib/data-views/*": "./src/lib/data-views/*/index.ts",
-		"./lib/data-views/*/*": "./src/lib/data-views/*/*.ts",
+		"./lib/utils": "./src/lib/utils/index.ts",
 		"./components/*": "./src/components/*.tsx",
 		"./components/views/*": "./src/components/views/*/index.tsx",
 		"./components/views/shared": "./src/components/views/shared/index.ts",

@@ -3,7 +3,7 @@ import {
 	getGroupCounts,
 	groupByProperty,
 	validateGroupConfig,
-} from "../lib/data-views/utils";
+} from "../lib/utils";
 import type { DataViewProperty } from "../types/property-types";
 
 export interface GroupConfig {
