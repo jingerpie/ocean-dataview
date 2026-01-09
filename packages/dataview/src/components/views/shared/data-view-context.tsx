@@ -1,13 +1,13 @@
 "use client";
 
+import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
+import { createContext, useContext } from "react";
 import type {
 	GroupInfinitePaginationState,
 	GroupPagePaginationState,
 	InfinitePaginationState,
 	PagePaginationResult,
-} from "@ocean-dataview/dataview/lib/data-views/hooks";
-import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
-import { createContext, useContext } from "react";
+} from "../../../hooks";
 
 /**
  * Union type for pagination - supports flat, grouped, and infinite pagination

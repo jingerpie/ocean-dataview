@@ -1,7 +1,7 @@
-import type { GroupInfinitePaginationState } from "../hooks/use-group-infinite-pagination";
-import type { GroupPagePaginationState } from "../hooks/use-group-page-pagination";
-import type { InfinitePaginationState } from "../hooks/use-infinite-pagination";
-import type { PagePaginationResult } from "../hooks/use-page-pagination";
+import type { GroupInfinitePaginationState } from "../../../hooks/use-group-infinite-pagination";
+import type { GroupPagePaginationState } from "../../../hooks/use-group-page-pagination";
+import type { InfinitePaginationState } from "../../../hooks/use-infinite-pagination";
+import type { PagePaginationResult } from "../../../hooks/use-page-pagination";
 import type { PaginationContext } from "../types/pagination";
 
 /**

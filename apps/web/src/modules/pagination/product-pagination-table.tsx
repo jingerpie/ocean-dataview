@@ -6,7 +6,7 @@ import {
 	TableSkeleton,
 	TableView,
 } from "@ocean-dataview/dataview/components/views/table-view";
-import { usePagePagination } from "@ocean-dataview/dataview/lib/data-views/hooks";
+import { usePagePagination } from "@ocean-dataview/dataview/lib/data-views";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";

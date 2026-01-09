@@ -6,7 +6,7 @@ import {
 } from "@ocean-dataview/dataview/components/views/gallery-view";
 import { DataViewOptions } from "@ocean-dataview/dataview/components/views/shared/data-view-options";
 import { DataViewProvider } from "@ocean-dataview/dataview/components/views/shared/data-view-provider";
-import { useInfinitePagination } from "@ocean-dataview/dataview/lib/data-views/hooks";
+import { useInfinitePagination } from "@ocean-dataview/dataview/lib/data-views";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";

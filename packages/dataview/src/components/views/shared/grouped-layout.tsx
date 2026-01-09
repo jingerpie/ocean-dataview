@@ -1,10 +1,10 @@
 "use client";
 
-import type { GroupedDataItem } from "@ocean-dataview/dataview/lib/data-views/hooks";
 import type {
 	DataViewProperty,
 	PaginationContext,
 } from "@ocean-dataview/dataview/lib/data-views/types";
+import type { GroupedDataItem } from "../../../hooks";
 import { Accordion } from "../../ui/accordion";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
 import { GroupSection } from "./group-section";

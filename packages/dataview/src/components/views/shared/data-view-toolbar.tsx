@@ -1,13 +1,13 @@
 "use client";
 
+import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
+import { cn } from "@ocean-dataview/dataview/lib/utils";
+import { type ReactNode, useMemo } from "react";
 import {
 	useFilterParams,
 	useSearchParams,
 	useSortParams,
-} from "@ocean-dataview/dataview/lib/data-views/hooks";
-import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
-import { type ReactNode, useMemo } from "react";
+} from "../../../hooks";
 import { type FilterDefinition, FilterDropdown } from "./filter-dropdown";
 import { SearchBar } from "./search-bar";
 import { SortDropdown, type SortOption } from "./sort-dropdown";

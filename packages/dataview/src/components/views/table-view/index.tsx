@@ -6,15 +6,6 @@ import {
 	SplitButton,
 } from "@ocean-dataview/dataview/components/views/shared";
 import type {
-	GroupedDataItem,
-	GroupInfiniteInfo,
-	GroupInfo,
-} from "@ocean-dataview/dataview/lib/data-views/hooks";
-import {
-	useDisplayProperties,
-	useGroupConfig,
-} from "@ocean-dataview/dataview/lib/data-views/hooks";
-import type {
 	Action,
 	DataViewProperty,
 	PaginationContext,
@@ -31,6 +22,12 @@ import type {
 } from "@tanstack/react-table";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type {
+	GroupedDataItem,
+	GroupInfiniteInfo,
+	GroupInfo,
+} from "../../../hooks";
+import { useDisplayProperties, useGroupConfig } from "../../../hooks";
 import { Accordion } from "../../ui/accordion";
 import {
 	DataActionBar,

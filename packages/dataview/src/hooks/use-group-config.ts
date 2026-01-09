@@ -1,6 +1,10 @@
 import { useMemo } from "react";
-import type { DataViewProperty } from "../types";
-import { getGroupCounts, groupByProperty, validateGroupConfig } from "../utils";
+import type { DataViewProperty } from "../lib/data-views/types/property-types";
+import {
+	getGroupCounts,
+	groupByProperty,
+	validateGroupConfig,
+} from "../lib/data-views/utils";
 
 export interface GroupConfig {
 	groupBy: string;
