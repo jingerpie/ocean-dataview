@@ -9,7 +9,6 @@ export { EmptyState } from "./empty-state";
 export type { FilterDefinition, FilterOption } from "./filter-dropdown";
 export { FilterDropdown } from "./filter-dropdown";
 export { GroupSection } from "./group-section";
-export { GroupedLayout } from "./grouped-layout";
 export { SearchBar } from "./search-bar";
 export type { SortOption } from "./sort-dropdown";
 export { SortDropdown } from "./sort-dropdown";

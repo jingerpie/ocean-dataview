@@ -22,7 +22,7 @@ import { BoardStickyHeader } from "./board-sticky-header";
 function parseColumnWidth(columnWidth: string): number {
 	const match = columnWidth.match(/w-(\d+)/);
 	if (match) {
-		return Number.parseInt(match[1], 10) * 4;
+		return Number.parseInt(match[1] ?? "0", 10) * 4;
 	}
 	return 320; // default fallback
 }

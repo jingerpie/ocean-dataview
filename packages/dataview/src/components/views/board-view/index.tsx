@@ -22,6 +22,7 @@ import { type PaginationMode, renderPagination } from "../../ui/paginations";
 import { PropertyDisplay } from "../../ui/properties";
 import { EmptyState } from "../shared";
 import { useDataViewContext } from "../shared/data-view-context";
+import { getBoardCardDimensions } from "../shared/get-card-sizes";
 import { BoardColumnCard } from "./board-column-card";
 import { BoardRowLayout } from "./board-row-layout";
 
@@ -367,18 +368,7 @@ export function BoardView<
 	);
 
 	// Get card dimensions based on size
-	const getCardDimensions = () => {
-		switch (cardSize) {
-			case "small":
-				return { imageHeight: 120, columnWidth: "w-64" }; // 256px
-			case "large":
-				return { imageHeight: 200, columnWidth: "w-96" }; // 384px
-			default: // medium
-				return { imageHeight: 150, columnWidth: "w-80" }; // 320px
-		}
-	};
-
-	const { imageHeight, columnWidth } = getCardDimensions();
+	const { imageHeight, columnWidth } = getBoardCardDimensions(cardSize);
 
 	// Get card content
 	const getCardContent = (item: TData) => {

@@ -4,17 +4,11 @@ import { GroupSection } from "@ocean-dataview/dataview/components/views/shared";
 import {
 	buildPaginationContext,
 	transformData,
-	validatePropertyKeys,
 } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { AlertCircle } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
-import type {
-	GroupedDataItem,
-	GroupInfiniteInfo,
-	GroupInfo,
-} from "../../../hooks";
-import { useDisplayProperties, useGroupConfig } from "../../../hooks";
+import type { GroupedDataItem } from "../../../hooks";
+import { useDisplayProperties, useViewSetup } from "../../../hooks";
 import { Accordion } from "../../ui/accordion";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
 import { useDataViewContext } from "../shared/data-view-context";
@@ -112,97 +106,43 @@ export function ListView<
 	className,
 }: ListViewProps<TData, TProperties>) {
 	// Get data and properties from context
-	const { data, properties, setExcludedPropertyIds, setPropertyVisibility } =
-		useDataViewContext<TData, TProperties>();
+	const {
+		data,
+		properties,
+		propertyVisibility,
+		pagination: contextPagination,
+		setExcludedPropertyIds,
+		setPropertyVisibility,
+	} = useDataViewContext<TData, TProperties>();
 
 	const { showDividers = true } = layout;
 	const { propertyVisibility: viewPropertyVisibility, group: groupBy } = view;
 
-	// Sync view.propertyVisibility to context state ONLY on mount (initial state)
-	const hasInitialized = useRef(false);
-	useEffect(() => {
-		if (!hasInitialized.current && viewPropertyVisibility) {
-			setPropertyVisibility(viewPropertyVisibility);
-			hasInitialized.current = true;
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [viewPropertyVisibility, setPropertyVisibility]);
-
-	// Always use context state (which can be controlled by DataViewOptions)
-	const { propertyVisibility, pagination: contextPagination } =
-		useDataViewContext<TData, TProperties>();
-
-	// Update excluded properties when groupBy changes
-	useEffect(() => {
-		if (groupBy?.groupBy) {
-			setExcludedPropertyIds([groupBy.groupBy]);
-		} else {
-			setExcludedPropertyIds([]);
-		}
-	}, [groupBy?.groupBy, setExcludedPropertyIds]);
-
-	// Validate property keys
-	const propertyValidationError = useMemo(
-		() => validatePropertyKeys(properties),
-		[properties],
-	);
-
-	// Transform data FIRST before grouping (so grouping only works with property IDs)
-	const transformedData = useMemo(() => {
-		return transformData(data as TData[], properties) as TData[];
-	}, [data, properties]);
-
-	// Check if we're using grouped pagination from context
-	const hasGroupedPagination =
-		contextPagination && "groups" in contextPagination;
-
-	// Prepare group configuration (only needed for client-side grouping)
-	const groupConfig = useMemo(() => {
-		if (!groupBy || hasGroupedPagination) return undefined;
-		return {
-			groupBy: String(groupBy.groupBy),
-			showAs: groupBy.showAs,
-			startWeekOn: groupBy.startWeekOn,
-			sort: groupBy.sort,
-			hideEmptyGroups: groupBy.hideEmptyGroups,
-		};
-	}, [groupBy, hasGroupedPagination]);
-
-	// Use shared hook for group configuration and processing (client-side grouping)
-	// Skip if using grouped pagination from context
+	// Use shared view setup hook
 	const {
-		groupedData: clientGroupedData,
+		transformedData,
+		groupConfig,
+		groupedData,
+		groupByProperty,
 		validationError,
-		groupByProperty: clientGroupByProperty,
-	} = useGroupConfig(transformedData, properties, groupConfig);
-
-	// Get groupBy property for header display
-	const groupByProperty = useMemo(() => {
-		if (hasGroupedPagination && groupBy?.groupBy) {
-			// Server pagination - find property manually
-			return properties.find((p) => String(p.id) === groupBy.groupBy);
-		}
-		// Client grouping - use from hook
-		return clientGroupByProperty;
-	}, [hasGroupedPagination, groupBy, properties, clientGroupByProperty]);
-
-	// Choose grouped data source: pagination.groups (server) or useGroupConfig (client)
-	const groupedData = useMemo(() => {
-		if (hasGroupedPagination && "groups" in contextPagination) {
-			// Convert pagination.groups to GroupedDataItem format
-			// Groups can be either GroupInfo (page) or GroupInfiniteInfo (infinite)
-			return contextPagination.groups.map(
-				(group: GroupInfo<TData> | GroupInfiniteInfo<TData>) => ({
-					key: group.key,
-					items: transformData(group.items, properties) as TData[],
-					count: group.count,
-					displayCount: group.displayCount,
-					sortValue: group.value,
-				}),
-			);
-		}
-		return clientGroupedData;
-	}, [hasGroupedPagination, contextPagination, clientGroupedData, properties]);
+		propertyValidationError,
+	} = useViewSetup({
+		data: data as TData[],
+		properties,
+		groupBy: groupBy
+			? {
+					groupBy: String(groupBy.groupBy),
+					showAs: groupBy.showAs,
+					startWeekOn: groupBy.startWeekOn,
+					sort: groupBy.sort,
+					hideEmptyGroups: groupBy.hideEmptyGroups,
+				}
+			: undefined,
+		viewPropertyVisibility,
+		contextPagination,
+		setExcludedPropertyIds,
+		setPropertyVisibility,
+	});
 
 	// Use shared hook for display properties filtering
 	const displayProperties = useDisplayProperties(
@@ -212,10 +152,7 @@ export function ListView<
 	);
 
 	// Transform flat data for non-grouped view (must be before early returns)
-	const transformedFlatData = useMemo(
-		() => transformData(data as TData[], properties) as TData[],
-		[data, properties],
-	);
+	const transformedFlatData = transformedData;
 
 	// Error state
 	if (validationError || propertyValidationError) {

@@ -111,7 +111,7 @@ export function DonutChart({
 										<div className="flex items-center gap-2">
 											<span>{name}:</span>
 											<span className="font-bold">
-												{value.toLocaleString()}
+												{value?.toLocaleString()}
 											</span>
 											<span className="text-muted-foreground">
 												({percentage}%)

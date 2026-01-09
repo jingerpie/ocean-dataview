@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@ocean-dataview/dataview/components/ui/card";
 import { Skeleton } from "@ocean-dataview/dataview/components/ui/skeleton";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
+import { getGalleryCardDimensions } from "../shared/get-card-sizes";
 
 interface GallerySkeletonProps extends React.ComponentProps<"div"> {
 	/**
@@ -47,28 +48,7 @@ export function GallerySkeleton({
 	className,
 	...props
 }: GallerySkeletonProps) {
-	// Grid columns and image height based on card size
-	const getCardDimensions = () => {
-		switch (cardSize) {
-			case "small":
-				return {
-					imageHeight: 150,
-					cols: "grid-cols-1 sm:grid-cols-3 lg:grid-cols-5",
-				};
-			case "large":
-				return {
-					imageHeight: 260,
-					cols: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
-				};
-			default: // medium
-				return {
-					imageHeight: 200,
-					cols: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
-				};
-		}
-	};
-
-	const { imageHeight, cols } = getCardDimensions();
+	const { imageHeight, cols } = getGalleryCardDimensions(cardSize);
 
 	return (
 		<div

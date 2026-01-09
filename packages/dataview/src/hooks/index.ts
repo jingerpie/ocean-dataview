@@ -10,6 +10,12 @@ export { useGroupConfig } from "./use-group-config";
 export { useInteractiveLegend } from "./use-interactive-legend";
 export { useSearchParams } from "./use-search-params";
 export { useSortParams } from "./use-sort-params";
+export type {
+	UseViewSetupOptions,
+	UseViewSetupResult,
+	ViewGroupConfig,
+} from "./use-view-setup";
+export { useViewSetup } from "./use-view-setup";
 
 // ============================================================================
 // Pagination Hooks - 4 main hooks for all pagination use cases

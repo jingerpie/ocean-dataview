@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@ocean-dataview/dataview/components/ui/card";
 import { Skeleton } from "@ocean-dataview/dataview/components/ui/skeleton";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
+import { getBoardCardDimensions } from "../shared/get-card-sizes";
 
 interface BoardSkeletonProps extends React.ComponentProps<"div"> {
 	/**
@@ -41,19 +42,7 @@ export function BoardSkeleton({
 	className,
 	...props
 }: BoardSkeletonProps) {
-	// Column width and image height based on card size
-	const getCardDimensions = () => {
-		switch (cardSize) {
-			case "small":
-				return { imageHeight: 120, columnWidth: "w-64" }; // 256px
-			case "large":
-				return { imageHeight: 200, columnWidth: "w-96" }; // 384px
-			default: // medium
-				return { imageHeight: 150, columnWidth: "w-80" }; // 320px
-		}
-	};
-
-	const { imageHeight, columnWidth } = getCardDimensions();
+	const { imageHeight, columnWidth } = getBoardCardDimensions(cardSize);
 
 	return (
 		<div
