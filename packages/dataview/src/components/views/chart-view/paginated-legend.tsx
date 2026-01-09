@@ -1,11 +1,11 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import type { LegendPayload } from "recharts/types/component/DefaultLegendContent";
 import { useIsomorphicLayoutEffect, useResizeObserver } from "usehooks-ts";
+import { cn } from "../../../lib/utils";
+import { Button } from "../../ui/button";
 
 interface LegendItem {
 	name: string;

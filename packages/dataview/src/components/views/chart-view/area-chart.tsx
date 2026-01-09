@@ -1,17 +1,6 @@
 "use client";
 
 import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent,
-} from "@ocean-dataview/dataview/components/ui/chart";
-import type { ChartColorScheme } from "@ocean-dataview/dataview/lib/utils/chart-colors";
-import type { ChartDataPoint } from "@ocean-dataview/dataview/lib/utils/compute-data";
-import type {
-	AxisNameType,
-	GridLineType,
-} from "@ocean-dataview/dataview/types/chart.type";
-import {
 	Area,
 	CartesianGrid,
 	AreaChart as RechartsAreaChart,
@@ -19,6 +8,14 @@ import {
 	YAxis,
 } from "recharts";
 import { useInteractiveLegend } from "../../../hooks";
+import type { ChartColorScheme } from "../../../lib/utils/chart-colors";
+import type { ChartDataPoint } from "../../../lib/utils/compute-data";
+import type { AxisNameType, GridLineType } from "../../../types/chart.type";
+import {
+	ChartContainer,
+	ChartTooltip,
+	ChartTooltipContent,
+} from "../../ui/chart";
 import { ChartPaginatedLegend } from "./chart-paginated-legend";
 
 interface AreaChartProps {

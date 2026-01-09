@@ -1,9 +1,11 @@
 "use client";
 
+import { AlertCircle } from "lucide-react";
+import { useMemo } from "react";
 import {
 	getChartColors,
 	getChartHeight,
-} from "@ocean-dataview/dataview/lib/utils/chart-colors";
+} from "../../../lib/utils/chart-colors";
 import {
 	type ChartDataPoint,
 	type ComputationType,
@@ -12,15 +14,13 @@ import {
 	getGroupCounts,
 	groupByProperty,
 	transformToChartData,
-} from "@ocean-dataview/dataview/lib/utils/compute-data";
-import { transformData } from "@ocean-dataview/dataview/lib/utils/transform-data";
-import { validateChartConfig } from "@ocean-dataview/dataview/lib/utils/validate-chart-config";
+} from "../../../lib/utils/compute-data";
+import { transformData } from "../../../lib/utils/transform-data";
+import { validateChartConfig } from "../../../lib/utils/validate-chart-config";
 import type {
 	ChartViewProps,
 	DateGroupingType,
-} from "@ocean-dataview/dataview/types/chart.type";
-import { AlertCircle } from "lucide-react";
-import { useMemo } from "react";
+} from "../../../types/chart.type";
 import { AreaChart } from "./area-chart";
 import { DonutChart } from "./donut-chart";
 import { HorizontalBarChart } from "./horizontal-bar-chart";

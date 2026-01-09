@@ -1,16 +1,5 @@
 "use client";
 
-import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent,
-} from "@ocean-dataview/dataview/components/ui/chart";
-import type { ChartColorScheme } from "@ocean-dataview/dataview/lib/utils/chart-colors";
-import type { ChartDataPoint } from "@ocean-dataview/dataview/lib/utils/compute-data";
-import type {
-	AxisNameType,
-	GridLineType,
-} from "@ocean-dataview/dataview/types/chart.type";
 import { useMemo } from "react";
 import {
 	Bar,
@@ -21,6 +10,14 @@ import {
 	YAxis,
 } from "recharts";
 import { useInteractiveLegend } from "../../../hooks";
+import type { ChartColorScheme } from "../../../lib/utils/chart-colors";
+import type { ChartDataPoint } from "../../../lib/utils/compute-data";
+import type { AxisNameType, GridLineType } from "../../../types/chart.type";
+import {
+	ChartContainer,
+	ChartTooltip,
+	ChartTooltipContent,
+} from "../../ui/chart";
 import { ChartPaginatedLegend } from "./chart-paginated-legend";
 
 interface VerticalBarChartProps {
@@ -210,32 +207,40 @@ export function VerticalBarChart({
 							});
 						})()
 					) : (
-						// Render single bar without labels
+						// Render single bar with labels inside
 						<Bar
 							dataKey="value"
 							fill={colors[0]}
 							radius={[4, 4, 0, 0]}
 							isAnimationActive={false}
-						/>
+						>
+							{dataLabels && (
+								<LabelList
+									dataKey="value"
+									position="top"
+									fontSize={12}
+									offset={8}
+									className="fill-foreground"
+								/>
+							)}
+						</Bar>
 					)}
-					{/* Render labels - use a zero-height bar with labels */}
-					{dataLabels && (
+					{/* Render labels for stacked charts - use a zero-height bar with labels */}
+					{dataLabels && isStacked && (
 						<Bar
 							dataKey="__PLACEHOLDER_BAR__" // Zero height bar for labels only
 							fill="transparent"
 							stroke="none"
 							isAnimationActive={false}
-							stackId={isStacked ? "a" : undefined} // Stack on top for stacked charts
+							stackId="a" // Stack on top for stacked charts
 							radius={[0, 0, 0, 0]}
 							activeBar={false}
 						>
 							<LabelList
 								dataKey={
-									isStacked
-										? barProps.hover
-											? String(barProps.hover)
-											: "__BAR_TOTAL_LABEL__"
-										: "value"
+									barProps.hover
+										? String(barProps.hover)
+										: "__BAR_TOTAL_LABEL__"
 								}
 								position="top"
 								fontSize={12}

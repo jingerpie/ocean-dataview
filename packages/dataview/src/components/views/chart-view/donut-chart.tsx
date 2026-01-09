@@ -1,12 +1,5 @@
 "use client";
 
-import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent,
-} from "@ocean-dataview/dataview/components/ui/chart";
-import type { ChartDataPoint } from "@ocean-dataview/dataview/lib/utils/compute-data";
-import type { DataLabelFormatType } from "@ocean-dataview/dataview/types/chart.type";
 import { useMemo } from "react";
 import {
 	Cell,
@@ -16,6 +9,13 @@ import {
 	PieChart as RechartsPieChart,
 } from "recharts";
 import { useInteractiveLegend } from "../../../hooks";
+import type { ChartDataPoint } from "../../../lib/utils/compute-data";
+import type { DataLabelFormatType } from "../../../types/chart.type";
+import {
+	ChartContainer,
+	ChartTooltip,
+	ChartTooltipContent,
+} from "../../ui/chart";
 import { ChartPaginatedLegend } from "./chart-paginated-legend";
 
 interface DonutChartProps {
