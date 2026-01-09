@@ -6,7 +6,7 @@ import {
 } from "@ocean-dataview/dataview/components/views/board-view";
 import { DataViewOptions } from "@ocean-dataview/dataview/components/views/shared/data-view-options";
 import { DataViewProvider } from "@ocean-dataview/dataview/components/views/shared/data-view-provider";
-import { useGroupPagePagination } from "@ocean-dataview/dataview/lib/data-views";
+import { useGroupPagePagination } from "@ocean-dataview/dataview/hooks";
 import type { CursorState } from "@ocean-dataview/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
