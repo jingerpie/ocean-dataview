@@ -3,3 +3,6 @@
 
 /* Import dataview styles (adds @source for dataview components) */
 @import "@ocean-dataview/dataview/globals.css";
+
+/* Import shadcn tailwind utilities (accordion animations, custom variants) */
+@import "shadcn/tailwind.css";
