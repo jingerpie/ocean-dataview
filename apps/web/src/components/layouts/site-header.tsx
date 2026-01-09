@@ -21,6 +21,7 @@ export function SiteHeader() {
 					{/* <Link href="/group">Group</Link> */}
 					<Link href="/pagination">Pagination</Link>
 					<Link href="/group-pagination">Group Pagination</Link>
+					<Link href="/charts">Charts</Link>
 				</nav>
 				<nav className="flex flex-1 items-center md:justify-end">
 					{/* <Button variant="ghost" size="icon" className="size-8" asChild>
