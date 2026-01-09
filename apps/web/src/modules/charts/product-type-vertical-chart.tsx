@@ -7,7 +7,7 @@ import { Suspense } from "react";
 
 import { useTRPC } from "@/utils/trpc/client";
 
-import { type Product, productTypeProperty } from "./product-chart-properties";
+import { productTypeProperty } from "./product-chart-properties";
 
 const productProperties = [productTypeProperty] as const;
 
@@ -18,10 +18,7 @@ function ProductTypeChart() {
 	);
 
 	return (
-		<ChartViewProvider<Product, typeof productProperties>
-			data={data.items}
-			properties={productProperties}
-		>
+		<ChartViewProvider data={data.items} properties={productProperties}>
 			<VerticalBarChartView
 				config={{
 					xAxis: {

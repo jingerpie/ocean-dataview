@@ -2,20 +2,17 @@
 
 import { DonutChartView } from "@ocean-dataview/dataview/components/views/donut-chart-view";
 import { ChartViewProvider } from "@ocean-dataview/dataview/lib/providers";
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 
 import { useTRPC } from "@/utils/trpc/client";
-
-import type { Product } from "./product-chart-properties";
 
 // Use text property to show all tag values dynamically
 const tagProperty = {
 	id: "tag",
 	label: "Product Tag",
 	type: "text",
-} as const satisfies DataViewProperty<Product>;
+} as const;
 
 const productProperties = [tagProperty] as const;
 
@@ -26,10 +23,7 @@ function ProductTagDonut() {
 	);
 
 	return (
-		<ChartViewProvider<Product, typeof productProperties>
-			data={data.items}
-			properties={productProperties}
-		>
+		<ChartViewProvider data={data.items} properties={productProperties}>
 			<DonutChartView
 				config={{
 					data: {

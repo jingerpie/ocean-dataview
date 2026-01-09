@@ -9,7 +9,6 @@ import { useTRPC } from "@/utils/trpc/client";
 
 import {
 	maxCaloriesProperty,
-	type Product,
 	productTypeProperty,
 } from "./product-chart-properties";
 
@@ -22,10 +21,7 @@ function CaloriesTrendArea() {
 	);
 
 	return (
-		<ChartViewProvider<Product, typeof productProperties>
-			data={data.items}
-			properties={productProperties}
-		>
+		<ChartViewProvider data={data.items} properties={productProperties}>
 			<AreaChartView
 				config={{
 					xAxis: {

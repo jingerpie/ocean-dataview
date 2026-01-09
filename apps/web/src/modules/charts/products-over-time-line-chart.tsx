@@ -9,7 +9,6 @@ import { useTRPC } from "@/utils/trpc/client";
 
 import {
 	createdAtProperty,
-	type Product,
 	productTypeProperty,
 } from "./product-chart-properties";
 
@@ -22,10 +21,7 @@ function ProductsOverTimeLine() {
 	);
 
 	return (
-		<ChartViewProvider<Product, typeof productProperties>
-			data={data.items}
-			properties={productProperties}
-		>
+		<ChartViewProvider data={data.items} properties={productProperties}>
 			<LineChartView
 				config={{
 					xAxis: {

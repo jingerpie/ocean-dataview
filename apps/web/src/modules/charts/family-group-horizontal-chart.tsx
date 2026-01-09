@@ -7,7 +7,7 @@ import { Suspense } from "react";
 
 import { useTRPC } from "@/utils/trpc/client";
 
-import { familyGroupProperty, type Product } from "./product-chart-properties";
+import { familyGroupProperty } from "./product-chart-properties";
 
 const productProperties = [familyGroupProperty] as const;
 
@@ -18,10 +18,7 @@ function FamilyGroupHorizontal() {
 	);
 
 	return (
-		<ChartViewProvider<Product, typeof productProperties>
-			data={data.items}
-			properties={productProperties}
-		>
+		<ChartViewProvider data={data.items} properties={productProperties}>
 			<HorizontalBarChartView
 				config={{
 					xAxis: {

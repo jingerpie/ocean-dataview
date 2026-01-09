@@ -11,7 +11,7 @@ import {
 
 export interface ChartViewProviderProps<
 	TData,
-	TProperties extends readonly DataViewProperty<TData>[],
+	TProperties extends readonly DataViewProperty<NoInfer<TData>>[],
 > {
 	data: TData[];
 	properties: TProperties;
@@ -21,8 +21,7 @@ export interface ChartViewProviderProps<
 
 export function ChartViewProvider<
 	TData,
-	TProperties extends
-		readonly DataViewProperty<TData>[] = readonly DataViewProperty<TData>[],
+	const TProperties extends readonly DataViewProperty<NoInfer<TData>>[],
 >({
 	data,
 	properties,
