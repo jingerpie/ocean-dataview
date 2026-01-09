@@ -1,9 +1,8 @@
 "use client";
 
 import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
-import { EmptyValue } from "../components/empty-value";
-import type { SelectPropertyType } from "../types/property-types";
-import { getBadgeVariant } from "../utils/badge-variant-mapper";
+import type { SelectPropertyType } from "../../../lib/data-views/types/property-types";
+import { getBadgeVariant } from "../../../lib/data-views/utils/badge-variant-mapper";
 
 interface SelectPropertyProps<T> {
 	value: unknown;
@@ -19,7 +18,7 @@ interface SelectPropertyProps<T> {
  */
 export function SelectProperty<T>({ value, property }: SelectPropertyProps<T>) {
 	if (!value) {
-		return <EmptyValue />;
+		return <span className="text-muted-foreground text-sm">-</span>;
 	}
 
 	const stringValue = String(value);

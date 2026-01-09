@@ -1,9 +1,8 @@
 "use client";
 
 import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
-import { EmptyValue } from "../components/empty-value";
-import type { MultiSelectPropertyType } from "../types/property-types";
-import { getBadgeVariant } from "../utils/badge-variant-mapper";
+import type { MultiSelectPropertyType } from "../../../lib/data-views/types/property-types";
+import { getBadgeVariant } from "../../../lib/data-views/utils/badge-variant-mapper";
 
 interface MultiSelectPropertyProps<T> {
 	value: unknown;
@@ -15,7 +14,7 @@ export function MultiSelectProperty<T>({
 	property,
 }: MultiSelectPropertyProps<T>) {
 	if (!value || (Array.isArray(value) && value.length === 0)) {
-		return <EmptyValue />;
+		return <span className="text-muted-foreground text-sm">-</span>;
 	}
 
 	const values = Array.isArray(value) ? value : [value];

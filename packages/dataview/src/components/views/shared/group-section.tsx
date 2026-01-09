@@ -1,6 +1,5 @@
 "use client";
 
-import { PropertyDisplay } from "@ocean-dataview/dataview/lib/data-views/properties";
 import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
 import { Loader2 } from "lucide-react";
 import type * as React from "react";
@@ -9,6 +8,7 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "../../ui/accordion";
+import { PropertyDisplay } from "../../ui/properties";
 
 interface GroupSectionProps<TData> {
 	/**

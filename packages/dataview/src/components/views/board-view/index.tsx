@@ -11,7 +11,6 @@ import {
 	useDisplayProperties,
 	useGroupConfig,
 } from "@ocean-dataview/dataview/lib/data-views/hooks";
-import { PropertyDisplay } from "@ocean-dataview/dataview/lib/data-views/properties";
 import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
 import {
 	buildPaginationContext,
@@ -23,6 +22,7 @@ import { AlertCircle, Columns3 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useRef } from "react";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
+import { PropertyDisplay } from "../../ui/properties";
 import { EmptyState } from "../shared";
 import { useDataViewContext } from "../shared/data-view-context";
 import { BoardColumnCard } from "./board-column-card";

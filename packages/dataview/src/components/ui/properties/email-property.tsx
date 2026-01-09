@@ -1,8 +1,7 @@
 "use client";
 
 import { Mail } from "lucide-react";
-import { EmptyValue } from "../components/empty-value";
-import type { EmailPropertyType } from "../types/property-types";
+import type { EmailPropertyType } from "../../../lib/data-views/types/property-types";
 
 interface EmailPropertyProps<T> {
 	value: unknown;
@@ -11,7 +10,7 @@ interface EmailPropertyProps<T> {
 
 export function EmailProperty<T>({ value, property }: EmailPropertyProps<T>) {
 	if (!value) {
-		return <EmptyValue />;
+		return <span className="text-muted-foreground text-sm">-</span>;
 	}
 
 	const email = String(value);

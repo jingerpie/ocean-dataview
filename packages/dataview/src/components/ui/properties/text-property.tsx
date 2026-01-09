@@ -1,7 +1,6 @@
 "use client";
 
-import { EmptyValue } from "../components/empty-value";
-import type { TextPropertyType } from "../types/property-types";
+import type { TextPropertyType } from "../../../lib/data-views/types/property-types";
 
 interface TextPropertyProps<T> {
 	value: unknown;
@@ -19,7 +18,7 @@ export function TextProperty<T>({ value, wrap = false }: TextPropertyProps<T>) {
 	const text = value != null ? String(value) : "";
 
 	if (!text) {
-		return <EmptyValue />;
+		return <span className="text-muted-foreground text-sm">-</span>;
 	}
 
 	const className = wrap ? "text-sm break-words" : "text-sm truncate";

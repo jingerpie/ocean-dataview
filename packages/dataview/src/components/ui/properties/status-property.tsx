@@ -1,12 +1,11 @@
 "use client";
 
 import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
-import { EmptyValue } from "../components/empty-value";
-import type { StatusPropertyType } from "../types/property-types";
+import type { StatusPropertyType } from "../../../lib/data-views/types/property-types";
 import {
 	STATUS_LABEL_TO_GROUP,
 	type StatusGroup,
-} from "../utils/status-constants";
+} from "../../../lib/data-views/utils/status-constants";
 
 interface StatusPropertyProps<T> {
 	value: unknown;
@@ -41,7 +40,7 @@ const GROUP_BADGE_CONFIG: Record<
 
 export function StatusProperty<T>({ value, property }: StatusPropertyProps<T>) {
 	if (!value) {
-		return <EmptyValue />;
+		return <span className="text-muted-foreground text-sm">-</span>;
 	}
 
 	const stringValue = String(value);

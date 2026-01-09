@@ -2,9 +2,8 @@
 
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { useMemo } from "react";
-import { EmptyValue } from "../components/empty-value";
-import type { NumberPropertyType } from "../types/property-types";
-import { getUserLocale } from "../utils/locale-helpers";
+import type { NumberPropertyType } from "../../../lib/data-views/types/property-types";
+import { getUserLocale } from "../../../lib/data-views/utils/locale-helpers";
 
 interface NumberPropertyProps<T> {
 	value: unknown;
@@ -64,7 +63,7 @@ export function NumberProperty<T>({ value, property }: NumberPropertyProps<T>) {
 		value == null ||
 		(typeof value !== "number" && Number.isNaN(Number(value)))
 	) {
-		return <EmptyValue />;
+		return <span className="text-muted-foreground text-sm">-</span>;
 	}
 
 	// If showAs is a bar or ring

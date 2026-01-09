@@ -1,17 +1,17 @@
 "use client";
 
-import { CheckboxProperty } from "../properties/checkbox-property";
-import { DateProperty } from "../properties/date-property";
-import { EmailProperty } from "../properties/email-property";
-import { FilesMediaProperty } from "../properties/files-media-property";
-import { MultiSelectProperty } from "../properties/multi-select-property";
-import { NumberProperty } from "../properties/number-property";
-import { PhoneProperty } from "../properties/phone-property";
-import { SelectProperty } from "../properties/select-property";
-import { StatusProperty } from "../properties/status-property";
-import { TextProperty } from "../properties/text-property";
-import { UrlProperty } from "../properties/url-property";
-import type { PropertyComponentProps } from "./property-component-types";
+import type { PropertyComponentProps } from "../../../types/formula-property.type";
+import { CheckboxProperty } from "./checkbox-property";
+import { DateProperty } from "./date-property";
+import { EmailProperty } from "./email-property";
+import { FilesMediaProperty } from "./files-media-property";
+import { MultiSelectProperty } from "./multi-select-property";
+import { NumberProperty } from "./number-property";
+import { PhoneProperty } from "./phone-property";
+import { SelectProperty } from "./select-property";
+import { StatusProperty } from "./status-property";
+import { TextProperty } from "./text-property";
+import { UrlProperty } from "./url-property";
 
 // Type-safe empty id for property components used in custom types
 // These components don't need a real id since they're used standalone

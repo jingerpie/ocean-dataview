@@ -1,8 +1,7 @@
 "use client";
 
 import { Phone } from "lucide-react";
-import { EmptyValue } from "../components/empty-value";
-import type { PhonePropertyType } from "../types/property-types";
+import type { PhonePropertyType } from "../../../lib/data-views/types/property-types";
 
 interface PhonePropertyProps<T> {
 	value: unknown;
@@ -11,7 +10,7 @@ interface PhonePropertyProps<T> {
 
 export function PhoneProperty<T>({ value, property }: PhonePropertyProps<T>) {
 	if (!value) {
-		return <EmptyValue />;
+		return <span className="text-muted-foreground text-sm">-</span>;
 	}
 
 	const phone = String(value);

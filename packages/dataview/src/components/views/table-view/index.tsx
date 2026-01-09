@@ -14,7 +14,6 @@ import {
 	useDisplayProperties,
 	useGroupConfig,
 } from "@ocean-dataview/dataview/lib/data-views/hooks";
-import { PropertyDisplay } from "@ocean-dataview/dataview/lib/data-views/properties";
 import type {
 	Action,
 	DataViewProperty,
@@ -39,6 +38,7 @@ import {
 	DataActionBarSelection,
 } from "../../ui/action-bar";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
+import { PropertyDisplay } from "../../ui/properties";
 import { useDataViewContext } from "../shared/data-view-context";
 import { DataTable } from "./data-table";
 

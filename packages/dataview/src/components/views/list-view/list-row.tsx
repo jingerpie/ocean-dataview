@@ -1,9 +1,9 @@
 "use client";
 
 import { Separator } from "@ocean-dataview/dataview/components/ui/separator";
-import { PropertyDisplay } from "@ocean-dataview/dataview/lib/data-views/properties";
 import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
+import { PropertyDisplay } from "../../ui/properties";
 
 export interface ListRowProps<TData> {
 	/**

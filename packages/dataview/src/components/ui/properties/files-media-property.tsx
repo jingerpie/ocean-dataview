@@ -2,8 +2,7 @@
 
 import { FileIcon } from "lucide-react";
 import Image from "next/image";
-import { EmptyValue } from "../components/empty-value";
-import type { FilesMediaPropertyType } from "../types/property-types";
+import type { FilesMediaPropertyType } from "../../../lib/data-views/types/property-types";
 
 // Regex patterns compiled at module level for performance
 const IMAGE_EXTENSION_REGEX = /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?|#|$)/i;
@@ -25,7 +24,7 @@ export function FilesMediaProperty<T>({
 	wrap = false,
 }: FilesMediaPropertyProps<T>) {
 	if (!value) {
-		return <EmptyValue />;
+		return <span className="text-muted-foreground text-sm">-</span>;
 	}
 
 	// Handle single URL string
@@ -36,7 +35,7 @@ export function FilesMediaProperty<T>({
 	// Handle array of URLs
 	if (Array.isArray(value)) {
 		if (value.length === 0) {
-			return <EmptyValue />;
+			return <span className="text-muted-foreground text-sm">-</span>;
 		}
 
 		// In table/list context, show all files - wrap if wrap prop is true, otherwise inline

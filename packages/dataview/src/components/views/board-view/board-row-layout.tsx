@@ -1,6 +1,5 @@
 "use client";
 
-import { PropertyDisplay } from "@ocean-dataview/dataview/lib/data-views/properties";
 import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
 import { groupByProperty as groupDataByProperty } from "@ocean-dataview/dataview/lib/data-views/utils";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
@@ -11,6 +10,7 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "../../ui/accordion";
+import { PropertyDisplay } from "../../ui/properties";
 import { BoardStickyHeader } from "./board-sticky-header";
 
 /**

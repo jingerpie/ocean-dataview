@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import type { DataViewProperty } from "../types/property-types";
+import type { DataViewProperty } from "../../../lib/data-views/types/property-types";
 import { CheckboxProperty } from "./checkbox-property";
 import { DateProperty } from "./date-property";
 import { EmailProperty } from "./email-property";

@@ -1,8 +1,7 @@
 "use client";
 
 import { ExternalLink } from "lucide-react";
-import { EmptyValue } from "../components/empty-value";
-import type { UrlPropertyType } from "../types/property-types";
+import type { UrlPropertyType } from "../../../lib/data-views/types/property-types";
 
 interface UrlPropertyProps<T> {
 	value: unknown;
@@ -11,7 +10,7 @@ interface UrlPropertyProps<T> {
 
 export function UrlProperty<T>({ value, property }: UrlPropertyProps<T>) {
 	if (!value) {
-		return <EmptyValue />;
+		return <span className="text-muted-foreground text-sm">-</span>;
 	}
 
 	const url = String(value);
