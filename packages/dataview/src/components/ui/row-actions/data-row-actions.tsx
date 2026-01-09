@@ -1,6 +1,6 @@
 "use client";
 
-import { type DropdownAction, SplitButton } from "./split-button";
+import { type DropdownAction, SplitButton } from "../split-button";
 
 interface DataRowActionsProps {
 	/**

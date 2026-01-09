@@ -18,11 +18,11 @@ import type {
 	GroupInfo,
 } from "../../../hooks";
 import { useDisplayProperties, useGroupConfig } from "../../../hooks";
+import { useDataViewContext } from "../../../lib/providers/data-view-context";
+import { getBoardCardDimensions } from "../../../lib/utils/get-card-sizes";
+import { EmptyState } from "../../ui/empty-state";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
 import { PropertyDisplay } from "../../ui/properties";
-import { EmptyState } from "../shared";
-import { useDataViewContext } from "../shared/data-view-context";
-import { getBoardCardDimensions } from "../shared/get-card-sizes";
 import { BoardColumnCard } from "./board-column-card";
 import { BoardRowLayout } from "./board-row-layout";
 
@@ -598,12 +598,12 @@ export function BoardView<
 export {
 	DataViewOptions,
 	type DataViewOptionsProps,
-} from "@ocean-dataview/dataview/components/views/shared/data-view-options";
+} from "@ocean-dataview/dataview/components/ui/tool-bar/data-view-options";
 // Re-export from shared with view-specific aliases
-export type { DataViewContextValue as BoardContextValue } from "../shared/data-view-context";
-export { useDataViewContext as useBoardContext } from "../shared/data-view-context";
-export type { DataViewProviderProps as BoardProviderProps } from "../shared/data-view-provider";
-export { DataViewProvider as BoardProvider } from "../shared/data-view-provider";
+export type { DataViewContextValue as BoardContextValue } from "../../../lib/providers/data-view-context";
+export { useDataViewContext as useBoardContext } from "../../../lib/providers/data-view-context";
+export type { DataViewProviderProps as BoardProviderProps } from "../../../lib/providers/data-view-provider";
+export { DataViewProvider as BoardProvider } from "../../../lib/providers/data-view-provider";
 // Skeleton
 export { BoardSkeleton } from "./board-skeleton";
 // Note: GroupCounts and GroupCountsWithSubGroups are exported at top of file

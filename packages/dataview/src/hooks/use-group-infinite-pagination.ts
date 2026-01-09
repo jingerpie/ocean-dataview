@@ -8,7 +8,7 @@ import type {
 	BasePaginatedResponse,
 	GroupCounts,
 	InferItemsFromQueryOptions,
-} from "./pagination-types";
+} from "../types/pagination-types";
 
 // ============================================================================
 // Types

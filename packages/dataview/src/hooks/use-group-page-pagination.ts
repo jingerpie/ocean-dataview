@@ -15,7 +15,7 @@ import type {
 	BidirectionalPaginatedResponse,
 	GroupCounts,
 	InferItemsFromQueryOptions,
-} from "./pagination-types";
+} from "../types/pagination-types";
 
 // ============================================================================
 // Types

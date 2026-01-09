@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@ocean-dataview/dataview/components/ui/card";
 import { Skeleton } from "@ocean-dataview/dataview/components/ui/skeleton";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
-import { getGalleryCardDimensions } from "../shared/get-card-sizes";
+import { getGalleryCardDimensions } from "../../../lib/utils/get-card-sizes";
 
 interface GallerySkeletonProps extends React.ComponentProps<"div"> {
 	/**

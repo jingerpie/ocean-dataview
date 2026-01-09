@@ -17,7 +17,7 @@ import {
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { Check, ChevronsUpDown, Settings2 } from "lucide-react";
 import * as React from "react";
-import { useDataViewContext } from "./data-view-context";
+import { useDataViewContext } from "../../../lib/providers/data-view-context";
 
 interface PropertyLike {
 	id: string | number;

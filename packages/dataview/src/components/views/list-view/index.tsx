@@ -1,6 +1,5 @@
 "use client";
 
-import { GroupSection } from "@ocean-dataview/dataview/components/views/shared";
 import {
 	buildPaginationContext,
 	transformData,
@@ -9,9 +8,10 @@ import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { AlertCircle } from "lucide-react";
 import type { GroupedDataItem } from "../../../hooks";
 import { useDisplayProperties, useViewSetup } from "../../../hooks";
+import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import { Accordion } from "../../ui/accordion";
+import { GroupSection } from "../../ui/group-section";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
-import { useDataViewContext } from "../shared/data-view-context";
 import { ListRow } from "./list-row";
 
 export interface ListViewProps<
@@ -242,11 +242,11 @@ export function ListView<
 export {
 	DataViewOptions,
 	type DataViewOptionsProps,
-} from "@ocean-dataview/dataview/components/views/shared/data-view-options";
+} from "@ocean-dataview/dataview/components/ui/tool-bar/data-view-options";
 // Re-export from shared with view-specific aliases
-export type { DataViewContextValue as ListContextValue } from "../shared/data-view-context";
-export { useDataViewContext as useListContext } from "../shared/data-view-context";
-export type { DataViewProviderProps as ListProviderProps } from "../shared/data-view-provider";
-export { DataViewProvider as ListProvider } from "../shared/data-view-provider";
+export type { DataViewContextValue as ListContextValue } from "../../../lib/providers/data-view-context";
+export { useDataViewContext as useListContext } from "../../../lib/providers/data-view-context";
+export type { DataViewProviderProps as ListProviderProps } from "../../../lib/providers/data-view-provider";
+export { DataViewProvider as ListProvider } from "../../../lib/providers/data-view-provider";
 // Skeleton
 export { ListSkeleton } from "./list-skeleton";

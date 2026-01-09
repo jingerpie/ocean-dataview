@@ -2,10 +2,6 @@
 
 import { Checkbox } from "@ocean-dataview/dataview/components/ui/checkbox";
 import {
-	GroupSection,
-	SplitButton,
-} from "@ocean-dataview/dataview/components/views/shared";
-import {
 	buildPaginationContext,
 	transformData,
 } from "@ocean-dataview/dataview/lib/utils";
@@ -27,15 +23,17 @@ import type {
 	GroupInfo,
 } from "../../../hooks";
 import { useDisplayProperties, useViewSetup } from "../../../hooks";
+import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import { Accordion } from "../../ui/accordion";
 import {
 	DataActionBar,
 	DataActionBarAction,
 	DataActionBarSelection,
-} from "../../ui/action-bar";
+} from "../../ui/bulk-actions";
+import { GroupSection } from "../../ui/group-section";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
 import { PropertyDisplay } from "../../ui/properties";
-import { useDataViewContext } from "../shared/data-view-context";
+import { SplitButton } from "../../ui/split-button";
 import { DataTable } from "./data-table";
 
 export interface TableViewProps<
@@ -481,11 +479,11 @@ export function TableView<
 export {
 	DataViewOptions,
 	type DataViewOptionsProps,
-} from "@ocean-dataview/dataview/components/views/shared/data-view-options";
+} from "@ocean-dataview/dataview/components/ui/tool-bar/data-view-options";
 // Re-export from shared with view-specific aliases
-export type { DataViewContextValue as TableContextValue } from "../shared/data-view-context";
-export { useDataViewContext as useTableContext } from "../shared/data-view-context";
-export type { DataViewProviderProps as TableProviderProps } from "../shared/data-view-provider";
-export { DataViewProvider as TableProvider } from "../shared/data-view-provider";
+export type { DataViewContextValue as TableContextValue } from "../../../lib/providers/data-view-context";
+export { useDataViewContext as useTableContext } from "../../../lib/providers/data-view-context";
+export type { DataViewProviderProps as TableProviderProps } from "../../../lib/providers/data-view-provider";
+export { DataViewProvider as TableProvider } from "../../../lib/providers/data-view-provider";
 // Skeleton
 export { TableSkeleton } from "./table-skeleton";

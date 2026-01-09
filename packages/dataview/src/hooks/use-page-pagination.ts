@@ -2,7 +2,7 @@
 
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { useCallback, useTransition } from "react";
-import type { BidirectionalPaginatedResponse } from "./pagination-types";
+import type { BidirectionalPaginatedResponse } from "../types/pagination-types";
 
 // ============================================================================
 // Types

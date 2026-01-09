@@ -1,6 +1,5 @@
 "use client";
 
-import { GroupSection } from "@ocean-dataview/dataview/components/views/shared";
 import {
 	buildPaginationContext,
 	transformData,
@@ -9,10 +8,11 @@ import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { AlertCircle } from "lucide-react";
 import type { GroupedDataItem } from "../../../hooks";
 import { useDisplayProperties, useViewSetup } from "../../../hooks";
+import { useDataViewContext } from "../../../lib/providers/data-view-context";
+import { getGalleryCardDimensions } from "../../../lib/utils/get-card-sizes";
 import { Accordion } from "../../ui/accordion";
+import { GroupSection } from "../../ui/group-section";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
-import { useDataViewContext } from "../shared/data-view-context";
-import { getGalleryCardDimensions } from "../shared/get-card-sizes";
 import { GalleryCard } from "./gallery-card";
 
 export interface GalleryViewProps<
@@ -270,11 +270,11 @@ export function GalleryView<
 export {
 	DataViewOptions,
 	type DataViewOptionsProps,
-} from "@ocean-dataview/dataview/components/views/shared/data-view-options";
+} from "@ocean-dataview/dataview/components/ui/tool-bar/data-view-options";
 // Re-export from shared with view-specific aliases
-export type { DataViewContextValue as GalleryContextValue } from "../shared/data-view-context";
-export { useDataViewContext as useGalleryContext } from "../shared/data-view-context";
-export type { DataViewProviderProps as GalleryProviderProps } from "../shared/data-view-provider";
-export { DataViewProvider as GalleryProvider } from "../shared/data-view-provider";
+export type { DataViewContextValue as GalleryContextValue } from "../../../lib/providers/data-view-context";
+export { useDataViewContext as useGalleryContext } from "../../../lib/providers/data-view-context";
+export type { DataViewProviderProps as GalleryProviderProps } from "../../../lib/providers/data-view-provider";
+export { DataViewProvider as GalleryProvider } from "../../../lib/providers/data-view-provider";
 // Skeleton
 export { GallerySkeleton } from "./gallery-skeleton";

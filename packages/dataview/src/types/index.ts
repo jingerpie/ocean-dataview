@@ -6,6 +6,12 @@ export type { Action } from "./action.type";
 export * from "./chart.type";
 // Export pagination types
 export type { PaginationContext } from "./pagination";
+export type {
+	BasePaginatedResponse,
+	BidirectionalPaginatedResponse,
+	GroupCounts,
+	InferItemsFromQueryOptions,
+} from "./pagination-types";
 export * from "./property-types";
 
 // Pagination result interface

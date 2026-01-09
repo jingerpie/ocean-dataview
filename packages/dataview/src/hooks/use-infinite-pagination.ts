@@ -3,7 +3,7 @@
 import type { InfiniteData } from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useCallback, useMemo } from "react";
-import type { BasePaginatedResponse } from "./pagination-types";
+import type { BasePaginatedResponse } from "../types/pagination-types";
 
 // ============================================================================
 // Types

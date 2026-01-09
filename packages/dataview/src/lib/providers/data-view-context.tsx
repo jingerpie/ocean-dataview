@@ -7,7 +7,7 @@ import type {
 	GroupPagePaginationState,
 	InfinitePaginationState,
 	PagePaginationResult,
-} from "../../../hooks";
+} from "../../hooks";
 
 /**
  * Union type for pagination - supports flat, grouped, and infinite pagination

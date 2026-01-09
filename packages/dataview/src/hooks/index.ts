@@ -21,20 +21,6 @@ export { useViewSetup } from "./use-view-setup";
 // Pagination Hooks - 4 main hooks for all pagination use cases
 // ============================================================================
 
-// Shared pagination types
-// Legacy type aliases for backwards compatibility
-// These are re-exported from their original hook files
-export type {
-	BasePaginatedResponse,
-	BasePaginatedResponse as GroupInfinitePaginatedResponse,
-	BasePaginatedResponse as InfinitePaginatedResponse,
-	BidirectionalPaginatedResponse,
-	BidirectionalPaginatedResponse as GroupPaginatedResponse,
-	BidirectionalPaginatedResponse as PaginatedResponse,
-	GroupCounts,
-	GroupCounts as GroupInfiniteCounts,
-	InferItemsFromQueryOptions,
-} from "./pagination-types";
 // 4. useGroupInfinitePagination - Grouped infinite scroll / load-more
 export type {
 	GroupInfiniteInfo,

@@ -1,12 +1,12 @@
 "use client";
 
+import { DataViewOptions } from "@ocean-dataview/dataview/components/ui/tool-bar";
 import {
 	ListSkeleton,
 	ListView,
 } from "@ocean-dataview/dataview/components/views/list-view";
-import { DataViewOptions } from "@ocean-dataview/dataview/components/views/shared/data-view-options";
-import { DataViewProvider } from "@ocean-dataview/dataview/components/views/shared/data-view-provider";
 import { useInfinitePagination } from "@ocean-dataview/dataview/hooks";
+import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
