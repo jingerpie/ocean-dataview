@@ -86,7 +86,7 @@ const ProductGroupPaginationTableView = ({
 	// Empty state
 	if (pagination.groups.length === 0) {
 		return (
-			<div className="flex min-h-[400px] items-center justify-center">
+			<div className="flex min-h-100 items-center justify-center">
 				<p className="text-muted-foreground">No products found</p>
 			</div>
 		);
