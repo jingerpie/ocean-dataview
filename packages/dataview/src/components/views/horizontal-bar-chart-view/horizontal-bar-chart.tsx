@@ -18,9 +18,9 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "../../ui/chart";
-import { ChartPaginatedLegend } from "./chart-paginated-legend";
+import { ChartPaginatedLegend } from "../../ui/chart-paginated-legend";
 
-interface VerticalBarChartProps {
+interface HorizontalBarChartInnerProps {
 	data: ChartDataPoint[];
 	height: number;
 	colors: string[];
@@ -30,31 +30,27 @@ interface VerticalBarChartProps {
 	dataLabels?: boolean;
 	xAxisLabel?: string;
 	yAxisLabel?: string;
-	yAxisRange?: { min: number; max: number };
-	groupKeys?: string[]; // For stacked/grouped bars
+	xAxisRange?: { min: number; max: number };
+	groupKeys?: string[];
 	showLegend?: boolean;
 }
 
-export function VerticalBarChart({
+export function HorizontalBarChartInner({
 	data,
 	height,
 	colors,
-	gridLine = "horizontal",
+	gridLine = "vertical",
 	axisName = "none",
 	dataLabels = false,
 	xAxisLabel,
 	yAxisLabel,
-	yAxisRange,
+	xAxisRange,
 	groupKeys = [],
 	showLegend = true,
-}: VerticalBarChartProps) {
-	// Check if we have stacked data
+}: HorizontalBarChartInnerProps) {
 	const isStacked = groupKeys.length > 0;
-
-	// Use data as-is - _total is already pre-computed in chart-view.tsx
 	const chartData = data;
 
-	// Interactive legend state
 	const {
 		legendProps: barProps,
 		legendState,
@@ -63,7 +59,6 @@ export function VerticalBarChart({
 		selectItem: selectBar,
 	} = useInteractiveLegend(groupKeys);
 
-	// Create chart config for shadcn/ui chart
 	const chartConfig = isStacked
 		? (() => {
 				const config: Record<string, { label: string; color: string }> = {};
@@ -96,18 +91,16 @@ export function VerticalBarChart({
 	const showGridX = gridLine === "vertical" || gridLine === "both";
 	const showGridY = gridLine === "horizontal" || gridLine === "both";
 
-	// Calculate dynamic margins - let Recharts auto-calculate YAxis width
 	const chartMargin = {
-		top: dataLabels ? 20 : 0,
+		right: dataLabels ? 20 : 0,
 		left: axisName === "yAxis" || axisName === "both" ? 8 : 0,
 		bottom: showLegend ? 20 : 0,
 	};
 
-	// Compute visible totals for each data point (memoized to prevent recalculation)
 	const chartDataWithTotalLabels = useMemo(() => {
 		return chartData.map((item) => {
 			const totalLabel = groupKeys.reduce((sum, key) => {
-				if (barProps[key] === true) return sum; // Skip hidden bars
+				if (barProps[key] === true) return sum;
 				const value = item[key as keyof typeof item];
 				return sum + (typeof value === "number" ? value : 0);
 			}, 0);
@@ -126,19 +119,24 @@ export function VerticalBarChart({
 				className="w-full"
 				style={{ height }}
 			>
-				<BarChart data={chartDataWithTotalLabels} margin={chartMargin}>
+				<BarChart
+					data={chartDataWithTotalLabels}
+					layout="vertical"
+					margin={chartMargin}
+				>
 					<CartesianGrid
 						strokeDasharray="3 3"
 						vertical={showGridX}
 						horizontal={showGridY}
 						stroke="hsl(var(--border))"
 					/>
+
 					<XAxis
-						dataKey="name"
-						type="category"
+						type="number"
 						tickLine={false}
 						axisLine={false}
 						tickMargin={8}
+						domain={xAxisRange ? [xAxisRange.min, xAxisRange.max] : undefined}
 						label={
 							axisName === "xAxis" || axisName === "both"
 								? {
@@ -150,12 +148,13 @@ export function VerticalBarChart({
 								: undefined
 						}
 					/>
+
 					<YAxis
-						type="number"
+						dataKey="name"
+						type="category"
 						width="auto"
 						tickLine={false}
 						axisLine={false}
-						domain={yAxisRange ? [yAxisRange.min, yAxisRange.max] : undefined}
 						label={
 							axisName === "yAxis" || axisName === "both"
 								? {
@@ -179,70 +178,60 @@ export function VerticalBarChart({
 					/>
 
 					{isStacked ? (
-						// Render stacked bars - exact pattern from example
 						(() => {
-							// Find the last visible bar index
 							const visibleKeys = groupKeys.filter(
 								(key) => barProps[key] !== true,
 							);
 							const lastVisibleKey = visibleKeys[visibleKeys.length - 1];
 
 							return groupKeys.map((key, groupIndex) => {
+								const isHidden = barProps[key] === true;
+								const fillOpacity = Number(
+									barProps.hover === key || !barProps.hover ? 1 : 0.2,
+								);
+								const isLastVisible = key === lastVisibleKey;
+
 								return (
 									<Bar
 										key={key}
 										dataKey={key}
-										fill={colors[groupIndex % colors.length]}
 										stackId="a"
-										hide={barProps[key] === true}
-										fillOpacity={Number(
-											barProps.hover === key || !barProps.hover ? 1 : 0.2,
-										)}
-										radius={
-											key === lastVisibleKey ? [4, 4, 0, 0] : [0, 0, 0, 0]
-										}
+										fill={colors[groupIndex % colors.length]}
+										fillOpacity={fillOpacity}
+										hide={isHidden}
+										radius={isLastVisible ? [0, 4, 4, 0] : [0, 0, 0, 0]}
 										isAnimationActive={false}
 									/>
 								);
 							});
 						})()
 					) : (
-						// Render single bar with labels inside
 						<Bar
 							dataKey="value"
 							fill={colors[0]}
-							radius={[4, 4, 0, 0]}
+							radius={[0, 4, 4, 0]}
 							isAnimationActive={false}
-						>
-							{dataLabels && (
-								<LabelList
-									dataKey="value"
-									position="top"
-									fontSize={12}
-									offset={8}
-									className="fill-foreground"
-								/>
-							)}
-						</Bar>
+						/>
 					)}
-					{/* Render labels for stacked charts - use a zero-height bar with labels */}
-					{dataLabels && isStacked && (
+
+					{dataLabels && (
 						<Bar
-							dataKey="__PLACEHOLDER_BAR__" // Zero height bar for labels only
+							dataKey="__PLACEHOLDER_BAR__"
 							fill="transparent"
 							stroke="none"
 							isAnimationActive={false}
-							stackId="a" // Stack on top for stacked charts
+							stackId={isStacked ? "a" : undefined}
 							radius={[0, 0, 0, 0]}
-							activeBar={false}
 						>
 							<LabelList
 								dataKey={
-									barProps.hover
-										? String(barProps.hover)
-										: "__BAR_TOTAL_LABEL__"
+									isStacked
+										? barProps.hover
+											? String(barProps.hover)
+											: "__BAR_TOTAL_LABEL__"
+										: "value"
 								}
-								position="top"
+								position="right"
 								fontSize={12}
 								offset={8}
 								className="fill-foreground"

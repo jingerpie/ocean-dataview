@@ -1,6 +1,7 @@
 "use client";
 
-import { ChartView } from "@ocean-dataview/dataview/components/views/chart-view";
+import { VerticalBarChartView } from "@ocean-dataview/dataview/components/views/vertical-bar-chart-view";
+import { ChartViewProvider } from "@ocean-dataview/dataview/lib/providers";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 
@@ -12,6 +13,8 @@ import {
 	productTypeProperty,
 } from "./product-chart-properties";
 
+const productProperties = [productTypeProperty, maxCaloriesProperty] as const;
+
 function CaloriesByType() {
 	const trpc = useTRPC();
 	const { data } = useSuspenseQuery(
@@ -19,29 +22,31 @@ function CaloriesByType() {
 	);
 
 	return (
-		<ChartView<Product>
+		<ChartViewProvider<Product, typeof productProperties>
 			data={data.items}
-			properties={[productTypeProperty, maxCaloriesProperty]}
-			chartType="verticalBar"
-			config={{
-				xAxis: {
-					whatToShow: { property: "type" },
-					sortBy: "countDescending",
-				},
-				yAxis: {
-					whatToShow: { property: "maxCalories", showAs: "average" },
-				},
-				style: {
-					color: "orange",
-					height: "medium",
-					gridLine: "horizontal",
-					axisName: "both",
-					dataLabels: true,
-					caption: "Average Calories by Product Type",
-					showLegend: false,
-				},
-			}}
-		/>
+			properties={productProperties}
+		>
+			<VerticalBarChartView
+				config={{
+					xAxis: {
+						whatToShow: { property: "type" },
+						sortBy: "countDescending",
+					},
+					yAxis: {
+						whatToShow: { property: "maxCalories", showAs: "average" },
+					},
+					style: {
+						color: "orange",
+						height: "medium",
+						gridLine: "horizontal",
+						axisName: "both",
+						dataLabels: true,
+						caption: "Average Calories by Product Type",
+						showLegend: false,
+					},
+				}}
+			/>
+		</ChartViewProvider>
 	);
 }
 

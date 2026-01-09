@@ -4,8 +4,8 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import type { LegendPayload } from "recharts/types/component/DefaultLegendContent";
 import { useIsomorphicLayoutEffect, useResizeObserver } from "usehooks-ts";
-import { cn } from "../../../lib/utils";
-import { Button } from "../../ui/button";
+import { cn } from "../../lib/utils";
+import { Button } from "./button";
 
 interface LegendItem {
 	name: string;

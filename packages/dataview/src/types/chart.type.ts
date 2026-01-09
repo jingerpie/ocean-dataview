@@ -7,6 +7,247 @@ export type GridLineType = "none" | "horizontal" | "vertical" | "both";
 export type AxisNameType = "none" | "xAxis" | "yAxis" | "both";
 export type DataLabelFormatType = "none" | "value" | "name" | "nameAndValue";
 
+export type ChartColorScheme =
+	| "colorful"
+	| "colorless"
+	| "blue"
+	| "yellow"
+	| "green"
+	| "purple"
+	| "teal"
+	| "orange"
+	| "pink"
+	| "red";
+
+export type ChartHeight = "small" | "medium" | "large" | "extraLarge";
+
+export type SortByType =
+	| "propertyAscending"
+	| "propertyDescending"
+	| "countAscending"
+	| "countDescending";
+
+export type GroupBySortByType = "propertyAscending" | "propertyDescending";
+
+export type DateShowAsType =
+	| "relative"
+	| "day"
+	| "week"
+	| "month"
+	| "year"
+	| "group"
+	| "option";
+
+// ============================================================================
+// Individual Chart Config Types
+// ============================================================================
+
+/**
+ * Vertical Bar Chart Configuration
+ * - xAxis: Categories (bottom)
+ * - yAxis: Values (left)
+ */
+export interface VerticalBarChartConfig<
+	TData,
+	TProperties extends readonly DataViewProperty<TData>[],
+> {
+	xAxis: {
+		whatToShow: {
+			property: TProperties[number]["id"];
+			showAs?: DateShowAsType;
+			startWeekOn?: "monday" | "sunday";
+		};
+		sortBy?: SortByType;
+		hideGroups?: string[];
+		omitZeroValues?: boolean;
+	};
+	yAxis: {
+		whatToShow:
+			| "count"
+			| {
+					property: TProperties[number]["id"];
+					showAs: Exclude<ComputationType, "count">;
+			  };
+		groupBy?: {
+			property: TProperties[number]["id"];
+			showAs?: DateShowAsType;
+			sortBy?: GroupBySortByType;
+		};
+		range?: { min: number; max: number };
+	};
+	style: {
+		color: ChartColorScheme;
+		height: ChartHeight;
+		gridLine?: GridLineType;
+		axisName?: AxisNameType;
+		dataLabels?: boolean;
+		showLegend?: boolean;
+		caption?: string;
+	};
+}
+
+/**
+ * Horizontal Bar Chart Configuration
+ * - xAxis: Values (bottom)
+ * - yAxis: Categories (left)
+ */
+export interface HorizontalBarChartConfig<
+	TData,
+	TProperties extends readonly DataViewProperty<TData>[],
+> {
+	xAxis: {
+		whatToShow:
+			| "count"
+			| {
+					property: TProperties[number]["id"];
+					showAs: Exclude<ComputationType, "count">;
+			  };
+		groupBy?: {
+			property: TProperties[number]["id"];
+			showAs?: DateShowAsType;
+			sortBy?: GroupBySortByType;
+		};
+		range?: { min: number; max: number };
+	};
+	yAxis: {
+		whatToShow: {
+			property: TProperties[number]["id"];
+			showAs?: DateShowAsType;
+			startWeekOn?: "monday" | "sunday";
+		};
+		sortBy?: SortByType;
+		hideGroups?: string[];
+		omitZeroValues?: boolean;
+	};
+	style: {
+		color: ChartColorScheme;
+		height: ChartHeight;
+		gridLine?: GridLineType;
+		axisName?: AxisNameType;
+		dataLabels?: boolean;
+		showLegend?: boolean;
+		caption?: string;
+	};
+}
+
+/**
+ * Line Chart Configuration
+ * - xAxis: Categories (bottom)
+ * - yAxis: Values (left)
+ */
+export interface LineChartConfig<
+	TData,
+	TProperties extends readonly DataViewProperty<TData>[],
+> {
+	xAxis: {
+		whatToShow: {
+			property: TProperties[number]["id"];
+			showAs?: DateShowAsType;
+			startWeekOn?: "monday" | "sunday";
+		};
+		sortBy?: SortByType;
+		hideGroups?: string[];
+		omitZeroValues?: boolean;
+	};
+	yAxis: {
+		whatToShow:
+			| "count"
+			| {
+					property: TProperties[number]["id"];
+					showAs: Exclude<ComputationType, "count">;
+			  };
+		groupBy?: {
+			property: TProperties[number]["id"];
+			showAs?: DateShowAsType;
+			sortBy?: GroupBySortByType;
+		};
+		range?: { min: number; max: number };
+	};
+	style: {
+		color: ChartColorScheme;
+		height: ChartHeight;
+		gridLine?: GridLineType;
+		axisName?: AxisNameType;
+		smoothLine?: boolean;
+		showLegend?: boolean;
+		showDots?: boolean;
+		caption?: string;
+	};
+}
+
+/**
+ * Area Chart Configuration (Line chart with gradient fill)
+ * - xAxis: Categories (bottom)
+ * - yAxis: Values (left)
+ */
+export interface AreaChartConfig<
+	TData,
+	TProperties extends readonly DataViewProperty<TData>[],
+> {
+	xAxis: {
+		whatToShow: {
+			property: TProperties[number]["id"];
+			showAs?: DateShowAsType;
+			startWeekOn?: "monday" | "sunday";
+		};
+		sortBy?: SortByType;
+		hideGroups?: string[];
+		omitZeroValues?: boolean;
+	};
+	yAxis: {
+		whatToShow:
+			| "count"
+			| {
+					property: TProperties[number]["id"];
+					showAs: Exclude<ComputationType, "count">;
+			  };
+		groupBy?: {
+			property: TProperties[number]["id"];
+			showAs?: DateShowAsType;
+			sortBy?: GroupBySortByType;
+		};
+		range?: { min: number; max: number };
+	};
+	style: {
+		color: ChartColorScheme;
+		height: ChartHeight;
+		gridLine?: GridLineType;
+		axisName?: AxisNameType;
+		smoothLine?: boolean;
+		showLegend?: boolean;
+		showDots?: boolean;
+		caption?: string;
+	};
+}
+
+/**
+ * Donut Chart Configuration
+ */
+export interface DonutChartConfig<
+	TData,
+	TProperties extends readonly DataViewProperty<TData>[],
+> {
+	data: {
+		whatToShow: {
+			property: TProperties[number]["id"];
+			showAs?: DateShowAsType;
+			startWeekOn?: "monday" | "sunday";
+		};
+		showAs: ComputationType;
+		computeProperty?: TProperties[number]["id"];
+		sortBy?: SortByType;
+		omitZeroValues?: boolean;
+	};
+	style: {
+		color: ChartColorScheme;
+		height: ChartHeight;
+		showValueInCenter?: boolean;
+		showLegend?: boolean;
+		dataLabelFormat?: DataLabelFormatType;
+		caption?: string;
+	};
+}
+
 // Type aliases for internal use (helper functions, runtime checks)
 export type DateGroupingType = "relative" | "day" | "week" | "month" | "year";
 export type StatusGroupingType = "group" | "option";

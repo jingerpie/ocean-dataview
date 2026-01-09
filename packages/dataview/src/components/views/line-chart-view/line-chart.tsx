@@ -1,14 +1,13 @@
 "use client";
 
 import {
-	Area,
 	CartesianGrid,
-	AreaChart as RechartsAreaChart,
+	Line,
+	LineChart as RechartsLineChart,
 	XAxis,
 	YAxis,
 } from "recharts";
 import { useInteractiveLegend } from "../../../hooks";
-import type { ChartColorScheme } from "../../../lib/utils/chart-colors";
 import type { ChartDataPoint } from "../../../lib/utils/compute-data";
 import type { AxisNameType, GridLineType } from "../../../types/chart.type";
 import {
@@ -16,13 +15,12 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "../../ui/chart";
-import { ChartPaginatedLegend } from "./chart-paginated-legend";
+import { ChartPaginatedLegend } from "../../ui/chart-paginated-legend";
 
-interface AreaChartProps {
+interface LineChartInnerProps {
 	data: ChartDataPoint[];
 	height: number;
 	colors: string[];
-	colorScheme: ChartColorScheme;
 	gridLine?: GridLineType;
 	axisName?: AxisNameType;
 	xAxisLabel?: string;
@@ -31,10 +29,10 @@ interface AreaChartProps {
 	smoothLine?: boolean;
 	showLegend?: boolean;
 	showDots?: boolean;
-	groupKeys?: string[]; // For stacked areas
+	groupKeys?: string[];
 }
 
-export function AreaChart({
+export function LineChartInner({
 	data,
 	height,
 	colors,
@@ -45,26 +43,20 @@ export function AreaChart({
 	yAxisRange,
 	smoothLine = false,
 	showLegend = false,
-	showDots = false,
+	showDots = true,
 	groupKeys = [],
-}: AreaChartProps) {
-	// Check if we have stacked data
-	const isStacked = groupKeys.length > 0;
+}: LineChartInnerProps) {
+	const isMultiSeries = groupKeys.length > 0;
 
-	// Interactive legend state
 	const {
-		legendProps: areaProps,
+		legendProps: lineProps,
 		legendState,
 		handleLegendMouseEnter,
 		handleLegendMouseLeave,
-		selectItem: selectArea,
+		selectItem: selectLine,
 	} = useInteractiveLegend(groupKeys);
 
-	// Area type based on smoothLine setting
-	const areaType = smoothLine ? "monotone" : "linear";
-
-	// Create chart config for shadcn/ui chart
-	const chartConfig = isStacked
+	const chartConfig = isMultiSeries
 		? (() => {
 				const config: Record<string, { label: string; color: string }> = {};
 				for (let index = 0; index < groupKeys.length; index++) {
@@ -88,12 +80,8 @@ export function AreaChart({
 	const showGridX = gridLine === "vertical" || gridLine === "both";
 	const showGridY = gridLine === "horizontal" || gridLine === "both";
 
-	// Create safe gradient IDs by replacing spaces and special characters
-	const getGradientId = (_key: string, index: number) => {
-		return `fillArea${index}`;
-	};
+	const lineType = smoothLine ? "monotone" : "linear";
 
-	// Calculate dynamic margins - let Recharts auto-calculate YAxis width
 	const chartMargin = {
 		top: 1,
 		left: axisName === "yAxis" || axisName === "both" ? 8 : 0,
@@ -107,38 +95,7 @@ export function AreaChart({
 				className="w-full"
 				style={{ height }}
 			>
-				<RechartsAreaChart data={data} margin={chartMargin}>
-					<defs>
-						{isStacked ? (
-							groupKeys.map((key, index) => (
-								<linearGradient
-									key={key}
-									id={getGradientId(key, index)}
-									x1="0"
-									y1="0"
-									x2="0"
-									y2="1"
-								>
-									<stop
-										offset="5%"
-										stopColor={colors[index % colors.length]}
-										stopOpacity={0.8}
-									/>
-									<stop
-										offset="95%"
-										stopColor={colors[index % colors.length]}
-										stopOpacity={0.1}
-									/>
-								</linearGradient>
-							))
-						) : (
-							<linearGradient id="fillValue" x1="0" y1="0" x2="0" y2="1">
-								<stop offset="5%" stopColor={colors[0]} stopOpacity={0.8} />
-								<stop offset="95%" stopColor={colors[0]} stopOpacity={0.1} />
-							</linearGradient>
-						)}
-					</defs>
-
+				<RechartsLineChart data={data} margin={chartMargin}>
 					<CartesianGrid
 						strokeDasharray="3 3"
 						vertical={showGridX}
@@ -186,35 +143,36 @@ export function AreaChart({
 					<ChartTooltip
 						content={
 							<ChartTooltipContent
-								hideLabel={isStacked}
+								hideLabel={isMultiSeries}
 								hideZeroValues={true}
 							/>
 						}
 					/>
 
-					{isStacked ? (
-						// Render multiple overlapping areas (not stacked)
-						// Each area is independent and overlaps naturally like line charts with gradient fills
+					{isMultiSeries ? (
 						groupKeys.map((key, index) => {
-							const isHidden = areaProps[key] === true;
-							const fillOpacity = Number(
-								areaProps.hover === key || !areaProps.hover ? 1 : 0.2,
+							const isHidden = lineProps[key] === true;
+							const strokeOpacity = Number(
+								lineProps.hover === key || !lineProps.hover ? 1 : 0.2,
 							);
+							const strokeWidth = lineProps.hover === key ? 3 : 2;
 
 							return (
-								<Area
+								<Line
 									key={key}
-									type={areaType}
+									type={lineType}
 									dataKey={key}
 									stroke={colors[index % colors.length]}
-									fill={`url(#${getGradientId(key, index)})`}
-									strokeWidth={2}
-									fillOpacity={fillOpacity}
-									strokeOpacity={fillOpacity}
+									strokeWidth={strokeWidth}
+									strokeOpacity={strokeOpacity}
 									hide={isHidden}
 									dot={
 										showDots
-											? { fill: colors[index % colors.length], r: 4 }
+											? {
+													fill: colors[index % colors.length],
+													r: 4,
+													fillOpacity: strokeOpacity,
+												}
 											: false
 									}
 									activeDot={showDots ? { r: 6 } : false}
@@ -223,27 +181,25 @@ export function AreaChart({
 							);
 						})
 					) : (
-						// Render single area
-						<Area
-							type={areaType}
+						<Line
+							type={lineType}
 							dataKey="value"
 							stroke={colors[0]}
-							fill="url(#fillValue)"
 							strokeWidth={2}
 							dot={showDots ? { fill: colors[0], r: 4 } : false}
 							activeDot={showDots ? { r: 6 } : false}
 							isAnimationActive={false}
 						/>
 					)}
-				</RechartsAreaChart>
+				</RechartsLineChart>
 			</ChartContainer>
 
-			{isStacked && showLegend && (
+			{isMultiSeries && showLegend && (
 				<ChartPaginatedLegend
 					groupKeys={groupKeys}
 					colors={colors}
 					legendState={legendState}
-					onClick={selectArea}
+					onClick={selectLine}
 					onMouseOver={handleLegendMouseEnter}
 					onMouseOut={handleLegendMouseLeave}
 				/>

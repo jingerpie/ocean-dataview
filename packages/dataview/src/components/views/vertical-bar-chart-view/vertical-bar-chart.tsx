@@ -1,13 +1,16 @@
 "use client";
 
+import { useMemo } from "react";
 import {
+	Bar,
+	BarChart,
 	CartesianGrid,
-	Line,
-	LineChart as RechartsLineChart,
+	LabelList,
 	XAxis,
 	YAxis,
 } from "recharts";
 import { useInteractiveLegend } from "../../../hooks";
+import type { ChartColorScheme } from "../../../lib/utils/chart-colors";
 import type { ChartDataPoint } from "../../../lib/utils/compute-data";
 import type { AxisNameType, GridLineType } from "../../../types/chart.type";
 import {
@@ -15,52 +18,48 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "../../ui/chart";
-import { ChartPaginatedLegend } from "./chart-paginated-legend";
+import { ChartPaginatedLegend } from "../../ui/chart-paginated-legend";
 
-interface LineChartProps {
+interface VerticalBarChartInnerProps {
 	data: ChartDataPoint[];
 	height: number;
 	colors: string[];
+	colorScheme: ChartColorScheme;
 	gridLine?: GridLineType;
 	axisName?: AxisNameType;
 	dataLabels?: boolean;
 	xAxisLabel?: string;
 	yAxisLabel?: string;
 	yAxisRange?: { min: number; max: number };
-	smoothLine?: boolean;
+	groupKeys?: string[];
 	showLegend?: boolean;
-	showDots?: boolean;
-	groupKeys?: string[]; // For multi-series line charts
 }
 
-export function LineChart({
+export function VerticalBarChartInner({
 	data,
 	height,
 	colors,
 	gridLine = "horizontal",
 	axisName = "none",
+	dataLabels = false,
 	xAxisLabel,
 	yAxisLabel,
 	yAxisRange,
-	smoothLine = false,
-	showLegend = false,
-	showDots = true,
 	groupKeys = [],
-}: LineChartProps) {
-	// Check if we have multi-series data
-	const isMultiSeries = groupKeys.length > 0;
+	showLegend = true,
+}: VerticalBarChartInnerProps) {
+	const isStacked = groupKeys.length > 0;
+	const chartData = data;
 
-	// Interactive legend state
 	const {
-		legendProps: lineProps,
+		legendProps: barProps,
 		legendState,
 		handleLegendMouseEnter,
 		handleLegendMouseLeave,
-		selectItem: selectLine,
+		selectItem: selectBar,
 	} = useInteractiveLegend(groupKeys);
 
-	// Create chart config for shadcn/ui chart
-	const chartConfig = isMultiSeries
+	const chartConfig = isStacked
 		? (() => {
 				const config: Record<string, { label: string; color: string }> = {};
 				for (let index = 0; index < groupKeys.length; index++) {
@@ -74,25 +73,44 @@ export function LineChart({
 				}
 				return config;
 			})()
-		: {
-				value: {
-					label: "Value",
-					color: colors[0],
-				},
-			};
+		: (() => {
+				const config: Record<string, { label: string; color?: string }> = {
+					value: { label: "Value" },
+				};
+				for (let index = 0; index < data.length; index++) {
+					const item = data[index];
+					if (!item) continue;
+					config[item.name] = {
+						label: item.name,
+						color: colors[index % colors.length],
+					};
+				}
+				return config;
+			})();
 
 	const showGridX = gridLine === "vertical" || gridLine === "both";
 	const showGridY = gridLine === "horizontal" || gridLine === "both";
 
-	// Line type based on smoothLine setting
-	const lineType = smoothLine ? "monotone" : "linear";
-
-	// Calculate dynamic margins - let Recharts auto-calculate YAxis width
 	const chartMargin = {
-		top: 1,
+		top: dataLabels ? 20 : 0,
 		left: axisName === "yAxis" || axisName === "both" ? 8 : 0,
 		bottom: showLegend ? 20 : 0,
 	};
+
+	const chartDataWithTotalLabels = useMemo(() => {
+		return chartData.map((item) => {
+			const totalLabel = groupKeys.reduce((sum, key) => {
+				if (barProps[key] === true) return sum;
+				const value = item[key as keyof typeof item];
+				return sum + (typeof value === "number" ? value : 0);
+			}, 0);
+
+			return {
+				...item,
+				__BAR_TOTAL_LABEL__: totalLabel,
+			};
+		});
+	}, [chartData, groupKeys, barProps]);
 
 	return (
 		<div className="flex w-full flex-col gap-2">
@@ -101,14 +119,13 @@ export function LineChart({
 				className="w-full"
 				style={{ height }}
 			>
-				<RechartsLineChart data={data} margin={chartMargin}>
+				<BarChart data={chartDataWithTotalLabels} margin={chartMargin}>
 					<CartesianGrid
 						strokeDasharray="3 3"
 						vertical={showGridX}
 						horizontal={showGridY}
 						stroke="hsl(var(--border))"
 					/>
-
 					<XAxis
 						dataKey="name"
 						type="category"
@@ -126,7 +143,6 @@ export function LineChart({
 								: undefined
 						}
 					/>
-
 					<YAxis
 						type="number"
 						width="auto"
@@ -149,65 +165,88 @@ export function LineChart({
 					<ChartTooltip
 						content={
 							<ChartTooltipContent
-								hideLabel={isMultiSeries}
+								hideLabel={isStacked}
 								hideZeroValues={true}
 							/>
 						}
 					/>
 
-					{isMultiSeries ? (
-						// Render multi-series lines with interactive hover
-						groupKeys.map((key, index) => {
-							const isHidden = lineProps[key] === true;
-							const strokeOpacity = Number(
-								lineProps.hover === key || !lineProps.hover ? 1 : 0.2,
+					{isStacked ? (
+						(() => {
+							const visibleKeys = groupKeys.filter(
+								(key) => barProps[key] !== true,
 							);
-							const strokeWidth = lineProps.hover === key ? 3 : 2; // Thicker when hovered
+							const lastVisibleKey = visibleKeys[visibleKeys.length - 1];
 
-							return (
-								<Line
-									key={key}
-									type={lineType}
-									dataKey={key}
-									stroke={colors[index % colors.length]}
-									strokeWidth={strokeWidth}
-									strokeOpacity={strokeOpacity}
-									hide={isHidden}
-									dot={
-										showDots
-											? {
-													fill: colors[index % colors.length],
-													r: 4,
-													fillOpacity: strokeOpacity,
-												}
-											: false
-									}
-									activeDot={showDots ? { r: 6 } : false}
-									isAnimationActive={false}
-								/>
-							);
-						})
+							return groupKeys.map((key, groupIndex) => {
+								return (
+									<Bar
+										key={key}
+										dataKey={key}
+										fill={colors[groupIndex % colors.length]}
+										stackId="a"
+										hide={barProps[key] === true}
+										fillOpacity={Number(
+											barProps.hover === key || !barProps.hover ? 1 : 0.2,
+										)}
+										radius={
+											key === lastVisibleKey ? [4, 4, 0, 0] : [0, 0, 0, 0]
+										}
+										isAnimationActive={false}
+									/>
+								);
+							});
+						})()
 					) : (
-						// Render single line
-						<Line
-							type={lineType}
+						<Bar
 							dataKey="value"
-							stroke={colors[0]}
-							strokeWidth={2}
-							dot={showDots ? { fill: colors[0], r: 4 } : false}
-							activeDot={showDots ? { r: 6 } : false}
+							fill={colors[0]}
+							radius={[4, 4, 0, 0]}
 							isAnimationActive={false}
-						/>
+						>
+							{dataLabels && (
+								<LabelList
+									dataKey="value"
+									position="top"
+									fontSize={12}
+									offset={8}
+									className="fill-foreground"
+								/>
+							)}
+						</Bar>
 					)}
-				</RechartsLineChart>
+					{dataLabels && isStacked && (
+						<Bar
+							dataKey="__PLACEHOLDER_BAR__"
+							fill="transparent"
+							stroke="none"
+							isAnimationActive={false}
+							stackId="a"
+							radius={[0, 0, 0, 0]}
+							activeBar={false}
+						>
+							<LabelList
+								dataKey={
+									barProps.hover
+										? String(barProps.hover)
+										: "__BAR_TOTAL_LABEL__"
+								}
+								position="top"
+								fontSize={12}
+								offset={8}
+								className="fill-foreground"
+							/>
+						</Bar>
+					)}
+				</BarChart>
 			</ChartContainer>
 
-			{isMultiSeries && showLegend && (
+			{isStacked && showLegend && (
 				<ChartPaginatedLegend
 					groupKeys={groupKeys}
 					colors={colors}
 					legendState={legendState}
-					onClick={selectLine}
+					onClick={selectBar}
 					onMouseOver={handleLegendMouseEnter}
 					onMouseOut={handleLegendMouseLeave}
 				/>

@@ -1,6 +1,7 @@
 "use client";
 
-import { ChartView } from "@ocean-dataview/dataview/components/views/chart-view";
+import { AreaChartView } from "@ocean-dataview/dataview/components/views/area-chart-view";
+import { ChartViewProvider } from "@ocean-dataview/dataview/lib/providers";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 
@@ -12,6 +13,8 @@ import {
 	productTypeProperty,
 } from "./product-chart-properties";
 
+const productProperties = [productTypeProperty, maxCaloriesProperty] as const;
+
 function CaloriesTrendArea() {
 	const trpc = useTRPC();
 	const { data } = useSuspenseQuery(
@@ -19,31 +22,32 @@ function CaloriesTrendArea() {
 	);
 
 	return (
-		<ChartView<Product>
+		<ChartViewProvider<Product, typeof productProperties>
 			data={data.items}
-			properties={[productTypeProperty, maxCaloriesProperty]}
-			chartType="line"
-			config={{
-				xAxis: {
-					whatToShow: { property: "type" },
-					sortBy: "countDescending",
-				},
-				yAxis: {
-					whatToShow: { property: "maxCalories", showAs: "average" },
-				},
-				style: {
-					color: "purple",
-					height: "medium",
-					gridLine: "horizontal",
-					axisName: "both",
-					smoothLine: true,
-					gradientArea: true,
-					showLegend: false,
-					showDots: true,
-					caption: "Average Calories Trend by Type",
-				},
-			}}
-		/>
+			properties={productProperties}
+		>
+			<AreaChartView
+				config={{
+					xAxis: {
+						whatToShow: { property: "type" },
+						sortBy: "countDescending",
+					},
+					yAxis: {
+						whatToShow: { property: "maxCalories", showAs: "average" },
+					},
+					style: {
+						color: "purple",
+						height: "medium",
+						gridLine: "horizontal",
+						axisName: "both",
+						smoothLine: true,
+						showLegend: false,
+						showDots: true,
+						caption: "Average Calories Trend by Type",
+					},
+				}}
+			/>
+		</ChartViewProvider>
 	);
 }
 

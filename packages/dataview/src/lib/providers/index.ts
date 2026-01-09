@@ -1,3 +1,8 @@
+// Chart providers
+export type { ChartViewContextValue } from "./chart-view-context";
+export { ChartViewContext, useChartViewContext } from "./chart-view-context";
+export type { ChartViewProviderProps } from "./chart-view-provider";
+export { ChartViewProvider } from "./chart-view-provider";
 export type {
 	DataViewContextValue,
 	PaginationOutput,

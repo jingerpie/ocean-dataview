@@ -16,9 +16,9 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "../../ui/chart";
-import { ChartPaginatedLegend } from "./chart-paginated-legend";
+import { ChartPaginatedLegend } from "../../ui/chart-paginated-legend";
 
-interface DonutChartProps {
+interface DonutChartInnerProps {
 	data: ChartDataPoint[];
 	height: number;
 	colors: string[];
@@ -27,18 +27,16 @@ interface DonutChartProps {
 	dataLabelFormat?: DataLabelFormatType;
 }
 
-export function DonutChart({
+export function DonutChartInner({
 	data,
 	height,
 	colors,
 	showValueInCenter = false,
 	showLegend = true,
 	dataLabelFormat = "none",
-}: DonutChartProps) {
-	// Get group keys (names) for interactive legend
+}: DonutChartInnerProps) {
 	const groupKeys = data.map((item) => item.name);
 
-	// Interactive legend state
 	const {
 		legendProps: pieProps,
 		legendState,
@@ -47,12 +45,10 @@ export function DonutChart({
 		selectItem: selectPie,
 	} = useInteractiveLegend(groupKeys);
 
-	// Filter out hidden slices and recalculate data
 	const visibleData = useMemo(() => {
 		return data.filter((item) => pieProps[item.name] !== true);
 	}, [data, pieProps]);
 
-	// Create chart config for shadcn/ui chart
 	const chartConfig = (() => {
 		const config: Record<string, { label: string; color: string }> = {};
 		for (let index = 0; index < data.length; index++) {
@@ -67,10 +63,8 @@ export function DonutChart({
 		return config;
 	})();
 
-	// Calculate total for center display (using visible data)
 	const total = visibleData.reduce((sum, item) => sum + (item.value || 0), 0);
 
-	// Format label based on dataLabelFormat
 	const renderLabel = (props: PieLabelRenderProps) => {
 		if (dataLabelFormat === "none") return null;
 

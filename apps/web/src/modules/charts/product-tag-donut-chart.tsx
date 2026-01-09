@@ -1,6 +1,7 @@
 "use client";
 
-import { ChartView } from "@ocean-dataview/dataview/components/views/chart-view";
+import { DonutChartView } from "@ocean-dataview/dataview/components/views/donut-chart-view";
+import { ChartViewProvider } from "@ocean-dataview/dataview/lib/providers";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
@@ -16,6 +17,8 @@ const tagProperty = {
 	type: "text",
 } as const satisfies DataViewProperty<Product>;
 
+const productProperties = [tagProperty] as const;
+
 function ProductTagDonut() {
 	const trpc = useTRPC();
 	const { data } = useSuspenseQuery(
@@ -23,26 +26,28 @@ function ProductTagDonut() {
 	);
 
 	return (
-		<ChartView<Product>
+		<ChartViewProvider<Product, typeof productProperties>
 			data={data.items}
-			properties={[tagProperty]}
-			chartType="donut"
-			config={{
-				data: {
-					whatToShow: { property: "tag" },
-					showAs: "count",
-					sortBy: "countDescending",
-					omitZeroValues: true,
-				},
-				style: {
-					color: "colorful",
-					height: "medium",
-					caption: "Product Distribution by Tag",
-					showLegend: true,
-					dataLabelFormat: "nameAndValue",
-				},
-			}}
-		/>
+			properties={productProperties}
+		>
+			<DonutChartView
+				config={{
+					data: {
+						whatToShow: { property: "tag" },
+						showAs: "count",
+						sortBy: "countDescending",
+						omitZeroValues: true,
+					},
+					style: {
+						color: "colorful",
+						height: "medium",
+						caption: "Product Distribution by Tag",
+						showLegend: true,
+						dataLabelFormat: "nameAndValue",
+					},
+				}}
+			/>
+		</ChartViewProvider>
 	);
 }
 
