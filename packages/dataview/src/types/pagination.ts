@@ -57,16 +57,4 @@ export interface PaginationContext {
 	// Infinite scroll specific
 	/** Total items loaded across all pages (for load-more/infinite-scroll) */
 	totalLoaded?: number;
-
-	// Legacy support (deprecated, kept for backward compatibility)
-	/** @deprecated Use onNext instead */
-	onLoadMore?: () => void;
-	/** @deprecated Not used */
-	remainingCount?: number;
-	/** @deprecated Use limit instead */
-	pageSize?: number;
-	/** @deprecated Use onLimitChange instead */
-	onPageSizeChange?: (pageSize: number) => void;
-	/** @deprecated Use limitOptions instead */
-	pageSizeOptions?: number[];
 }

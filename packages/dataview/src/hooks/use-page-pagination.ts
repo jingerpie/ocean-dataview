@@ -1,6 +1,14 @@
 "use client";
 
-import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
+import { parseAsCursors } from "@ocean-dataview/shared/lib";
+import {
+	ALL_GROUP,
+	type CursorState,
+	getCursor,
+	removeCursor,
+	setCursor,
+} from "@ocean-dataview/shared/types";
+import { parseAsInteger, useQueryState } from "nuqs";
 import { useCallback, useTransition } from "react";
 import type { BidirectionalPaginatedResponse } from "../types/pagination-types";
 
@@ -12,14 +20,10 @@ import type { BidirectionalPaginatedResponse } from "../types/pagination-types";
  * Input options for usePagePagination hook
  */
 export interface UsePagePaginationOptions<TData> {
-	/** Cursor for forward pagination (from URL) */
-	after?: string | null;
-	/** Cursor for backward pagination (from URL) */
-	before?: string | null;
+	/** Cursor state array (from URL) - uses ALL_GROUP for flat pagination */
+	cursors?: CursorState[];
 	/** Items per page */
 	limit: number;
-	/** Start offset for display (0-indexed) */
-	start?: number;
 	/** Query result from useSuspenseQuery */
 	data: BidirectionalPaginatedResponse<TData>;
 	/** Available limit options (default: [25, 50, 100, 200]) */
@@ -70,30 +74,21 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
  * - Returns PaginationContext-compatible object
  *
  * URL State Strategy:
- * - Uses after/before/limit/start params (flat pagination style)
+ * - Uses unified cursors array with ALL_GROUP key for flat pagination
  * - shallow: false triggers server re-render for bookmarkable URLs
  *
  * @example
  * ```tsx
- * const ProductTable = (props: PaginationProps) => {
- *   const { after, before, limit, start } = props;
+ * const ProductTable = ({ cursors, limit }: Props) => {
  *   const trpc = useTRPC();
+ *   const cursor = getCursor(cursors, ALL_GROUP);
+ *   const { after, before } = getCursorParams(cursor);
  *
  *   const { data } = useSuspenseQuery(
- *     trpc.product.getMany.queryOptions({
- *       after: after ?? undefined,
- *       before: before ?? undefined,
- *       limit,
- *     }),
+ *     trpc.product.getMany.queryOptions({ after, before, limit }),
  *   );
  *
- *   const pagination = usePagePagination({
- *     after,
- *     before,
- *     limit,
- *     start,
- *     data,
- *   });
+ *   const pagination = usePagePagination({ cursors, limit, data });
  *
  *   return (
  *     <DataViewProvider data={data.items} pagination={pagination}>
@@ -107,38 +102,25 @@ export function usePagePagination<TData>(
 	options: UsePagePaginationOptions<TData>,
 ): PagePaginationResult {
 	const {
+		cursors = [],
 		limit,
-		start = 0,
 		data,
 		limitOptions = DEFAULT_LIMIT_OPTIONS,
 	} = options;
 
 	const [, startTransition] = useTransition();
 
+	// Get current cursor state for flat pagination
+	const cursorState = getCursor(cursors, ALL_GROUP);
+	const start = cursorState?.start ?? 0;
+
 	// URL setters (shallow: false triggers server re-render)
-	const [, setAfter] = useQueryState(
-		"after",
-		parseAsString.withOptions({
-			shallow: false,
-			clearOnDefault: true,
-		}),
-	);
-	const [, setBefore] = useQueryState(
-		"before",
-		parseAsString.withOptions({
-			shallow: false,
-			clearOnDefault: true,
-		}),
+	const [, setCursors] = useQueryState(
+		"cursors",
+		parseAsCursors.withDefault([]).withOptions({ shallow: false }),
 	);
 	const [, setLimit] = useQueryState(
 		"limit",
-		parseAsInteger.withOptions({
-			shallow: false,
-			clearOnDefault: true,
-		}),
-	);
-	const [, setStart] = useQueryState(
-		"start",
 		parseAsInteger.withOptions({
 			shallow: false,
 			clearOnDefault: true,
@@ -150,38 +132,43 @@ export function usePagePagination<TData>(
 	const onNext = useCallback(() => {
 		if (data.endCursor != null) {
 			startTransition(() => {
-				setAfter(String(data.endCursor));
-				setBefore(null);
-				setStart(start + limit);
+				setCursors(
+					setCursor(cursors, {
+						group: ALL_GROUP,
+						after: String(data.endCursor),
+						start: start + limit,
+					}),
+				);
 			});
 		}
-	}, [data.endCursor, setAfter, setBefore, setStart, start, limit]);
+	}, [data.endCursor, setCursors, cursors, start, limit]);
 
 	const onPrev = useCallback(() => {
 		const newStart = Math.max(0, start - limit);
 		startTransition(() => {
 			if (newStart === 0) {
-				setAfter(null);
-				setBefore(null);
-				setStart(0);
+				// Back to first page - remove cursor entirely
+				setCursors(removeCursor(cursors, ALL_GROUP));
 			} else if (data.startCursor != null) {
-				setBefore(String(data.startCursor));
-				setAfter(null);
-				setStart(newStart);
+				setCursors(
+					setCursor(cursors, {
+						group: ALL_GROUP,
+						before: String(data.startCursor),
+						start: newStart,
+					}),
+				);
 			}
 		});
-	}, [start, limit, data.startCursor, setAfter, setBefore, setStart]);
+	}, [start, limit, data.startCursor, setCursors, cursors]);
 
 	const onLimitChange = useCallback(
 		(newLimit: number) => {
 			startTransition(() => {
 				setLimit(newLimit);
-				setAfter(null);
-				setBefore(null);
-				setStart(0);
+				setCursors(removeCursor(cursors, ALL_GROUP)); // Reset to first page
 			});
 		},
-		[setLimit, setAfter, setBefore, setStart],
+		[setLimit, setCursors, cursors],
 	);
 
 	return {

@@ -7,6 +7,12 @@ import {
 } from "@ocean-dataview/dataview/components/views/table-view";
 import { usePagePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
+import {
+	ALL_GROUP,
+	type CursorState,
+	getCursor,
+	getCursorParams,
+} from "@ocean-dataview/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
@@ -17,10 +23,8 @@ import { productProperties } from "./product-properties";
  * Props passed from server (parsed URL params)
  */
 interface PaginationProps {
-	after: string | null;
-	before: string | null;
+	cursors: CursorState[];
 	limit: number;
-	start: number;
 }
 
 /**
@@ -38,14 +42,18 @@ export const ProductPaginationTable = (props: PaginationProps) => (
 );
 
 const ProductPaginationTableView = (props: PaginationProps) => {
-	const { after, before, limit, start } = props;
+	const { cursors, limit } = props;
 	const trpc = useTRPC();
+
+	// Extract cursor params for flat pagination
+	const cursor = getCursor(cursors, ALL_GROUP);
+	const { after, before } = getCursorParams(cursor);
 
 	// Query with props (matches server prefetch)
 	const { data } = useSuspenseQuery(
 		trpc.product.getMany.queryOptions({
-			after: after ?? undefined,
-			before: before ?? undefined,
+			after,
+			before,
 			limit,
 			sort: [{ propertyId: "updatedAt", desc: true }],
 		}),
@@ -53,10 +61,8 @@ const ProductPaginationTableView = (props: PaginationProps) => {
 
 	// Pagination controls using the new hook
 	const pagination = usePagePagination({
-		after,
-		before,
+		cursors,
 		limit,
-		start,
 		data,
 		limitOptions: [10, 25, 50, 100],
 	});

@@ -3,7 +3,6 @@ import {
 	createSearchParamsCache,
 	parseAsInteger,
 	parseAsJson,
-	parseAsString,
 } from "nuqs/server";
 import { z } from "zod";
 import { dataTableConfig } from "../config/data-table";
@@ -223,27 +222,4 @@ export const paginationParams = createSearchParamsCache({
 	cursors: parseAsJson(cursorsValidator).withDefault([]),
 	expanded: parseAsJson(expandedValidator), // null = flat or use default
 	limit: parseAsInteger.withDefault(DEFAULT_PAGINATION_LIMIT),
-});
-
-// ============================================================================
-// Legacy Pagination Params (deprecated - use paginationParams instead)
-// ============================================================================
-
-const DEFAULT_FLAT_LIMIT = 25;
-
-/** @deprecated Use paginationParams instead */
-export const flatPaginationParams = createSearchParamsCache({
-	after: parseAsString,
-	before: parseAsString,
-	limit: parseAsInteger.withDefault(DEFAULT_FLAT_LIMIT),
-	start: parseAsInteger.withDefault(0),
-});
-
-const DEFAULT_GROUP_LIMIT = 25;
-
-/** @deprecated Use paginationParams instead */
-export const groupPaginationParams = createSearchParamsCache({
-	expanded: parseAsJson(expandedValidator),
-	cursors: parseAsJson(cursorsValidator).withDefault([]),
-	limit: parseAsInteger.withDefault(DEFAULT_GROUP_LIMIT),
 });
