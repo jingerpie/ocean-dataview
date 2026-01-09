@@ -1,4 +1,4 @@
-import type { GroupedData } from "../types";
+import type { GroupedData } from "../../../types";
 
 /**
  * Groups data by a specified property key

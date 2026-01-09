@@ -9,7 +9,7 @@ import type {
 	SelectConfig,
 	StatusConfig,
 	UrlConfig,
-} from "../lib/data-views/types/property-types";
+} from "./property-types";
 
 /**
  * Base props that all property components share

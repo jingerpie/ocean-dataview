@@ -2,8 +2,8 @@
 
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { useMemo } from "react";
-import type { NumberPropertyType } from "../../../lib/data-views/types/property-types";
 import { getUserLocale } from "../../../lib/data-views/utils/locale-helpers";
+import type { NumberPropertyType } from "../../../types/property-types";
 
 interface NumberPropertyProps<T> {
 	value: unknown;

@@ -1,7 +1,7 @@
 "use client";
 
 import { Phone } from "lucide-react";
-import type { PhonePropertyType } from "../../../lib/data-views/types/property-types";
+import type { PhonePropertyType } from "../../../types/property-types";
 
 interface PhonePropertyProps<T> {
 	value: unknown;

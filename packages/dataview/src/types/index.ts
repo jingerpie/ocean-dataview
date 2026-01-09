@@ -1,9 +1,9 @@
 // Export all property types
 
 // Export action types
-export type { Action } from "./actions";
+export type { Action } from "./action.type";
 // Export chart types
-export * from "./chart-types";
+export * from "./chart.type";
 // Export pagination types
 export type { PaginationContext } from "./pagination";
 export * from "./property-types";

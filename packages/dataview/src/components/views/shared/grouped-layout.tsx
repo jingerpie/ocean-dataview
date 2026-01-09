@@ -3,7 +3,7 @@
 import type {
 	DataViewProperty,
 	PaginationContext,
-} from "@ocean-dataview/dataview/lib/data-views/types";
+} from "@ocean-dataview/dataview/types";
 import type { GroupedDataItem } from "../../../hooks";
 import { Accordion } from "../../ui/accordion";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";

@@ -8,7 +8,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@ocean-dataview/dataview/components/ui/select";
-import type { PaginationContext } from "@ocean-dataview/dataview/lib/data-views/types";
+import type { PaginationContext } from "@ocean-dataview/dataview/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type PagePaginationProps = Partial<PaginationContext>;

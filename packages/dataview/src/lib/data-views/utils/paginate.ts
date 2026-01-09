@@ -1,4 +1,4 @@
-import type { PaginationResult } from "../types";
+import type { PaginationResult } from "../../../types";
 
 /**
  * Client-side pagination utility

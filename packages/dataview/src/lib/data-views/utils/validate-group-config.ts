@@ -1,4 +1,4 @@
-import type { DataViewProperty } from "../types";
+import type { DataViewProperty } from "../../../types";
 
 /**
  * Validates showAs configuration against property type

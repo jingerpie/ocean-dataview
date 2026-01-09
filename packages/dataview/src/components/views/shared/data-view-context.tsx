@@ -1,6 +1,6 @@
 "use client";
 
-import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
+import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { createContext, useContext } from "react";
 import type {
 	GroupInfinitePaginationState,

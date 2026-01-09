@@ -1,7 +1,7 @@
 "use client";
 
 import { Mail } from "lucide-react";
-import type { EmailPropertyType } from "../../../lib/data-views/types/property-types";
+import type { EmailPropertyType } from "../../../types/property-types";
 
 interface EmailPropertyProps<T> {
 	value: unknown;

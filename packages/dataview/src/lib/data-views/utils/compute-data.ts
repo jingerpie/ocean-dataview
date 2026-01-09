@@ -1,4 +1,4 @@
-import type { DataViewProperty } from "../types";
+import type { DataViewProperty } from "../../../types";
 import { getUserLocale } from "./locale-helpers";
 import {
 	STATUS_GROUP_LABELS,

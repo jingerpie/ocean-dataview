@@ -1,8 +1,8 @@
 "use client";
 
 import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
-import type { SelectPropertyType } from "../../../lib/data-views/types/property-types";
 import { getBadgeVariant } from "../../../lib/data-views/utils/badge-variant-mapper";
+import type { SelectPropertyType } from "../../../types/property-types";
 
 interface SelectPropertyProps<T> {
 	value: unknown;

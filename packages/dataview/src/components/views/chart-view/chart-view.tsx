@@ -1,9 +1,5 @@
 "use client";
 
-import type {
-	ChartViewProps,
-	DateGroupingType,
-} from "@ocean-dataview/dataview/lib/data-views/types/chart-types";
 import {
 	getChartColors,
 	getChartHeight,
@@ -19,6 +15,10 @@ import {
 } from "@ocean-dataview/dataview/lib/data-views/utils/compute-data";
 import { transformData } from "@ocean-dataview/dataview/lib/data-views/utils/transform-data";
 import { validateChartConfig } from "@ocean-dataview/dataview/lib/data-views/utils/validate-chart-config";
+import type {
+	ChartViewProps,
+	DateGroupingType,
+} from "@ocean-dataview/dataview/types/chart.type";
 import { AlertCircle } from "lucide-react";
 import { useMemo } from "react";
 import { AreaChart } from "./area-chart";
@@ -64,7 +64,7 @@ function isComputationType(
 export function ChartView<
 	TData,
 	TProperties extends
-		readonly import("@ocean-dataview/dataview/lib/data-views/types").DataViewProperty<TData>[] = import("@ocean-dataview/dataview/lib/data-views/types").DataViewProperty<TData>[],
+		readonly import("@ocean-dataview/dataview/types").DataViewProperty<TData>[] = import("@ocean-dataview/dataview/types").DataViewProperty<TData>[],
 >({ data, properties, chartType, config }: ChartViewProps<TData, TProperties>) {
 	// Validate configuration
 	const validationError = useMemo(

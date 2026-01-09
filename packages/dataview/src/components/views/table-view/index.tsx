@@ -5,16 +5,16 @@ import {
 	GroupSection,
 	SplitButton,
 } from "@ocean-dataview/dataview/components/views/shared";
-import type {
-	Action,
-	DataViewProperty,
-	PaginationContext,
-} from "@ocean-dataview/dataview/lib/data-views/types";
 import {
 	buildPaginationContext,
 	transformData,
 	validatePropertyKeys,
 } from "@ocean-dataview/dataview/lib/data-views/utils";
+import type {
+	Action,
+	DataViewProperty,
+	PaginationContext,
+} from "@ocean-dataview/dataview/types";
 import type {
 	ColumnDef,
 	RowSelectionState,

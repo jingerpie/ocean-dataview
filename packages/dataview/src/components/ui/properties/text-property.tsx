@@ -1,6 +1,6 @@
 "use client";
 
-import type { TextPropertyType } from "../../../lib/data-views/types/property-types";
+import type { TextPropertyType } from "../../../types/property-types";
 
 interface TextPropertyProps<T> {
 	value: unknown;

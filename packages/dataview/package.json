@@ -14,7 +14,8 @@
 		"./components/views/shared/*": "./src/components/views/shared/*.tsx",
 		"./components/**/*": "./src/components/**/*.tsx",
 		"./hooks": "./src/hooks/index.ts",
-		"./hooks/*": "./src/hooks/*.ts"
+		"./hooks/*": "./src/hooks/*.ts",
+		"./types": "./src/types/index.ts"
 	},
 	"scripts": {},
 	"dependencies": {

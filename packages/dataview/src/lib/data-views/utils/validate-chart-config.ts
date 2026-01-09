@@ -1,4 +1,4 @@
-import type { ChartViewProps, DataViewProperty } from "../types";
+import type { ChartViewProps, DataViewProperty } from "../../../types";
 
 /**
  * Validates showAs configuration based on property type

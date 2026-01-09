@@ -1,12 +1,12 @@
 "use client";
 
 import { GroupSection } from "@ocean-dataview/dataview/components/views/shared";
-import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
 import {
 	buildPaginationContext,
 	transformData,
 	validatePropertyKeys,
 } from "@ocean-dataview/dataview/lib/data-views/utils";
+import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 import type {

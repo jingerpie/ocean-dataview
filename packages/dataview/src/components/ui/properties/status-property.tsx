@@ -1,11 +1,11 @@
 "use client";
 
 import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
-import type { StatusPropertyType } from "../../../lib/data-views/types/property-types";
 import {
 	STATUS_LABEL_TO_GROUP,
 	type StatusGroup,
 } from "../../../lib/data-views/utils/status-constants";
+import type { StatusPropertyType } from "../../../types/property-types";
 
 interface StatusPropertyProps<T> {
 	value: unknown;

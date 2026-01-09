@@ -5,11 +5,11 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@ocean-dataview/dataview/components/ui/chart";
+import type { ChartDataPoint } from "@ocean-dataview/dataview/lib/data-views/utils/compute-data";
 import type {
 	AxisNameType,
 	GridLineType,
-} from "@ocean-dataview/dataview/lib/data-views/types/chart-types";
-import type { ChartDataPoint } from "@ocean-dataview/dataview/lib/data-views/utils/compute-data";
+} from "@ocean-dataview/dataview/types/chart.type";
 import {
 	CartesianGrid,
 	Line,

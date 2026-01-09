@@ -1,7 +1,7 @@
 "use client";
 
 import { Checkbox } from "@ocean-dataview/dataview/components/ui/checkbox";
-import type { CheckboxPropertyType } from "../../../lib/data-views/types/property-types";
+import type { CheckboxPropertyType } from "../../../types/property-types";
 
 interface CheckboxPropertyProps<T> {
 	value: unknown;

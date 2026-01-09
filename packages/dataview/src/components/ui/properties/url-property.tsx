@@ -1,7 +1,7 @@
 "use client";
 
 import { ExternalLink } from "lucide-react";
-import type { UrlPropertyType } from "../../../lib/data-views/types/property-types";
+import type { UrlPropertyType } from "../../../types/property-types";
 
 interface UrlPropertyProps<T> {
 	value: unknown;

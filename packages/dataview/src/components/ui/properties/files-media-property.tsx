@@ -2,7 +2,7 @@
 
 import { FileIcon } from "lucide-react";
 import Image from "next/image";
-import type { FilesMediaPropertyType } from "../../../lib/data-views/types/property-types";
+import type { FilesMediaPropertyType } from "../../../types/property-types";
 
 // Regex patterns compiled at module level for performance
 const IMAGE_EXTENSION_REGEX = /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?|#|$)/i;

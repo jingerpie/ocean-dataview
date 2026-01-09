@@ -1,8 +1,8 @@
 "use client";
 
 import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
-import type { MultiSelectPropertyType } from "../../../lib/data-views/types/property-types";
 import { getBadgeVariant } from "../../../lib/data-views/utils/badge-variant-mapper";
+import type { MultiSelectPropertyType } from "../../../types/property-types";
 
 interface MultiSelectPropertyProps<T> {
 	value: unknown;

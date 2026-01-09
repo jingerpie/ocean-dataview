@@ -2,13 +2,13 @@
 
 import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
 import { Card, CardContent } from "@ocean-dataview/dataview/components/ui/card";
-import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
 import {
 	buildPaginationContext,
 	transformData,
 	validatePropertyKeys,
 } from "@ocean-dataview/dataview/lib/data-views/utils";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
+import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { AlertCircle, Columns3 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useRef } from "react";

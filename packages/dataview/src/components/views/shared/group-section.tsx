@@ -1,6 +1,6 @@
 "use client";
 
-import type { DataViewProperty } from "@ocean-dataview/dataview/lib/data-views/types";
+import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { Loader2 } from "lucide-react";
 import type * as React from "react";
 import {
