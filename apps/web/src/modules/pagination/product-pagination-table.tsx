@@ -1,14 +1,15 @@
 "use client";
 
-import {
-	DataViewOptions,
-	DataViewToolbar,
-} from "@ocean-dataview/dataview/components/ui/tool-bar";
+import { ShopifyToolbar } from "@ocean-dataview/dataview/components/ui/tool-bar";
 import {
 	TableSkeleton,
 	TableView,
 } from "@ocean-dataview/dataview/components/views/table-view";
-import { usePagePagination } from "@ocean-dataview/dataview/hooks";
+import {
+	useFilterParams,
+	usePagePagination,
+	useSortParams,
+} from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
 import {
 	ALL_GROUP,
@@ -49,14 +50,25 @@ export const ProductPaginationTable = (props: PaginationProps) => (
 );
 
 const ProductPaginationTableView = (props: PaginationProps) => {
-	const { cursors, limit, filters = [], sort = [] } = props;
+	const {
+		cursors,
+		limit,
+		filters: initialFilters = [],
+		sort: initialSort = [],
+	} = props;
 	const trpc = useTRPC();
+
+	// Filter and sort state from URL
+	const { filters, setFilters } = useFilterParams<Product>({
+		filters: initialFilters,
+	});
+	const { sort, setSort } = useSortParams<Product>({ sort: initialSort });
 
 	// Extract cursor params for flat pagination
 	const cursor = getCursor(cursors, ALL_GROUP);
 	const { after, before } = getCursorParams(cursor);
 
-	// Query with props (matches server prefetch)
+	// Query with current filters/sort from URL
 	const { data } = useSuspenseQuery(
 		trpc.product.getMany.queryOptions({
 			after,
@@ -90,19 +102,20 @@ const ProductPaginationTableView = (props: PaginationProps) => {
 			properties={productProperties}
 			pagination={pagination}
 		>
-			<div className="flex items-center justify-between">
-				<PaginationTabs />
-				<DataViewOptions />
-			</div>
-
-			<DataViewToolbar
+			<ShopifyToolbar
 				properties={productProperties}
-				initialFilters={filters}
-				initialSort={sort}
-				enableSearch={false}
+				filters={filters}
+				onFiltersChange={setFilters}
+				sorts={sort}
+				onSortsChange={setSort}
+				searchProperties={["name"]}
+				enableSearch
 				enableFilters
 				enableSort
-			/>
+				enableViewOptions
+			>
+				<PaginationTabs />
+			</ShopifyToolbar>
 
 			<TableView
 				layout={{ showVerticalLines: false, wrapAllColumns: false }}

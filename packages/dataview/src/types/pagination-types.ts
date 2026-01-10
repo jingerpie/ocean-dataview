@@ -54,9 +54,8 @@ export interface GroupCounts {
  *
  * Works with both TRPC's queryOptions and infiniteQueryOptions return types.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type InferItemsFromQueryOptions<T> = T extends {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
 	queryFn?: (...args: any[]) => Promise<infer R> | infer R;
 }
 	? R extends { items: (infer U)[] }

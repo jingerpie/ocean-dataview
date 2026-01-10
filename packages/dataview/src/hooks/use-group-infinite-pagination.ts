@@ -21,11 +21,11 @@ import type {
  */
 export interface GroupInfiniteQueryOptions {
 	queryKey: readonly unknown[];
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
 	queryFn?: any;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
 	getNextPageParam?: any;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
 	initialPageParam?: any;
 }
 
@@ -36,7 +36,7 @@ export interface GroupInfiniteQueryOptions {
  */
 export interface UseGroupInfinitePaginationOptions<
 	TQueryOptions extends GroupInfiniteQueryOptions,
-	TData = InferItemsFromQueryOptions<TQueryOptions>,
+	_TData = InferItemsFromQueryOptions<TQueryOptions>,
 > {
 	/** All group keys in stable order */
 	allGroupKeys: string[];
@@ -230,7 +230,6 @@ function useGroupInfiniteQueries(
  * };
  * ```
  */
-// biome-ignore lint/correctness/noUnusedVariables: TData is used in options and return type
 export function useGroupInfinitePagination<
 	TQueryOptions extends GroupInfiniteQueryOptions,
 	TData = InferItemsFromQueryOptions<TQueryOptions>,

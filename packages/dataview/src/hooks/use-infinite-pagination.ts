@@ -14,7 +14,7 @@ import type { BasePaginatedResponse } from "../types/pagination-types";
  * Uses loose typing to accept TRPC's query result type
  */
 export interface InfiniteQueryState {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
 	data: InfiniteData<any>;
 	fetchNextPage: () => void;
 	hasNextPage: boolean;
@@ -45,7 +45,7 @@ type InferItemsFromInfiniteQuery<T> = T extends {
  */
 export interface UseInfinitePaginationOptions<
 	TQuery extends InfiniteQueryState,
-	TData = InferItemsFromInfiniteQuery<TQuery>,
+	_TData = InferItemsFromInfiniteQuery<TQuery>,
 > {
 	/** Infinite query result from useSuspenseInfiniteQuery */
 	infiniteQuery: TQuery;
@@ -145,7 +145,6 @@ const DEFAULT_LIMIT_OPTIONS = [10, 25, 50, 100];
  * };
  * ```
  */
-// biome-ignore lint/correctness/noUnusedVariables: TData is used in options and return type
 export function useInfinitePagination<
 	TQuery extends InfiniteQueryState,
 	TData = InferItemsFromInfiniteQuery<TQuery>,

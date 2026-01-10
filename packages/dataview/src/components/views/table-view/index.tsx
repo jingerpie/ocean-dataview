@@ -1,10 +1,7 @@
 "use client";
 
 import { Checkbox } from "@ocean-dataview/dataview/components/ui/checkbox";
-import {
-	buildPaginationContext,
-	transformData,
-} from "@ocean-dataview/dataview/lib/utils";
+import { buildPaginationContext } from "@ocean-dataview/dataview/lib/utils";
 import type {
 	Action,
 	DataViewProperty,

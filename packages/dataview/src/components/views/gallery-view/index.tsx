@@ -1,9 +1,6 @@
 "use client";
 
-import {
-	buildPaginationContext,
-	transformData,
-} from "@ocean-dataview/dataview/lib/utils";
+import { buildPaginationContext } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { AlertCircle } from "lucide-react";
 import type { GroupedDataItem } from "../../../hooks";

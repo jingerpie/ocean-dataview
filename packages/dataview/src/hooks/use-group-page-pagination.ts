@@ -28,7 +28,7 @@ import type {
  */
 export interface GroupPageQueryOptions {
 	queryKey: readonly unknown[];
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
 	queryFn?: any;
 }
 
@@ -39,7 +39,7 @@ export interface GroupPageQueryOptions {
  */
 export interface UseGroupPagePaginationOptions<
 	TQueryOptions extends GroupPageQueryOptions,
-	TData = InferItemsFromQueryOptions<TQueryOptions>,
+	_TData = InferItemsFromQueryOptions<TQueryOptions>,
 > {
 	/** All group keys in stable order */
 	allGroupKeys: string[];
@@ -169,7 +169,6 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
  * };
  * ```
  */
-// biome-ignore lint/correctness/noUnusedVariables: TData is used in options and return type
 export function useGroupPagePagination<
 	TQueryOptions extends GroupPageQueryOptions,
 	TData = InferItemsFromQueryOptions<TQueryOptions>,
