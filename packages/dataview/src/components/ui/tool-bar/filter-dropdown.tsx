@@ -5,6 +5,7 @@ import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
@@ -87,67 +88,69 @@ export function FilterDropdown<T = unknown>({
 					)}
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" className="w-56">
-					<DropdownMenuLabel>Filter by</DropdownMenuLabel>
-					<DropdownMenuSeparator />
+					<DropdownMenuGroup>
+						<DropdownMenuLabel>Filter by</DropdownMenuLabel>
+						<DropdownMenuSeparator />
 
-					{filterDefinitions.map((definition) => {
-						const currentValue = getFilterValue(definition.field);
+						{filterDefinitions.map((definition) => {
+							const currentValue = getFilterValue(definition.field);
 
-						return (
-							<div key={definition.field}>
-								<DropdownMenuLabel className="px-2 py-1.5 font-normal text-muted-foreground text-xs">
-									{definition.label}
-								</DropdownMenuLabel>
-								{definition.options.map((option) => {
-									const isActive = currentValue === option.value;
-									const variant = definition.variant ?? "select";
+							return (
+								<DropdownMenuGroup key={definition.field}>
+									<DropdownMenuLabel className="px-2 py-1.5 font-normal text-muted-foreground text-xs">
+										{definition.label}
+									</DropdownMenuLabel>
+									{definition.options.map((option) => {
+										const isActive = currentValue === option.value;
+										const variant = definition.variant ?? "select";
 
-									return (
-										<DropdownMenuItem
-											key={option.value}
-											onClick={() => {
-												if (isActive) {
-													onRemoveFilter(definition.field);
-												} else {
-													onFilterChange({
-														propertyId:
-															definition.field as PropertyFilter<T>["propertyId"],
-														value: option.value,
-														variant,
-														operator: defaultOperatorForVariant[variant],
-														filterId: definition.field,
-													});
-												}
-											}}
-											className="pl-6"
-										>
-											<div className="flex w-full items-center justify-between">
-												<span>{option.label}</span>
-												{isActive && (
-													<Badge variant="default" className="h-5 text-xs">
-														Active
-													</Badge>
-												)}
-											</div>
-										</DropdownMenuItem>
-									);
-								})}
-							</div>
-						);
-					})}
+										return (
+											<DropdownMenuItem
+												key={option.value}
+												onClick={() => {
+													if (isActive) {
+														onRemoveFilter(definition.field);
+													} else {
+														onFilterChange({
+															propertyId:
+																definition.field as PropertyFilter<T>["propertyId"],
+															value: option.value,
+															variant,
+															operator: defaultOperatorForVariant[variant],
+															filterId: definition.field,
+														});
+													}
+												}}
+												className="pl-6"
+											>
+												<div className="flex w-full items-center justify-between">
+													<span>{option.label}</span>
+													{isActive && (
+														<Badge variant="default" className="h-5 text-xs">
+															Active
+														</Badge>
+													)}
+												</div>
+											</DropdownMenuItem>
+										);
+									})}
+								</DropdownMenuGroup>
+							);
+						})}
 
-					{activeCount > 0 && (
-						<>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								onClick={onClearAll}
-								className="text-destructive"
-							>
-								<X className="mr-2 h-4 w-4" />
-								Clear all filters
-							</DropdownMenuItem>
-						</>
-					)}
+						{activeCount > 0 && (
+							<>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem
+									onClick={onClearAll}
+									className="text-destructive"
+								>
+									<X className="mr-2 h-4 w-4" />
+									Clear all filters
+								</DropdownMenuItem>
+							</>
+						)}
+					</DropdownMenuGroup>
 				</DropdownMenuContent>
 			</DropdownMenu>
 

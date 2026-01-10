@@ -3,4 +3,4 @@ export {
 	getFilterOperators,
 	getValidFilters,
 	isValidOperatorForVariant,
-} from "./data-table";
+} from "./filter";

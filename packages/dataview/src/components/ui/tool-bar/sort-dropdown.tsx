@@ -5,11 +5,13 @@ import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@ocean-dataview/dataview/components/ui/dropdown-menu";
+import type { PropertySort } from "@ocean-dataview/shared/types";
 import { ArrowDown, ArrowUp, ArrowUpDown, X } from "lucide-react";
 
 export interface SortOption {
@@ -17,28 +19,48 @@ export interface SortOption {
 	label: string;
 }
 
-interface SortDropdownProps {
+interface SortDropdownProps<T = unknown> {
 	sortOptions: SortOption[];
-	currentSort: string | null;
-	currentOrder: "asc" | "desc";
-	onSortChange: (field: string | null, order?: "asc" | "desc") => void;
+	sort: PropertySort<T>[];
+	onSortChange: (sort: PropertySort<T>[]) => void;
 }
 
 /**
  * Dropdown component for sorting data
- * Updates URL parameters via callbacks
+ * Uses PropertySort[] array for multi-column support
+ * UI shows first sort as primary (single-column UI)
  */
-export function SortDropdown({
+export function SortDropdown<T = unknown>({
 	sortOptions,
-	currentSort,
-	currentOrder,
+	sort,
 	onSortChange,
-}: SortDropdownProps) {
+}: SortDropdownProps<T>) {
 	if (sortOptions.length === 0) {
 		return null;
 	}
 
+	// Get primary sort (first in array)
+	const primarySort = sort[0];
+	const currentSort = primarySort?.propertyId ?? null;
+	const currentOrder = primarySort?.desc ? "desc" : "asc";
+
 	const activeOption = sortOptions.find((opt) => opt.field === currentSort);
+
+	const handleSortChange = (
+		field: string | null,
+		order: "asc" | "desc" = "asc",
+	) => {
+		if (field === null) {
+			onSortChange([]);
+		} else {
+			onSortChange([
+				{
+					propertyId: field as Extract<keyof T, string>,
+					desc: order === "desc",
+				},
+			]);
+		}
+	};
 
 	return (
 		<div className="flex items-center gap-2">
@@ -62,54 +84,56 @@ export function SortDropdown({
 					)}
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" className="w-48">
-					<DropdownMenuLabel>Sort by</DropdownMenuLabel>
-					<DropdownMenuSeparator />
+					<DropdownMenuGroup>
+						<DropdownMenuLabel>Sort by</DropdownMenuLabel>
+						<DropdownMenuSeparator />
 
-					{sortOptions.map((option) => {
-						const isActive = currentSort === option.field;
+						{sortOptions.map((option) => {
+							const isActive = currentSort === option.field;
 
-						return (
-							<DropdownMenuItem
-								key={option.field}
-								onClick={() => {
-									if (isActive) {
-										// Toggle order if already active
-										const newOrder = currentOrder === "asc" ? "desc" : "asc";
-										onSortChange(option.field, newOrder);
-									} else {
-										// Set new sort field with asc order
-										onSortChange(option.field, "asc");
-									}
-								}}
-							>
-								<div className="flex w-full items-center justify-between">
-									<span>{option.label}</span>
-									{isActive && (
-										<div className="flex items-center gap-1">
-											{currentOrder === "asc" ? (
-												<ArrowUp className="h-4 w-4" />
-											) : (
-												<ArrowDown className="h-4 w-4" />
-											)}
-										</div>
-									)}
-								</div>
-							</DropdownMenuItem>
-						);
-					})}
+							return (
+								<DropdownMenuItem
+									key={option.field}
+									onClick={() => {
+										if (isActive) {
+											// Toggle order if already active
+											const newOrder = currentOrder === "asc" ? "desc" : "asc";
+											handleSortChange(option.field, newOrder);
+										} else {
+											// Set new sort field with asc order
+											handleSortChange(option.field, "asc");
+										}
+									}}
+								>
+									<div className="flex w-full items-center justify-between">
+										<span>{option.label}</span>
+										{isActive && (
+											<div className="flex items-center gap-1">
+												{currentOrder === "asc" ? (
+													<ArrowUp className="h-4 w-4" />
+												) : (
+													<ArrowDown className="h-4 w-4" />
+												)}
+											</div>
+										)}
+									</div>
+								</DropdownMenuItem>
+							);
+						})}
 
-					{currentSort && (
-						<>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								onClick={() => onSortChange(null)}
-								className="text-destructive"
-							>
-								<X className="mr-2 h-4 w-4" />
-								Clear sorting
-							</DropdownMenuItem>
-						</>
-					)}
+						{currentSort && (
+							<>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem
+									onClick={() => handleSortChange(null)}
+									className="text-destructive"
+								>
+									<X className="mr-2 h-4 w-4" />
+									Clear sorting
+								</DropdownMenuItem>
+							</>
+						)}
+					</DropdownMenuGroup>
 				</DropdownMenuContent>
 			</DropdownMenu>
 
@@ -128,7 +152,7 @@ export function SortDropdown({
 						variant="ghost"
 						size="sm"
 						className="h-4 w-4 p-0 hover:bg-transparent"
-						onClick={() => onSortChange(null)}
+						onClick={() => handleSortChange(null)}
 					>
 						<X className="h-3 w-3" />
 						<span className="sr-only">Clear sort</span>

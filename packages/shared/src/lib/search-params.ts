@@ -8,7 +8,7 @@ import { z } from "zod";
 import { dataTableConfig } from "../config/data-table";
 import type { PropertyFilter, PropertySort } from "../types/data-table.type";
 import { type CursorState, cursorStateSchema } from "../types/pagination.type";
-import { isValidOperatorForVariant } from "../utils/data-table";
+import { isValidOperatorForVariant } from "../utils/filter";
 
 const DEFAULT_LIMIT = 10;
 
@@ -35,7 +35,7 @@ const filtersValidator = (value: unknown): PropertyFilter<unknown>[] | null => {
 	return isValid ? (value as PropertyFilter<unknown>[]) : null;
 };
 
-// Validator for sort arrays
+// Validator for sort arrays (schema-bound - validates propertyId against keys)
 const createSortValidator =
 	<T>(keys: string[]) =>
 	(value: unknown): PropertySort<T>[] | null => {
@@ -54,6 +54,22 @@ const createSortValidator =
 		);
 		return isValid ? (value as PropertySort<T>[]) : null;
 	};
+
+// Generic sort validator (no schema validation - accepts any propertyId)
+const sortValidator = (value: unknown): PropertySort<unknown>[] | null => {
+	if (!Array.isArray(value)) return null;
+
+	const isValid = value.every(
+		(item) =>
+			typeof item === "object" &&
+			item !== null &&
+			"propertyId" in item &&
+			"desc" in item &&
+			typeof item.propertyId === "string" &&
+			typeof item.desc === "boolean",
+	);
+	return isValid ? (value as PropertySort<unknown>[]) : null;
+};
 
 // Validator for cursors array (unified pagination state)
 const cursorsValidator = (value: unknown): CursorState[] | null => {
@@ -223,3 +239,46 @@ export const paginationParams = createSearchParamsCache({
 	expanded: parseAsJson(expandedValidator), // null = flat or use default
 	limit: parseAsInteger.withDefault(DEFAULT_PAGINATION_LIMIT),
 });
+
+/**
+ * Filter & Sort params - global state (not per-group).
+ *
+ * These apply uniformly to the entire dataset:
+ * - filters: array of PropertyFilter objects
+ * - sort: array of PropertySort objects (multi-column support)
+ * - joinOperator: "and" | "or" for combining filters
+ * - search: free-text search string
+ *
+ * @example
+ * ```ts
+ * // In Server Component
+ * const params = await filterSortParams.parse(searchParams);
+ * const { filters, sort, joinOperator, search } = params;
+ * ```
+ */
+export const filterSortParams = createSearchParamsCache({
+	filters: parseAsJson(filtersValidator).withDefault([]),
+	sort: parseAsJson(sortValidator).withDefault([]),
+	joinOperator: createParser({
+		parse: (v) => (v === "and" || v === "or" ? v : "and") as "and" | "or",
+		serialize: (v) => v,
+	}).withDefault("and" as const),
+	search: createParser({
+		parse: (v) => (typeof v === "string" ? v : ""),
+		serialize: (v) => v,
+	}).withDefault(""),
+});
+
+// ============================================================================
+// Client-side typed parsers for filter/sort
+// ============================================================================
+
+/**
+ * Client-side parser for filters array
+ */
+export const parseAsFilters = parseAsJsonArray<PropertyFilter<unknown>>();
+
+/**
+ * Client-side parser for sort array
+ */
+export const parseAsSort = parseAsJsonArray<PropertySort<unknown>>();

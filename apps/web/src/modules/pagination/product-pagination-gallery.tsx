@@ -7,14 +7,20 @@ import {
 } from "@ocean-dataview/dataview/components/views/gallery-view";
 import { useInfinitePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
+import type {
+	PropertyFilter,
+	PropertySort,
+} from "@ocean-dataview/shared/types";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { PaginationTabs } from "./pagination-tabs";
-import { productProperties } from "./product-properties";
+import { type Product, productProperties } from "./product-properties";
 
 interface ProductPaginationGalleryProps {
 	limit: number;
+	filters?: PropertyFilter<Product>[];
+	sort?: PropertySort<Product>[];
 }
 
 /**
@@ -35,6 +41,8 @@ export const ProductPaginationGallery = (
 
 const ProductPaginationGalleryView = ({
 	limit: defaultLimit,
+	filters = [],
+	sort = [],
 }: ProductPaginationGalleryProps) => {
 	const trpc = useTRPC();
 
@@ -43,7 +51,8 @@ const ProductPaginationGalleryView = ({
 		trpc.product.getMany.infiniteQueryOptions(
 			{
 				limit: defaultLimit,
-				sort: [{ propertyId: "updatedAt", desc: true }],
+				filters,
+				sort,
 			},
 			{
 				getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,

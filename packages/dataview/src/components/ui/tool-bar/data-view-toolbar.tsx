@@ -2,6 +2,10 @@
 
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
+import type {
+	PropertyFilter,
+	PropertySort,
+} from "@ocean-dataview/shared/types";
 import { type ReactNode, useMemo } from "react";
 import {
 	useFilterParams,
@@ -17,6 +21,16 @@ export interface DataViewToolbarProps<T = unknown> {
 	 * Property definitions - auto-generates filters and sort options
 	 */
 	properties: DataViewProperty<T>[];
+
+	/**
+	 * Initial filters from server (optional)
+	 */
+	initialFilters?: PropertyFilter<T>[];
+
+	/**
+	 * Initial sort from server (optional)
+	 */
+	initialSort?: PropertySort<T>[];
 
 	/**
 	 * Enable search functionality
@@ -147,6 +161,8 @@ function generateSortOptionsFromProperties<T>(
  */
 export function DataViewToolbar<T = unknown>({
 	properties,
+	initialFilters,
+	initialSort,
 	enableSearch = true,
 	searchPlaceholder = "Search...",
 	enableFilters = false,
@@ -163,10 +179,14 @@ export function DataViewToolbar<T = unknown>({
 		return generateSortOptionsFromProperties(properties);
 	}, [properties]);
 
-	// URL state management
+	// URL state management with initial values from server
 	const [search, setSearch] = useSearchParams();
-	const { sortBy, sortOrder, setSort } = useSortParams<string>();
-	const { filters, setFilter, removeFilter, clearFilters } = useFilterParams();
+	const { sort, setSort } = useSortParams<T>({ sort: initialSort });
+	const { filters, setFilter, removeFilter, clearFilters } = useFilterParams<T>(
+		{
+			filters: initialFilters,
+		},
+	);
 
 	const hasAnyControls = enableSearch || enableFilters || enableSort || actions;
 
@@ -200,17 +220,10 @@ export function DataViewToolbar<T = unknown>({
 				)}
 
 				{enableSort && sortOptions.length > 0 && (
-					<SortDropdown
+					<SortDropdown<T>
 						sortOptions={sortOptions}
-						currentSort={sortBy}
-						currentOrder={sortOrder}
-						onSortChange={(field, order) => {
-							if (field === null) {
-								setSort(null);
-							} else {
-								setSort(field, order || "asc");
-							}
-						}}
+						sort={sort}
+						onSortChange={setSort}
 					/>
 				)}
 

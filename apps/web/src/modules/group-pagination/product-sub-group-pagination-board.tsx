@@ -7,12 +7,16 @@ import {
 } from "@ocean-dataview/dataview/components/views/board-view";
 import { useGroupPagePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
-import type { CursorState } from "@ocean-dataview/shared/types";
+import type {
+	CursorState,
+	PropertyFilter,
+	PropertySort,
+} from "@ocean-dataview/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "./group-pagination-tabs";
-import { productProperties } from "./product-properties";
+import { type Product, productProperties } from "./product-properties";
 
 /**
  * Props passed from server (parsed URL params)
@@ -20,6 +24,8 @@ import { productProperties } from "./product-properties";
 interface Props {
 	cursors: CursorState[];
 	limit: number;
+	filters?: PropertyFilter<Product>[];
+	sort?: PropertySort<Product>[];
 }
 
 /**
@@ -34,7 +40,12 @@ export const ProductSubGroupPaginationBoard = (props: Props) => (
 	</Suspense>
 );
 
-const ProductSubGroupPaginationBoardView = ({ cursors, limit }: Props) => {
+const ProductSubGroupPaginationBoardView = ({
+	cursors,
+	limit,
+	filters = [],
+	sort = [],
+}: Props) => {
 	const trpc = useTRPC();
 
 	// 1. Fetch group counts (suspends until data is ready)
@@ -55,6 +66,7 @@ const ProductSubGroupPaginationBoardView = ({ cursors, limit }: Props) => {
 		createQueryOptions: (groupKey, { after, before }) =>
 			trpc.product.getMany.queryOptions({
 				filters: [
+					// Group filter (always applied)
 					{
 						propertyId: "familyGroup",
 						operator: "eq",
@@ -62,8 +74,10 @@ const ProductSubGroupPaginationBoardView = ({ cursors, limit }: Props) => {
 						variant: "select",
 						filterId: "familyGroup-group",
 					},
+					// User filters from URL
+					...filters,
 				],
-				sort: [{ propertyId: "updatedAt", desc: false }],
+				sort,
 				after,
 				before,
 				limit,

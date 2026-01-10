@@ -1,6 +1,9 @@
 "use client";
 
-import { DataViewOptions } from "@ocean-dataview/dataview/components/ui/tool-bar";
+import {
+	DataViewOptions,
+	DataViewToolbar,
+} from "@ocean-dataview/dataview/components/ui/tool-bar";
 import {
 	TableSkeleton,
 	TableView,
@@ -12,12 +15,14 @@ import {
 	type CursorState,
 	getCursor,
 	getCursorParams,
+	type PropertyFilter,
+	type PropertySort,
 } from "@ocean-dataview/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { PaginationTabs } from "./pagination-tabs";
-import { productProperties } from "./product-properties";
+import { type Product, productProperties } from "./product-properties";
 
 /**
  * Props passed from server (parsed URL params)
@@ -25,6 +30,8 @@ import { productProperties } from "./product-properties";
 interface PaginationProps {
 	cursors: CursorState[];
 	limit: number;
+	filters?: PropertyFilter<Product>[];
+	sort?: PropertySort<Product>[];
 }
 
 /**
@@ -42,7 +49,7 @@ export const ProductPaginationTable = (props: PaginationProps) => (
 );
 
 const ProductPaginationTableView = (props: PaginationProps) => {
-	const { cursors, limit } = props;
+	const { cursors, limit, filters = [], sort = [] } = props;
 	const trpc = useTRPC();
 
 	// Extract cursor params for flat pagination
@@ -55,7 +62,8 @@ const ProductPaginationTableView = (props: PaginationProps) => {
 			after,
 			before,
 			limit,
-			sort: [{ propertyId: "updatedAt", desc: true }],
+			filters,
+			sort,
 		}),
 	);
 
@@ -86,6 +94,15 @@ const ProductPaginationTableView = (props: PaginationProps) => {
 				<PaginationTabs />
 				<DataViewOptions />
 			</div>
+
+			<DataViewToolbar
+				properties={productProperties}
+				initialFilters={filters}
+				initialSort={sort}
+				enableSearch={false}
+				enableFilters
+				enableSort
+			/>
 
 			<TableView
 				layout={{ showVerticalLines: false, wrapAllColumns: false }}

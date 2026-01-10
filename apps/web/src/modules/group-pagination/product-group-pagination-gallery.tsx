@@ -7,11 +7,15 @@ import {
 } from "@ocean-dataview/dataview/components/views/gallery-view";
 import { useGroupInfinitePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
+import type {
+	PropertyFilter,
+	PropertySort,
+} from "@ocean-dataview/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "./group-pagination-tabs";
-import { productProperties } from "./product-properties";
+import { type Product, productProperties } from "./product-properties";
 
 const DEFAULT_EXPANDED: string[] = [];
 
@@ -22,6 +26,8 @@ interface Props {
 	expanded: string[] | null;
 	cursors: unknown; // Not used for infinite pagination, but passed from page
 	limit: number;
+	filters?: PropertyFilter<Product>[];
+	sort?: PropertySort<Product>[];
 }
 
 /**
@@ -40,6 +46,8 @@ export const ProductGroupPaginationGallery = (props: Props) => (
 const ProductGroupPaginationGalleryView = ({
 	expanded: expandedProp,
 	limit,
+	filters = [],
+	sort = [],
 }: Props) => {
 	const trpc = useTRPC();
 
@@ -65,6 +73,7 @@ const ProductGroupPaginationGalleryView = ({
 				trpc.product.getMany.infiniteQueryOptions(
 					{
 						filters: [
+							// Group filter (always applied)
 							{
 								propertyId: "familyGroup",
 								operator: "eq",
@@ -72,8 +81,10 @@ const ProductGroupPaginationGalleryView = ({
 								variant: "select",
 								filterId: "familyGroup-group",
 							},
+							// User filters from URL
+							...filters,
 						],
-						sort: [{ propertyId: "updatedAt", desc: false }],
+						sort,
 						limit,
 					},
 					{
