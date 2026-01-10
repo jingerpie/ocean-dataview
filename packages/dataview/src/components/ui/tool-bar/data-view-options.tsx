@@ -14,8 +14,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@ocean-dataview/dataview/components/ui/popover";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
-import { Check, ChevronsUpDown, Settings2 } from "lucide-react";
+import { ChevronsUpDown, Settings2 } from "lucide-react";
 import * as React from "react";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 
@@ -98,19 +97,14 @@ export function DataViewOptions({
 									<CommandItem
 										key={column.id}
 										value={column.id}
+										data-checked={column.isVisible}
 										onSelect={() => {
 											if (propertyId !== undefined) {
 												toggleProperty(propertyId as string);
 											}
 										}}
 									>
-										<span className="truncate">{column.label}</span>
-										<Check
-											className={cn(
-												"ml-auto size-4 shrink-0",
-												column.isVisible ? "opacity-100" : "opacity-0",
-											)}
-										/>
+										{column.label}
 									</CommandItem>
 								);
 							})}
