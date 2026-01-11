@@ -65,7 +65,7 @@ export function FilterBuilderPopover<T>({
 			<PopoverTrigger render={trigger ?? defaultTrigger} />
 			<PopoverContent
 				align="start"
-				className={cn("w-auto min-w-80 max-w-[500px] p-3", contentClassName)}
+				className={cn("w-auto min-w-80 p-3", contentClassName)}
 			>
 				<FilterBuilder
 					properties={properties}
