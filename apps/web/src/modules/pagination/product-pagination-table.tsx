@@ -11,12 +11,10 @@ import {
 	useSortParams,
 } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
-import {
-	ALL_GROUP,
-	type CursorState,
-	getCursor,
-	type PropertyFilter,
-	type PropertySort,
+import type {
+	CursorValue,
+	PropertyFilter,
+	PropertySort,
 } from "@ocean-dataview/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
@@ -28,7 +26,7 @@ import { type Product, productProperties } from "./product-properties";
  * Props passed from server (parsed URL params)
  */
 interface PaginationProps {
-	cursors: CursorState[];
+	cursor?: CursorValue | null;
 	limit: number;
 	filters?: PropertyFilter<Product>[];
 	sort?: PropertySort<Product>[];
@@ -47,7 +45,7 @@ interface PaginationProps {
  */
 export function ProductPaginationTable(props: PaginationProps) {
 	const {
-		cursors,
+		cursor,
 		limit,
 		filters = [],
 		sort = [],
@@ -58,9 +56,6 @@ export function ProductPaginationTable(props: PaginationProps) {
 	// Hooks for UI state management (used by toolbar for user interactions)
 	const { setFilters } = useFilterParams<Product>({ filters });
 	const { setSort } = useSortParams<Product>({ sort });
-
-	// Extract cursor for flat pagination
-	const cursor = getCursor(cursors, ALL_GROUP);
 
 	// Query with props directly - MUST match server prefetch for cache hit
 	const { data } = useSuspenseQuery(
@@ -75,7 +70,7 @@ export function ProductPaginationTable(props: PaginationProps) {
 
 	// Pagination controls using the new hook
 	const pagination = usePagePagination({
-		cursors,
+		cursor,
 		limit,
 		data,
 		limitOptions: [10, 25, 50, 100],

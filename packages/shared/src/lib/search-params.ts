@@ -7,7 +7,12 @@ import {
 import { z } from "zod";
 import { dataTableConfig } from "../config/data-table";
 import type { PropertyFilter, PropertySort } from "../types/data-table.type";
-import { type CursorState, cursorStateSchema } from "../types/pagination.type";
+import {
+	type Cursors,
+	type CursorValue,
+	cursorsSchema,
+	cursorValueSchema,
+} from "../types/pagination.type";
 import { isValidOperatorForVariant } from "../utils/filter";
 
 // ============================================================================
@@ -57,9 +62,17 @@ const sortValidator = (value: unknown): PropertySort<unknown>[] | null => {
 	return isValid ? (value as PropertySort<unknown>[]) : null;
 };
 
-const cursorsValidator = (value: unknown): CursorState[] | null => {
-	if (!Array.isArray(value)) return null;
-	const result = z.array(cursorStateSchema).safeParse(value);
+const cursorValidator = (value: unknown): CursorValue | null => {
+	if (typeof value !== "object" || value === null || Array.isArray(value))
+		return null;
+	const result = cursorValueSchema.safeParse(value);
+	return result.success ? result.data : null;
+};
+
+const cursorsValidator = (value: unknown): Cursors | null => {
+	if (typeof value !== "object" || value === null || Array.isArray(value))
+		return null;
+	const result = cursorsSchema.safeParse(value);
 	return result.success ? result.data : null;
 };
 
@@ -110,8 +123,9 @@ export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 	});
 
 	return z.object({
-		// Cursor: CursorState object (page-based) or string (infinite queries)
-		cursor: z.union([cursorStateSchema, z.string()]).optional(),
+		// Cursor: CursorValue object (page-based) or string (infinite queries)
+		// Using nullish() to accept null from NUQS parsers
+		cursor: z.union([cursorValueSchema, z.string()]).nullish(),
 		limit: z.number().int().min(1).max(200).default(DEFAULT_LIMIT),
 		filters: z.array(filterSchema).default([]),
 		sort: z.array(sortSchema).default([]),
@@ -120,21 +134,11 @@ export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 };
 
 // ============================================================================
-// 2. Server-side NUQS Parser (for URL params in RSC)
+// 2. Server-side NUQS Parsers (for URL params in RSC)
 // ============================================================================
 
-/**
- * Unified DataView params for server-side URL parsing.
- * Use in Server Components to parse searchParams.
- *
- * @example
- * ```ts
- * const { cursors, limit, filters, sort, expanded } = await dataViewParams.parse(searchParams);
- * ```
- */
-export const dataViewParams = createSearchParamsCache({
-	cursors: parseAsJson(cursorsValidator).withDefault([]),
-	expanded: parseAsJson(expandedValidator),
+// Shared parsers used by both flat and grouped pagination
+const sharedParsers = {
 	limit: parseAsInteger.withDefault(DEFAULT_LIMIT),
 	filters: parseAsJson(filtersValidator).withDefault([]),
 	sort: parseAsJson(sortValidator).withDefault([]),
@@ -146,33 +150,102 @@ export const dataViewParams = createSearchParamsCache({
 		parse: (v) => (typeof v === "string" ? v : ""),
 		serialize: (v) => v,
 	}).withDefault(""),
+};
+
+/**
+ * Flat pagination params for server-side URL parsing.
+ * Uses single `cursor` param.
+ *
+ * @example
+ * ```ts
+ * const { cursor, limit, filters, sort } = paginationParams.parse(searchParams);
+ * ```
+ */
+export const paginationParams = createSearchParamsCache({
+	cursor: parseAsJson(cursorValidator),
+	...sharedParsers,
+});
+
+/**
+ * Grouped pagination params for server-side URL parsing.
+ * Uses `cursors` object map and `expanded` array.
+ *
+ * @example
+ * ```ts
+ * const { cursors, expanded, limit, filters, sort } = groupPaginationParams.parse(searchParams);
+ * ```
+ */
+export const groupPaginationParams = createSearchParamsCache({
+	cursors: parseAsJson(cursorsValidator).withDefault({}),
+	expanded: parseAsJson(expandedValidator),
+	...sharedParsers,
 });
 
 // ============================================================================
 // 3. Client-side Parsers (for hooks with useQueryState)
 // ============================================================================
 
-const parseAsJsonArray = <T>() =>
-	createParser({
-		parse: (value: string) => {
-			try {
-				const parsed = JSON.parse(value);
-				return Array.isArray(parsed) ? (parsed as T[]) : null;
-			} catch {
-				return null;
-			}
-		},
-		serialize: (value: T[]) => JSON.stringify(value),
-	});
+/** Client-side parser for cursor (flat pagination) */
+export const parseAsCursor = createParser({
+	parse: (value: string): CursorValue | null => {
+		try {
+			const parsed = JSON.parse(value);
+			return cursorValidator(parsed);
+		} catch {
+			return null;
+		}
+	},
+	serialize: (value: CursorValue) => JSON.stringify(value),
+});
 
-/** Client-side parser for cursors array */
-export const parseAsCursors = parseAsJsonArray<CursorState>();
+/** Client-side parser for cursors object (grouped pagination) */
+export const parseAsCursors = createParser({
+	parse: (value: string): Cursors | null => {
+		try {
+			const parsed = JSON.parse(value);
+			return cursorsValidator(parsed);
+		} catch {
+			return null;
+		}
+	},
+	serialize: (value: Cursors) => JSON.stringify(value),
+});
 
 /** Client-side parser for expanded groups array */
-export const parseAsExpanded = parseAsJsonArray<string>();
+export const parseAsExpanded = createParser({
+	parse: (value: string): string[] | null => {
+		try {
+			const parsed = JSON.parse(value);
+			return expandedValidator(parsed);
+		} catch {
+			return null;
+		}
+	},
+	serialize: (value: string[]) => JSON.stringify(value),
+});
 
 /** Client-side parser for filters array */
-export const parseAsFilters = parseAsJsonArray<PropertyFilter<unknown>>();
+export const parseAsFilters = createParser({
+	parse: (value: string): PropertyFilter<unknown>[] | null => {
+		try {
+			const parsed = JSON.parse(value);
+			return filtersValidator(parsed);
+		} catch {
+			return null;
+		}
+	},
+	serialize: (value: PropertyFilter<unknown>[]) => JSON.stringify(value),
+});
 
 /** Client-side parser for sort array */
-export const parseAsSort = parseAsJsonArray<PropertySort<unknown>>();
+export const parseAsSort = createParser({
+	parse: (value: string): PropertySort<unknown>[] | null => {
+		try {
+			const parsed = JSON.parse(value);
+			return sortValidator(parsed);
+		} catch {
+			return null;
+		}
+	},
+	serialize: (value: PropertySort<unknown>[]) => JSON.stringify(value),
+});

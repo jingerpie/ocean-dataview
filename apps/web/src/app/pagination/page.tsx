@@ -1,5 +1,4 @@
-import { dataViewParams } from "@ocean-dataview/shared/lib";
-import { ALL_GROUP, getCursor } from "@ocean-dataview/shared/types";
+import { paginationParams } from "@ocean-dataview/shared/lib";
 import { getValidFilters } from "@ocean-dataview/shared/utils";
 import { Tabs, TabsContent } from "@ocean-dataview/ui/components/tabs";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
@@ -15,12 +14,11 @@ interface PageProps {
 
 export default async function PaginationPage(props: PageProps) {
 	const searchParams = await props.searchParams;
-	const params = dataViewParams.parse(searchParams);
+	const params = paginationParams.parse(searchParams);
 
-	const { cursors, limit, filters, sort, joinOperator } = params;
+	const { cursor, limit, filters, sort, joinOperator } = params;
 
 	const validFilters = getValidFilters(filters);
-	const cursor = getCursor(cursors, ALL_GROUP);
 	const queryClient = getQueryClient();
 
 	void queryClient.prefetchQuery(
@@ -38,7 +36,7 @@ export default async function PaginationPage(props: PageProps) {
 			<Tabs defaultValue="table" className="w-full">
 				<TabsContent value="table">
 					<ProductPaginationTable
-						cursors={cursors}
+						cursor={cursor}
 						limit={limit}
 						filters={validFilters}
 						sort={sort}

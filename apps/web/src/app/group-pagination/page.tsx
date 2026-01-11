@@ -1,4 +1,4 @@
-import { dataViewParams } from "@ocean-dataview/shared/lib";
+import { groupPaginationParams } from "@ocean-dataview/shared/lib";
 import { getValidFilters } from "@ocean-dataview/shared/utils";
 import { Tabs, TabsContent } from "@ocean-dataview/ui/components/tabs";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
@@ -14,7 +14,7 @@ interface PageProps {
 
 export default async function GroupPaginationPage(props: PageProps) {
 	const searchParams = await props.searchParams;
-	const params = dataViewParams.parse(searchParams);
+	const params = groupPaginationParams.parse(searchParams);
 
 	const { expanded, cursors, limit, filters, sort, joinOperator } = params;
 	const validFilters = getValidFilters(filters);

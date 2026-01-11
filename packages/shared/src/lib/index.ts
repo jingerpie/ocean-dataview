@@ -1,10 +1,12 @@
 export {
 	// TRPC zod schema
 	createSearchParamsSchema,
-	// Server-side NUQS parser
-	dataViewParams,
+	groupPaginationParams, // grouped pagination
+	// Server-side NUQS parsers
+	paginationParams, // flat pagination
 	// Client-side parsers
-	parseAsCursors,
+	parseAsCursor, // flat pagination
+	parseAsCursors, // grouped pagination
 	parseAsExpanded,
 	parseAsFilters,
 	parseAsSort,

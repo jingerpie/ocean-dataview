@@ -8,7 +8,7 @@ import {
 import { useGroupPagePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
 import type {
-	CursorState,
+	Cursors,
 	PropertyFilter,
 	PropertySort,
 } from "@ocean-dataview/shared/types";
@@ -25,7 +25,7 @@ const DEFAULT_EXPANDED: string[] = [];
  */
 interface Props {
 	expanded: string[] | null;
-	cursors: CursorState[];
+	cursors: Cursors;
 	limit: number;
 	filters?: PropertyFilter<Product>[];
 	sort?: PropertySort<Product>[];

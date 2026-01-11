@@ -1,12 +1,7 @@
 "use client";
 
 import { parseAsCursors, parseAsExpanded } from "@ocean-dataview/shared/lib";
-import {
-	type CursorState,
-	getCursor,
-	removeCursor,
-	setCursor,
-} from "@ocean-dataview/shared/types";
+import type { Cursors, CursorValue } from "@ocean-dataview/shared/types";
 import { useQueries } from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useCallback, useMemo, useTransition } from "react";
@@ -46,12 +41,12 @@ export interface UseGroupPagePaginationOptions<
 	expanded: string[];
 	/** Group counts from API */
 	groupCounts: GroupCounts;
-	/** Cursor state per group (from URL props) */
-	cursors?: CursorState[];
+	/** Cursors object per group (from URL props) */
+	cursors?: Cursors;
 	/** Items per page */
 	limit: number;
 	/** Factory to create query options for each group */
-	createQueryOptions: (groupKey: string, cursor?: CursorState) => TQueryOptions;
+	createQueryOptions: (groupKey: string, cursor?: CursorValue) => TQueryOptions;
 	/** Available limit options (default: [25, 50, 100, 200]) */
 	limitOptions?: number[];
 }
@@ -173,7 +168,7 @@ export function useGroupPagePagination<
 	const {
 		allGroupKeys,
 		expanded,
-		cursors = [],
+		cursors = {},
 		groupCounts,
 		limit,
 		createQueryOptions,
@@ -183,7 +178,7 @@ export function useGroupPagePagination<
 	// Create queries internally using useQueries
 	const queries = useQueries({
 		queries: allGroupKeys.map((groupKey) => {
-			const cursor = getCursor(cursors, groupKey);
+			const cursor = cursors[groupKey];
 			const isEnabled = expanded.includes(groupKey);
 
 			const options = createQueryOptions(groupKey, cursor);
@@ -205,7 +200,7 @@ export function useGroupPagePagination<
 	);
 	const [, setCursors] = useQueryState(
 		"cursors",
-		parseAsCursors.withDefault([]).withOptions({ shallow: false }),
+		parseAsCursors.withDefault({}).withOptions({ shallow: false }),
 	);
 	const [, setLimit] = useQueryState(
 		"limit",
@@ -222,7 +217,7 @@ export function useGroupPagePagination<
 				| BidirectionalPaginatedResponse<TData>
 				| undefined;
 			const items: TData[] = isExpanded ? (queryData?.items ?? []) : [];
-			const cursorState = getCursor(cursors, groupKey);
+			const cursorState = cursors[groupKey];
 			const groupStart = cursorState?.start ?? 0;
 
 			const group: GroupInfo<TData> = {
@@ -243,13 +238,13 @@ export function useGroupPagePagination<
 					const endCursor = queryData?.endCursor;
 					if (endCursor == null) return;
 					startTransition(() => {
-						setCursors(
-							setCursor(cursors, {
-								group: groupKey,
+						setCursors({
+							...cursors,
+							[groupKey]: {
 								after: String(endCursor),
 								start: groupStart + limit,
-							}),
-						);
+							},
+						});
 					});
 				},
 
@@ -257,17 +252,19 @@ export function useGroupPagePagination<
 					const newStart = Math.max(0, groupStart - limit);
 					startTransition(() => {
 						if (newStart === 0) {
-							setCursors(removeCursor(cursors, groupKey));
+							// Remove cursor for this group
+							const { [groupKey]: _, ...rest } = cursors;
+							setCursors(Object.keys(rest).length > 0 ? rest : {});
 						} else {
 							const startCursor = queryData?.startCursor;
 							if (startCursor == null) return;
-							setCursors(
-								setCursor(cursors, {
-									group: groupKey,
+							setCursors({
+								...cursors,
+								[groupKey]: {
 									before: String(startCursor),
 									start: newStart,
-								}),
-							);
+								},
+							});
 						}
 					});
 				},
@@ -293,7 +290,7 @@ export function useGroupPagePagination<
 		(newLimit: number) => {
 			startTransition(() => {
 				setLimit(newLimit);
-				setCursors([]); // Reset all cursors when limit changes
+				setCursors({}); // Reset all cursors when limit changes
 			});
 		},
 		[setLimit, setCursors],
@@ -307,7 +304,8 @@ export function useGroupPagePagination<
 			startTransition(() => {
 				// Clear cursor for collapsed group
 				if (removed) {
-					setCursors(removeCursor(cursors, removed));
+					const { [removed]: _, ...rest } = cursors;
+					setCursors(Object.keys(rest).length > 0 ? rest : {});
 				}
 				setExpanded(newExpanded.length > 0 ? newExpanded : null);
 			});
