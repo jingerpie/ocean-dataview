@@ -91,15 +91,15 @@ type PropertyComponentPropsMap = {
 	text: TextPropertyComponentProps;
 	number: NumberPropertyComponentProps;
 	select: SelectPropertyComponentProps;
-	"multi-select": MultiSelectPropertyComponentProps;
+	multiSelect: MultiSelectPropertyComponentProps;
 	status: StatusPropertyComponentProps;
 	date: DatePropertyComponentProps;
 	checkbox: CheckboxPropertyComponentProps;
 	url: UrlPropertyComponentProps;
 	email: EmailPropertyComponentProps;
 	phone: PhonePropertyComponentProps;
-	"files-media": FilesMediaPropertyComponentProps;
-	custom: never; // Custom type doesn't use these props
+	filesMedia: FilesMediaPropertyComponentProps;
+	formula: never; // Formula type doesn't use these props
 };
 
 /**

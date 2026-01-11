@@ -349,7 +349,7 @@ export function BoardView<
 			return groupByProperty.config?.options || [];
 		}
 
-		if (groupByProperty.type === "multi-select") {
+		if (groupByProperty.type === "multiSelect") {
 			return groupByProperty.config?.options || [];
 		}
 
@@ -412,9 +412,9 @@ export function BoardView<
 								className={cn(
 									"flex flex-col items-start",
 									(property.type === "select" ||
-										property.type === "multi-select" ||
+										property.type === "multiSelect" ||
 										property.type === "status" ||
-										property.type === "files-media") &&
+										property.type === "filesMedia") &&
 										"gap-1",
 								)}
 							>
@@ -445,7 +445,7 @@ export function BoardView<
 			!colorColumns ||
 			!groupByProperty ||
 			(groupByProperty.type !== "select" &&
-				groupByProperty.type !== "multi-select" &&
+				groupByProperty.type !== "multiSelect" &&
 				groupByProperty.type !== "status")
 		) {
 			return "bg-transparent";

@@ -49,7 +49,7 @@ export const productProperties = [
 	{
 		id: "image",
 		label: "Image",
-		type: "files-media",
+		type: "filesMedia",
 		value: (item) =>
 			item.image
 				? `https://us-prod5-digitalasset-v2.s3.amazonaws.com/${item.image.replace(".jpg", "_270.jpg")}`

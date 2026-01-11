@@ -85,7 +85,7 @@ export function useGroupConfig<TData>(
 		if (selectProp) return String(selectProp.id);
 
 		const multiSelectProp = properties.find(
-			(prop) => prop.type === "multi-select",
+			(prop) => prop.type === "multiSelect",
 		);
 		if (multiSelectProp) return String(multiSelectProp.id);
 

@@ -98,7 +98,7 @@ function getFilterVariantFromPropertyType(
 		case "select":
 		case "status":
 			return "select";
-		case "multi-select":
+		case "multiSelect":
 			return "multiSelect";
 		case "date":
 			return "date";
@@ -352,7 +352,7 @@ function ValueInput<T>({
 
 		case "multiSelect": {
 			const options: SelectOption[] =
-				property.type === "multi-select" && property.config?.options
+				property.type === "multiSelect" && property.config?.options
 					? property.config.options
 					: [];
 

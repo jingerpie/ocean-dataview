@@ -5,15 +5,15 @@ export type PropertyType =
 	| "text"
 	| "number"
 	| "select"
-	| "multi-select"
+	| "multiSelect"
 	| "status"
 	| "date"
-	| "files-media"
+	| "filesMedia"
 	| "checkbox"
 	| "url"
 	| "email"
 	| "phone"
-	| "custom";
+	| "formula";
 
 // Base property structure
 export interface BaseProperty<T> {
@@ -125,7 +125,7 @@ export type SelectPropertyType<T> = BaseProperty<T> & {
 };
 
 export type MultiSelectPropertyType<T> = BaseProperty<T> & {
-	type: "multi-select";
+	type: "multiSelect";
 	config?: MultiSelectConfig; // Optional - auto-generates badges if not defined
 };
 
@@ -140,7 +140,7 @@ export type DatePropertyType<T> = BaseProperty<T> & {
 };
 
 export type FilesMediaPropertyType<T> = BaseProperty<T> & {
-	type: "files-media";
+	type: "filesMedia";
 	config?: FilesMediaConfig;
 };
 
@@ -164,8 +164,8 @@ export type PhonePropertyType<T> = BaseProperty<T> & {
 	config?: PhoneConfig;
 };
 
-export type CustomPropertyType<T> = BaseProperty<T> & {
-	type: "custom";
+export type FormulaPropertyType<T> = BaseProperty<T> & {
+	type: "formula";
 	config?: never;
 };
 
@@ -186,7 +186,7 @@ export type DataViewProperty<T> =
 	| UrlPropertyType<T>
 	| EmailPropertyType<T>
 	| PhonePropertyType<T>
-	| CustomPropertyType<T>;
+	| FormulaPropertyType<T>;
 
 /**
  * Extract property IDs from a property array

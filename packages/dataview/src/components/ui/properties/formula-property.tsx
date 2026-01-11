@@ -13,13 +13,13 @@ import { StatusProperty } from "./status-property";
 import { TextProperty } from "./text-property";
 import { UrlProperty } from "./url-property";
 
-// Type-safe empty id for property components used in custom types
+// Type-safe empty id for property components used in formula types
 // These components don't need a real id since they're used standalone
 type EmptyObject = Record<string, never>;
 const EMPTY_ID = "" as keyof EmptyObject;
 
 /**
- * Property component namespace for use in custom property types
+ * Property component namespace for use in formula property types
  * Provides pre-built components that match each property type
  *
  * @example
@@ -27,7 +27,7 @@ const EMPTY_ID = "" as keyof EmptyObject;
  *
  * {
  *   id: "summary",
- *   type: "custom",
+ *   type: "formula",
  *   value: (_, item) => (
  *     <div className="flex gap-2">
  *       <Property.Text value={item.title} />
@@ -59,10 +59,10 @@ export const Property = {
 		/>
 	),
 
-	MultiSelect: ({ value, config }: PropertyComponentProps<"multi-select">) => (
+	MultiSelect: ({ value, config }: PropertyComponentProps<"multiSelect">) => (
 		<MultiSelectProperty
 			value={value}
-			property={{ id: EMPTY_ID, type: "multi-select", config }}
+			property={{ id: EMPTY_ID, type: "multiSelect", config }}
 		/>
 	),
 
@@ -112,10 +112,10 @@ export const Property = {
 		value,
 		config,
 		wrap = false,
-	}: PropertyComponentProps<"files-media">) => (
+	}: PropertyComponentProps<"filesMedia">) => (
 		<FilesMediaProperty
 			value={value}
-			property={{ id: EMPTY_ID, type: "files-media", config }}
+			property={{ id: EMPTY_ID, type: "filesMedia", config }}
 			wrap={wrap}
 		/>
 	),

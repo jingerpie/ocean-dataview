@@ -36,8 +36,8 @@ function PropertyDisplayComponent<T>({
 	const displayValue = value;
 
 	switch (property.type) {
-		case "custom":
-			// For custom type, displayValue is already JSX from the value function
+		case "formula":
+			// For formula type, displayValue is already JSX from the value function
 			return <>{displayValue}</>;
 
 		case "text":
@@ -51,7 +51,7 @@ function PropertyDisplayComponent<T>({
 		case "select":
 			return <SelectProperty value={displayValue} property={property} />;
 
-		case "multi-select":
+		case "multiSelect":
 			return <MultiSelectProperty value={displayValue} property={property} />;
 
 		case "status":
@@ -72,7 +72,7 @@ function PropertyDisplayComponent<T>({
 		case "phone":
 			return <PhoneProperty value={displayValue} property={property} />;
 
-		case "files-media":
+		case "filesMedia":
 			return (
 				<FilesMediaProperty
 					value={displayValue}

@@ -139,9 +139,9 @@ export function GalleryCard<TData>({
 											"flex flex-col items-start",
 											isFirst && "font-medium",
 											(property.type === "select" ||
-												property.type === "multi-select" ||
+												property.type === "multiSelect" ||
 												property.type === "status" ||
-												property.type === "files-media") &&
+												property.type === "filesMedia") &&
 												"gap-1",
 										)}
 									>
