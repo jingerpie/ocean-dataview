@@ -182,12 +182,3 @@ export function getColumn<T extends Table>(
 ): AnyColumn {
 	return table[columnKey] as AnyColumn;
 }
-
-// ============================================================================
-// Legacy support (to be removed after migration)
-// ============================================================================
-
-/**
- * @deprecated Use buildWhere instead
- */
-export const filterColumns = buildWhere;

@@ -130,12 +130,12 @@ export function isFilterCondition(filter: Filter): filter is FilterCondition {
 }
 
 // ============================================================================
-// Legacy Types (for toolbar backward compatibility - to be removed)
+// Filter Variant - Maps property types to UI input types
 // ============================================================================
 
 /**
- * @deprecated Use Filter/FilterCondition instead. Will be removed when FilterBuilder UI is built.
- * Legacy filter variant type for toolbar UI.
+ * Filter variant type for determining which operators and inputs to use.
+ * Used by filter-rule.tsx to map property types to appropriate filter UI.
  */
 export type FilterVariant =
 	| "text"
@@ -146,15 +146,3 @@ export type FilterVariant =
 	| "boolean"
 	| "select"
 	| "multiSelect";
-
-/**
- * @deprecated Use Filter/FilterCondition instead. Will be removed when FilterBuilder UI is built.
- * Legacy property filter for toolbar UI.
- */
-export interface PropertyFilter<TData> {
-	propertyId: Extract<keyof TData, string>;
-	operator: FilterOperator;
-	value: unknown;
-	variant: FilterVariant;
-	filterId: string;
-}

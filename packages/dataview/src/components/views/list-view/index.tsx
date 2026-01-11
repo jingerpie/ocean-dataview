@@ -236,14 +236,14 @@ export function ListView<
 	);
 }
 
-export {
-	DataViewOptions,
-	type DataViewOptionsProps,
-} from "@ocean-dataview/dataview/components/ui/tool-bar/data-view-options";
 // Re-export from shared with view-specific aliases
 export type { DataViewContextValue as ListContextValue } from "../../../lib/providers/data-view-context";
 export { useDataViewContext as useListContext } from "../../../lib/providers/data-view-context";
 export type { DataViewProviderProps as ListProviderProps } from "../../../lib/providers/data-view-provider";
 export { DataViewProvider as ListProvider } from "../../../lib/providers/data-view-provider";
+export {
+	DataViewOptions,
+	type DataViewOptionsProps,
+} from "../../ui/tool-bar/data-view-options";
 // Skeleton
 export { ListSkeleton } from "./list-skeleton";

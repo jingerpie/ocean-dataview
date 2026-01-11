@@ -4,15 +4,12 @@ import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import { Input } from "@ocean-dataview/dataview/components/ui/input";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
-import type {
-	PropertyFilter,
-	PropertySort,
-} from "@ocean-dataview/shared/types";
+import type { Filter, PropertySort } from "@ocean-dataview/shared/types";
+import { normalizeFilter, removeItem } from "@ocean-dataview/shared/utils";
 import { ListFilter, Search, X } from "lucide-react";
 import * as React from "react";
+import { FilterBuilderPopover, FilterChips } from "../filter-builder";
 import { DataViewOptions } from "./data-view-options";
-import { FilterAddButton } from "./filter-add-button";
-import { FilterItem } from "./filter-item";
 import { SortList } from "./sort-list";
 
 const OPEN_MENU_SHORTCUT = "f";
@@ -23,13 +20,13 @@ interface ShopifyToolbarProps<T> extends React.ComponentProps<"div"> {
 	 */
 	properties: DataViewProperty<T>[];
 	/**
-	 * Current active filters
+	 * Current active filter (using new recursive Filter type)
 	 */
-	filters: PropertyFilter<T>[];
+	filter: Filter | null;
 	/**
-	 * Callback when filters change
+	 * Callback when filter changes
 	 */
-	onFiltersChange: (filters: PropertyFilter<T>[]) => void;
+	onFilterChange: (filter: Filter | null) => void;
 	/**
 	 * Current active sorts
 	 */
@@ -59,14 +56,6 @@ interface ShopifyToolbarProps<T> extends React.ComponentProps<"div"> {
 	 */
 	enableViewOptions?: boolean;
 	/**
-	 * Debounce delay in milliseconds for filter updates
-	 */
-	debounceMs?: number;
-	/**
-	 * Function to generate unique filter IDs
-	 */
-	generateFilterId?: () => string;
-	/**
 	 * Children to show when not in filter mode
 	 */
 	children?: React.ReactNode;
@@ -78,15 +67,14 @@ interface ShopifyToolbarProps<T> extends React.ComponentProps<"div"> {
  * Features:
  * - Toggle between children and filter mode
  * - Search input for primary properties
- * - Filter chips row with field/operator/value selectors
- * - Add filter button with Command palette
+ * - Filter chips with Notion-style filter builder popover
  * - Sort and view options buttons
- * - Keyboard shortcuts (f to open filter menu, Shift+F to remove last filter)
+ * - Keyboard shortcuts (f to open filter popover)
  */
 export function ShopifyToolbar<T>({
 	properties,
-	filters,
-	onFiltersChange,
+	filter,
+	onFilterChange,
 	sorts,
 	onSortsChange,
 	searchProperties = [],
@@ -94,14 +82,12 @@ export function ShopifyToolbar<T>({
 	enableFilters = true,
 	enableSort = true,
 	enableViewOptions = true,
-	debounceMs = 300,
-	generateFilterId = defaultGenerateFilterId,
 	children,
 	className,
 	...props
 }: ShopifyToolbarProps<T>) {
-	const id = React.useId();
 	const [showFilters, setShowFilters] = React.useState(false);
+	const [filterPopoverOpen, setFilterPopoverOpen] = React.useState(false);
 	const [searchValue, setSearchValue] = React.useState("");
 
 	// Get filterable properties (exclude primary/search columns)
@@ -118,102 +104,37 @@ export function ShopifyToolbar<T>({
 		);
 	}, [properties, searchProperties]);
 
-	// Debounced filter update
-	const debouncedFiltersChangeRef = React.useRef<ReturnType<
-		typeof setTimeout
-	> | null>(null);
-	const debouncedOnFiltersChange = React.useCallback(
-		(newFilters: PropertyFilter<T>[]) => {
-			if (debouncedFiltersChangeRef.current) {
-				clearTimeout(debouncedFiltersChangeRef.current);
-			}
-			debouncedFiltersChangeRef.current = setTimeout(() => {
-				onFiltersChange(newFilters);
-			}, debounceMs);
-		},
-		[onFiltersChange, debounceMs],
-	);
-
 	// Handle search input change
+	// TODO: Integrate search with the new Filter type
 	const handleSearch = React.useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
 			const value = e.target.value;
 			setSearchValue(value);
-
-			if (value.trim()) {
-				// Create search filters for primary columns
-				const searchFilters: PropertyFilter<T>[] = primaryProperties.map(
-					(property) => ({
-						propertyId: property.id as PropertyFilter<T>["propertyId"],
-						value: value,
-						variant: "text" as const,
-						operator: "iLike" as const,
-						filterId: `search-${property.id}`,
-					}),
-				);
-
-				// Get non-search filters
-				const nonSearchFilters = filters.filter(
-					(filter) => !filter.filterId.startsWith("search-"),
-				);
-
-				debouncedOnFiltersChange([...nonSearchFilters, ...searchFilters]);
-			} else {
-				// Remove search filters when search is cleared
-				const nonSearchFilters = filters.filter(
-					(filter) => !filter.filterId.startsWith("search-"),
-				);
-				debouncedOnFiltersChange(nonSearchFilters);
-			}
+			// Search integration with Filter type can be added later
 		},
-		[primaryProperties, filters, debouncedOnFiltersChange],
+		[],
 	);
 
-	// Handle filter update
-	const onFilterUpdate = React.useCallback(
-		(filterId: string, updates: Partial<PropertyFilter<T>>) => {
-			const updatedFilters = filters.map((filter) =>
-				filter.filterId === filterId
-					? ({ ...filter, ...updates } as PropertyFilter<T>)
-					: filter,
-			);
-			debouncedOnFiltersChange(updatedFilters);
-		},
-		[filters, debouncedOnFiltersChange],
-	);
+	// Handle chip remove - removes a specific condition by path
+	const handleChipRemove = React.useCallback(
+		(path: number[]) => {
+			const normalized = normalizeFilter(filter);
+			if (!normalized) return;
 
-	// Handle filter remove
-	const onFilterRemove = React.useCallback(
-		(filterId: string) => {
-			const updatedFilters = filters.filter(
-				(filter) => filter.filterId !== filterId,
-			);
-			onFiltersChange(updatedFilters);
+			const result = removeItem(normalized, path);
+			onFilterChange(result);
 		},
-		[filters, onFiltersChange],
-	);
-
-	// Handle filter add
-	const onFilterAdd = React.useCallback(
-		(filter: PropertyFilter<T>) => {
-			onFiltersChange([...filters, filter]);
-		},
-		[filters, onFiltersChange],
+		[filter, onFilterChange],
 	);
 
 	// Reset all filters and search
 	const onFiltersReset = React.useCallback(() => {
-		onFiltersChange([]);
+		onFilterChange(null);
 		setSearchValue("");
-	}, [onFiltersChange]);
+	}, [onFilterChange]);
 
 	// Check if there are any active filters or search
-	const hasActiveFilters = filters.length > 0 || searchValue.trim().length > 0;
-
-	// Get non-search filters for display
-	const displayFilters = filters.filter(
-		(filter) => !filter.filterId.startsWith("search-"),
-	);
+	const hasActiveFilters = filter !== null || searchValue.trim().length > 0;
 
 	// Keyboard shortcuts
 	React.useEffect(() => {
@@ -225,7 +146,7 @@ export function ShopifyToolbar<T>({
 				return;
 			}
 
-			// 'f' to toggle filter mode
+			// 'f' to toggle filter mode and open popover
 			if (
 				event.key.toLowerCase() === OPEN_MENU_SHORTCUT &&
 				!event.ctrlKey &&
@@ -234,25 +155,13 @@ export function ShopifyToolbar<T>({
 			) {
 				event.preventDefault();
 				setShowFilters(true);
-			}
-
-			// Shift+F to remove last filter
-			if (
-				event.key.toLowerCase() === OPEN_MENU_SHORTCUT &&
-				event.shiftKey &&
-				displayFilters.length > 0
-			) {
-				event.preventDefault();
-				const lastFilter = displayFilters[displayFilters.length - 1];
-				if (lastFilter) {
-					onFilterRemove(lastFilter.filterId);
-				}
+				setFilterPopoverOpen(true);
 			}
 		}
 
 		window.addEventListener("keydown", onKeyDown);
 		return () => window.removeEventListener("keydown", onKeyDown);
-	}, [displayFilters, onFilterRemove]);
+	}, []);
 
 	return (
 		<div
@@ -316,37 +225,29 @@ export function ShopifyToolbar<T>({
 				)}
 			</div>
 
-			{/* Filter chips row */}
+			{/* Filter chips row with filter builder popover */}
 			{showFilters && enableFilters && (
-				<ul className="flex list-none flex-wrap items-center gap-2">
-					{displayFilters.map((filter) => (
-						<FilterItem
-							key={filter.filterId}
-							filter={filter}
-							filterItemId={`${id}-filter-${filter.filterId}`}
-							properties={filterableProperties}
-							onFilterUpdate={onFilterUpdate}
-							onFilterRemove={onFilterRemove}
-						/>
-					))}
-					<li>
-						<FilterAddButton
-							properties={filterableProperties}
-							onFilterAdd={onFilterAdd}
-							generateFilterId={generateFilterId}
-						/>
-					</li>
-				</ul>
+				<div className="flex flex-wrap items-center gap-2">
+					{/* Filter chips showing active filters */}
+					<FilterChips
+						filter={filter}
+						properties={filterableProperties}
+						onChipRemove={handleChipRemove}
+						onClearAll={() => onFilterChange(null)}
+					/>
+
+					{/* Filter builder popover */}
+					<FilterBuilderPopover
+						properties={filterableProperties}
+						filter={filter}
+						onChange={onFilterChange}
+						open={filterPopoverOpen}
+						onOpenChange={setFilterPopoverOpen}
+					/>
+				</div>
 			)}
 		</div>
 	);
-}
-
-/**
- * Default filter ID generator
- */
-function defaultGenerateFilterId(): string {
-	return Math.random().toString(36).substring(2, 10);
 }
 
 export type { ShopifyToolbarProps };

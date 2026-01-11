@@ -595,15 +595,15 @@ export function BoardView<
 	);
 }
 
-export {
-	DataViewOptions,
-	type DataViewOptionsProps,
-} from "@ocean-dataview/dataview/components/ui/tool-bar/data-view-options";
 // Re-export from shared with view-specific aliases
 export type { DataViewContextValue as BoardContextValue } from "../../../lib/providers/data-view-context";
 export { useDataViewContext as useBoardContext } from "../../../lib/providers/data-view-context";
 export type { DataViewProviderProps as BoardProviderProps } from "../../../lib/providers/data-view-provider";
 export { DataViewProvider as BoardProvider } from "../../../lib/providers/data-view-provider";
+export {
+	DataViewOptions,
+	type DataViewOptionsProps,
+} from "../../ui/tool-bar/data-view-options";
 // Skeleton
 export { BoardSkeleton } from "./board-skeleton";
 // Note: GroupCounts and GroupCountsWithSubGroups are exported at top of file

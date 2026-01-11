@@ -8,7 +8,7 @@
 		"./lib/providers": "./src/lib/providers/index.ts",
 		"./components/*": "./src/components/*.tsx",
 		"./components/views/*": "./src/components/views/*/index.tsx",
-		"./components/ui/tool-bar": "./src/components/ui/tool-bar/index.ts",
+		"./components/ui": "./src/components/ui/index.ts",
 		"./components/**/*": "./src/components/**/*.tsx",
 		"./hooks": "./src/hooks/index.ts",
 		"./hooks/*": "./src/hooks/*.ts",

@@ -1,6 +1,6 @@
 "use client";
 
-import { DataViewOptions } from "@ocean-dataview/dataview/components/ui/tool-bar";
+import { DataViewOptions } from "@ocean-dataview/dataview/components/ui";
 import {
 	TableSkeleton,
 	TableView,

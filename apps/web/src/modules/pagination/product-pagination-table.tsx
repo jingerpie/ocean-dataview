@@ -1,11 +1,12 @@
 "use client";
 
-import { ShopifyToolbar } from "@ocean-dataview/dataview/components/ui/tool-bar";
+import { ShopifyToolbar } from "@ocean-dataview/dataview/components/ui";
 import {
 	TableSkeleton,
 	TableView,
 } from "@ocean-dataview/dataview/components/views/table-view";
 import {
+	useFilterParams,
 	usePagePagination,
 	useSortParams,
 } from "@ocean-dataview/dataview/hooks";
@@ -46,8 +47,7 @@ export function ProductPaginationTable(props: PaginationProps) {
 	const trpc = useTRPC();
 
 	// Hooks for UI state management (used by toolbar for user interactions)
-	// TODO: Re-enable when FilterBuilder UI is built
-	// const { setFilter } = useFilterParams({ filter });
+	const { setFilter } = useFilterParams();
 	const { setSort } = useSortParams<Product>({ sort });
 
 	// Query with props directly - MUST match server prefetch for cache hit
@@ -69,13 +69,13 @@ export function ProductPaginationTable(props: PaginationProps) {
 	});
 
 	// Empty state
-	if (data.items.length === 0) {
-		return (
-			<div className="flex min-h-100 items-center justify-center">
-				<p className="text-muted-foreground">No products found</p>
-			</div>
-		);
-	}
+	// if (data.items.length === 0) {
+	// 	return (
+	// 		<div className="flex min-h-100 items-center justify-center">
+	// 			<p className="text-muted-foreground">No products found</p>
+	// 		</div>
+	// 	);
+	// }
 
 	return (
 		<Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
@@ -86,13 +86,13 @@ export function ProductPaginationTable(props: PaginationProps) {
 			>
 				<ShopifyToolbar
 					properties={productProperties}
-					filters={[]} // TODO: Build FilterBuilder UI component for new filter structure
-					onFiltersChange={() => {}}
+					filter={filter}
+					onFilterChange={setFilter}
 					sorts={sort}
 					onSortsChange={setSort}
 					searchProperties={["name"]}
 					enableSearch
-					enableFilters={false} // Disabled until FilterBuilder UI is built
+					enableFilters
 					enableSort
 					enableViewOptions
 				>

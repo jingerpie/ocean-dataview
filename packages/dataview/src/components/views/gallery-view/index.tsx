@@ -264,14 +264,14 @@ export function GalleryView<
 	);
 }
 
-export {
-	DataViewOptions,
-	type DataViewOptionsProps,
-} from "@ocean-dataview/dataview/components/ui/tool-bar/data-view-options";
 // Re-export from shared with view-specific aliases
 export type { DataViewContextValue as GalleryContextValue } from "../../../lib/providers/data-view-context";
 export { useDataViewContext as useGalleryContext } from "../../../lib/providers/data-view-context";
 export type { DataViewProviderProps as GalleryProviderProps } from "../../../lib/providers/data-view-provider";
 export { DataViewProvider as GalleryProvider } from "../../../lib/providers/data-view-provider";
+export {
+	DataViewOptions,
+	type DataViewOptionsProps,
+} from "../../ui/tool-bar/data-view-options";
 // Skeleton
 export { GallerySkeleton } from "./gallery-skeleton";

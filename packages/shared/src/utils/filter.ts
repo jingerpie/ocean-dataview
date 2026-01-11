@@ -1,9 +1,5 @@
 import { dataTableConfig } from "../config/data-table";
-import type {
-	FilterOperator,
-	FilterVariant,
-	PropertyFilter,
-} from "../types/data-table.type";
+import type { FilterOperator, FilterVariant } from "../types/data-table.type";
 
 export function getFilterOperators(filterVariant: FilterVariant) {
 	const operatorMap: Record<
@@ -38,22 +34,4 @@ export function isValidOperatorForVariant(
 ): boolean {
 	const validOperators = getFilterOperators(variant);
 	return validOperators.some((op) => op.value === operator);
-}
-
-/**
- * Filters out invalid filters (empty values, except for isEmpty/isNotEmpty operators)
- */
-export function getValidFilters<TData>(
-	filters: PropertyFilter<TData>[],
-): PropertyFilter<TData>[] {
-	return filters.filter(
-		(filter) =>
-			filter.operator === "isEmpty" ||
-			filter.operator === "isNotEmpty" ||
-			(Array.isArray(filter.value)
-				? filter.value.length > 0
-				: filter.value !== "" &&
-					filter.value !== null &&
-					filter.value !== undefined),
-	);
 }

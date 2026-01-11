@@ -203,8 +203,6 @@ export type {
 	FilterCondition,
 	FilterOperator,
 	FilterVariant,
-	// Legacy types for toolbar backward compatibility
-	PropertyFilter,
 	PropertySort,
 } from "@ocean-dataview/shared/types";
 
