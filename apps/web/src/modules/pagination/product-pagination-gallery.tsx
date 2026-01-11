@@ -21,6 +21,7 @@ interface ProductPaginationGalleryProps {
 	limit: number;
 	filters?: PropertyFilter<Product>[];
 	sort?: PropertySort<Product>[];
+	joinOperator?: "and" | "or";
 }
 
 /**
@@ -31,19 +32,12 @@ interface ProductPaginationGalleryProps {
  * - URL state is shallow (no server re-render for infinite scroll)
  * - useInfinitePagination handles data flattening + pagination state
  */
-export const ProductPaginationGallery = (
-	props: ProductPaginationGalleryProps,
-) => (
-	<Suspense fallback={<GallerySkeleton cardCount={6} />}>
-		<ProductPaginationGalleryView {...props} />
-	</Suspense>
-);
-
-const ProductPaginationGalleryView = ({
+export function ProductPaginationGallery({
 	limit: defaultLimit,
 	filters = [],
 	sort = [],
-}: ProductPaginationGalleryProps) => {
+	joinOperator = "and",
+}: ProductPaginationGalleryProps) {
 	const trpc = useTRPC();
 
 	// Infinite query using TRPC infiniteQueryOptions
@@ -53,6 +47,7 @@ const ProductPaginationGalleryView = ({
 				limit: defaultLimit,
 				filters,
 				sort,
+				joinOperator,
 			},
 			{
 				getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
@@ -77,24 +72,26 @@ const ProductPaginationGalleryView = ({
 	}
 
 	return (
-		<DataViewProvider
-			data={items}
-			properties={productProperties}
-			pagination={pagination}
-		>
-			<div className="flex items-center justify-between">
-				<PaginationTabs />
-				<DataViewOptions />
-			</div>
+		<Suspense fallback={<GallerySkeleton cardCount={6} />}>
+			<DataViewProvider
+				data={items}
+				properties={productProperties}
+				pagination={pagination}
+			>
+				<div className="flex items-center justify-between">
+					<PaginationTabs />
+					<DataViewOptions />
+				</div>
 
-			<GalleryView
-				layout={{
-					cardPreview: "image",
-					cardSize: "medium",
-					fitImage: true,
-				}}
-				pagination="loadMore"
-			/>
-		</DataViewProvider>
+				<GalleryView
+					layout={{
+						cardPreview: "image",
+						cardSize: "medium",
+						fitImage: true,
+					}}
+					pagination="loadMore"
+				/>
+			</DataViewProvider>
+		</Suspense>
 	);
-};
+}

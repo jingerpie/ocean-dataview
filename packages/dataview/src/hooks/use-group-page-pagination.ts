@@ -4,7 +4,6 @@ import { parseAsCursors, parseAsExpanded } from "@ocean-dataview/shared/lib";
 import {
 	type CursorState,
 	getCursor,
-	getCursorParams,
 	removeCursor,
 	setCursor,
 } from "@ocean-dataview/shared/types";
@@ -52,10 +51,7 @@ export interface UseGroupPagePaginationOptions<
 	/** Items per page */
 	limit: number;
 	/** Factory to create query options for each group */
-	createQueryOptions: (
-		groupKey: string,
-		cursorParams: { after?: string; before?: string },
-	) => TQueryOptions;
+	createQueryOptions: (groupKey: string, cursor?: CursorState) => TQueryOptions;
 	/** Available limit options (default: [25, 50, 100, 200]) */
 	limitOptions?: number[];
 }
@@ -143,11 +139,10 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
  *     cursors,
  *     groupCounts,
  *     limit,
- *     createQueryOptions: (groupKey, { after, before }) =>
+ *     createQueryOptions: (groupKey, cursor) =>
  *       trpc.product.getMany.queryOptions({
  *         filters: [{ propertyId: "familyGroup", operator: "eq", value: groupKey }],
- *         after,
- *         before,
+ *         cursor,
  *         limit,
  *       }),
  *   });
@@ -189,10 +184,9 @@ export function useGroupPagePagination<
 	const queries = useQueries({
 		queries: allGroupKeys.map((groupKey) => {
 			const cursor = getCursor(cursors, groupKey);
-			const cursorParams = getCursorParams(cursor);
 			const isEnabled = expanded.includes(groupKey);
 
-			const options = createQueryOptions(groupKey, cursorParams);
+			const options = createQueryOptions(groupKey, cursor);
 
 			return {
 				queryKey: options.queryKey,

@@ -28,6 +28,7 @@ interface Props {
 	limit: number;
 	filters?: PropertyFilter<Product>[];
 	sort?: PropertySort<Product>[];
+	joinOperator?: "and" | "or";
 }
 
 /**
@@ -37,18 +38,13 @@ interface Props {
  * - Each group has its own "Load More" button
  * - Data accumulates client-side per group
  */
-export const ProductGroupPaginationGallery = (props: Props) => (
-	<Suspense fallback={<GallerySkeleton cardCount={6} />}>
-		<ProductGroupPaginationGalleryView {...props} />
-	</Suspense>
-);
-
-const ProductGroupPaginationGalleryView = ({
+export function ProductGroupPaginationGallery({
 	expanded: expandedProp,
 	limit,
 	filters = [],
 	sort = [],
-}: Props) => {
+	joinOperator = "and",
+}: Props) {
 	const trpc = useTRPC();
 
 	// 1. Group counts (Suspense OK - matches server prefetch)
@@ -86,6 +82,7 @@ const ProductGroupPaginationGalleryView = ({
 						],
 						sort,
 						limit,
+						joinOperator,
 					},
 					{
 						getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
@@ -103,32 +100,34 @@ const ProductGroupPaginationGalleryView = ({
 	}
 
 	return (
-		<DataViewProvider
-			data={data}
-			properties={productProperties}
-			pagination={pagination}
-		>
-			<div className="flex items-center justify-between">
-				<GroupPaginationTabs />
-				<DataViewOptions />
-			</div>
+		<Suspense fallback={<GallerySkeleton cardCount={6} />}>
+			<DataViewProvider
+				data={data}
+				properties={productProperties}
+				pagination={pagination}
+			>
+				<div className="flex items-center justify-between">
+					<GroupPaginationTabs />
+					<DataViewOptions />
+				</div>
 
-			<GalleryView
-				layout={{
-					cardPreview: "image",
-					cardSize: "medium",
-					fitImage: true,
-				}}
-				view={{
-					group: {
-						groupBy: "familyGroup",
-						showAggregation: true,
-						expandedGroups: expanded,
-						onExpandedChange: handleAccordionChange,
-					},
-				}}
-				pagination="loadMore"
-			/>
-		</DataViewProvider>
+				<GalleryView
+					layout={{
+						cardPreview: "image",
+						cardSize: "medium",
+						fitImage: true,
+					}}
+					view={{
+						group: {
+							groupBy: "familyGroup",
+							showAggregation: true,
+							expandedGroups: expanded,
+							onExpandedChange: handleAccordionChange,
+						},
+					}}
+					pagination="loadMore"
+				/>
+			</DataViewProvider>
+		</Suspense>
 	);
-};
+}

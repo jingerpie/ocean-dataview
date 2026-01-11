@@ -29,6 +29,7 @@ interface Props {
 	limit: number;
 	filters?: PropertyFilter<Product>[];
 	sort?: PropertySort<Product>[];
+	joinOperator?: "and" | "or";
 }
 
 /**
@@ -36,19 +37,14 @@ interface Props {
  *
  * Pattern: Server prefetch → Props → Client uses props for query
  */
-export const ProductGroupPaginationList = (props: Props) => (
-	<Suspense fallback={<ListSkeleton rowCount={8} />}>
-		<ProductGroupPaginationListView {...props} />
-	</Suspense>
-);
-
-const ProductGroupPaginationListView = ({
+export function ProductGroupPaginationList({
 	expanded: expandedProp,
 	cursors,
 	limit,
 	filters = [],
 	sort = [],
-}: Props) => {
+	joinOperator = "and",
+}: Props) {
 	const trpc = useTRPC();
 
 	// 1. Group counts (Suspense OK - matches server prefetch)
@@ -69,7 +65,7 @@ const ProductGroupPaginationListView = ({
 		cursors,
 		groupCounts,
 		limit,
-		createQueryOptions: (groupKey, { after, before }) =>
+		createQueryOptions: (groupKey, cursor) =>
 			trpc.product.getMany.queryOptions({
 				filters: [
 					// Group filter (always applied)
@@ -84,9 +80,9 @@ const ProductGroupPaginationListView = ({
 					...filters,
 				],
 				sort,
-				after,
-				before,
+				cursor,
 				limit,
+				joinOperator,
 			}),
 	});
 
@@ -100,27 +96,29 @@ const ProductGroupPaginationListView = ({
 	}
 
 	return (
-		<DataViewProvider
-			data={data}
-			properties={productProperties}
-			pagination={pagination}
-		>
-			<div className="flex items-center justify-between">
-				<GroupPaginationTabs />
-				<DataViewOptions />
-			</div>
+		<Suspense fallback={<ListSkeleton rowCount={8} />}>
+			<DataViewProvider
+				data={data}
+				properties={productProperties}
+				pagination={pagination}
+			>
+				<div className="flex items-center justify-between">
+					<GroupPaginationTabs />
+					<DataViewOptions />
+				</div>
 
-			<ListView
-				view={{
-					group: {
-						groupBy: "familyGroup",
-						showAggregation: true,
-						expandedGroups: expanded,
-						onExpandedChange: handleAccordionChange,
-					},
-				}}
-				pagination="page"
-			/>
-		</DataViewProvider>
+				<ListView
+					view={{
+						group: {
+							groupBy: "familyGroup",
+							showAggregation: true,
+							expandedGroups: expanded,
+							onExpandedChange: handleAccordionChange,
+						},
+					}}
+					pagination="page"
+				/>
+			</DataViewProvider>
+		</Suspense>
 	);
-};
+}

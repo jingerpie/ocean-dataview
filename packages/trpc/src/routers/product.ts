@@ -1,6 +1,9 @@
 import { db } from "@ocean-dataview/db";
 import { product } from "@ocean-dataview/db/schema/product";
-import { productSearchParamsSchema } from "@ocean-dataview/shared/types";
+import {
+	getCursorParams,
+	productSearchParamsSchema,
+} from "@ocean-dataview/shared/types";
 import { and, asc, count, desc, sql } from "drizzle-orm";
 import { z } from "zod";
 import { publicProcedure, router } from "../index";
@@ -10,8 +13,8 @@ export const productRouter = router({
 	getMany: publicProcedure
 		.input(productSearchParamsSchema)
 		.query(async ({ input }) => {
-			const { after, before, cursor, limit, filters, sort, joinOperator } =
-				input;
+			const { cursor, limit, filters, sort, joinOperator } = input;
+			const { after, before } = getCursorParams(cursor);
 
 			const advancedWhere = filterColumns({
 				table: product,
@@ -19,12 +22,9 @@ export const productRouter = router({
 				joinOperator,
 			});
 
-			// cursor is alias for after (for TRPC infiniteQueryOptions)
-			const forwardCursor = cursor ?? after;
-
 			// Determine direction - cursor is just the ID string
 			const isBackward = !!before;
-			const cursorId = before || forwardCursor;
+			const cursorId = before || after;
 
 			// Build sort columns with `id` as final tiebreaker for stable pagination
 			// The `id` tiebreaker follows the same direction as the primary sort field

@@ -10,9 +10,16 @@ import type { PropertyFilter, PropertySort } from "../types/data-table.type";
 import { type CursorState, cursorStateSchema } from "../types/pagination.type";
 import { isValidOperatorForVariant } from "../utils/filter";
 
-const DEFAULT_LIMIT = 10;
+// ============================================================================
+// Constants
+// ============================================================================
 
-// Validator for filter arrays
+const DEFAULT_LIMIT = 25;
+
+// ============================================================================
+// Validators (for NUQS JSON parsing)
+// ============================================================================
+
 const filtersValidator = (value: unknown): PropertyFilter<unknown>[] | null => {
 	if (!Array.isArray(value)) return null;
 	const operators = dataTableConfig.operators as readonly string[];
@@ -35,27 +42,6 @@ const filtersValidator = (value: unknown): PropertyFilter<unknown>[] | null => {
 	return isValid ? (value as PropertyFilter<unknown>[]) : null;
 };
 
-// Validator for sort arrays (schema-bound - validates propertyId against keys)
-const createSortValidator =
-	<T>(keys: string[]) =>
-	(value: unknown): PropertySort<T>[] | null => {
-		if (!Array.isArray(value)) return null;
-		const validKeys = new Set(keys);
-
-		const isValid = value.every(
-			(item) =>
-				typeof item === "object" &&
-				item !== null &&
-				"propertyId" in item &&
-				"desc" in item &&
-				typeof item.propertyId === "string" &&
-				typeof item.desc === "boolean" &&
-				validKeys.has(item.propertyId),
-		);
-		return isValid ? (value as PropertySort<T>[]) : null;
-	};
-
-// Generic sort validator (no schema validation - accepts any propertyId)
 const sortValidator = (value: unknown): PropertySort<unknown>[] | null => {
 	if (!Array.isArray(value)) return null;
 
@@ -71,27 +57,29 @@ const sortValidator = (value: unknown): PropertySort<unknown>[] | null => {
 	return isValid ? (value as PropertySort<unknown>[]) : null;
 };
 
-// Validator for cursors array (unified pagination state)
 const cursorsValidator = (value: unknown): CursorState[] | null => {
 	if (!Array.isArray(value)) return null;
 	const result = z.array(cursorStateSchema).safeParse(value);
 	return result.success ? result.data : null;
 };
 
-// Validator for expanded array (group expansion state)
 const expandedValidator = (value: unknown): string[] | null => {
 	if (!Array.isArray(value)) return null;
 	return value.every((v) => typeof v === "string") ? (value as string[]) : null;
 };
 
+// ============================================================================
+// 1. TRPC Zod Schema (for input validation)
+// ============================================================================
+
 /**
- * Creates a Zod schema for search params validation (for TRPC input).
- * Uses cursor-based pagination with after/before cursors.
+ * Creates a Zod schema for TRPC input validation.
+ * Schema-bound: validates propertyId against entity keys.
  *
  * @example
  * ```ts
- * const listingSearchParamsSchema = createSearchParamsSchema(selectListingSchema);
- * // Use with TRPC: .input(listingSearchParamsSchema)
+ * const productSearchParamsSchema = createSearchParamsSchema(selectProductSchema);
+ * // Use with TRPC: .input(productSearchParamsSchema)
  * ```
  */
 export const createSearchParamsSchema = <T extends z.ZodRawShape>(
@@ -121,142 +109,33 @@ export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 		desc: z.boolean(),
 	});
 
-	const baseSchema = z.object({
-		after: z.coerce.string().nullish(), // Forward cursor (coerce number to string)
-		before: z.coerce.string().nullish(), // Backward cursor (coerce number to string)
-		cursor: z.coerce.string().nullish(), // Alias for after (for TRPC infiniteQueryOptions)
+	return z.object({
+		// Cursor: CursorState object (page-based) or string (infinite queries)
+		cursor: z.union([cursorStateSchema, z.string()]).optional(),
 		limit: z.number().int().min(1).max(200).default(DEFAULT_LIMIT),
 		filters: z.array(filterSchema).default([]),
 		sort: z.array(sortSchema).default([]),
 		joinOperator: z.enum(["and", "or"]).default("and"),
 	});
-
-	// Return an object that IS the schema but also has an extend method
-	const schemaWithExtends = Object.assign(baseSchema, {
-		extend<E extends z.ZodRawShape>(extension: E) {
-			return baseSchema.merge(z.object(extension));
-		},
-	});
-
-	return schemaWithExtends;
-};
-
-/**
- * Creates a NUQS search params cache for cursor-based pagination.
- * Use this for parsing URL search params in Server Components.
- *
- * @example
- * ```ts
- * // Create cache
- * const listingSearchParamsCache = createSearchParamsParsers(selectListingSchema);
- *
- * // In Server Component
- * const params = await listingSearchParamsCache.parse(searchParams);
- * ```
- */
-export const createSearchParamsParsers = <T extends z.ZodRawShape>(
-	schema: z.ZodObject<T>,
-) => {
-	const keys = Object.keys(schema.shape) as Array<Extract<keyof T, string>>;
-	type Schema = z.infer<typeof schema>;
-
-	const baseType = {
-		// Unified pagination (replaces after/before AND cursor/dir/start)
-		cursors: parseAsJson(cursorsValidator).withDefault([]),
-		limit: parseAsInteger.withDefault(DEFAULT_LIMIT),
-
-		// Expansion state (null = use default, [] = explicit empty)
-		expanded: parseAsJson(expandedValidator),
-
-		// Filters & Sort
-		filters: parseAsJson(filtersValidator).withDefault([]),
-		sort: parseAsJson(createSortValidator<Schema>(keys)).withDefault([]),
-		joinOperator: createParser({
-			parse: (v) => (v === "and" || v === "or" ? v : "and") as "and" | "or",
-			serialize: (v) => v,
-		}).withDefault("and" as const),
-	};
-
-	return createSearchParamsCache(baseType);
 };
 
 // ============================================================================
-// Client-side parsers for nuqs updates
+// 2. Server-side NUQS Parser (for URL params in RSC)
 // ============================================================================
 
 /**
- * Generic JSON array parser for client-side nuqs state
- */
-export const parseAsJsonArray = <T>() =>
-	createParser({
-		parse: (value: string) => {
-			try {
-				const parsed = JSON.parse(value);
-				return Array.isArray(parsed) ? (parsed as T[]) : null;
-			} catch {
-				return null;
-			}
-		},
-		serialize: (value: T[]) => JSON.stringify(value),
-	});
-
-/**
- * Client-side parser for cursors array
- */
-export const parseAsCursors = parseAsJsonArray<CursorState>();
-
-/**
- * Client-side parser for expanded array
- */
-export const parseAsExpanded = parseAsJsonArray<string>();
-
-// ============================================================================
-// Unified Pagination Params
-// ============================================================================
-
-const DEFAULT_PAGINATION_LIMIT = 25;
-
-/**
- * Unified pagination params - works for both flat and grouped pagination.
- *
- * For flat pagination:
- * - cursors: single item with key "$all" e.g. [{ key: "$all", cursor: "abc", dir: "after" }]
- * - expanded: null (not used)
- *
- * For grouped pagination:
- * - cursors: per-group items e.g. [{ key: "Electronics", cursor: "xyz", dir: "after" }]
- * - expanded: array of expanded group keys e.g. ["Electronics", "Furniture"]
+ * Unified DataView params for server-side URL parsing.
+ * Use in Server Components to parse searchParams.
  *
  * @example
  * ```ts
- * // In Server Component
- * const params = await paginationParams.parse(searchParams);
- * const { cursors, expanded, limit } = params;
+ * const { cursors, limit, filters, sort, expanded } = await dataViewParams.parse(searchParams);
  * ```
  */
-export const paginationParams = createSearchParamsCache({
+export const dataViewParams = createSearchParamsCache({
 	cursors: parseAsJson(cursorsValidator).withDefault([]),
-	expanded: parseAsJson(expandedValidator), // null = flat or use default
-	limit: parseAsInteger.withDefault(DEFAULT_PAGINATION_LIMIT),
-});
-
-/**
- * Filter & Sort params - global state (not per-group).
- *
- * These apply uniformly to the entire dataset:
- * - filters: array of PropertyFilter objects
- * - sort: array of PropertySort objects (multi-column support)
- * - joinOperator: "and" | "or" for combining filters
- * - search: free-text search string
- *
- * @example
- * ```ts
- * // In Server Component
- * const params = await filterSortParams.parse(searchParams);
- * const { filters, sort, joinOperator, search } = params;
- * ```
- */
-export const filterSortParams = createSearchParamsCache({
+	expanded: parseAsJson(expandedValidator),
+	limit: parseAsInteger.withDefault(DEFAULT_LIMIT),
 	filters: parseAsJson(filtersValidator).withDefault([]),
 	sort: parseAsJson(sortValidator).withDefault([]),
 	joinOperator: createParser({
@@ -270,15 +149,30 @@ export const filterSortParams = createSearchParamsCache({
 });
 
 // ============================================================================
-// Client-side typed parsers for filter/sort
+// 3. Client-side Parsers (for hooks with useQueryState)
 // ============================================================================
 
-/**
- * Client-side parser for filters array
- */
+const parseAsJsonArray = <T>() =>
+	createParser({
+		parse: (value: string) => {
+			try {
+				const parsed = JSON.parse(value);
+				return Array.isArray(parsed) ? (parsed as T[]) : null;
+			} catch {
+				return null;
+			}
+		},
+		serialize: (value: T[]) => JSON.stringify(value),
+	});
+
+/** Client-side parser for cursors array */
+export const parseAsCursors = parseAsJsonArray<CursorState>();
+
+/** Client-side parser for expanded groups array */
+export const parseAsExpanded = parseAsJsonArray<string>();
+
+/** Client-side parser for filters array */
 export const parseAsFilters = parseAsJsonArray<PropertyFilter<unknown>>();
 
-/**
- * Client-side parser for sort array
- */
+/** Client-side parser for sort array */
 export const parseAsSort = parseAsJsonArray<PropertySort<unknown>>();

@@ -29,6 +29,7 @@ interface Props {
 	limit: number;
 	filters?: PropertyFilter<Product>[];
 	sort?: PropertySort<Product>[];
+	joinOperator?: "and" | "or";
 }
 
 /**
@@ -40,19 +41,14 @@ interface Props {
  * - Client uses useQueries with enabled flag for group data
  * - useGroupPagePagination builds data + pagination + handleAccordionChange
  */
-export const ProductGroupPaginationTable = (props: Props) => (
-	<Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
-		<ProductGroupPaginationTableView {...props} />
-	</Suspense>
-);
-
-const ProductGroupPaginationTableView = ({
+export function ProductGroupPaginationTable({
 	expanded: expandedProp,
 	cursors,
 	limit,
 	filters = [],
 	sort = [],
-}: Props) => {
+	joinOperator = "and",
+}: Props) {
 	const trpc = useTRPC();
 
 	// 1. Group counts (Suspense OK - matches server prefetch)
@@ -73,7 +69,7 @@ const ProductGroupPaginationTableView = ({
 		cursors,
 		groupCounts,
 		limit,
-		createQueryOptions: (groupKey, { after, before }) =>
+		createQueryOptions: (groupKey, cursor) =>
 			trpc.product.getMany.queryOptions({
 				filters: [
 					// Group filter (always applied)
@@ -88,9 +84,9 @@ const ProductGroupPaginationTableView = ({
 					...filters,
 				],
 				sort,
-				after,
-				before,
+				cursor,
 				limit,
+				joinOperator,
 			}),
 	});
 
@@ -104,28 +100,30 @@ const ProductGroupPaginationTableView = ({
 	}
 
 	return (
-		<DataViewProvider
-			data={data}
-			properties={productProperties}
-			pagination={pagination}
-		>
-			<div className="flex items-center justify-between">
-				<GroupPaginationTabs />
-				<DataViewOptions />
-			</div>
+		<Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
+			<DataViewProvider
+				data={data}
+				properties={productProperties}
+				pagination={pagination}
+			>
+				<div className="flex items-center justify-between">
+					<GroupPaginationTabs />
+					<DataViewOptions />
+				</div>
 
-			<TableView
-				view={{
-					group: {
-						groupBy: "familyGroup",
-						showAggregation: true,
-						expandedGroups: expanded,
-						onExpandedChange: handleAccordionChange,
-					},
-				}}
-				layout={{ showVerticalLines: false, wrapAllColumns: false }}
-				pagination="page"
-			/>
-		</DataViewProvider>
+				<TableView
+					view={{
+						group: {
+							groupBy: "familyGroup",
+							showAggregation: true,
+							expandedGroups: expanded,
+							onExpandedChange: handleAccordionChange,
+						},
+					}}
+					layout={{ showVerticalLines: false, wrapAllColumns: false }}
+					pagination="page"
+				/>
+			</DataViewProvider>
+		</Suspense>
 	);
-};
+}

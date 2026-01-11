@@ -24,6 +24,7 @@ interface Props {
 	limit: number;
 	filters?: PropertyFilter<Product>[];
 	sort?: PropertySort<Product>[];
+	joinOperator?: "and" | "or";
 }
 
 /**
@@ -32,17 +33,12 @@ interface Props {
  * Unlike Table/List/Gallery, BoardView columns are always visible (no accordion).
  * All group keys are always "expanded" so all columns fetch data.
  */
-export const ProductGroupPaginationBoard = (props: Props) => (
-	<Suspense fallback={<BoardSkeleton columnCount={4} />}>
-		<ProductGroupPaginationBoardView {...props} />
-	</Suspense>
-);
-
-const ProductGroupPaginationBoardView = ({
+export function ProductGroupPaginationBoard({
 	limit,
 	filters = [],
 	sort = [],
-}: Props) => {
+	joinOperator = "and",
+}: Props) {
 	const trpc = useTRPC();
 
 	// 1. Fetch group counts
@@ -76,6 +72,7 @@ const ProductGroupPaginationBoardView = ({
 					],
 					sort,
 					limit,
+					joinOperator,
 				},
 				{
 					getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
@@ -93,23 +90,25 @@ const ProductGroupPaginationBoardView = ({
 	}
 
 	return (
-		<DataViewProvider
-			data={data}
-			properties={productProperties}
-			pagination={pagination}
-		>
-			<div className="flex items-center justify-between">
-				<GroupPaginationTabs />
-				<DataViewOptions />
-			</div>
+		<Suspense fallback={<BoardSkeleton columnCount={4} />}>
+			<DataViewProvider
+				data={data}
+				properties={productProperties}
+				pagination={pagination}
+			>
+				<div className="flex items-center justify-between">
+					<GroupPaginationTabs />
+					<DataViewOptions />
+				</div>
 
-			<BoardView
-				view={{
-					group: { groupBy: "familyGroup", showAggregation: true },
-				}}
-				counts={groupCounts}
-				pagination="loadMore"
-			/>
-		</DataViewProvider>
+				<BoardView
+					view={{
+						group: { groupBy: "familyGroup", showAggregation: true },
+					}}
+					counts={groupCounts}
+					pagination="loadMore"
+				/>
+			</DataViewProvider>
+		</Suspense>
 	);
-};
+}

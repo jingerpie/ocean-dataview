@@ -1,11 +1,11 @@
 export {
-	createSearchParamsParsers,
+	// TRPC zod schema
 	createSearchParamsSchema,
-	filterSortParams,
-	paginationParams,
+	// Server-side NUQS parser
+	dataViewParams,
+	// Client-side parsers
 	parseAsCursors,
 	parseAsExpanded,
 	parseAsFilters,
-	parseAsJsonArray,
 	parseAsSort,
 } from "./search-params";

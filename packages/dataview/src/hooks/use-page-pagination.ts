@@ -82,10 +82,9 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
  * const ProductTable = ({ cursors, limit }: Props) => {
  *   const trpc = useTRPC();
  *   const cursor = getCursor(cursors, ALL_GROUP);
- *   const { after, before } = getCursorParams(cursor);
  *
  *   const { data } = useSuspenseQuery(
- *     trpc.product.getMany.queryOptions({ after, before, limit }),
+ *     trpc.product.getMany.queryOptions({ cursor, limit }),
  *   );
  *
  *   const pagination = usePagePagination({ cursors, limit, data });

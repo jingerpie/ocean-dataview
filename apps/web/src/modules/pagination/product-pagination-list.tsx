@@ -21,6 +21,7 @@ interface ProductPaginationListProps {
 	limit: number;
 	filters?: PropertyFilter<Product>[];
 	sort?: PropertySort<Product>[];
+	joinOperator?: "and" | "or";
 }
 
 /**
@@ -31,17 +32,12 @@ interface ProductPaginationListProps {
  * - URL state is shallow (no server re-render for infinite scroll)
  * - useInfinitePagination handles data flattening + pagination state
  */
-export const ProductPaginationList = (props: ProductPaginationListProps) => (
-	<Suspense fallback={<ListSkeleton rowCount={8} />}>
-		<ProductPaginationListView {...props} />
-	</Suspense>
-);
-
-const ProductPaginationListView = ({
+export function ProductPaginationList({
 	limit: defaultLimit,
 	filters = [],
 	sort = [],
-}: ProductPaginationListProps) => {
+	joinOperator = "and",
+}: ProductPaginationListProps) {
 	const trpc = useTRPC();
 
 	// Infinite query using TRPC infiniteQueryOptions
@@ -51,6 +47,7 @@ const ProductPaginationListView = ({
 				limit: defaultLimit,
 				filters,
 				sort,
+				joinOperator,
 			},
 			{
 				getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
@@ -75,17 +72,19 @@ const ProductPaginationListView = ({
 	}
 
 	return (
-		<DataViewProvider
-			data={items}
-			properties={productProperties}
-			pagination={pagination}
-		>
-			<div className="flex items-center justify-between">
-				<PaginationTabs />
-				<DataViewOptions />
-			</div>
+		<Suspense fallback={<ListSkeleton rowCount={8} />}>
+			<DataViewProvider
+				data={items}
+				properties={productProperties}
+				pagination={pagination}
+			>
+				<div className="flex items-center justify-between">
+					<PaginationTabs />
+					<DataViewOptions />
+				</div>
 
-			<ListView pagination="loadMore" />
-		</DataViewProvider>
+				<ListView pagination="loadMore" />
+			</DataViewProvider>
+		</Suspense>
 	);
-};
+}

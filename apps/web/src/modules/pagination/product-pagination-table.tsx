@@ -15,7 +15,6 @@ import {
 	ALL_GROUP,
 	type CursorState,
 	getCursor,
-	getCursorParams,
 	type PropertyFilter,
 	type PropertySort,
 } from "@ocean-dataview/shared/types";
@@ -33,6 +32,7 @@ interface PaginationProps {
 	limit: number;
 	filters?: PropertyFilter<Product>[];
 	sort?: PropertySort<Product>[];
+	joinOperator?: "and" | "or";
 }
 
 /**
@@ -42,40 +42,34 @@ interface PaginationProps {
  * - Server parses URL, prefetches, passes props
  * - Client uses useSuspenseQuery with props (matches server prefetch = cache hit)
  * - usePagePagination handles URL updates (shallow: false)
+ *
+ * NOTE: No Suspense wrapper - matches turboitem pattern where void prefetch works
  */
-export const ProductPaginationTable = (props: PaginationProps) => (
-	<Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
-		<ProductPaginationTableView {...props} />
-	</Suspense>
-);
-
-const ProductPaginationTableView = (props: PaginationProps) => {
+export function ProductPaginationTable(props: PaginationProps) {
 	const {
 		cursors,
 		limit,
-		filters: initialFilters = [],
-		sort: initialSort = [],
+		filters = [],
+		sort = [],
+		joinOperator = "and",
 	} = props;
 	const trpc = useTRPC();
 
-	// Filter and sort state from URL
-	const { filters, setFilters } = useFilterParams<Product>({
-		filters: initialFilters,
-	});
-	const { sort, setSort } = useSortParams<Product>({ sort: initialSort });
+	// Hooks for UI state management (used by toolbar for user interactions)
+	const { setFilters } = useFilterParams<Product>({ filters });
+	const { setSort } = useSortParams<Product>({ sort });
 
-	// Extract cursor params for flat pagination
+	// Extract cursor for flat pagination
 	const cursor = getCursor(cursors, ALL_GROUP);
-	const { after, before } = getCursorParams(cursor);
 
-	// Query with current filters/sort from URL
+	// Query with props directly - MUST match server prefetch for cache hit
 	const { data } = useSuspenseQuery(
 		trpc.product.getMany.queryOptions({
-			after,
-			before,
+			cursor,
 			limit,
 			filters,
 			sort,
+			joinOperator,
 		}),
 	);
 
@@ -97,30 +91,31 @@ const ProductPaginationTableView = (props: PaginationProps) => {
 	}
 
 	return (
-		<DataViewProvider
-			data={data.items}
-			properties={productProperties}
-			pagination={pagination}
-		>
-			<ShopifyToolbar
+		<Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
+			<DataViewProvider
+				data={data.items}
 				properties={productProperties}
-				filters={filters}
-				onFiltersChange={setFilters}
-				sorts={sort}
-				onSortsChange={setSort}
-				searchProperties={["name"]}
-				enableSearch
-				enableFilters
-				enableSort
-				enableViewOptions
+				pagination={pagination}
 			>
-				<PaginationTabs />
-			</ShopifyToolbar>
-
-			<TableView
-				layout={{ showVerticalLines: false, wrapAllColumns: false }}
-				pagination="page"
-			/>
-		</DataViewProvider>
+				<ShopifyToolbar
+					properties={productProperties}
+					filters={filters}
+					onFiltersChange={setFilters}
+					sorts={sort}
+					onSortsChange={setSort}
+					searchProperties={["name"]}
+					enableSearch
+					enableFilters
+					enableSort
+					enableViewOptions
+				>
+					<PaginationTabs />
+				</ShopifyToolbar>
+				<TableView
+					layout={{ showVerticalLines: false, wrapAllColumns: false }}
+					pagination="page"
+				/>
+			</DataViewProvider>
+		</Suspense>
 	);
-};
+}

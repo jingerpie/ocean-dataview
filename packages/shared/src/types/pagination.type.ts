@@ -64,12 +64,18 @@ export function removeCursor(
 }
 
 /**
- * Extract after/before for API call (matches TRPC's .nullish())
+ * Extract after/before for API call.
+ * Handles both formats:
+ * - CursorState object: extracts after/before from object
+ * - string: treats as forward cursor (after)
  */
-export function getCursorParams(cursor: CursorState | undefined): {
+export function getCursorParams(cursor: CursorState | string | undefined): {
 	after: string | undefined;
 	before: string | undefined;
 } {
+	if (typeof cursor === "string") {
+		return { after: cursor, before: undefined };
+	}
 	return {
 		after: cursor?.after,
 		before: cursor?.before,
