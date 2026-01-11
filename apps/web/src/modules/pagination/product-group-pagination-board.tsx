@@ -7,10 +7,7 @@ import {
 } from "@ocean-dataview/dataview/components/views/board-view";
 import { useGroupInfinitePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
-import type {
-	PropertyFilter,
-	PropertySort,
-} from "@ocean-dataview/shared/types";
+import type { Filter, PropertySort } from "@ocean-dataview/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
@@ -22,9 +19,28 @@ import {
 
 interface Props {
 	limit: number;
-	filters?: PropertyFilter<Product>[];
+	filter?: Filter | null;
 	sort?: PropertySort<Product>[];
-	joinOperator?: "and" | "or";
+}
+
+/**
+ * Combines group filter with user filter using AND logic.
+ */
+function combineFilters(groupKey: string, userFilter: Filter | null): Filter {
+	const groupFilter: Filter = {
+		property: "familyGroup",
+		operator: "eq",
+		value: groupKey,
+	};
+
+	if (!userFilter) {
+		return groupFilter;
+	}
+
+	// Combine with AND logic
+	return {
+		and: [groupFilter, userFilter],
+	};
 }
 
 /**
@@ -35,9 +51,8 @@ interface Props {
  */
 export function ProductGroupPaginationBoard({
 	limit,
-	filters = [],
+	filter = null,
 	sort = [],
-	joinOperator = "and",
 }: Props) {
 	const trpc = useTRPC();
 
@@ -58,21 +73,9 @@ export function ProductGroupPaginationBoard({
 		createQueryOptions: (groupKey) =>
 			trpc.product.getMany.infiniteQueryOptions(
 				{
-					filters: [
-						// Group filter (always applied)
-						{
-							propertyId: "familyGroup",
-							operator: "eq",
-							value: groupKey,
-							variant: "select",
-							filterId: "familyGroup-group",
-						},
-						// User filters from URL
-						...filters,
-					],
+					filter: combineFilters(groupKey, filter),
 					sort,
 					limit,
-					joinOperator,
 				},
 				{
 					getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,

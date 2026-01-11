@@ -7,11 +7,7 @@ import type {
 	PropertySort,
 } from "@ocean-dataview/shared/types";
 import { type ReactNode, useMemo } from "react";
-import {
-	useFilterParams,
-	useSearchParams,
-	useSortParams,
-} from "../../../hooks";
+import { useSearchParams, useSortParams } from "../../../hooks";
 import { type FilterDefinition, FilterDropdown } from "./filter-dropdown";
 import { SearchBar } from "./search-bar";
 import { SortDropdown, type SortOption } from "./sort-dropdown";
@@ -182,11 +178,12 @@ export function DataViewToolbar<T = unknown>({
 	// URL state management with initial values from server
 	const [search, setSearch] = useSearchParams();
 	const { sort, setSort } = useSortParams<T>({ sort: initialSort });
-	const { filters, setFilter, removeFilter, clearFilters } = useFilterParams<T>(
-		{
-			filters: initialFilters,
-		},
-	);
+	// TODO: Re-enable when FilterBuilder UI is built for new filter structure
+	// const { filters, setFilter, removeFilter, clearFilters } = useFilterParams({ filter: null });
+	const filters: PropertyFilter<T>[] = [];
+	const setFilter = () => {};
+	const removeFilter = () => {};
+	const clearFilters = () => {};
 
 	const hasAnyControls = enableSearch || enableFilters || enableSort || actions;
 

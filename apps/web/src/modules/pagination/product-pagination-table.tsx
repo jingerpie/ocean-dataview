@@ -6,14 +6,13 @@ import {
 	TableView,
 } from "@ocean-dataview/dataview/components/views/table-view";
 import {
-	useFilterParams,
 	usePagePagination,
 	useSortParams,
 } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
 import type {
 	CursorValue,
-	PropertyFilter,
+	Filter,
 	PropertySort,
 } from "@ocean-dataview/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -28,9 +27,8 @@ import { type Product, productProperties } from "./product-properties";
 interface PaginationProps {
 	cursor?: CursorValue | null;
 	limit: number;
-	filters?: PropertyFilter<Product>[];
+	filter?: Filter | null;
 	sort?: PropertySort<Product>[];
-	joinOperator?: "and" | "or";
 }
 
 /**
@@ -44,17 +42,12 @@ interface PaginationProps {
  * NOTE: No Suspense wrapper - matches turboitem pattern where void prefetch works
  */
 export function ProductPaginationTable(props: PaginationProps) {
-	const {
-		cursor,
-		limit,
-		filters = [],
-		sort = [],
-		joinOperator = "and",
-	} = props;
+	const { cursor, limit, filter = null, sort = [] } = props;
 	const trpc = useTRPC();
 
 	// Hooks for UI state management (used by toolbar for user interactions)
-	const { setFilters } = useFilterParams<Product>({ filters });
+	// TODO: Re-enable when FilterBuilder UI is built
+	// const { setFilter } = useFilterParams({ filter });
 	const { setSort } = useSortParams<Product>({ sort });
 
 	// Query with props directly - MUST match server prefetch for cache hit
@@ -62,9 +55,8 @@ export function ProductPaginationTable(props: PaginationProps) {
 		trpc.product.getMany.queryOptions({
 			cursor,
 			limit,
-			filters,
+			filter,
 			sort,
-			joinOperator,
 		}),
 	);
 
@@ -94,13 +86,13 @@ export function ProductPaginationTable(props: PaginationProps) {
 			>
 				<ShopifyToolbar
 					properties={productProperties}
-					filters={filters}
-					onFiltersChange={setFilters}
+					filters={[]} // TODO: Build FilterBuilder UI component for new filter structure
+					onFiltersChange={() => {}}
 					sorts={sort}
 					onSortsChange={setSort}
 					searchProperties={["name"]}
 					enableSearch
-					enableFilters
+					enableFilters={false} // Disabled until FilterBuilder UI is built
 					enableSort
 					enableViewOptions
 				>

@@ -7,10 +7,7 @@ import {
 } from "@ocean-dataview/dataview/components/views/gallery-view";
 import { useGroupInfinitePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
-import type {
-	PropertyFilter,
-	PropertySort,
-} from "@ocean-dataview/shared/types";
+import type { Filter, PropertySort } from "@ocean-dataview/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
@@ -20,15 +17,31 @@ import { type Product, productProperties } from "./product-properties";
 const DEFAULT_EXPANDED: string[] = [];
 
 /**
+ * Combines group filter with user filter using AND logic.
+ */
+function combineFilters(groupKey: string, userFilter: Filter | null): Filter {
+	const groupFilter: Filter = {
+		property: "familyGroup",
+		operator: "eq",
+		value: groupKey,
+	};
+
+	if (!userFilter) {
+		return groupFilter;
+	}
+
+	return { and: [groupFilter, userFilter] };
+}
+
+/**
  * Props passed from server (parsed URL params)
  */
 interface Props {
 	expanded: string[] | null;
 	cursors: unknown; // Not used for infinite pagination, but passed from page
 	limit: number;
-	filters?: PropertyFilter<Product>[];
+	filter?: Filter | null;
 	sort?: PropertySort<Product>[];
-	joinOperator?: "and" | "or";
 }
 
 /**
@@ -41,9 +54,8 @@ interface Props {
 export function ProductGroupPaginationGallery({
 	expanded: expandedProp,
 	limit,
-	filters = [],
+	filter = null,
 	sort = [],
-	joinOperator = "and",
 }: Props) {
 	const trpc = useTRPC();
 
@@ -68,21 +80,9 @@ export function ProductGroupPaginationGallery({
 			createQueryOptions: (groupKey) =>
 				trpc.product.getMany.infiniteQueryOptions(
 					{
-						filters: [
-							// Group filter (always applied)
-							{
-								propertyId: "familyGroup",
-								operator: "eq",
-								value: groupKey,
-								variant: "select",
-								filterId: "familyGroup-group",
-							},
-							// User filters from URL
-							...filters,
-						],
+						filter: combineFilters(groupKey, filter),
 						sort,
 						limit,
-						joinOperator,
 					},
 					{
 						getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,

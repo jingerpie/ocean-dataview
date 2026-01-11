@@ -1,5 +1,5 @@
 // Property Type System - Notion-style property definitions
-import type { PropertyFilter } from "@ocean-dataview/shared/types";
+import type { Filter } from "@ocean-dataview/shared/types";
 
 export type PropertyType =
 	| "text"
@@ -198,7 +198,12 @@ export type PropertyKeys<T extends readonly DataViewProperty<any>[]> =
 
 // Re-export filter types from shared package for unified system
 export type {
+	CompoundFilter,
+	Filter,
+	FilterCondition,
 	FilterOperator,
+	FilterVariant,
+	// Legacy types for toolbar backward compatibility
 	PropertyFilter,
 	PropertySort,
 } from "@ocean-dataview/shared/types";
@@ -216,7 +221,7 @@ export interface ViewConfig<
 > {
 	properties: TProperties;
 	propertyVisibility?: PropertyKeys<TProperties>[];
-	filters?: PropertyFilter<T>[];
+	filter?: Filter | null;
 	sort?: SortConfig<T>;
 	groupBy?: keyof T;
 	searchQuery?: string;

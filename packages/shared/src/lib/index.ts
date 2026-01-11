@@ -8,6 +8,6 @@ export {
 	parseAsCursor, // flat pagination
 	parseAsCursors, // grouped pagination
 	parseAsExpanded,
-	parseAsFilters,
+	parseAsFilter, // new filter (recursive AND/OR)
 	parseAsSort,
 } from "./search-params";

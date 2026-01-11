@@ -7,20 +7,16 @@ import {
 import { and, asc, count, desc, sql } from "drizzle-orm";
 import { z } from "zod";
 import { publicProcedure, router } from "../index";
-import { filterColumns } from "../lib/filter-columns";
+import { buildWhere } from "../lib/filter-columns";
 
 export const productRouter = router({
 	getMany: publicProcedure
 		.input(productSearchParamsSchema)
 		.query(async ({ input }) => {
-			const { cursor, limit, filters, sort, joinOperator } = input;
-			const { after, before } = getCursorParams(cursor);
+			const { cursor, limit, filter, sort } = input;
+			const { after, before } = getCursorParams(cursor ?? undefined);
 
-			const advancedWhere = filterColumns({
-				table: product,
-				filters,
-				joinOperator,
-			});
+			const advancedWhere = buildWhere(product, filter);
 
 			// Determine direction - cursor is just the ID string
 			const isBackward = !!before;

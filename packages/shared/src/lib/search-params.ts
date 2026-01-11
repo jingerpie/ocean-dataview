@@ -5,15 +5,17 @@ import {
 	parseAsJson,
 } from "nuqs/server";
 import { z } from "zod";
-import { dataTableConfig } from "../config/data-table";
-import type { PropertyFilter, PropertySort } from "../types/data-table.type";
+import {
+	type Filter,
+	filterSchema,
+	type PropertySort,
+} from "../types/data-table.type";
 import {
 	type Cursors,
 	type CursorValue,
 	cursorsSchema,
 	cursorValueSchema,
 } from "../types/pagination.type";
-import { isValidOperatorForVariant } from "../utils/filter";
 
 // ============================================================================
 // Constants
@@ -25,26 +27,9 @@ const DEFAULT_LIMIT = 25;
 // Validators (for NUQS JSON parsing)
 // ============================================================================
 
-const filtersValidator = (value: unknown): PropertyFilter<unknown>[] | null => {
-	if (!Array.isArray(value)) return null;
-	const operators = dataTableConfig.operators as readonly string[];
-	const variants = dataTableConfig.filterVariants as readonly string[];
-
-	const isValid = value.every(
-		(item) =>
-			typeof item === "object" &&
-			item !== null &&
-			"propertyId" in item &&
-			"value" in item &&
-			"variant" in item &&
-			"operator" in item &&
-			"filterId" in item &&
-			typeof item.propertyId === "string" &&
-			typeof item.filterId === "string" &&
-			operators.includes(item.operator as string) &&
-			variants.includes(item.variant as string),
-	);
-	return isValid ? (value as PropertyFilter<unknown>[]) : null;
+const filterValidator = (value: unknown): Filter | null => {
+	const result = filterSchema.safeParse(value);
+	return result.success ? result.data : null;
 };
 
 const sortValidator = (value: unknown): PropertySort<unknown>[] | null => {
@@ -100,21 +85,6 @@ export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 ) => {
 	const keys = Object.keys(schema.shape) as Array<Extract<keyof T, string>>;
 
-	const filterSchema = z
-		.object({
-			propertyId: z.enum(
-				keys as [Extract<keyof T, string>, ...Extract<keyof T, string>[]],
-			),
-			value: z.union([z.string(), z.array(z.string())]),
-			variant: z.enum(dataTableConfig.filterVariants),
-			operator: z.enum(dataTableConfig.operators),
-			filterId: z.string(),
-		})
-		.refine(
-			(filter) => isValidOperatorForVariant(filter.operator, filter.variant),
-			{ message: "Invalid operator for filter variant" },
-		);
-
 	const sortSchema = z.object({
 		propertyId: z.enum(
 			keys as [Extract<keyof T, string>, ...Extract<keyof T, string>[]],
@@ -127,9 +97,9 @@ export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 		// Using nullish() to accept null from NUQS parsers
 		cursor: z.union([cursorValueSchema, z.string()]).nullish(),
 		limit: z.number().int().min(1).max(200).default(DEFAULT_LIMIT),
-		filters: z.array(filterSchema).default([]),
+		// New filter structure: single object with recursive AND/OR
+		filter: filterSchema.nullish(),
 		sort: z.array(sortSchema).default([]),
-		joinOperator: z.enum(["and", "or"]).default("and"),
 	});
 };
 
@@ -140,12 +110,8 @@ export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 // Shared parsers used by both flat and grouped pagination
 const sharedParsers = {
 	limit: parseAsInteger.withDefault(DEFAULT_LIMIT),
-	filters: parseAsJson(filtersValidator).withDefault([]),
+	filter: parseAsJson(filterValidator), // Single filter object (recursive AND/OR)
 	sort: parseAsJson(sortValidator).withDefault([]),
-	joinOperator: createParser({
-		parse: (v) => (v === "and" || v === "or" ? v : "and") as "and" | "or",
-		serialize: (v) => v,
-	}).withDefault("and" as const),
 	search: createParser({
 		parse: (v) => (typeof v === "string" ? v : ""),
 		serialize: (v) => v,
@@ -158,7 +124,7 @@ const sharedParsers = {
  *
  * @example
  * ```ts
- * const { cursor, limit, filters, sort } = paginationParams.parse(searchParams);
+ * const { cursor, limit, filter, sort } = paginationParams.parse(searchParams);
  * ```
  */
 export const paginationParams = createSearchParamsCache({
@@ -172,7 +138,7 @@ export const paginationParams = createSearchParamsCache({
  *
  * @example
  * ```ts
- * const { cursors, expanded, limit, filters, sort } = groupPaginationParams.parse(searchParams);
+ * const { cursors, expanded, limit, filter, sort } = groupPaginationParams.parse(searchParams);
  * ```
  */
 export const groupPaginationParams = createSearchParamsCache({
@@ -224,17 +190,17 @@ export const parseAsExpanded = createParser({
 	serialize: (value: string[]) => JSON.stringify(value),
 });
 
-/** Client-side parser for filters array */
-export const parseAsFilters = createParser({
-	parse: (value: string): PropertyFilter<unknown>[] | null => {
+/** Client-side parser for filter (recursive AND/OR structure) */
+export const parseAsFilter = createParser({
+	parse: (value: string): Filter | null => {
 		try {
 			const parsed = JSON.parse(value);
-			return filtersValidator(parsed);
+			return filterValidator(parsed);
 		} catch {
 			return null;
 		}
 	},
-	serialize: (value: PropertyFilter<unknown>[]) => JSON.stringify(value),
+	serialize: (value: Filter) => JSON.stringify(value),
 });
 
 /** Client-side parser for sort array */

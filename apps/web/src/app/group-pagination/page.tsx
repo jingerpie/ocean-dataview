@@ -1,5 +1,4 @@
 import { groupPaginationParams } from "@ocean-dataview/shared/lib";
-import { getValidFilters } from "@ocean-dataview/shared/utils";
 import { Tabs, TabsContent } from "@ocean-dataview/ui/components/tabs";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ProductGroupPaginationGallery } from "@/modules/group-pagination/product-group-pagination-gallery";
@@ -16,8 +15,7 @@ export default async function GroupPaginationPage(props: PageProps) {
 	const searchParams = await props.searchParams;
 	const params = groupPaginationParams.parse(searchParams);
 
-	const { expanded, cursors, limit, filters, sort, joinOperator } = params;
-	const validFilters = getValidFilters(filters);
+	const { expanded, cursors, limit, filter, sort } = params;
 	const queryClient = getQueryClient();
 
 	void queryClient.prefetchQuery(
@@ -32,9 +30,8 @@ export default async function GroupPaginationPage(props: PageProps) {
 						expanded={expanded}
 						cursors={cursors}
 						limit={limit}
-						filters={validFilters}
+						filter={filter}
 						sort={sort}
-						joinOperator={joinOperator}
 					/>
 				</TabsContent>
 				<TabsContent value="list">
@@ -42,9 +39,8 @@ export default async function GroupPaginationPage(props: PageProps) {
 						expanded={expanded}
 						cursors={cursors}
 						limit={limit}
-						filters={validFilters}
+						filter={filter}
 						sort={sort}
-						joinOperator={joinOperator}
 					/>
 				</TabsContent>
 				<TabsContent value="gallery">
@@ -52,18 +48,16 @@ export default async function GroupPaginationPage(props: PageProps) {
 						expanded={expanded}
 						cursors={cursors}
 						limit={limit}
-						filters={validFilters}
+						filter={filter}
 						sort={sort}
-						joinOperator={joinOperator}
 					/>
 				</TabsContent>
 				<TabsContent value="board">
 					<ProductSubGroupPaginationBoard
 						cursors={cursors}
 						limit={limit}
-						filters={validFilters}
+						filter={filter}
 						sort={sort}
-						joinOperator={joinOperator}
 					/>
 				</TabsContent>
 			</Tabs>

@@ -42,8 +42,11 @@ export function RangeFilter<T>({
 	);
 
 	const value = React.useMemo(() => {
-		if (Array.isArray(filter.value)) return filter.value.map(formatValue);
-		return [formatValue(filter.value), ""];
+		if (Array.isArray(filter.value))
+			return filter.value.map((v) =>
+				formatValue(v as string | number | undefined),
+			);
+		return [formatValue(filter.value as string | number | undefined), ""];
 	}, [filter.value, formatValue]);
 
 	const onRangeValueChange = React.useCallback(

@@ -1,5 +1,4 @@
 import { paginationParams } from "@ocean-dataview/shared/lib";
-import { getValidFilters } from "@ocean-dataview/shared/utils";
 import { Tabs, TabsContent } from "@ocean-dataview/ui/components/tabs";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ProductGroupPaginationBoard } from "@/modules/pagination/product-group-pagination-board";
@@ -16,18 +15,16 @@ export default async function PaginationPage(props: PageProps) {
 	const searchParams = await props.searchParams;
 	const params = paginationParams.parse(searchParams);
 
-	const { cursor, limit, filters, sort, joinOperator } = params;
+	const { cursor, limit, filter, sort } = params;
 
-	const validFilters = getValidFilters(filters);
 	const queryClient = getQueryClient();
 
 	void queryClient.prefetchQuery(
 		trpc.product.getMany.queryOptions({
 			cursor,
 			limit,
-			filters: validFilters,
+			filter,
 			sort,
-			joinOperator,
 		}),
 	);
 
@@ -38,29 +35,20 @@ export default async function PaginationPage(props: PageProps) {
 					<ProductPaginationTable
 						cursor={cursor}
 						limit={limit}
-						filters={validFilters}
+						filter={filter}
 						sort={sort}
-						joinOperator={joinOperator}
 					/>
 				</TabsContent>
 				<TabsContent value="list">
-					<ProductPaginationList
-						limit={limit}
-						filters={validFilters}
-						sort={sort}
-					/>
+					<ProductPaginationList limit={limit} filter={filter} sort={sort} />
 				</TabsContent>
 				<TabsContent value="gallery">
-					<ProductPaginationGallery
-						limit={limit}
-						filters={validFilters}
-						sort={sort}
-					/>
+					<ProductPaginationGallery limit={limit} filter={filter} sort={sort} />
 				</TabsContent>
 				<TabsContent value="board">
 					<ProductGroupPaginationBoard
 						limit={limit}
-						filters={validFilters}
+						filter={filter}
 						sort={sort}
 					/>
 				</TabsContent>
