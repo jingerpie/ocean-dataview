@@ -1,23 +1,6 @@
 "use client";
 
-import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
-import { Checkbox } from "@ocean-dataview/dataview/components/ui/checkbox";
-import {
-	Combobox,
-	ComboboxContent,
-	ComboboxEmpty,
-	ComboboxInput,
-	ComboboxItem,
-	ComboboxList,
-	ComboboxTrigger,
-} from "@ocean-dataview/dataview/components/ui/combobox";
 import { Input } from "@ocean-dataview/dataview/components/ui/input";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@ocean-dataview/dataview/components/ui/popover";
 import {
 	Select,
 	SelectContent,
@@ -40,10 +23,10 @@ import {
 	getFilterOperators,
 	getFilterVariantFromPropertyType,
 } from "@ocean-dataview/shared/utils";
-import { CalendarIcon } from "lucide-react";
 import * as React from "react";
-import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
-import { Calendar } from "../calendar";
+import { BooleanPicker } from "../properties/boolean-picker";
+import { DatePicker } from "../properties/date-picker";
+import { SelectPicker } from "../properties/select-picker";
 import { FilterPropertyPicker } from "./filter-property-picker";
 import { LogicConnector } from "./logic-connector";
 import { RuleActionsMenu } from "./rule-actions-menu";
@@ -263,18 +246,10 @@ function ValueInput<T>({
 
 		case "boolean":
 			return (
-				<Select
-					value={typeof condition.value === "string" ? condition.value : "true"}
-					onValueChange={onValueChange}
-				>
-					<SelectTrigger size="sm">
-						<SelectValue />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="true">True</SelectItem>
-						<SelectItem value="false">False</SelectItem>
-					</SelectContent>
-				</Select>
+				<BooleanPicker
+					value={condition.value as string | undefined}
+					onChange={onValueChange}
+				/>
 			);
 
 		case "select": {
@@ -290,50 +265,15 @@ function ValueInput<T>({
 					? [condition.value as string]
 					: [];
 
-			// Get selected options as objects for the value prop
-			const selectedOptions = options.filter((o) =>
-				selectedValues.includes(o.value),
-			);
-
 			return (
-				<Combobox
-					multiple
-					items={options}
-					value={selectedOptions}
+				<SelectPicker
+					options={options}
+					value={selectedValues}
+					onChange={onValueChange}
+					placeholder="Select an option"
 					open={showSelector}
 					onOpenChange={onShowSelectorChange}
-					onValueChange={(newValues) => {
-						const values = (newValues as SelectOption[]).map((o) => o.value);
-						onValueChange(values);
-					}}
-				>
-					<ComboboxTrigger render={<Button variant="outline" size="sm" />}>
-						<span className="truncate">
-							{selectedValues.length === 0
-								? "Select an option"
-								: selectedValues.length > 1
-									? `${selectedValues.length} selected`
-									: (options.find((o) => o.value === selectedValues[0])
-											?.label ?? selectedValues[0])}
-						</span>
-					</ComboboxTrigger>
-					<ComboboxContent align="start" className="w-56">
-						<ComboboxInput
-							showTrigger={false}
-							placeholder="Select one or more options..."
-						/>
-						<ComboboxEmpty>No options found.</ComboboxEmpty>
-						<ComboboxList>
-							{(option) => (
-								<ComboboxItem key={option.value} value={option}>
-									<Badge variant={getBadgeVariant(option.color)}>
-										{option.label}
-									</Badge>
-								</ComboboxItem>
-							)}
-						</ComboboxList>
-					</ComboboxContent>
-				</Combobox>
+				/>
 			);
 		}
 
@@ -349,96 +289,28 @@ function ValueInput<T>({
 					? [condition.value as string]
 					: [];
 
-			// Get selected options as objects for the value prop
-			const selectedOptions = options.filter((o) =>
-				selectedValues.includes(o.value),
-			);
-
 			return (
-				<Combobox
-					multiple
-					items={options}
-					value={selectedOptions}
+				<SelectPicker
+					options={options}
+					value={selectedValues}
+					onChange={onValueChange}
+					placeholder="Select..."
 					open={showSelector}
 					onOpenChange={onShowSelectorChange}
-					onValueChange={(newValues) => {
-						const values = (newValues as SelectOption[]).map((o) => o.value);
-						onValueChange(values);
-					}}
-				>
-					<ComboboxTrigger render={<Button variant="outline" size="sm" />}>
-						<span className="truncate">
-							{selectedValues.length === 0
-								? "Select..."
-								: selectedValues.length > 1
-									? `${selectedValues.length} selected`
-									: (options.find((o) => o.value === selectedValues[0])
-											?.label ?? selectedValues[0])}
-						</span>
-					</ComboboxTrigger>
-					<ComboboxContent align="start" className="w-56">
-						<ComboboxInput
-							showTrigger={false}
-							placeholder="Select one or more options..."
-						/>
-						<ComboboxEmpty>No options found.</ComboboxEmpty>
-						<ComboboxList>
-							{(option) => (
-								<ComboboxItem key={option.value} value={option}>
-									<Checkbox checked={selectedValues.includes(option.value)} />
-									<Badge variant={getBadgeVariant(option.color)}>
-										{option.label}
-									</Badge>
-								</ComboboxItem>
-							)}
-						</ComboboxList>
-					</ComboboxContent>
-				</Combobox>
+				/>
 			);
 		}
 
 		case "date":
-		case "dateRange": {
-			const dateValue = condition.value
-				? new Date(Number(condition.value))
-				: undefined;
-
-			const formatDate = (date: Date) =>
-				date.toLocaleDateString("en-US", {
-					month: "short",
-					day: "numeric",
-					year: "numeric",
-				});
-
-			// Date picker needs Popover + Calendar
+		case "dateRange":
 			return (
-				<Popover open={showSelector} onOpenChange={onShowSelectorChange}>
-					<PopoverTrigger
-						render={
-							<Button
-								variant="outline"
-								size="sm"
-								className={cn(!condition.value && "text-muted-foreground")}
-							/>
-						}
-					>
-						<CalendarIcon className="size-3.5" />
-						<span className="truncate">
-							{dateValue ? formatDate(dateValue) : "Pick date..."}
-						</span>
-					</PopoverTrigger>
-					<PopoverContent align="start" className="w-auto p-0">
-						<Calendar
-							mode="single"
-							selected={dateValue}
-							onSelect={(date) => {
-								onValueChange(date?.getTime().toString() ?? "");
-							}}
-						/>
-					</PopoverContent>
-				</Popover>
+				<DatePicker
+					value={condition.value as string | undefined}
+					onChange={onValueChange}
+					open={showSelector}
+					onOpenChange={onShowSelectorChange}
+				/>
 			);
-		}
 
 		default:
 			return null;
