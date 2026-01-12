@@ -30,6 +30,8 @@ interface FilterPropertyPickerProps<T> {
 	onAdvancedFilter?: () => void;
 	/** Trigger variant */
 	variant?: "default" | "add" | "selector";
+	/** Property IDs to exclude from the list (e.g., already used in simple filters) */
+	excludePropertyIds?: string[];
 }
 
 /**
@@ -48,7 +50,13 @@ function FilterPropertyPicker<T>({
 	onSelect,
 	onAdvancedFilter,
 	variant = "default",
+	excludePropertyIds,
 }: FilterPropertyPickerProps<T>) {
+	// Filter out excluded properties
+	const availableProperties = excludePropertyIds
+		? properties.filter((p) => !excludePropertyIds.includes(String(p.id)))
+		: properties;
+
 	// Find matching property from items for selector variant
 	const selectedProperty = value
 		? properties.find((p) => p.id === value.id)
@@ -82,7 +90,7 @@ function FilterPropertyPicker<T>({
 
 	return (
 		<Combobox
-			items={properties}
+			items={availableProperties}
 			value={
 				variant === "selector"
 					? (selectedProperty as DataViewProperty<T> | null | undefined)

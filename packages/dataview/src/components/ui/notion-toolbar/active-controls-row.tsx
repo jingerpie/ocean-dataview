@@ -74,6 +74,11 @@ export function ActiveControlsRow<T>({
 	// Get normalized filter for operations
 	const normalizedFilter = normalizeFilter(filter);
 
+	// Get property IDs already used in simple filters (to hide from picker)
+	const usedPropertyIds = simpleFilterConditions.map(
+		(f) => f.condition.property,
+	);
+
 	// Handle adding a new simple filter (adds FilterCondition to root)
 	const handleAddFilter = (property: DataViewProperty<T>) => {
 		const condition = createDefaultCondition(String(property.id));
@@ -226,6 +231,7 @@ export function ActiveControlsRow<T>({
 				onSelect={handleAddFilter}
 				onAdvancedFilter={onOpenAdvancedFilter}
 				variant="add"
+				excludePropertyIds={usedPropertyIds}
 			/>
 		</div>
 	);
