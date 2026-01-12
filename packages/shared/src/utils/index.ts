@@ -7,11 +7,14 @@ export {
 	// Mutations
 	addCondition,
 	addGroup,
+	// Filter Analysis (for chip display)
+	analyzeFilter,
 	canAddGroupAtPath,
 	changeLogic,
 	createCompoundFilter,
 	createDefaultCondition,
 	duplicateItem,
+	type FilterAnalysis,
 	type FlattenedCondition,
 	// Flattening
 	flattenFilter,
@@ -26,6 +29,7 @@ export {
 	getItemAtPath,
 	// Normalization
 	normalizeFilter,
+	normalizeFilterStructure,
 	removeItem,
 	updateCondition,
 	wrapInGroup,

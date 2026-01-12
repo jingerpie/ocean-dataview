@@ -1,12 +1,11 @@
 "use client";
 
-import {
-	type Filter,
-	type FilterCondition,
-	isCompoundFilter,
-	isFilterCondition,
+import type {
+	CompoundFilter,
+	Filter,
+	FilterCondition,
 } from "@ocean-dataview/shared/types";
-import { getFilterItems, normalizeFilter } from "@ocean-dataview/shared/utils";
+import { analyzeFilter } from "@ocean-dataview/shared/utils";
 import * as React from "react";
 
 export interface UseToolbarStateOptions {
@@ -23,17 +22,27 @@ export interface UseToolbarStateReturn {
 	setRow2Visible: (visible: boolean) => void;
 	/** Toggle Row 2 visibility */
 	toggleRow2: () => void;
-	/** Whether the filter is a compound filter (nested/multiple conditions) */
-	isFilterCompound: boolean;
-	/** Simple filter conditions (top-level only) */
+	/** Simple filter conditions at root level (displayed as FilterChip) */
 	simpleFilterConditions: Array<{ condition: FilterCondition; index: number }>;
-	/** Total number of filter rules */
+	/** Advanced filter (CompoundFilter at root, displayed as AdvancedFilterChip) */
+	advancedFilter: CompoundFilter | null;
+	/** Index of advancedFilter in root array */
+	advancedFilterIndex: number | null;
+	/** Total number of rules in advanced filter */
 	ruleCount: number;
+	/** Whether filter needs normalization */
+	needsNormalization: boolean;
 }
 
 /**
  * Hook to manage NotionToolbar state logic.
  * Handles Row 2 visibility, filter analysis, and derived state.
+ *
+ * Filter structure:
+ * - Root level is always { and: [...] }
+ * - Simple filters (chips) = FilterCondition items at root
+ * - Advanced filter = CompoundFilter item at root (first one found)
+ * - Both can coexist, combined with AND logic
  */
 export function useToolbarState({
 	filter,
@@ -41,63 +50,8 @@ export function useToolbarState({
 }: UseToolbarStateOptions): UseToolbarStateReturn {
 	const [row2Visible, setRow2Visible] = React.useState(true);
 
-	// Analyze filter structure
-	const filterAnalysis = React.useMemo(() => {
-		const normalized = normalizeFilter(filter);
-
-		if (!normalized) {
-			return {
-				isCompound: false,
-				simpleConditions: [] as Array<{
-					condition: FilterCondition;
-					index: number;
-				}>,
-				ruleCount: 0,
-			};
-		}
-
-		const items = getFilterItems(normalized);
-		const simpleConditions: Array<{
-			condition: FilterCondition;
-			index: number;
-		}> = [];
-		let ruleCount = 0;
-		let hasNestedGroups = false;
-
-		const countRules = (f: Filter): number => {
-			if (isFilterCondition(f)) {
-				return 1;
-			}
-			if (isCompoundFilter(f)) {
-				const children = getFilterItems(f);
-				return children.reduce(
-					(sum: number, child: Filter) => sum + countRules(child),
-					0,
-				);
-			}
-			return 0;
-		};
-
-		for (const [index, item] of items.entries()) {
-			if (isFilterCondition(item)) {
-				simpleConditions.push({ condition: item, index });
-				ruleCount += 1;
-			} else {
-				hasNestedGroups = true;
-				ruleCount += countRules(item);
-			}
-		}
-
-		// Filter is compound if it has nested groups OR multiple conditions with OR logic
-		const isCompound =
-			hasNestedGroups || ("or" in normalized && items.length > 1);
-
-		return {
-			isCompound,
-			simpleConditions,
-			ruleCount,
-		};
-	}, [filter]);
+	// Analyze filter structure using shared utility
+	const filterAnalysis = React.useMemo(() => analyzeFilter(filter), [filter]);
 
 	// Derived state
 	const hasActiveControls = filter !== null || sorts.length > 0;
@@ -123,8 +77,10 @@ export function useToolbarState({
 		row2Visible,
 		setRow2Visible,
 		toggleRow2,
-		isFilterCompound: filterAnalysis.isCompound,
 		simpleFilterConditions: filterAnalysis.simpleConditions,
+		advancedFilter: filterAnalysis.advancedFilter,
+		advancedFilterIndex: filterAnalysis.advancedFilterIndex,
 		ruleCount: filterAnalysis.ruleCount,
+		needsNormalization: filterAnalysis.needsNormalization,
 	};
 }

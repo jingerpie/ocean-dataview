@@ -62,6 +62,145 @@ export function normalizeFilter(
 }
 
 // ============================================================================
+// Filter Analysis (for chip display)
+// ============================================================================
+
+export interface FilterAnalysis {
+	/** Simple conditions at root level (displayed as FilterChip) */
+	simpleConditions: Array<{ condition: FilterCondition; index: number }>;
+	/** First CompoundFilter at root level (displayed as AdvancedFilterChip) */
+	advancedFilter: CompoundFilter | null;
+	/** Index of advancedFilter in root array */
+	advancedFilterIndex: number | null;
+	/** Whether the filter structure needs normalization */
+	needsNormalization: boolean;
+	/** Total count of rules (for advanced filter chip display) */
+	ruleCount: number;
+}
+
+/**
+ * Count total rules in a filter (recursive)
+ */
+function countRules(filter: Filter): number {
+	if (isFilterCondition(filter)) {
+		return 1;
+	}
+	if (isCompoundFilter(filter)) {
+		const items = getFilterItems(filter);
+		return items.reduce((sum, item) => sum + countRules(item), 0);
+	}
+	return 0;
+}
+
+/**
+ * Analyze a filter to separate simple conditions from advanced filter.
+ *
+ * Root level is always { and: [...] }
+ * - Simple filters (chips) = FilterCondition items at root
+ * - Advanced filter = CompoundFilter item at root (first one found)
+ * - Both can coexist, combined with AND logic
+ */
+export function analyzeFilter(filter: Filter | null): FilterAnalysis {
+	// Empty filter
+	if (!filter) {
+		return {
+			simpleConditions: [],
+			advancedFilter: null,
+			advancedFilterIndex: null,
+			needsNormalization: false,
+			ruleCount: 0,
+		};
+	}
+
+	// Single condition (legacy/simple case) - treat as simple
+	if (isFilterCondition(filter)) {
+		return {
+			simpleConditions: [{ condition: filter, index: 0 }],
+			advancedFilter: null,
+			advancedFilterIndex: null,
+			needsNormalization: true, // Should wrap in { and: [...] }
+			ruleCount: 1,
+		};
+	}
+
+	// OR at root (invalid for simple UI) - treat as advanced
+	if ("or" in filter && !("and" in filter)) {
+		return {
+			simpleConditions: [],
+			advancedFilter: filter,
+			advancedFilterIndex: 0,
+			needsNormalization: true, // Should wrap in { and: [filter] }
+			ruleCount: countRules(filter),
+		};
+	}
+
+	// Normal AND at root
+	const items = filter.and ?? [];
+	const simpleConditions: Array<{ condition: FilterCondition; index: number }> =
+		[];
+	let advancedFilter: CompoundFilter | null = null;
+	let advancedFilterIndex: number | null = null;
+	let compoundCount = 0;
+
+	for (const [index, item] of items.entries()) {
+		if (isFilterCondition(item)) {
+			simpleConditions.push({ condition: item, index });
+		} else if (isCompoundFilter(item)) {
+			compoundCount++;
+			if (!advancedFilter) {
+				advancedFilter = item;
+				advancedFilterIndex = index;
+			}
+		}
+	}
+
+	return {
+		simpleConditions,
+		advancedFilter,
+		advancedFilterIndex,
+		needsNormalization: compoundCount > 1, // Multiple compounds need merging
+		ruleCount: advancedFilter ? countRules(advancedFilter) : 0,
+	};
+}
+
+/**
+ * Normalize filter structure to ensure consistent { and: [...] } root.
+ * Called on save/modify to ensure consistent structure.
+ */
+export function normalizeFilterStructure(
+	filter: Filter | null,
+): CompoundFilter | null {
+	if (!filter) return null;
+
+	// Single condition → wrap in { and: [...] }
+	if (isFilterCondition(filter)) {
+		return { and: [filter] };
+	}
+
+	// OR at root → wrap in { and: [...] }
+	if ("or" in filter && !("and" in filter)) {
+		return { and: [filter] };
+	}
+
+	// Multiple CompoundFilters at root → merge into first
+	const items = filter.and ?? [];
+	const compounds = items.filter(isCompoundFilter);
+	const conditions = items.filter(isFilterCondition);
+
+	if (compounds.length <= 1) {
+		return filter as CompoundFilter;
+	}
+
+	// Merge all compounds into one (preserve first's logic)
+	const firstLogic = "and" in compounds[0] ? "and" : "or";
+	const mergedItems = compounds.flatMap((c) => c.and ?? c.or ?? []);
+	const mergedAdvanced: CompoundFilter =
+		firstLogic === "and" ? { and: mergedItems } : { or: mergedItems };
+
+	return { and: [mergedAdvanced, ...conditions] };
+}
+
+// ============================================================================
 // Flattening (for chip display)
 // ============================================================================
 

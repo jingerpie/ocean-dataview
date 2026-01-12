@@ -41,10 +41,11 @@ export function FilterBuilder<T>({
 	const normalizedFilter = normalizeFilter(filter);
 
 	// Handle adding the first rule
+	// Creates wrapped structure { and: [{ and: [condition] }] } for advanced filter
 	const handleAddFirstRule = (
 		condition: ReturnType<typeof createDefaultCondition>,
 	) => {
-		onChange({ and: [condition] });
+		onChange({ and: [{ and: [condition] }] });
 	};
 
 	// Handle adding the first group

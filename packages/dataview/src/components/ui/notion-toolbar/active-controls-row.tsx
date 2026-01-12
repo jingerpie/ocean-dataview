@@ -9,14 +9,13 @@ import {
 } from "@ocean-dataview/dataview/components/ui/popover";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
-import type { PropertySort } from "@ocean-dataview/shared/types";
-import {
-	type Filter,
-	type FilterCondition,
-	isCompoundFilter,
+import type {
+	CompoundFilter,
+	Filter,
+	FilterCondition,
+	PropertySort,
 } from "@ocean-dataview/shared/types";
 import {
-	addCondition,
 	createDefaultCondition,
 	normalizeFilter,
 	removeItem,
@@ -39,13 +38,15 @@ interface ActiveControlsRowProps<T> {
 	onFilterChange: (filter: Filter | null) => void;
 	/** Available properties */
 	properties: DataViewProperty<T>[];
-	/** Whether this is a compound filter (nested/OR logic) */
-	isFilterCompound: boolean;
-	/** Simple filter conditions (top-level AND conditions) */
+	/** Advanced filter (CompoundFilter at root level) */
+	advancedFilter: CompoundFilter | null;
+	/** Index of advancedFilter in root array */
+	advancedFilterIndex: number | null;
+	/** Simple filter conditions (FilterConditions at root level) */
 	simpleFilterConditions: Array<{ condition: FilterCondition; index: number }>;
-	/** Total rule count */
+	/** Total rule count in advanced filter */
 	ruleCount: number;
-	/** Callback to open advanced filter */
+	/** Callback to open advanced filter builder */
 	onOpenAdvancedFilter: () => void;
 	/** Additional class names */
 	className?: string;
@@ -53,7 +54,12 @@ interface ActiveControlsRowProps<T> {
 
 /**
  * Row 2 of the NotionToolbar showing active sort/filter chips.
- * Order: [Sort Chip] [Advanced Filter Chip] [Simple Filter Chips] [+ Filter]
+ *
+ * Display Order (Fixed):
+ * 1. Sort chips
+ * 2. Advanced filter chip (if exists)
+ * 3. Simple filter chips (in array order)
+ * 4. "+ Filter" button
  */
 export function ActiveControlsRow<T>({
 	sorts,
@@ -61,7 +67,8 @@ export function ActiveControlsRow<T>({
 	filter,
 	onFilterChange,
 	properties,
-	isFilterCompound,
+	advancedFilter,
+	advancedFilterIndex,
 	simpleFilterConditions,
 	ruleCount,
 	onOpenAdvancedFilter,
@@ -72,13 +79,14 @@ export function ActiveControlsRow<T>({
 	// Get normalized filter for operations
 	const normalizedFilter = normalizeFilter(filter);
 
-	// Handle adding a new simple filter
+	// Handle adding a new simple filter (adds FilterCondition to root)
 	const handleAddFilter = (property: DataViewProperty<T>) => {
 		const condition = createDefaultCondition(String(property.id));
 
 		if (normalizedFilter) {
-			// Add to existing filter
-			onFilterChange(addCondition(normalizedFilter, [], condition));
+			// Add to root level (alongside any existing advanced filter)
+			const items = normalizedFilter.and ?? [];
+			onFilterChange({ and: [...items, condition] });
 		} else {
 			// Create new filter with AND logic
 			onFilterChange({ and: [condition] });
@@ -102,6 +110,35 @@ export function ActiveControlsRow<T>({
 		onFilterChange(result);
 	};
 
+	// Handle advanced filter changes
+	const handleAdvancedFilterChange = (newAdvanced: Filter | null) => {
+		if (!normalizedFilter || advancedFilterIndex === null) {
+			// No existing filter or advanced filter - set as new root
+			if (newAdvanced) {
+				onFilterChange({ and: [newAdvanced] });
+			} else {
+				onFilterChange(null);
+			}
+			return;
+		}
+
+		const items = [...(normalizedFilter.and ?? [])];
+
+		if (newAdvanced === null) {
+			// Remove advanced filter
+			items.splice(advancedFilterIndex, 1);
+			if (items.length === 0) {
+				onFilterChange(null);
+			} else {
+				onFilterChange({ and: items });
+			}
+		} else {
+			// Update advanced filter at its index
+			items[advancedFilterIndex] = newAdvanced;
+			onFilterChange({ and: items });
+		}
+	};
+
 	return (
 		<div
 			className={cn(
@@ -110,7 +147,7 @@ export function ActiveControlsRow<T>({
 				className,
 			)}
 		>
-			{/* Sort Chips */}
+			{/* 1. Sort Chips */}
 			{sorts.map((sort, index) => (
 				<SortChip
 					key={`sort-${String(sort.propertyId)}-${index}`}
@@ -130,40 +167,37 @@ export function ActiveControlsRow<T>({
 				/>
 			))}
 
-			{/* Advanced Filter Chip - shown when filter is compound */}
-			{isFilterCompound &&
-				normalizedFilter &&
-				isCompoundFilter(normalizedFilter) && (
-					<AdvancedFilterChip
-						filter={normalizedFilter}
-						properties={properties}
-						onFilterChange={onFilterChange}
-						ruleCount={ruleCount}
+			{/* 2. Advanced Filter Chip (if exists) */}
+			{advancedFilter && (
+				<AdvancedFilterChip
+					filter={advancedFilter}
+					properties={properties}
+					onFilterChange={handleAdvancedFilterChange}
+					ruleCount={ruleCount}
+				/>
+			)}
+
+			{/* 3. Simple Filter Chips (in array order) */}
+			{simpleFilterConditions.map(({ condition, index }) => {
+				const property = properties.find(
+					(p) => String(p.id) === condition.property,
+				);
+				if (!property) return null;
+
+				return (
+					<FilterChip
+						key={`filter-${condition.property}-${index}`}
+						condition={condition}
+						property={property}
+						onConditionChange={(newCondition) =>
+							handleConditionChange(index, newCondition)
+						}
+						onRemove={() => handleConditionRemove(index)}
 					/>
-				)}
+				);
+			})}
 
-			{/* Simple Filter Chips - shown when filter has simple conditions */}
-			{!isFilterCompound &&
-				simpleFilterConditions.map(({ condition, index }) => {
-					const property = properties.find(
-						(p) => String(p.id) === condition.property,
-					);
-					if (!property) return null;
-
-					return (
-						<FilterChip
-							key={`${condition.property}-${index}`}
-							condition={condition}
-							property={property}
-							onConditionChange={(newCondition) =>
-								handleConditionChange(index, newCondition)
-							}
-							onRemove={() => handleConditionRemove(index)}
-						/>
-					);
-				})}
-
-			{/* + Filter Button */}
+			{/* 4. + Filter Button */}
 			<Popover open={addFilterOpen} onOpenChange={setAddFilterOpen}>
 				<PopoverTrigger
 					render={

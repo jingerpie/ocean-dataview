@@ -70,8 +70,9 @@ export function NotionToolbar<T>({
 		hasActiveControls,
 		row2Visible,
 		toggleRow2,
-		isFilterCompound,
 		simpleFilterConditions,
+		advancedFilter,
+		advancedFilterIndex,
 		ruleCount,
 	} = useToolbarState({ filter, sorts });
 
@@ -223,7 +224,8 @@ export function NotionToolbar<T>({
 					filter={filter}
 					onFilterChange={onFilterChange}
 					properties={properties}
-					isFilterCompound={isFilterCompound}
+					advancedFilter={advancedFilter}
+					advancedFilterIndex={advancedFilterIndex}
 					simpleFilterConditions={simpleFilterConditions}
 					ruleCount={ruleCount}
 					onOpenAdvancedFilter={handleOpenAdvancedFilter}
