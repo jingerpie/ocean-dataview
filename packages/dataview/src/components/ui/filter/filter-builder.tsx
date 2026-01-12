@@ -79,14 +79,13 @@ export function FilterBuilder<T>({
 					onRemove={handleDeleteFilter}
 				/>
 			) : (
-				<div className="">
-					<AddFilterButton
-						properties={properties}
-						canAddGroup={true}
-						onAddRule={handleAddFirstRule}
-						onAddGroup={handleAddFirstGroup}
-					/>
-				</div>
+				<AddFilterButton
+					properties={properties}
+					canAddGroup={true}
+					onAddRule={handleAddFirstRule}
+					onAddGroup={handleAddFirstGroup}
+					className="justify-start"
+				/>
 			)}
 
 			<Separator />
@@ -94,12 +93,12 @@ export function FilterBuilder<T>({
 			{/* Delete Filter Button - Always visible */}
 			<div>
 				<Button
-					variant="ghost"
+					variant="destructive"
 					size="sm"
-					className="h-7 gap-1.5 px-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+					className="w-full justify-start"
 					onClick={handleDeleteFilter}
 				>
-					<TrashIcon className="size-3.5" />
+					<TrashIcon />
 					<span>Delete filter</span>
 				</Button>
 			</div>

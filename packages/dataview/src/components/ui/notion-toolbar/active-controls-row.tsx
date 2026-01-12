@@ -1,12 +1,5 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
-import { CommandItem } from "@ocean-dataview/dataview/components/ui/command";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@ocean-dataview/dataview/components/ui/popover";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type {
@@ -21,11 +14,13 @@ import {
 	removeItem,
 	updateCondition,
 } from "@ocean-dataview/shared/utils";
-import { PlusIcon } from "lucide-react";
 import * as React from "react";
-import { AdvancedFilterChip, FilterChip } from "../filter";
+import {
+	AdvancedFilterChip,
+	FilterChip,
+	FilterPropertyPicker,
+} from "../filter";
 import { SortChip } from "../sort";
-import { PropertySelector } from "../toolbar";
 
 interface ActiveControlsRowProps<T> {
 	/** Current sorts (multiple sorts supported) */
@@ -108,6 +103,31 @@ export function ActiveControlsRow<T>({
 		if (!normalizedFilter) return;
 		const result = removeItem(normalizedFilter, [index]);
 		onFilterChange(result);
+	};
+
+	// Handle adding a simple condition to advanced filter
+	const handleAddToAdvanced = (index: number, condition: FilterCondition) => {
+		if (!normalizedFilter) return;
+
+		const items = [...(normalizedFilter.and ?? [])];
+
+		// Remove the condition from root level
+		items.splice(index, 1);
+
+		if (advancedFilter && advancedFilterIndex !== null) {
+			// Add to existing advanced filter
+			const advancedItems = advancedFilter.and ?? advancedFilter.or ?? [];
+			const newAdvanced = advancedFilter.and
+				? { and: [...advancedItems, condition] }
+				: { or: [...advancedItems, condition] };
+			items[advancedFilterIndex] = newAdvanced;
+		} else {
+			// Create new advanced filter with wrapped structure
+			const newAdvanced = { and: [condition] };
+			items.unshift(newAdvanced); // Add at beginning
+		}
+
+		onFilterChange(items.length > 0 ? { and: items } : null);
 	};
 
 	// Handle advanced filter changes
@@ -193,43 +213,20 @@ export function ActiveControlsRow<T>({
 							handleConditionChange(index, newCondition)
 						}
 						onRemove={() => handleConditionRemove(index)}
+						onAddToAdvanced={() => handleAddToAdvanced(index, condition)}
 					/>
 				);
 			})}
 
 			{/* 4. + Filter Button */}
-			<Popover open={addFilterOpen} onOpenChange={setAddFilterOpen}>
-				<PopoverTrigger
-					render={
-						<Button
-							variant="ghost"
-							size="sm"
-							className="h-7 gap-1 px-2 text-muted-foreground text-xs"
-						/>
-					}
-				>
-					<PlusIcon className="size-3" />
-					<span>Filter</span>
-				</PopoverTrigger>
-				<PopoverContent align="start" className="w-56 p-0">
-					<PropertySelector
-						properties={properties}
-						onSelect={handleAddFilter}
-						placeholder="Filter by..."
-						footer={
-							<CommandItem
-								onSelect={() => {
-									setAddFilterOpen(false);
-									onOpenAdvancedFilter();
-								}}
-							>
-								<PlusIcon className="mr-2 size-4" />
-								<span>Add advanced filter</span>
-							</CommandItem>
-						}
-					/>
-				</PopoverContent>
-			</Popover>
+			<FilterPropertyPicker
+				properties={properties}
+				open={addFilterOpen}
+				onOpenChange={setAddFilterOpen}
+				onSelect={handleAddFilter}
+				onAdvancedFilter={onOpenAdvancedFilter}
+				variant="add"
+			/>
 		</div>
 	);
 }

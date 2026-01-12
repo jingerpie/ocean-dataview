@@ -98,8 +98,8 @@ export function SearchInput({
 		return (
 			<Button
 				variant="ghost"
-				size="sm"
-				className={cn("h-8 w-8 p-0", className)}
+				size="icon-sm"
+				className={className}
 				onClick={handleExpand}
 				aria-label="Open search"
 			>
@@ -132,9 +132,9 @@ export function SearchInput({
 				<Button
 					type="button"
 					variant="ghost"
-					size="sm"
+					size="icon-sm"
 					onClick={handleClear}
-					className="absolute right-1 h-6 w-6 p-0"
+					className="absolute right-1"
 				>
 					<XIcon className="size-3.5" />
 					<span className="sr-only">Clear search</span>

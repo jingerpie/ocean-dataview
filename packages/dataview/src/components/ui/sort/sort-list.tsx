@@ -84,7 +84,6 @@ export function SortList<T>({
 					<Button
 						variant="outline"
 						size="sm"
-						className="h-8"
 						role="combobox"
 						aria-expanded={open}
 						aria-label="Show sort menu"
@@ -180,7 +179,7 @@ function SortItem<T>({
 						<Button
 							variant="ghost"
 							size="sm"
-							className="h-7 flex-1 justify-start px-2 font-normal"
+							className="flex-1 justify-start font-normal"
 						/>
 					}
 				>
@@ -223,8 +222,7 @@ function SortItem<T>({
 			{/* Direction Toggle */}
 			<Button
 				variant="ghost"
-				size="sm"
-				className="h-7 w-7 p-0"
+				size="icon-sm"
 				onClick={() => onUpdate({ desc: !sort.desc })}
 				aria-label={sort.desc ? "Sort descending" : "Sort ascending"}
 			>
@@ -238,8 +236,7 @@ function SortItem<T>({
 			{/* Remove Button */}
 			<Button
 				variant="ghost"
-				size="sm"
-				className="h-7 w-7 p-0"
+				size="icon-sm"
 				onClick={onRemove}
 				aria-label="Remove sort"
 			>
@@ -264,7 +261,7 @@ function AddSortButton<T>({ properties, onSelect }: AddSortButtonProps<T>) {
 					<Button
 						variant="outline"
 						size="sm"
-						className="h-8 w-full justify-start"
+						className="w-full justify-start"
 					/>
 				}
 			>

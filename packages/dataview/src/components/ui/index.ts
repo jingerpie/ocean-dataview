@@ -12,6 +12,8 @@ export {
 	type FilterChipProps,
 	FilterGroup,
 	type FilterGroupProps,
+	FilterPropertyPicker,
+	type FilterPropertyPickerProps,
 	FilterRule,
 	type FilterRuleProps,
 	GroupActionsMenu,
@@ -40,8 +42,6 @@ export {
 } from "./sort";
 // Toolbar
 export {
-	PropertySelector,
-	type PropertySelectorProps,
 	ToolbarButton,
 	type ToolbarButtonProps,
 	type UseToolbarStateOptions,

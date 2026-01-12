@@ -1,15 +1,28 @@
 "use client";
 
+import { Button } from "@ocean-dataview/dataview/components/ui/button";
+import {
+	Combobox,
+	ComboboxContent,
+	ComboboxEmpty,
+	ComboboxInput,
+	ComboboxItem,
+	ComboboxList,
+	ComboboxTrigger,
+} from "@ocean-dataview/dataview/components/ui/combobox";
+import { useAdvanceFilterBuilder } from "@ocean-dataview/dataview/hooks";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type { Filter, PropertySort } from "@ocean-dataview/shared/types";
-import { createDefaultCondition } from "@ocean-dataview/shared/utils";
-import { ListFilterIcon, PlusIcon, SortAscIcon } from "lucide-react";
+import {
+	createDefaultCondition,
+	normalizeFilter,
+} from "@ocean-dataview/shared/utils";
+import { ListFilterIcon, SortAscIcon } from "lucide-react";
 import * as React from "react";
-import { CommandItem } from "../command";
-import { FilterBuilderPopover } from "../filter";
+import { FilterPropertyPicker } from "../filter";
 import { SearchInput } from "../search";
-import { PropertySelector, ToolbarButton, useToolbarState } from "../toolbar";
+import { ToolbarButton, useToolbarState } from "../toolbar";
 import { DataViewOptions } from "../visibility";
 import { ActiveControlsRow } from "./active-controls-row";
 
@@ -64,7 +77,8 @@ export function NotionToolbar<T>({
 }: NotionToolbarProps<T>) {
 	const [filterDropdownOpen, setFilterDropdownOpen] = React.useState(false);
 	const [sortDropdownOpen, setSortDropdownOpen] = React.useState(false);
-	const [advancedFilterOpen, setAdvancedFilterOpen] = React.useState(false);
+
+	const openAdvancedFilter = useAdvanceFilterBuilder((state) => state.open);
 
 	const {
 		hasActiveControls,
@@ -108,16 +122,29 @@ export function NotionToolbar<T>({
 	// Handle opening advanced filter
 	const handleOpenAdvancedFilter = () => {
 		setFilterDropdownOpen(false);
-		setAdvancedFilterOpen(true);
-	};
 
-	// Footer for filter property selector
-	const filterSelectorFooter = (
-		<CommandItem onSelect={handleOpenAdvancedFilter}>
-			<PlusIcon className="mr-2 size-4" />
-			<span>Add advanced filter</span>
-		</CommandItem>
-	);
+		// Create advanced filter structure if it doesn't exist
+		const firstProperty = properties[0];
+		if (firstProperty && !advancedFilter) {
+			const defaultCondition = createDefaultCondition(String(firstProperty.id));
+
+			if (filter) {
+				// Has existing simple filters, add advanced filter alongside
+				const normalized = normalizeFilter(filter);
+				if (normalized) {
+					onFilterChange({
+						and: [...(normalized.and ?? []), { and: [defaultCondition] }],
+					});
+				}
+			} else {
+				// No filter exists, create new with advanced filter structure
+				// { and: [{ and: [defaultCondition] }] }
+				onFilterChange({ and: [{ and: [defaultCondition] }] });
+			}
+		}
+
+		openAdvancedFilter();
+	};
 
 	// Handle selecting a property to sort (adds a new sort)
 	const handleSortPropertySelect = (property: DataViewProperty<T>) => {
@@ -150,27 +177,19 @@ export function NotionToolbar<T>({
 						(filter !== null ? (
 							// Filter exists - simple button to toggle Row 2
 							<ToolbarButton
-								icon={<ListFilterIcon className="size-4" />}
+								icon={<ListFilterIcon />}
 								label="Filter"
 								isActive={true}
 								onClick={handleFilterButtonClick}
 							/>
 						) : (
-							// No filter - button with dropdown
-							<ToolbarButton
-								icon={<ListFilterIcon className="size-4" />}
-								label="Filter"
-								isActive={false}
+							// No filter - FilterPropertyPicker dropdown
+							<FilterPropertyPicker
+								properties={properties}
 								open={filterDropdownOpen}
 								onOpenChange={setFilterDropdownOpen}
-								dropdownContent={
-									<PropertySelector
-										properties={properties}
-										onSelect={handleFilterPropertySelect}
-										placeholder="Filter by..."
-										footer={filterSelectorFooter}
-									/>
-								}
+								onSelect={handleFilterPropertySelect}
+								onAdvancedFilter={handleOpenAdvancedFilter}
 							/>
 						))}
 
@@ -185,21 +204,33 @@ export function NotionToolbar<T>({
 								onClick={handleSortButtonClick}
 							/>
 						) : (
-							// No sorts - button with dropdown
-							<ToolbarButton
-								icon={<SortAscIcon className="size-4" />}
-								label="Sort"
-								isActive={false}
+							// No sorts - Combobox dropdown
+							<Combobox
+								items={properties}
 								open={sortDropdownOpen}
 								onOpenChange={setSortDropdownOpen}
-								dropdownContent={
-									<PropertySelector
-										properties={properties}
-										onSelect={handleSortPropertySelect}
-										placeholder="Sort by..."
-									/>
-								}
-							/>
+								onValueChange={(value) => {
+									if (value) {
+										handleSortPropertySelect(value as DataViewProperty<T>);
+									}
+								}}
+							>
+								<ComboboxTrigger render={<Button variant="ghost" size="sm" />}>
+									<SortAscIcon />
+									<span>Sort</span>
+								</ComboboxTrigger>
+								<ComboboxContent align="start" className="w-56">
+									<ComboboxInput showTrigger={false} placeholder="Sort by..." />
+									<ComboboxEmpty>No properties found.</ComboboxEmpty>
+									<ComboboxList>
+										{(property) => (
+											<ComboboxItem key={String(property.id)} value={property}>
+												{property.label ?? String(property.id)}
+											</ComboboxItem>
+										)}
+									</ComboboxList>
+								</ComboboxContent>
+							</Combobox>
 						))}
 
 					{/* Search Input */}
@@ -231,20 +262,6 @@ export function NotionToolbar<T>({
 					onOpenAdvancedFilter={handleOpenAdvancedFilter}
 				/>
 			)}
-
-			{/* Advanced Filter Popover (controlled externally) */}
-			<FilterBuilderPopover
-				properties={properties}
-				filter={filter}
-				onChange={onFilterChange}
-				open={advancedFilterOpen}
-				onOpenChange={setAdvancedFilterOpen}
-				trigger={
-					<button type="button" className="sr-only">
-						Advanced filter
-					</button>
-				}
-			/>
 		</div>
 	);
 }

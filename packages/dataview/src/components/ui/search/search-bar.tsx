@@ -59,9 +59,9 @@ export function SearchBar({
 				<Button
 					type="button"
 					variant="ghost"
-					size="sm"
+					size="icon-sm"
 					onClick={handleClear}
-					className="absolute right-1 h-7 w-7 p-0"
+					className="absolute right-1"
 				>
 					<X className="h-4 w-4" />
 					<span className="sr-only">Clear search</span>

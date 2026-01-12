@@ -51,13 +51,7 @@ export function RuleActionsMenu({
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
-				render={
-					<Button
-						variant="ghost"
-						size="icon-sm"
-						className={cn("size-7 text-muted-foreground", className)}
-					/>
-				}
+				render={<Button variant="ghost" size="icon-sm" className={className} />}
 			>
 				<MoreHorizontalIcon className="size-4" />
 				<span className="sr-only">Filter actions</span>

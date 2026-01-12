@@ -28,7 +28,12 @@ import {
 	getFilterOperators,
 	getFilterVariantFromPropertyType,
 } from "@ocean-dataview/shared/utils";
-import { ChevronDownIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
+import {
+	ChevronDownIcon,
+	ListFilterIcon,
+	MoreHorizontalIcon,
+	TrashIcon,
+} from "lucide-react";
 import * as React from "react";
 import { FilterValue } from "./filter-rule";
 
@@ -41,6 +46,8 @@ interface FilterChipProps<T> {
 	onConditionChange: (condition: FilterCondition) => void;
 	/** Callback to remove this filter */
 	onRemove: () => void;
+	/** Callback to add this filter to advanced filter */
+	onAddToAdvanced?: () => void;
 }
 
 /**
@@ -52,12 +59,16 @@ export function FilterChip<T>({
 	property,
 	onConditionChange,
 	onRemove,
+	onAddToAdvanced,
 }: FilterChipProps<T>) {
 	const [open, setOpen] = React.useState(false);
 
 	const variant = getFilterVariantFromPropertyType(property.type);
 	const operators = getFilterOperators(variant);
 	const label = property.label ?? String(property.id);
+	const currentOperatorLabel =
+		operators.find((op) => op.value === condition.operator)?.label ??
+		condition.operator;
 
 	const handleOperatorChange = (operator: FilterOperator) => {
 		onConditionChange({
@@ -79,21 +90,13 @@ export function FilterChip<T>({
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
-			<PopoverTrigger
-				render={
-					<Button
-						variant="secondary"
-						size="sm"
-						className="h-7 gap-1 px-2 text-xs"
-					/>
-				}
-			>
+			<PopoverTrigger render={<Button variant="secondary" size="sm" />}>
 				<span className="max-w-24 truncate">{label}</span>
 				<ChevronDownIcon className="size-3 opacity-50" />
 			</PopoverTrigger>
-			<PopoverContent align="start" className="w-64 p-0">
+			<PopoverContent align="start" className="gap-2">
 				{/* Header: Property + Operator + Menu */}
-				<div className="flex items-center justify-between border-b px-3 py-2">
+				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
 						<span className="font-medium text-sm">{label}</span>
 						<Select
@@ -102,11 +105,8 @@ export function FilterChip<T>({
 								handleOperatorChange(val as FilterOperator)
 							}
 						>
-							<SelectTrigger
-								size="sm"
-								className="h-7 w-auto gap-1 border-0 bg-transparent p-0 shadow-none"
-							>
-								<SelectValue />
+							<SelectTrigger size="sm" className="border-none">
+								<SelectValue>{currentOperatorLabel}</SelectValue>
 							</SelectTrigger>
 							<SelectContent>
 								{operators.map((op) => (
@@ -119,36 +119,42 @@ export function FilterChip<T>({
 					</div>
 					<DropdownMenu>
 						<DropdownMenuTrigger
-							render={
-								<Button variant="ghost" size="sm" className="h-7 w-7 p-0" />
-							}
+							render={<Button variant="ghost" size="icon" />}
 						>
-							<MoreHorizontalIcon className="size-4" />
+							<MoreHorizontalIcon />
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
+						<DropdownMenuContent align="start" side="bottom" className="w-auto">
 							<DropdownMenuItem
+								variant="destructive"
 								onClick={() => {
 									onRemove();
 									setOpen(false);
 								}}
-								className="text-destructive focus:text-destructive"
 							>
-								<TrashIcon className="mr-2 size-4" />
-								Remove filter
+								<TrashIcon />
+								Delete filter
 							</DropdownMenuItem>
+							{onAddToAdvanced && (
+								<DropdownMenuItem
+									onClick={() => {
+										onAddToAdvanced();
+										setOpen(false);
+									}}
+								>
+									<ListFilterIcon />
+									Add to advanced filter
+								</DropdownMenuItem>
+							)}
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</div>
 
-				{/* Value input */}
-				<div className="p-3">
-					<FilterValue
-						condition={condition}
-						property={property}
-						variant={variant}
-						onValueChange={handleValueChange}
-					/>
-				</div>
+				<FilterValue
+					condition={condition}
+					property={property}
+					variant={variant}
+					onValueChange={handleValueChange}
+				/>
 			</PopoverContent>
 		</Popover>
 	);

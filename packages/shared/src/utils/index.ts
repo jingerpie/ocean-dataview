@@ -34,4 +34,5 @@ export {
 	updateCondition,
 	wrapInGroup,
 } from "./filter-builder";
+export { validateFilter } from "./filter-validation";
 export { getFilterVariantFromPropertyType } from "./filter-variant";

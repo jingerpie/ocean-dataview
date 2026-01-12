@@ -16,6 +16,7 @@ import {
 	cursorsSchema,
 	cursorValueSchema,
 } from "../types/pagination.type";
+import { validateFilter } from "../utils/filter-validation";
 
 // ============================================================================
 // Constants
@@ -98,7 +99,10 @@ export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 		cursor: z.union([cursorValueSchema, z.string()]).nullish(),
 		limit: z.number().int().min(1).max(200).default(DEFAULT_LIMIT),
 		// New filter structure: single object with recursive AND/OR
-		filter: filterSchema.nullish(),
+		// Transform validates filter, removing empty conditions before tRPC processing
+		filter: filterSchema
+			.nullish()
+			.transform((f) => (f ? validateFilter(f) : null)),
 		sort: z.array(sortSchema).default([]),
 	});
 };

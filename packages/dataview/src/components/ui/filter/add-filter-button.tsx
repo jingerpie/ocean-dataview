@@ -14,15 +14,14 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@ocean-dataview/dataview/components/ui/popover";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type { FilterCondition } from "@ocean-dataview/shared/types";
 import { createDefaultCondition } from "@ocean-dataview/shared/utils";
 import {
 	ChevronDownIcon,
 	ChevronLeftIcon,
+	CopyPlus,
 	PlusIcon,
-	SquareStackIcon,
 } from "lucide-react";
 import * as React from "react";
 
@@ -82,56 +81,55 @@ export function AddFilterButton<T>({
 			<Popover open={open} onOpenChange={handleOpenChange}>
 				<PopoverTrigger
 					render={
-						<Button
-							variant="ghost"
-							size="sm"
-							className={cn("h-7 gap-1 px-2 text-muted-foreground", className)}
-						>
-							<PlusIcon className="size-3.5" />
+						<Button variant="ghost" size="sm" className={className}>
+							<PlusIcon />
 							<span>Add filter rule</span>
 							<ChevronDownIcon className="size-3 opacity-50" />
 						</Button>
 					}
 				/>
-				<PopoverContent align="start" className="w-56 p-0">
+				<PopoverContent align="start" className="gap-1 p-2">
 					{view === "menu" ? (
-						<div className="py-1">
+						<>
 							{/* Add Filter Rule */}
-							<button
-								type="button"
-								className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent"
+							<Button
+								variant="ghost"
+								size="sm"
+								className="w-full justify-start"
 								onClick={() => setView("properties")}
 							>
-								<PlusIcon className="size-4" />
+								<PlusIcon />
 								<span>Add filter rule</span>
-							</button>
+							</Button>
 
 							{/* Add Filter Group */}
-							<button
-								type="button"
-								className="flex w-full flex-col items-start px-3 py-2 text-sm hover:bg-accent"
+							<Button
+								variant="ghost"
+								size="sm"
+								className="h-auto w-full flex-col items-start"
 								onClick={handleAddGroup}
 							>
 								<div className="flex items-center gap-2">
-									<SquareStackIcon className="size-4" />
+									<CopyPlus />
 									<span>Add filter group</span>
 								</div>
 								<span className="ml-6 text-muted-foreground text-xs">
 									A group to nest more filters
 								</span>
-							</button>
-						</div>
+							</Button>
+						</>
 					) : (
-						<div>
+						<>
 							{/* Back button */}
-							<button
-								type="button"
-								className="flex w-full items-center gap-1 border-b px-2 py-1.5 text-muted-foreground text-xs hover:bg-accent"
+							<Button
+								variant="ghost"
+								size="sm"
+								className="w-full justify-start border-b text-muted-foreground text-xs"
 								onClick={() => setView("menu")}
 							>
 								<ChevronLeftIcon className="size-3" />
 								<span>Back</span>
-							</button>
+							</Button>
 							<Command loop>
 								<CommandInput placeholder="Search properties..." />
 								<CommandList>
@@ -151,7 +149,7 @@ export function AddFilterButton<T>({
 									</CommandGroup>
 								</CommandList>
 							</Command>
-						</div>
+						</>
 					)}
 				</PopoverContent>
 			</Popover>
@@ -163,17 +161,13 @@ export function AddFilterButton<T>({
 		<Popover open={open} onOpenChange={handleOpenChange}>
 			<PopoverTrigger
 				render={
-					<Button
-						variant="ghost"
-						size="sm"
-						className={cn("h-7 gap-1 px-2 text-muted-foreground", className)}
-					>
+					<Button variant="ghost" size="sm" className={className}>
 						<PlusIcon className="size-3.5" />
 						<span>Add filter rule</span>
 					</Button>
 				}
 			/>
-			<PopoverContent align="start" className="w-48 p-0">
+			<PopoverContent align="start" className="p-0">
 				<Command loop>
 					<CommandInput placeholder="Search properties..." />
 					<CommandList>

@@ -104,14 +104,10 @@ export function FilterGroup<T>({
 	};
 
 	// Handle removing an item at index
+	// Preserves empty group structure (doesn't auto-remove when empty)
 	const handleRemoveItem = (index: number) => {
 		const result = removeItem(filter, [index]);
-		if (result) {
-			onChange(result);
-		} else if (onRemove) {
-			// Group is now empty, remove it from parent
-			onRemove();
-		}
+		onChange(result);
 	};
 
 	// Handle duplicating an item at index
@@ -306,14 +302,13 @@ export function FilterGroup<T>({
 			</div>
 
 			{/* Add filter button */}
-			<div className="mt-2">
-				<AddFilterButton
-					properties={properties}
-					canAddGroup={canAddGroup}
-					onAddRule={handleAddRule}
-					onAddGroup={handleAddGroup}
-				/>
-			</div>
+			<AddFilterButton
+				properties={properties}
+				canAddGroup={canAddGroup}
+				onAddRule={handleAddRule}
+				onAddGroup={handleAddGroup}
+				className="w-full justify-start"
+			/>
 		</div>
 	);
 }

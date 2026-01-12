@@ -69,15 +69,7 @@ export function SortChip<T>({
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
-			<PopoverTrigger
-				render={
-					<Button
-						variant="secondary"
-						size="sm"
-						className="h-7 gap-1 px-2 text-xs"
-					/>
-				}
-			>
+			<PopoverTrigger render={<Button variant="secondary" size="sm" />}>
 				{sort.desc ? (
 					<ArrowDownIcon className="size-3" />
 				) : (
@@ -86,7 +78,7 @@ export function SortChip<T>({
 				<span className="max-w-24 truncate">{label}</span>
 				<ChevronDownIcon className="size-3 opacity-50" />
 			</PopoverTrigger>
-			<PopoverContent align="start" className="w-56 p-3">
+			<PopoverContent align="start">
 				<div className="flex flex-col gap-3">
 					{/* Property selector */}
 					<div className="flex flex-col gap-1.5">
@@ -134,13 +126,8 @@ export function SortChip<T>({
 					</div>
 
 					{/* Remove button */}
-					<Button
-						variant="ghost"
-						size="sm"
-						className="justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
-						onClick={handleRemove}
-					>
-						<TrashIcon className="mr-2 size-3.5" />
+					<Button variant="destructive" size="sm" onClick={handleRemove}>
+						<TrashIcon className="size-3.5" />
 						Remove sort
 					</Button>
 				</div>

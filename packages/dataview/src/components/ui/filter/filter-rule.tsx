@@ -2,16 +2,6 @@
 
 import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import {
-	Combobox,
-	ComboboxContent,
-	ComboboxEmpty,
-	ComboboxInput,
-	ComboboxItem,
-	ComboboxList,
-	ComboboxTrigger,
-	ComboboxValue,
-} from "@ocean-dataview/dataview/components/ui/combobox";
-import {
 	Command,
 	CommandEmpty,
 	CommandGroup,
@@ -50,6 +40,7 @@ import {
 import { CalendarIcon, Check } from "lucide-react";
 import * as React from "react";
 import { Calendar } from "../calendar";
+import { FilterPropertyPicker } from "./filter-property-picker";
 import { LogicConnector } from "./logic-connector";
 import { RuleActionsMenu } from "./rule-actions-menu";
 
@@ -86,13 +77,6 @@ interface FilterRuleProps<T> {
  * Single filter rule row in the filter builder.
  * Contains: LogicConnector, PropertySelector, OperatorSelector, ValueInput, ActionsMenu
  */
-// Type for combobox items
-interface PropertyComboboxItem {
-	id: string;
-	label: string;
-	type: DataViewProperty<unknown>["type"];
-}
-
 export function FilterRule<T>({
 	condition,
 	properties,
@@ -111,35 +95,22 @@ export function FilterRule<T>({
 	const [showValueSelector, setShowValueSelector] = React.useState(false);
 
 	// Find the property for this condition
-	const property = properties.find((p) => p.id === condition.property);
+	const property = properties.find((p) => String(p.id) === condition.property);
 	const variant = property
 		? getFilterVariantFromPropertyType(property.type)
 		: "text";
 	const operators = getFilterOperators(variant);
-
-	// Transform properties to combobox items format
-	const comboboxItems: PropertyComboboxItem[] = properties.map((p) => ({
-		id: String(p.id),
-		label: (p.label ?? String(p.id)) as string,
-		type: p.type,
-	}));
-
-	// Find current selected item for combobox
-	const selectedPropertyItem = comboboxItems.find(
-		(item) => item.id === condition.property,
-	);
 
 	// Update helper that maintains type safety
 	const updateCondition = (updates: Partial<FilterCondition>) => {
 		onConditionChange({ ...condition, ...updates });
 	};
 
-	// Handle property selection from combobox
-	const handlePropertySelect = (item: PropertyComboboxItem | null) => {
-		if (!item) return;
-		const propVariant = getFilterVariantFromPropertyType(item.type);
+	// Handle property selection
+	const handlePropertySelect = (newProperty: DataViewProperty<T>) => {
+		const propVariant = getFilterVariantFromPropertyType(newProperty.type);
 		updateCondition({
-			property: item.id,
+			property: String(newProperty.id),
 			operator: getDefaultFilterOperator(propVariant),
 			value: undefined,
 		});
@@ -155,35 +126,13 @@ export function FilterRule<T>({
 				onLogicChange={onLogicChange}
 			/>
 
-			{/* Property Selector - Combobox with search */}
-			<Combobox
-				items={comboboxItems}
-				value={selectedPropertyItem}
-				onValueChange={handlePropertySelect}
-			>
-				<ComboboxTrigger
-					render={<Button variant="outline" size="sm" />}
-					className="min-w-28 justify-between"
-				>
-					<ComboboxValue>
-						{selectedPropertyItem?.label ?? "Select property..."}
-					</ComboboxValue>
-				</ComboboxTrigger>
-				<ComboboxContent>
-					<ComboboxInput
-						showTrigger={false}
-						placeholder="Search properties..."
-					/>
-					<ComboboxEmpty>No properties found.</ComboboxEmpty>
-					<ComboboxList>
-						{(item: PropertyComboboxItem) => (
-							<ComboboxItem key={item.id} value={item}>
-								{item.label}
-							</ComboboxItem>
-						)}
-					</ComboboxList>
-				</ComboboxContent>
-			</Combobox>
+			{/* Property Selector */}
+			<FilterPropertyPicker
+				properties={properties}
+				value={property}
+				onSelect={handlePropertySelect}
+				variant="selector"
+			/>
 
 			{/* Operator Selector */}
 			<Select
@@ -303,7 +252,6 @@ function ValueInput<T>({
 					type={variant === "text" ? "text" : "number"}
 					inputMode={variant === "text" ? undefined : "numeric"}
 					placeholder="Enter value..."
-					className="h-8 w-28"
 					value={condition.value != null ? String(condition.value) : ""}
 					onChange={(e) => onValueChange(e.target.value)}
 				/>

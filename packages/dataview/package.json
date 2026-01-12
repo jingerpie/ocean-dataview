@@ -16,9 +16,10 @@
 	},
 	"scripts": {},
 	"dependencies": {
-		"@ocean-dataview/shared": "workspace:*",
-		"@hookform/resolvers": "catalog:",
 		"@base-ui/react": "catalog:",
+		"@hookform/resolvers": "catalog:",
+		"@ocean-dataview/shared": "workspace:*",
+		"@tanstack/react-query": "catalog:",
 		"@tanstack/react-table": "catalog:",
 		"class-variance-authority": "catalog:",
 		"clsx": "catalog:",
@@ -42,7 +43,7 @@
 		"usehooks-ts": "catalog:",
 		"vaul": "catalog:",
 		"zod": "catalog:",
-		"@tanstack/react-query": "catalog:"
+		"zustand": "^5.0.10"
 	},
 	"devDependencies": {
 		"@ocean-dataview/config": "workspace:*",

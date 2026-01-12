@@ -77,7 +77,7 @@ export function GroupConnector({
 					<span className="capitalize">{logic}</span>
 					<ChevronDownIcon className="size-3 opacity-50" />
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align="start" className="w-56">
+				<DropdownMenuContent align="start">
 					<DropdownMenuRadioGroup
 						value={logic}
 						onValueChange={(value) => onLogicChange(value as "and" | "or")}

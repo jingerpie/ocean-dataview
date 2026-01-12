@@ -6,7 +6,6 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@ocean-dataview/dataview/components/ui/popover";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
 import type * as React from "react";
 
@@ -55,7 +54,7 @@ export function ToolbarButton({
 						<Button
 							variant={isActive ? "secondary" : "ghost"}
 							size="sm"
-							className={cn("h-8 gap-1.5 px-2", className)}
+							className={className}
 						/>
 					}
 				>
@@ -63,9 +62,7 @@ export function ToolbarButton({
 					<span>{label}</span>
 					<ChevronDownIcon className="size-3.5 opacity-50" />
 				</PopoverTrigger>
-				<PopoverContent align={align} className="w-56 p-0">
-					{dropdownContent}
-				</PopoverContent>
+				<PopoverContent align={align}>{dropdownContent}</PopoverContent>
 			</Popover>
 		);
 	}
@@ -75,7 +72,7 @@ export function ToolbarButton({
 		<Button
 			variant={isActive ? "secondary" : "ghost"}
 			size="sm"
-			className={cn("h-8 gap-1.5 px-2", className)}
+			className={className}
 			onClick={onClick}
 		>
 			{icon}

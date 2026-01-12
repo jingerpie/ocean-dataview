@@ -6,10 +6,10 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@ocean-dataview/dataview/components/ui/popover";
+import { useAdvanceFilterBuilder } from "@ocean-dataview/dataview/hooks";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type { CompoundFilter, Filter } from "@ocean-dataview/shared/types";
 import { ChevronDownIcon, ListFilterIcon } from "lucide-react";
-import * as React from "react";
 import { FilterBuilder } from "./filter-builder";
 
 interface AdvancedFilterChipProps<T> {
@@ -26,6 +26,8 @@ interface AdvancedFilterChipProps<T> {
 /**
  * Advanced filter chip that opens the full filter builder.
  * Appearance: [≡ N rules ▾]
+ *
+ * Uses global Zustand store for popover state coordination with toolbar buttons.
  */
 export function AdvancedFilterChip<T>({
 	filter,
@@ -33,21 +35,13 @@ export function AdvancedFilterChip<T>({
 	onFilterChange,
 	ruleCount,
 }: AdvancedFilterChipProps<T>) {
-	const [open, setOpen] = React.useState(false);
+	const { isOpen, setOpen } = useAdvanceFilterBuilder();
 
 	const ruleText = ruleCount === 1 ? "1 rule" : `${ruleCount} rules`;
 
 	return (
-		<Popover open={open} onOpenChange={setOpen}>
-			<PopoverTrigger
-				render={
-					<Button
-						variant="secondary"
-						size="sm"
-						className="h-7 gap-1 px-2 text-xs"
-					/>
-				}
-			>
+		<Popover open={isOpen} onOpenChange={setOpen}>
+			<PopoverTrigger render={<Button variant="secondary" size="sm" />}>
 				<ListFilterIcon className="size-3" />
 				<span>{ruleText}</span>
 				<ChevronDownIcon className="size-3 opacity-50" />

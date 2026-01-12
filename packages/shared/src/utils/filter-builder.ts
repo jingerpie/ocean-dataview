@@ -192,7 +192,9 @@ export function normalizeFilterStructure(
 	}
 
 	// Merge all compounds into one (preserve first's logic)
-	const firstLogic = "and" in compounds[0] ? "and" : "or";
+	const firstCompound = compounds[0];
+	if (!firstCompound) return filter as CompoundFilter;
+	const firstLogic = "and" in firstCompound ? "and" : "or";
 	const mergedItems = compounds.flatMap((c) => c.and ?? c.or ?? []);
 	const mergedAdvanced: CompoundFilter =
 		firstLogic === "and" ? { and: mergedItems } : { or: mergedItems };
@@ -280,13 +282,14 @@ export function getItemAtPath(
 
 /**
  * Update an item at a specific path in the filter tree (immutable)
- * Returns null if the filter becomes empty after the update
+ * Preserves empty compound filters (returns { and: [] } or { or: [] } instead of null)
+ * This allows advanced filter chips to remain visible even when all rules are deleted
  */
 function updateItemAtPath(
 	filter: CompoundFilter,
 	path: number[],
 	updater: (item: Filter) => Filter | null,
-): CompoundFilter | null {
+): CompoundFilter {
 	const logic = getFilterLogic(filter);
 	const items = [...getFilterItems(filter)];
 
@@ -317,17 +320,11 @@ function updateItemAtPath(
 		if (!current || !isCompoundFilter(current)) return filter;
 
 		const updated = updateItemAtPath(current, rest, updater);
-		if (updated === null || getFilterItems(updated).length === 0) {
-			// Remove empty group
-			items.splice(index, 1);
-		} else {
-			items[index] = updated;
-		}
+		// Preserve empty compound filters (don't remove them)
+		items[index] = updated;
 	}
 
-	// If no items left, return null to signal removal
-	if (items.length === 0) return null;
-
+	// Return compound filter even if empty (preserve structure)
 	return createCompoundFilter(logic, items);
 }
 
@@ -407,18 +404,17 @@ export function updateCondition(
 	path: number[],
 	condition: FilterCondition,
 ): CompoundFilter {
-	const result = updateItemAtPath(filter, path, () => condition);
-	return result ?? createCompoundFilter("and", []);
+	return updateItemAtPath(filter, path, () => condition);
 }
 
 /**
  * Remove an item (condition or group) at a specific path
- * Returns null if the filter becomes empty
+ * Preserves empty compound filter structure (returns { and: [] } instead of null)
  */
 export function removeItem(
 	filter: CompoundFilter,
 	path: number[],
-): CompoundFilter | null {
+): CompoundFilter {
 	return updateItemAtPath(filter, path, () => null);
 }
 
@@ -464,8 +460,7 @@ export function duplicateItem(
 	}
 
 	// Otherwise, update the parent in the tree
-	const result = updateItemAtPath(filter, parentPath, () => newParent);
-	return result ?? filter;
+	return updateItemAtPath(filter, parentPath, () => newParent);
 }
 
 /**
@@ -483,8 +478,7 @@ export function wrapInGroup(
 	const newGroup = createCompoundFilter(groupLogic, [item]);
 
 	// Replace the item with the new group
-	const result = updateItemAtPath(filter, path, () => newGroup);
-	return result ?? filter;
+	return updateItemAtPath(filter, path, () => newGroup);
 }
 
 /**
@@ -501,14 +495,12 @@ export function changeLogic(
 		return createCompoundFilter(logic, items);
 	}
 
-	const result = updateItemAtPath(filter, path, (item) => {
+	return updateItemAtPath(filter, path, (item) => {
 		if (isCompoundFilter(item)) {
 			return createCompoundFilter(logic, getFilterItems(item));
 		}
 		return item;
 	});
-
-	return result ?? createCompoundFilter("and", []);
 }
 
 // ============================================================================

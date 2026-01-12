@@ -17,6 +17,10 @@ export {
 // Simple filter (inline editing)
 export { FilterChip, type FilterChipProps } from "./filter-chip";
 export { FilterGroup, type FilterGroupProps } from "./filter-group";
+export {
+	FilterPropertyPicker,
+	type FilterPropertyPickerProps,
+} from "./filter-property-picker";
 export { FilterRule, type FilterRuleProps, FilterValue } from "./filter-rule";
 export { GroupActionsMenu } from "./group-actions-menu";
 export { GroupConnector } from "./group-connector";

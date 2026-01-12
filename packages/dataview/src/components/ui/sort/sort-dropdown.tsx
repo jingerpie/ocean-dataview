@@ -65,9 +65,7 @@ export function SortDropdown<T = unknown>({
 	return (
 		<div className="flex items-center gap-2">
 			<DropdownMenu>
-				<DropdownMenuTrigger
-					render={<Button variant="outline" size="sm" className="h-9" />}
-				>
+				<DropdownMenuTrigger render={<Button variant="outline" size="sm" />}>
 					<ArrowUpDown className="mr-2 h-4 w-4" />
 					Sort
 					{activeOption && (
@@ -150,8 +148,7 @@ export function SortDropdown<T = unknown>({
 					</span>
 					<Button
 						variant="ghost"
-						size="sm"
-						className="h-4 w-4 p-0 hover:bg-transparent"
+						size="icon-sm"
 						onClick={() => handleSortChange(null)}
 					>
 						<X className="h-3 w-3" />

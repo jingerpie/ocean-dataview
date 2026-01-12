@@ -48,7 +48,7 @@ export function FilterBuilderPopover<T>({
 		<Button
 			variant={hasFilters ? "secondary" : "outline"}
 			size="sm"
-			className={cn("h-8 gap-1.5", triggerClassName)}
+			className={triggerClassName}
 		>
 			<FilterIcon className="size-3.5" />
 			<span>Filter</span>
