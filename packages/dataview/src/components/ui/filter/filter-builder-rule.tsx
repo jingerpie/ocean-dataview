@@ -1,13 +1,6 @@
 "use client";
 
 import { Input } from "@ocean-dataview/dataview/components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@ocean-dataview/dataview/components/ui/select";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type {
 	DataViewProperty,
@@ -20,7 +13,6 @@ import type {
 } from "@ocean-dataview/shared/types";
 import {
 	getDefaultFilterOperator,
-	getFilterOperators,
 	getFilterVariantFromPropertyType,
 } from "@ocean-dataview/shared/utils";
 import * as React from "react";
@@ -29,6 +21,7 @@ import { DatePicker } from "../properties/date-picker";
 import { SelectPicker } from "../properties/select-picker";
 import { FilterPropertyPicker } from "./filter-property-picker";
 import { LogicConnector } from "./logic-connector";
+import { OperatorPicker } from "./operator-picker";
 import { RuleActionsMenu } from "./rule-actions-menu";
 
 interface FilterRuleProps<T> {
@@ -86,7 +79,6 @@ export function FilterRule<T>({
 	const variant = property
 		? getFilterVariantFromPropertyType(property.type)
 		: "text";
-	const operators = getFilterOperators(variant);
 
 	// Update helper that maintains type safety
 	const updateCondition = (updates: Partial<FilterCondition>) => {
@@ -100,6 +92,17 @@ export function FilterRule<T>({
 			property: String(newProperty.id),
 			operator: getDefaultFilterOperator(propVariant),
 			value: undefined,
+		});
+	};
+
+	// Handle operator change
+	const handleOperatorChange = (operator: FilterOperator) => {
+		updateCondition({
+			operator,
+			value:
+				operator === "isEmpty" || operator === "isNotEmpty"
+					? undefined
+					: condition.value,
 		});
 	};
 
@@ -121,34 +124,12 @@ export function FilterRule<T>({
 				variant="selector"
 			/>
 
-			{/* Operator Selector */}
-			<Select
+			{/* Operator Picker */}
+			<OperatorPicker
 				value={condition.operator}
-				onValueChange={(value) => {
-					if (!value) return;
-					updateCondition({
-						operator: value as FilterOperator,
-						value:
-							value === "isEmpty" || value === "isNotEmpty"
-								? undefined
-								: condition.value,
-					});
-				}}
-			>
-				<SelectTrigger size="sm" className="capitalize">
-					<SelectValue>
-						{operators.find((op) => op.value === condition.operator)?.label ??
-							condition.operator}
-					</SelectValue>
-				</SelectTrigger>
-				<SelectContent>
-					{operators.map((op) => (
-						<SelectItem key={op.value} value={op.value} className="capitalize">
-							{op.label}
-						</SelectItem>
-					))}
-				</SelectContent>
-			</Select>
+				onChange={handleOperatorChange}
+				variant={variant}
+			/>
 
 			{/* Value Input */}
 			{property && (

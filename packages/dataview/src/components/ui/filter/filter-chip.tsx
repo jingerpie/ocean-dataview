@@ -1,33 +1,35 @@
 "use client";
 
+import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
 import { Button } from "@ocean-dataview/dataview/components/ui/button";
+import {
+	Combobox,
+	ComboboxEmpty,
+	ComboboxInput,
+	ComboboxItem,
+	ComboboxList,
+} from "@ocean-dataview/dataview/components/ui/combobox";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@ocean-dataview/dataview/components/ui/dropdown-menu";
+import { Input } from "@ocean-dataview/dataview/components/ui/input";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@ocean-dataview/dataview/components/ui/popover";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@ocean-dataview/dataview/components/ui/select";
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
+import type {
+	DataViewProperty,
+	SelectOption,
+} from "@ocean-dataview/dataview/types";
 import type {
 	FilterCondition,
 	FilterOperator,
 } from "@ocean-dataview/shared/types";
-import {
-	getFilterOperators,
-	getFilterVariantFromPropertyType,
-} from "@ocean-dataview/shared/utils";
+import { getFilterVariantFromPropertyType } from "@ocean-dataview/shared/utils";
 import {
 	ChevronDownIcon,
 	ListFilterIcon,
@@ -35,7 +37,10 @@ import {
 	TrashIcon,
 } from "lucide-react";
 import * as React from "react";
-import { FilterValue } from "./filter-rule";
+import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
+import { BooleanPicker } from "../properties/boolean-picker";
+import { DatePicker } from "../properties/date-picker";
+import { OperatorPicker } from "./operator-picker";
 
 interface FilterChipProps<T> {
 	/** The filter condition */
@@ -64,11 +69,7 @@ export function FilterChip<T>({
 	const [open, setOpen] = React.useState(false);
 
 	const variant = getFilterVariantFromPropertyType(property.type);
-	const operators = getFilterOperators(variant);
 	const label = property.label ?? String(property.id);
-	const currentOperatorLabel =
-		operators.find((op) => op.value === condition.operator)?.label ??
-		condition.operator;
 
 	const handleOperatorChange = (operator: FilterOperator) => {
 		onConditionChange({
@@ -99,23 +100,12 @@ export function FilterChip<T>({
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
 						<span className="font-medium text-sm">{label}</span>
-						<Select
+						<OperatorPicker
 							value={condition.operator}
-							onValueChange={(val) =>
-								handleOperatorChange(val as FilterOperator)
-							}
-						>
-							<SelectTrigger size="sm" className="border-none">
-								<SelectValue>{currentOperatorLabel}</SelectValue>
-							</SelectTrigger>
-							<SelectContent>
-								{operators.map((op) => (
-									<SelectItem key={op.value} value={op.value}>
-										{op.label}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+							onChange={handleOperatorChange}
+							variant={variant}
+							appearance="inline"
+						/>
 					</div>
 					<DropdownMenu>
 						<DropdownMenuTrigger
@@ -149,7 +139,8 @@ export function FilterChip<T>({
 					</DropdownMenu>
 				</div>
 
-				<FilterValue
+				{/* Value Input */}
+				<FilterChipValue
 					condition={condition}
 					property={property}
 					variant={variant}
@@ -158,6 +149,114 @@ export function FilterChip<T>({
 			</PopoverContent>
 		</Popover>
 	);
+}
+
+// ============================================================================
+// FilterChipValue - Value input for filter chip
+// ============================================================================
+
+interface FilterChipValueProps<T> {
+	condition: FilterCondition;
+	property: DataViewProperty<T>;
+	variant: string;
+	onValueChange: (value: unknown) => void;
+}
+
+function FilterChipValue<T>({
+	condition,
+	property,
+	variant,
+	onValueChange,
+}: FilterChipValueProps<T>) {
+	// Empty/Not Empty operators don't need value input
+	if (condition.operator === "isEmpty" || condition.operator === "isNotEmpty") {
+		return null;
+	}
+
+	switch (variant) {
+		case "text":
+		case "number":
+		case "range":
+			return (
+				<Input
+					type={variant === "text" ? "text" : "number"}
+					inputMode={variant === "text" ? undefined : "numeric"}
+					placeholder="Enter value..."
+					value={condition.value != null ? String(condition.value) : ""}
+					onChange={(e) => onValueChange(e.target.value)}
+				/>
+			);
+
+		case "boolean":
+			return (
+				<BooleanPicker
+					value={condition.value as string | undefined}
+					onChange={onValueChange}
+				/>
+			);
+
+		case "select":
+		case "multiSelect": {
+			const options: SelectOption[] =
+				(property.type === "select" ||
+					property.type === "status" ||
+					property.type === "multiSelect") &&
+				property.config?.options
+					? property.config.options
+					: [];
+
+			const selectedValues = Array.isArray(condition.value)
+				? (condition.value as string[])
+				: condition.value
+					? [condition.value as string]
+					: [];
+
+			const selectedOptions = options.filter((o) =>
+				selectedValues.includes(o.value),
+			);
+
+			return (
+				<Combobox
+					multiple
+					open
+					items={options}
+					value={selectedOptions}
+					onValueChange={(newValues) => {
+						const values = (newValues as SelectOption[]).map((o) => o.value);
+						onValueChange(values);
+					}}
+				>
+					<ComboboxInput
+						showTrigger={false}
+						placeholder="Search options..."
+						className="h-8"
+					/>
+					<ComboboxEmpty>No options found.</ComboboxEmpty>
+					<ComboboxList className="max-h-48">
+						{(option: SelectOption) => (
+							<ComboboxItem key={option.value} value={option}>
+								<Badge variant={getBadgeVariant(option.color)}>
+									{option.label}
+								</Badge>
+							</ComboboxItem>
+						)}
+					</ComboboxList>
+				</Combobox>
+			);
+		}
+
+		case "date":
+		case "dateRange":
+			return (
+				<DatePicker
+					value={condition.value as string | undefined}
+					onChange={onValueChange}
+				/>
+			);
+
+		default:
+			return null;
+	}
 }
 
 export type { FilterChipProps };

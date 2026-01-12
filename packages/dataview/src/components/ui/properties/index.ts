@@ -11,10 +11,11 @@ export { NumberProperty } from "./number-property";
 export { PhoneProperty } from "./phone-property";
 export { PropertyDisplay } from "./property-display";
 export type {
+	SelectPickerContentProps,
 	SelectPickerProps,
 	SelectPickerTriggerProps,
 } from "./select-picker";
-export { SelectPicker } from "./select-picker";
+export { SelectPicker, SelectPickerContent } from "./select-picker";
 export { SelectProperty } from "./select-property";
 export { StatusProperty } from "./status-property";
 export { TextProperty } from "./text-property";

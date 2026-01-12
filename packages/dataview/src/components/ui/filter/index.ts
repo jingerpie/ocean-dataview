@@ -14,6 +14,11 @@ export {
 	FilterBuilderPopover,
 	type FilterBuilderPopoverProps,
 } from "./filter-builder-popover";
+export {
+	FilterRule,
+	type FilterRuleProps,
+	FilterValue,
+} from "./filter-builder-rule";
 // Simple filter (inline editing)
 export { FilterChip, type FilterChipProps } from "./filter-chip";
 export { FilterGroup, type FilterGroupProps } from "./filter-group";
@@ -21,9 +26,9 @@ export {
 	FilterPropertyPicker,
 	type FilterPropertyPickerProps,
 } from "./filter-property-picker";
-export { FilterRule, type FilterRuleProps, FilterValue } from "./filter-rule";
 export { GroupActionsMenu } from "./group-actions-menu";
 export { GroupConnector } from "./group-connector";
 // Internal components (exported for advanced usage)
 export { LogicConnector } from "./logic-connector";
+export { OperatorPicker, type OperatorPickerProps } from "./operator-picker";
 export { RuleActionsMenu } from "./rule-actions-menu";

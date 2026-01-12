@@ -20,7 +20,7 @@ import {
 	wrapInGroup,
 } from "@ocean-dataview/shared/utils";
 import { AddFilterButton } from "./add-filter-button";
-import { FilterRule } from "./filter-rule";
+import { FilterRule } from "./filter-builder-rule";
 import { GroupActionsMenu } from "./group-actions-menu";
 import { GroupConnector } from "./group-connector";
 

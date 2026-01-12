@@ -15,9 +15,58 @@ import type { SelectOption } from "@ocean-dataview/dataview/types";
 import * as React from "react";
 import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
 
+// ============================================================================
+// SelectPickerContent - Reusable dropdown content
+// ============================================================================
+
+interface SelectPickerContentProps {
+	/** Content alignment */
+	align?: "start" | "center" | "end";
+	/** Additional class name */
+	className?: string;
+	/** Placeholder for search input */
+	searchPlaceholder?: string;
+	/** Empty state message */
+	emptyMessage?: string;
+}
+
+/**
+ * The dropdown content for SelectPicker.
+ * Must be used inside a Combobox component.
+ * Contains search input and options list with badges.
+ */
+function SelectPickerContent({
+	align = "start",
+	className = "w-56",
+	searchPlaceholder = "Search options...",
+	emptyMessage = "No options found.",
+}: SelectPickerContentProps) {
+	return (
+		<ComboboxContent align={align} className={className}>
+			<ComboboxInput showTrigger={false} placeholder={searchPlaceholder} />
+			<ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
+			<ComboboxList>
+				{(option: SelectOption) => (
+					<ComboboxItem key={option.value} value={option}>
+						<Badge variant={getBadgeVariant(option.color)}>
+							{option.label}
+						</Badge>
+					</ComboboxItem>
+				)}
+			</ComboboxList>
+		</ComboboxContent>
+	);
+}
+
+// ============================================================================
+// SelectPicker - Full component with trigger
+// ============================================================================
+
 interface SelectPickerTriggerProps {
 	/** Currently selected values */
 	selectedValues: string[];
+	/** Selected options with full data */
+	selectedOptions: SelectOption[];
 	/** Labels of selected options */
 	selectedLabels: string[];
 	/** Number of selected items */
@@ -52,7 +101,7 @@ interface SelectPickerProps {
  * Displays options as badges with search functionality.
  * Can be used for both filter UI and editable cells.
  */
-export function SelectPicker({
+function SelectPicker({
 	options,
 	value,
 	onChange,
@@ -76,6 +125,7 @@ export function SelectPicker({
 	// Trigger props for custom trigger render
 	const triggerProps: SelectPickerTriggerProps = {
 		selectedValues: value,
+		selectedOptions,
 		selectedLabels,
 		selectedCount: value.length,
 		placeholder,
@@ -111,21 +161,18 @@ export function SelectPicker({
 					{defaultTriggerContent}
 				</ComboboxTrigger>
 			)}
-			<ComboboxContent align={align} className={className ?? "w-56"}>
-				<ComboboxInput showTrigger={false} placeholder="Search options..." />
-				<ComboboxEmpty>No options found.</ComboboxEmpty>
-				<ComboboxList>
-					{(option) => (
-						<ComboboxItem key={option.value} value={option}>
-							<Badge variant={getBadgeVariant(option.color)}>
-								{option.label}
-							</Badge>
-						</ComboboxItem>
-					)}
-				</ComboboxList>
-			</ComboboxContent>
+			<SelectPickerContent align={align} className={className} />
 		</Combobox>
 	);
 }
 
-export type { SelectPickerProps, SelectPickerTriggerProps };
+// ============================================================================
+// Exports
+// ============================================================================
+
+export { SelectPicker, SelectPickerContent };
+export type {
+	SelectPickerProps,
+	SelectPickerTriggerProps,
+	SelectPickerContentProps,
+};
