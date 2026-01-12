@@ -603,7 +603,7 @@ export { DataViewProvider as BoardProvider } from "../../../lib/providers/data-v
 export {
 	DataViewOptions,
 	type DataViewOptionsProps,
-} from "../../ui/tool-bar/data-view-options";
+} from "../../ui/visibility";
 // Skeleton
 export { BoardSkeleton } from "./board-skeleton";
 // Note: GroupCounts and GroupCountsWithSubGroups are exported at top of file

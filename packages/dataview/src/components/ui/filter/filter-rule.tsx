@@ -45,6 +45,7 @@ import type {
 import {
 	getDefaultFilterOperator,
 	getFilterOperators,
+	getFilterVariantFromPropertyType,
 } from "@ocean-dataview/shared/utils";
 import { CalendarIcon, Check } from "lucide-react";
 import * as React from "react";
@@ -79,34 +80,6 @@ interface FilterRuleProps<T> {
 	canWrapInGroup: boolean;
 	/** Additional class names */
 	className?: string;
-}
-
-/**
- * Maps DataViewProperty type to FilterVariant
- */
-function getFilterVariantFromPropertyType(
-	type: DataViewProperty<unknown>["type"],
-): FilterVariant {
-	switch (type) {
-		case "text":
-		case "url":
-		case "email":
-		case "phone":
-			return "text";
-		case "number":
-			return "number";
-		case "select":
-		case "status":
-			return "select";
-		case "multiSelect":
-			return "multiSelect";
-		case "date":
-			return "date";
-		case "checkbox":
-			return "boolean";
-		default:
-			return "text";
-	}
 }
 
 /**
@@ -266,7 +239,37 @@ export function FilterRule<T>({
 }
 
 // ============================================================================
-// Value Input Component
+// Filter Value Component (exported for reuse)
+// ============================================================================
+
+interface FilterValueProps<T> {
+	condition: FilterCondition;
+	property: DataViewProperty<T>;
+	variant: FilterVariant;
+	onValueChange: (value: unknown) => void;
+}
+
+export function FilterValue<T>({
+	condition,
+	property,
+	variant,
+	onValueChange,
+}: FilterValueProps<T>) {
+	const [showSelector, setShowSelector] = React.useState(false);
+	return (
+		<ValueInput
+			condition={condition}
+			property={property}
+			variant={variant}
+			onValueChange={onValueChange}
+			showSelector={showSelector}
+			onShowSelectorChange={setShowSelector}
+		/>
+	);
+}
+
+// ============================================================================
+// Internal Value Input Component
 // ============================================================================
 
 interface ValueInputProps<T> {

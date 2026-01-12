@@ -8,9 +8,9 @@ import type { Filter, PropertySort } from "@ocean-dataview/shared/types";
 import { normalizeFilter, removeItem } from "@ocean-dataview/shared/utils";
 import { ListFilter, Search, X } from "lucide-react";
 import * as React from "react";
-import { FilterBuilderPopover, FilterChips } from "../filter-builder";
-import { DataViewOptions } from "./data-view-options";
-import { SortList } from "./sort-list";
+import { FilterBuilderPopover, FilterChips } from "../filter";
+import { SortList } from "../sort";
+import { DataViewOptions } from "../visibility";
 
 const OPEN_MENU_SHORTCUT = "f";
 

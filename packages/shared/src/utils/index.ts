@@ -3,7 +3,6 @@ export {
 	getFilterOperators,
 	isValidOperatorForVariant,
 } from "./filter";
-
 export {
 	// Mutations
 	addCondition,
@@ -31,3 +30,4 @@ export {
 	updateCondition,
 	wrapInGroup,
 } from "./filter-builder";
+export { getFilterVariantFromPropertyType } from "./filter-variant";

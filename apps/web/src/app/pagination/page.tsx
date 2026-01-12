@@ -36,7 +36,7 @@ export default async function PaginationPage(props: PageProps) {
 						cursor={cursor}
 						limit={limit}
 						filter={filter}
-						sort={sort}
+						sorts={sort ?? []}
 					/>
 				</TabsContent>
 				<TabsContent value="list">

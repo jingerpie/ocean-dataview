@@ -1,6 +1,6 @@
 "use client";
 
-import { ShopifyToolbar } from "@ocean-dataview/dataview/components/ui";
+import { NotionToolbar } from "@ocean-dataview/dataview/components/ui";
 import {
 	TableSkeleton,
 	TableView,
@@ -17,7 +17,7 @@ import type {
 	PropertySort,
 } from "@ocean-dataview/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { PaginationTabs } from "./pagination-tabs";
 import { type Product, productProperties } from "./product-properties";
@@ -29,7 +29,7 @@ interface PaginationProps {
 	cursor?: CursorValue | null;
 	limit: number;
 	filter?: Filter | null;
-	sort?: PropertySort<Product>[];
+	sorts?: PropertySort<Product>[];
 }
 
 /**
@@ -43,12 +43,15 @@ interface PaginationProps {
  * NOTE: No Suspense wrapper - matches turboitem pattern where void prefetch works
  */
 export function ProductPaginationTable(props: PaginationProps) {
-	const { cursor, limit, filter = null, sort = [] } = props;
+	const { cursor, limit, filter = null, sorts = [] } = props;
 	const trpc = useTRPC();
+
+	// Local search state (client-side filtering)
+	const [search, setSearch] = useState("");
 
 	// Hooks for UI state management (used by toolbar for user interactions)
 	const { setFilter } = useFilterParams();
-	const { setSort } = useSortParams<Product>({ sort });
+	const { setSort: setSorts } = useSortParams<Product>({ sort: sorts });
 
 	// Query with props directly - MUST match server prefetch for cache hit
 	const { data } = useSuspenseQuery(
@@ -56,7 +59,7 @@ export function ProductPaginationTable(props: PaginationProps) {
 			cursor,
 			limit,
 			filter,
-			sort,
+			sort: sorts,
 		}),
 	);
 
@@ -84,20 +87,21 @@ export function ProductPaginationTable(props: PaginationProps) {
 				properties={productProperties}
 				pagination={pagination}
 			>
-				<ShopifyToolbar
+				<NotionToolbar
 					properties={productProperties}
 					filter={filter}
 					onFilterChange={setFilter}
-					sorts={sort}
-					onSortsChange={setSort}
-					searchProperties={["name"]}
+					sorts={sorts}
+					onSortsChange={setSorts}
+					search={search}
+					onSearchChange={setSearch}
 					enableSearch
-					enableFilters
+					enableFilter
 					enableSort
-					enableViewOptions
+					enableProperties
 				>
 					<PaginationTabs />
-				</ShopifyToolbar>
+				</NotionToolbar>
 				<TableView
 					layout={{ showVerticalLines: false, wrapAllColumns: false }}
 					pagination="page"
