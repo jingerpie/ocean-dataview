@@ -16,7 +16,6 @@ export {
 } from "./filter-builder-popover";
 // Simple filter (inline editing)
 export { FilterChip, type FilterChipProps } from "./filter-chip";
-export { FilterChips, type FilterChipsProps } from "./filter-chips";
 export { FilterGroup, type FilterGroupProps } from "./filter-group";
 export { FilterRule, type FilterRuleProps, FilterValue } from "./filter-rule";
 export { GroupActionsMenu } from "./group-actions-menu";

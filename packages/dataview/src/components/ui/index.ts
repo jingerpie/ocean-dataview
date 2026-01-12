@@ -10,8 +10,6 @@ export {
 	type FilterBuilderProps,
 	FilterChip,
 	type FilterChipProps,
-	FilterChips,
-	type FilterChipsProps,
 	FilterGroup,
 	type FilterGroupProps,
 	FilterRule,
@@ -40,8 +38,6 @@ export {
 	type SortListProps,
 	type SortOption,
 } from "./sort";
-// Shopify Toolbar
-export { ShopifyToolbar, type ShopifyToolbarProps } from "./tool-bar";
 // Toolbar
 export {
 	PropertySelector,
