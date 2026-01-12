@@ -1,14 +1,17 @@
 "use client";
 
+import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
 import { Button } from "@ocean-dataview/dataview/components/ui/button";
+import { Checkbox } from "@ocean-dataview/dataview/components/ui/checkbox";
 import {
-	Command,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-	CommandList,
-} from "@ocean-dataview/dataview/components/ui/command";
+	Combobox,
+	ComboboxContent,
+	ComboboxEmpty,
+	ComboboxInput,
+	ComboboxItem,
+	ComboboxList,
+	ComboboxTrigger,
+} from "@ocean-dataview/dataview/components/ui/combobox";
 import { Input } from "@ocean-dataview/dataview/components/ui/input";
 import {
 	Popover,
@@ -37,8 +40,9 @@ import {
 	getFilterOperators,
 	getFilterVariantFromPropertyType,
 } from "@ocean-dataview/shared/utils";
-import { CalendarIcon, Check } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import * as React from "react";
+import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
 import { Calendar } from "../calendar";
 import { FilterPropertyPicker } from "./filter-property-picker";
 import { LogicConnector } from "./logic-connector";
@@ -275,29 +279,61 @@ function ValueInput<T>({
 
 		case "select": {
 			const options: SelectOption[] =
-				property.type === "select" && property.config?.options
+				(property.type === "select" || property.type === "status") &&
+				property.config?.options
 					? property.config.options
 					: [];
 
+			const selectedValues = Array.isArray(condition.value)
+				? (condition.value as string[])
+				: condition.value
+					? [condition.value as string]
+					: [];
+
+			// Get selected options as objects for the value prop
+			const selectedOptions = options.filter((o) =>
+				selectedValues.includes(o.value),
+			);
+
 			return (
-				<Select
-					value={condition.value as string | undefined}
-					onValueChange={onValueChange}
+				<Combobox
+					multiple
+					items={options}
+					value={selectedOptions}
+					open={showSelector}
+					onOpenChange={onShowSelectorChange}
+					onValueChange={(newValues) => {
+						const values = (newValues as SelectOption[]).map((o) => o.value);
+						onValueChange(values);
+					}}
 				>
-					<SelectTrigger size="sm">
-						<SelectValue>
-							{options.find((opt) => opt.value === condition.value)?.label ??
-								"Select..."}
-						</SelectValue>
-					</SelectTrigger>
-					<SelectContent>
-						{options.map((option) => (
-							<SelectItem key={option.value} value={option.value}>
-								{option.label}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
+					<ComboboxTrigger render={<Button variant="outline" size="sm" />}>
+						<span className="truncate">
+							{selectedValues.length === 0
+								? "Select an option"
+								: selectedValues.length > 1
+									? `${selectedValues.length} selected`
+									: (options.find((o) => o.value === selectedValues[0])
+											?.label ?? selectedValues[0])}
+						</span>
+					</ComboboxTrigger>
+					<ComboboxContent align="start" className="w-56">
+						<ComboboxInput
+							showTrigger={false}
+							placeholder="Select one or more options..."
+						/>
+						<ComboboxEmpty>No options found.</ComboboxEmpty>
+						<ComboboxList>
+							{(option) => (
+								<ComboboxItem key={option.value} value={option}>
+									<Badge variant={getBadgeVariant(option.color)}>
+										{option.label}
+									</Badge>
+								</ComboboxItem>
+							)}
+						</ComboboxList>
+					</ComboboxContent>
+				</Combobox>
 			);
 		}
 
@@ -308,60 +344,56 @@ function ValueInput<T>({
 					: [];
 
 			const selectedValues = Array.isArray(condition.value)
-				? condition.value
+				? (condition.value as string[])
 				: condition.value
-					? [condition.value]
+					? [condition.value as string]
 					: [];
 
-			const selectedLabels = options
-				.filter((opt) => selectedValues.includes(opt.value))
-				.map((opt) => opt.label);
+			// Get selected options as objects for the value prop
+			const selectedOptions = options.filter((o) =>
+				selectedValues.includes(o.value),
+			);
 
-			// MultiSelect needs Popover + Command for multi-selection
 			return (
-				<Popover open={showSelector} onOpenChange={onShowSelectorChange}>
-					<PopoverTrigger render={<Button variant="outline" size="sm" />}>
+				<Combobox
+					multiple
+					items={options}
+					value={selectedOptions}
+					open={showSelector}
+					onOpenChange={onShowSelectorChange}
+					onValueChange={(newValues) => {
+						const values = (newValues as SelectOption[]).map((o) => o.value);
+						onValueChange(values);
+					}}
+				>
+					<ComboboxTrigger render={<Button variant="outline" size="sm" />}>
 						<span className="truncate">
-							{selectedLabels.length === 0
+							{selectedValues.length === 0
 								? "Select..."
-								: selectedLabels.length > 1
-									? `${selectedLabels.length} selected`
-									: selectedLabels[0]}
+								: selectedValues.length > 1
+									? `${selectedValues.length} selected`
+									: (options.find((o) => o.value === selectedValues[0])
+											?.label ?? selectedValues[0])}
 						</span>
-					</PopoverTrigger>
-					<PopoverContent align="start" className="w-48 p-0">
-						<Command>
-							<CommandInput placeholder="Search..." />
-							<CommandList>
-								<CommandEmpty>No options found.</CommandEmpty>
-								<CommandGroup>
-									{options.map((option) => (
-										<CommandItem
-											key={option.value}
-											value={option.value}
-											onSelect={() => {
-												const newValue = selectedValues.includes(option.value)
-													? selectedValues.filter((v) => v !== option.value)
-													: [...selectedValues, option.value];
-												onValueChange(newValue);
-											}}
-										>
-											<span className="truncate">{option.label}</span>
-											<Check
-												className={cn(
-													"ml-auto size-4",
-													selectedValues.includes(option.value)
-														? "opacity-100"
-														: "opacity-0",
-												)}
-											/>
-										</CommandItem>
-									))}
-								</CommandGroup>
-							</CommandList>
-						</Command>
-					</PopoverContent>
-				</Popover>
+					</ComboboxTrigger>
+					<ComboboxContent align="start" className="w-56">
+						<ComboboxInput
+							showTrigger={false}
+							placeholder="Select one or more options..."
+						/>
+						<ComboboxEmpty>No options found.</ComboboxEmpty>
+						<ComboboxList>
+							{(option) => (
+								<ComboboxItem key={option.value} value={option}>
+									<Checkbox checked={selectedValues.includes(option.value)} />
+									<Badge variant={getBadgeVariant(option.color)}>
+										{option.label}
+									</Badge>
+								</ComboboxItem>
+							)}
+						</ComboboxList>
+					</ComboboxContent>
+				</Combobox>
 			);
 		}
 
