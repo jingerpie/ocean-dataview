@@ -9,6 +9,7 @@ import {
 } from "@ocean-dataview/shared/utils";
 import { TrashIcon } from "lucide-react";
 import { Button } from "../button";
+import { Separator } from "../separator";
 import { AddFilterButton } from "./add-filter-button";
 import { FilterGroup } from "./filter-group";
 
@@ -19,6 +20,8 @@ interface FilterBuilderProps<T> {
 	filter: Filter | null;
 	/** Callback when filter changes */
 	onChange: (filter: Filter | null) => void;
+	/** Callback when delete filter button is clicked (after onChange is called) */
+	onDelete?: () => void;
 	/** Additional class names */
 	className?: string;
 }
@@ -31,6 +34,7 @@ export function FilterBuilder<T>({
 	properties,
 	filter,
 	onChange,
+	onDelete,
 	className,
 }: FilterBuilderProps<T>) {
 	// Normalize filter to always work with compound filters internally
@@ -58,36 +62,36 @@ export function FilterBuilder<T>({
 	// Handle deleting all filters
 	const handleDeleteFilter = () => {
 		onChange(null);
+		onDelete?.();
 	};
 
-	// Empty state - show only add button
-	if (!normalizedFilter) {
-		return (
-			<div className={cn("py-2", className)}>
-				<AddFilterButton
-					properties={properties}
-					canAddGroup={true}
-					onAddRule={handleAddFirstRule}
-					onAddGroup={handleAddFirstGroup}
-				/>
-			</div>
-		);
-	}
-
 	return (
-		<div className={cn("space-y-3", className)}>
-			{/* Filter Group */}
-			<FilterGroup
-				filter={normalizedFilter}
-				properties={properties}
-				level={0}
-				isFirst={true}
-				onChange={handleFilterChange}
-				onRemove={handleDeleteFilter}
-			/>
+		<div className={cn("flex flex-col gap-2", className)}>
+			{/* Filter Content */}
+			{normalizedFilter ? (
+				<FilterGroup
+					filter={normalizedFilter}
+					properties={properties}
+					level={0}
+					isFirst={true}
+					onChange={handleFilterChange}
+					onRemove={handleDeleteFilter}
+				/>
+			) : (
+				<div className="">
+					<AddFilterButton
+						properties={properties}
+						canAddGroup={true}
+						onAddRule={handleAddFirstRule}
+						onAddGroup={handleAddFirstGroup}
+					/>
+				</div>
+			)}
 
-			{/* Delete Filter Button */}
-			<div className="border-t pt-3">
+			<Separator />
+
+			{/* Delete Filter Button - Always visible */}
+			<div>
 				<Button
 					variant="ghost"
 					size="sm"

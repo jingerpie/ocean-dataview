@@ -71,6 +71,7 @@ export function FilterBuilderPopover<T>({
 					properties={properties}
 					filter={filter}
 					onChange={onChange}
+					onDelete={() => onOpenChange?.(false)}
 				/>
 			</PopoverContent>
 		</Popover>
