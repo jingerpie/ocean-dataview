@@ -80,8 +80,9 @@ export function FilterGroup<T>({
 
 	// Handle unwrap - only works when group has exactly 1 item
 	const handleUnwrap = () => {
-		if (items.length === 1 && onUnwrap) {
-			onUnwrap(items[0]!);
+		const firstItem = items[0];
+		if (items.length === 1 && firstItem && onUnwrap) {
+			onUnwrap(firstItem);
 		}
 	};
 
