@@ -88,14 +88,16 @@ function FilterPropertyPicker<T>({
 		);
 	};
 
+	// Compute value - use null instead of undefined to keep component in controlled mode
+	// Type assertion needed because base-ui Combobox has complex generic inference with union types
+	const comboboxValue = (
+		variant === "selector" ? (selectedProperty ?? null) : null
+	) as never;
+
 	return (
 		<Combobox
 			items={availableProperties}
-			value={
-				variant === "selector"
-					? (selectedProperty as DataViewProperty<T> | null | undefined)
-					: undefined
-			}
+			value={comboboxValue}
 			open={open}
 			onOpenChange={onOpenChange}
 			onValueChange={(newValue) => {
