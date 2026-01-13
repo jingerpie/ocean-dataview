@@ -95,10 +95,10 @@ export function FilterChip<T>({
 				<span className="max-w-24 truncate">{label}</span>
 				<ChevronDownIcon className="size-3 opacity-50" />
 			</PopoverTrigger>
-			<PopoverContent align="start" className="gap-2">
+			<PopoverContent align="start">
 				{/* Header: Property + Operator + Menu */}
 				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-2">
+					<div className="flex items-center">
 						<span className="font-medium text-sm">{label}</span>
 						<OperatorPicker
 							value={condition.operator}
@@ -108,9 +108,7 @@ export function FilterChip<T>({
 						/>
 					</div>
 					<DropdownMenu>
-						<DropdownMenuTrigger
-							render={<Button variant="ghost" size="icon" />}
-						>
+						<DropdownMenuTrigger render={<Button variant="ghost" size="sm" />}>
 							<MoreHorizontalIcon />
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="start" side="bottom" className="w-auto">

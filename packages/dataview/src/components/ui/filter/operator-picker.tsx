@@ -53,8 +53,7 @@ export function OperatorPicker({
 			<SelectTrigger
 				size="sm"
 				className={cn(
-					"capitalize",
-					appearance === "inline" && "border-none bg-transparent!",
+					appearance === "inline" && "border-none bg-transparent! lowercase",
 					className,
 				)}
 			>
@@ -62,7 +61,7 @@ export function OperatorPicker({
 			</SelectTrigger>
 			<SelectContent align="start">
 				{operators.map((op) => (
-					<SelectItem key={op.value} value={op.value} className="capitalize">
+					<SelectItem key={op.value} value={op.value}>
 						{op.label}
 					</SelectItem>
 				))}
