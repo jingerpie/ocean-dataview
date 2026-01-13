@@ -118,4 +118,45 @@ export function DatePicker({
 	);
 }
 
-export type { DatePickerProps, DatePickerTriggerProps };
+// ============================================================================
+// DatePickerCalendar - Just the calendar without popover wrapper
+// ============================================================================
+
+interface DatePickerCalendarProps {
+	/** Current value (ISO string or timestamp) */
+	value: string | number | undefined;
+	/** Callback when value changes (receives ISO string) */
+	onChange: (value: string) => void;
+}
+
+/**
+ * Calendar-only component for use in contexts that already have a popover.
+ * Useful for filter chips where the parent already provides the popover.
+ */
+export function DatePickerCalendar({
+	value,
+	onChange,
+}: DatePickerCalendarProps) {
+	// Parse value to Date (handles both ISO strings and timestamps)
+	const dateValue = React.useMemo(() => {
+		if (!value) return undefined;
+		const date = new Date(value);
+		return Number.isNaN(date.getTime()) ? undefined : date;
+	}, [value]);
+
+	return (
+		<Calendar
+			mode="single"
+			selected={dateValue}
+			onSelect={(date) => {
+				onChange(date?.toISOString() ?? "");
+			}}
+		/>
+	);
+}
+
+export type {
+	DatePickerProps,
+	DatePickerTriggerProps,
+	DatePickerCalendarProps,
+};

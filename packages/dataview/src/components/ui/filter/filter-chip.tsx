@@ -39,7 +39,7 @@ import {
 import * as React from "react";
 import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
 import { BooleanPicker } from "../properties/boolean-picker";
-import { DatePicker } from "../properties/date-picker";
+import { DatePickerCalendar } from "../properties/date-picker";
 import { OperatorPicker } from "./operator-picker";
 
 interface FilterChipProps<T> {
@@ -95,7 +95,7 @@ export function FilterChip<T>({
 				<span className="max-w-24 truncate">{label}</span>
 				<ChevronDownIcon className="size-3 opacity-50" />
 			</PopoverTrigger>
-			<PopoverContent align="start">
+			<PopoverContent align="start" className="w-auto">
 				{/* Header: Property + Operator + Menu */}
 				<div className="flex items-center justify-between">
 					<div className="flex items-center">
@@ -246,7 +246,7 @@ function FilterChipValue<T>({
 		case "date":
 		case "dateRange":
 			return (
-				<DatePicker
+				<DatePickerCalendar
 					value={condition.value as string | undefined}
 					onChange={onValueChange}
 				/>
