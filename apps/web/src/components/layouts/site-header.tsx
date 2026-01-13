@@ -1,4 +1,4 @@
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
+import { buttonVariants } from "@ocean-dataview/ui/components/button";
 import { LayoutGrid } from "lucide-react";
 import Link from "next/link";
 import { ModeToggle } from "@/components/layouts/mode-toggle";
@@ -7,15 +7,16 @@ export function SiteHeader() {
 	return (
 		<header className="sticky top-0 z-50 w-full border-border/40 border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
 			<div className="container flex h-14 items-center">
-				<Button
-					variant="ghost"
-					size="icon"
-					className="size-8"
-					render={<Link href="/" />}
-					nativeButton={false}
+				<Link
+					href="/"
+					className={buttonVariants({
+						variant: "ghost",
+						size: "icon",
+						className: "size-8",
+					})}
 				>
 					<LayoutGrid />
-				</Button>
+				</Link>
 				<nav className="flex w-full items-center gap-4 text-sm">
 					{/* <Link href="/simple">Simple</Link> */}
 					{/* <Link href="/group">Group</Link> */}
