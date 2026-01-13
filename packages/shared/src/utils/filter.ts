@@ -14,15 +14,28 @@ export function getFilterOperators(filterVariant: FilterVariant) {
 		boolean: dataTableConfig.booleanOperators,
 		select: dataTableConfig.selectOperators,
 		multiSelect: dataTableConfig.multiSelectOperators,
+		files: dataTableConfig.filesOperators,
 	};
 
 	return operatorMap[filterVariant] ?? dataTableConfig.textOperators;
 }
 
-export function getDefaultFilterOperator(filterVariant: FilterVariant) {
-	const operators = getFilterOperators(filterVariant);
+export function getDefaultFilterOperator(
+	filterVariant: FilterVariant,
+): FilterOperator {
+	// Explicit defaults that differ from first operator in list
+	const explicitDefaults: Partial<Record<FilterVariant, FilterOperator>> = {
+		text: "iLike", // Contains (3rd in list)
+		date: "isRelativeToToday", // Is relative to today (7th in list)
+		dateRange: "isRelativeToToday",
+	};
 
-	return operators[0]?.value ?? (filterVariant === "text" ? "iLike" : "eq");
+	const explicit = explicitDefaults[filterVariant];
+	if (explicit) return explicit;
+
+	// Otherwise use first operator
+	const operators = getFilterOperators(filterVariant);
+	return operators[0]?.value ?? "eq";
 }
 
 /**

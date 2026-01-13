@@ -4,6 +4,24 @@ import {
 	isCompoundFilter,
 } from "@ocean-dataview/shared/types";
 import {
+	addDays,
+	addMonths,
+	addWeeks,
+	addYears,
+	endOfDay,
+	endOfMonth,
+	endOfWeek,
+	endOfYear,
+	startOfDay,
+	startOfMonth,
+	startOfWeek,
+	startOfYear,
+	subDays,
+	subMonths,
+	subWeeks,
+	subYears,
+} from "date-fns";
+import {
 	type AnyColumn,
 	and,
 	eq,
@@ -112,6 +130,12 @@ function buildCondition<T extends Table>(
 				? not(ilike(column, `%${value}%`))
 				: undefined;
 
+		case "startsWith":
+			return typeof value === "string" ? ilike(column, `${value}%`) : undefined;
+
+		case "endsWith":
+			return typeof value === "string" ? ilike(column, `%${value}`) : undefined;
+
 		// ============================================
 		// Equality operators
 		// ============================================
@@ -159,6 +183,30 @@ function buildCondition<T extends Table>(
 			return undefined;
 
 		// ============================================
+		// Date relative operator
+		// ============================================
+		case "isRelativeToToday": {
+			if (
+				!value ||
+				typeof value !== "object" ||
+				!("direction" in value) ||
+				!("unit" in value)
+			) {
+				return undefined;
+			}
+
+			const { direction, unit } = value as {
+				direction: "past" | "this" | "next";
+				unit: "day" | "week" | "month" | "year";
+			};
+			const now = new Date();
+			const range = getRelativeDateRange(now, direction, unit);
+
+			if (!range) return undefined;
+			return and(gte(column, range.start), lte(column, range.end));
+		}
+
+		// ============================================
 		// Empty operators
 		// ============================================
 		case "isEmpty":
@@ -181,4 +229,75 @@ export function getColumn<T extends Table>(
 	columnKey: keyof T,
 ): AnyColumn {
 	return table[columnKey] as AnyColumn;
+}
+
+/**
+ * Gets the date range for relative date filters.
+ * Supports all 12 combinations: (past|this|next) × (day|week|month|year)
+ */
+function getRelativeDateRange(
+	now: Date,
+	direction: "past" | "this" | "next",
+	unit: "day" | "week" | "month" | "year",
+): { start: Date; end: Date } | undefined {
+	switch (`${direction}_${unit}`) {
+		// Day
+		case "past_day":
+			return {
+				start: startOfDay(subDays(now, 1)),
+				end: endOfDay(subDays(now, 1)),
+			};
+		case "this_day":
+			return { start: startOfDay(now), end: endOfDay(now) };
+		case "next_day":
+			return {
+				start: startOfDay(addDays(now, 1)),
+				end: endOfDay(addDays(now, 1)),
+			};
+
+		// Week
+		case "past_week":
+			return {
+				start: startOfWeek(subWeeks(now, 1)),
+				end: endOfWeek(subWeeks(now, 1)),
+			};
+		case "this_week":
+			return { start: startOfWeek(now), end: endOfWeek(now) };
+		case "next_week":
+			return {
+				start: startOfWeek(addWeeks(now, 1)),
+				end: endOfWeek(addWeeks(now, 1)),
+			};
+
+		// Month
+		case "past_month":
+			return {
+				start: startOfMonth(subMonths(now, 1)),
+				end: endOfMonth(subMonths(now, 1)),
+			};
+		case "this_month":
+			return { start: startOfMonth(now), end: endOfMonth(now) };
+		case "next_month":
+			return {
+				start: startOfMonth(addMonths(now, 1)),
+				end: endOfMonth(addMonths(now, 1)),
+			};
+
+		// Year
+		case "past_year":
+			return {
+				start: startOfYear(subYears(now, 1)),
+				end: endOfYear(subYears(now, 1)),
+			};
+		case "this_year":
+			return { start: startOfYear(now), end: endOfYear(now) };
+		case "next_year":
+			return {
+				start: startOfYear(addYears(now, 1)),
+				end: endOfYear(addYears(now, 1)),
+			};
+
+		default:
+			return undefined;
+	}
 }

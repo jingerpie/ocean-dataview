@@ -2,27 +2,27 @@ export type DataTableConfig = typeof dataTableConfig;
 
 export const dataTableConfig = {
 	textOperators: [
-		{ label: "Contains", value: "iLike" as const },
-		{ label: "Does not contain", value: "notILike" as const },
 		{ label: "Is", value: "eq" as const },
 		{ label: "Is not", value: "ne" as const },
+		{ label: "Contains", value: "iLike" as const },
+		{ label: "Does not contain", value: "notILike" as const },
+		{ label: "Starts with", value: "startsWith" as const },
+		{ label: "Ends with", value: "endsWith" as const },
 		{ label: "Is empty", value: "isEmpty" as const },
 		{ label: "Is not empty", value: "isNotEmpty" as const },
 	],
 	numericOperators: [
-		{ label: "Is", value: "eq" as const },
-		{ label: "Is not", value: "ne" as const },
-		{ label: "Is less than", value: "lt" as const },
-		{ label: "Is less than or equal to", value: "lte" as const },
-		{ label: "Is greater than", value: "gt" as const },
-		{ label: "Is greater than or equal to", value: "gte" as const },
-		{ label: "Is between", value: "isBetween" as const },
+		{ label: "=", value: "eq" as const },
+		{ label: "≠", value: "ne" as const },
+		{ label: ">", value: "gt" as const },
+		{ label: "<", value: "lt" as const },
+		{ label: "≥", value: "gte" as const },
+		{ label: "≤", value: "lte" as const },
 		{ label: "Is empty", value: "isEmpty" as const },
 		{ label: "Is not empty", value: "isNotEmpty" as const },
 	],
 	dateOperators: [
 		{ label: "Is", value: "eq" as const },
-		{ label: "Is not", value: "ne" as const },
 		{ label: "Is before", value: "lt" as const },
 		{ label: "Is after", value: "gt" as const },
 		{ label: "Is on or before", value: "lte" as const },
@@ -39,14 +39,18 @@ export const dataTableConfig = {
 		{ label: "Is not empty", value: "isNotEmpty" as const },
 	],
 	multiSelectOperators: [
-		{ label: "Has any of", value: "inArray" as const },
-		{ label: "Has none of", value: "notInArray" as const },
+		{ label: "Contains", value: "inArray" as const },
+		{ label: "Does not contain", value: "notInArray" as const },
 		{ label: "Is empty", value: "isEmpty" as const },
 		{ label: "Is not empty", value: "isNotEmpty" as const },
 	],
 	booleanOperators: [
 		{ label: "Is", value: "eq" as const },
 		{ label: "Is not", value: "ne" as const },
+	],
+	filesOperators: [
+		{ label: "Is not empty", value: "isNotEmpty" as const },
+		{ label: "Is empty", value: "isEmpty" as const },
 	],
 	sortOrders: [
 		{ label: "Asc", value: "asc" as const },
@@ -61,6 +65,7 @@ export const dataTableConfig = {
 		"boolean",
 		"select",
 		"multiSelect",
+		"files",
 	] as const,
 	operators: [
 		"iLike",
@@ -77,6 +82,8 @@ export const dataTableConfig = {
 		"gte",
 		"isBetween",
 		"isRelativeToToday",
+		"startsWith",
+		"endsWith",
 	] as const,
 	joinOperators: ["and", "or"] as const,
 };

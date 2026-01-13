@@ -78,6 +78,8 @@ const operatorValues = [
 	"gte",
 	"isBetween",
 	"isRelativeToToday",
+	"startsWith",
+	"endsWith",
 ] as const;
 
 /**
@@ -145,4 +147,5 @@ export type FilterVariant =
 	| "dateRange"
 	| "boolean"
 	| "select"
-	| "multiSelect";
+	| "multiSelect"
+	| "files";

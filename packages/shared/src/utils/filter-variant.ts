@@ -46,6 +46,8 @@ export function getFilterVariantFromPropertyType(
 			return "date";
 		case "checkbox":
 			return "boolean";
+		case "filesMedia":
+			return "files";
 		default:
 			return "text";
 	}

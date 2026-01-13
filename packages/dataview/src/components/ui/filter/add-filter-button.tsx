@@ -16,7 +16,11 @@ import {
 } from "@ocean-dataview/dataview/components/ui/popover";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type { FilterCondition } from "@ocean-dataview/shared/types";
-import { createDefaultCondition } from "@ocean-dataview/shared/utils";
+import {
+	createDefaultCondition,
+	getDefaultFilterOperator,
+	getFilterVariantFromPropertyType,
+} from "@ocean-dataview/shared/utils";
 import {
 	ChevronDownIcon,
 	ChevronLeftIcon,
@@ -55,7 +59,13 @@ export function AddFilterButton<T>({
 	const [view, setView] = React.useState<"menu" | "properties">("menu");
 
 	const handleSelectProperty = (propertyId: string) => {
-		const condition = createDefaultCondition(propertyId);
+		// Find property to get its type for the correct default operator
+		const property = properties.find((p) => String(p.id) === propertyId);
+		const filterVariant = property
+			? getFilterVariantFromPropertyType(property.type)
+			: "text";
+		const defaultOperator = getDefaultFilterOperator(filterVariant);
+		const condition = createDefaultCondition(propertyId, defaultOperator);
 		onAddRule(condition);
 		setOpen(false);
 		setView("menu");

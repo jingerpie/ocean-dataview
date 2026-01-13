@@ -10,6 +10,8 @@ import type {
 } from "@ocean-dataview/shared/types";
 import {
 	createDefaultCondition,
+	getDefaultFilterOperator,
+	getFilterVariantFromPropertyType,
 	normalizeFilter,
 	removeItem,
 	updateCondition,
@@ -81,7 +83,13 @@ export function ActiveControlsRow<T>({
 
 	// Handle adding a new simple filter (adds FilterCondition to root)
 	const handleAddFilter = (property: DataViewProperty<T>) => {
-		const condition = createDefaultCondition(String(property.id));
+		// Get the correct default operator based on property type
+		const filterVariant = getFilterVariantFromPropertyType(property.type);
+		const defaultOperator = getDefaultFilterOperator(filterVariant);
+		const condition = createDefaultCondition(
+			String(property.id),
+			defaultOperator,
+		);
 
 		if (normalizedFilter) {
 			// Add to root level (alongside any existing advanced filter)
