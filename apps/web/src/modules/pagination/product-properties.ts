@@ -65,4 +65,9 @@ export const productProperties = [
 		label: "Max Calories",
 		type: "number",
 	},
+	{
+		id: "createdAt",
+		label: "Created At",
+		type: "date",
+	},
 ] as const satisfies DataViewProperty<Product>[];

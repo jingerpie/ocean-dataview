@@ -21,9 +21,9 @@ interface DatePickerTriggerProps {
 }
 
 interface DatePickerProps {
-	/** Current value (timestamp as string or number) */
+	/** Current value (ISO string or timestamp) */
 	value: string | number | undefined;
-	/** Callback when value changes (receives timestamp as string) */
+	/** Callback when value changes (receives ISO string) */
 	onChange: (value: string) => void;
 	/** Placeholder text when no date selected */
 	placeholder?: string;
@@ -56,8 +56,13 @@ export function DatePicker({
 	const isOpen = isControlled ? open : internalOpen;
 	const setIsOpen = isControlled ? onOpenChange : setInternalOpen;
 
-	// Parse value to Date
-	const dateValue = value ? new Date(Number(value)) : undefined;
+	// Parse value to Date (handles both ISO strings and timestamps)
+	const dateValue = React.useMemo(() => {
+		if (!value) return undefined;
+		// Try parsing as ISO string first, then as timestamp
+		const date = new Date(value);
+		return Number.isNaN(date.getTime()) ? undefined : date;
+	}, [value]);
 
 	// Format date for display
 	const formatDate = (date: Date) =>
@@ -105,7 +110,7 @@ export function DatePicker({
 					mode="single"
 					selected={dateValue}
 					onSelect={(date) => {
-						onChange(date?.getTime().toString() ?? "");
+						onChange(date?.toISOString() ?? "");
 					}}
 				/>
 			</PopoverContent>
