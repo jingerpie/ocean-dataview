@@ -210,9 +210,17 @@ function buildCondition<T extends Table>(
 		// Empty operators
 		// ============================================
 		case "isEmpty":
+			// For text columns, empty string '' is also considered empty
+			if (isTextColumn(table, property as keyof T)) {
+				return or(isNull(column), eq(column, ""));
+			}
 			return isNull(column);
 
 		case "isNotEmpty":
+			// For text columns, empty string '' is also considered empty
+			if (isTextColumn(table, property as keyof T)) {
+				return and(isNotNull(column), ne(column, ""));
+			}
 			return isNotNull(column);
 
 		default:
@@ -229,6 +237,27 @@ export function getColumn<T extends Table>(
 	columnKey: keyof T,
 ): AnyColumn {
 	return table[columnKey] as AnyColumn;
+}
+
+/**
+ * Check if a column is a text/string type in the database.
+ * Used for isEmpty/isNotEmpty to handle empty string '' as empty for text columns.
+ *
+ * Note: We check `columnType` (PostgreSQL type) not `dataType` (JS type)
+ * because columns like timestamp can have `mode: "string"` which sets
+ * dataType to "string" even though they're not text columns in the DB.
+ */
+function isTextColumn<T extends Table>(table: T, columnKey: keyof T): boolean {
+	const column = table[columnKey] as AnyColumn;
+	if (!column) return false;
+
+	// Check the PostgreSQL column type (e.g., 'PgText', 'PgVarchar', 'PgChar')
+	const columnType = (column as { columnType?: string }).columnType;
+	return (
+		columnType === "PgText" ||
+		columnType === "PgVarchar" ||
+		columnType === "PgChar"
+	);
 }
 
 /**
