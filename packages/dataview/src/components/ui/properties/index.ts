@@ -1,8 +1,18 @@
 export type { BooleanPickerProps } from "./boolean-picker";
 export { BooleanPicker } from "./boolean-picker";
 export { CheckboxProperty } from "./checkbox-property";
-export type { DatePickerProps, DatePickerTriggerProps } from "./date-picker";
-export { DatePicker } from "./date-picker";
+export type {
+	DateRangeValue,
+	RangeDateCalendarProps,
+	RelativeDateCalendarProps,
+	RelativeToTodayValue,
+	SingleDateCalendarProps,
+} from "./date-picker";
+export {
+	RangeDateCalendar,
+	RelativeDateCalendar,
+	SingleDateCalendar,
+} from "./date-picker";
 export { DateProperty } from "./date-property";
 export { EmailProperty } from "./email-property";
 export { FilesMediaProperty } from "./files-media-property";

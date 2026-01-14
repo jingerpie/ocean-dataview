@@ -195,12 +195,17 @@ function buildCondition<T extends Table>(
 				return undefined;
 			}
 
-			const { direction, unit } = value as {
+			const {
+				direction,
+				count = 1,
+				unit,
+			} = value as {
 				direction: "past" | "this" | "next";
+				count?: number;
 				unit: "day" | "week" | "month" | "year";
 			};
 			const now = new Date();
-			const range = getRelativeDateRange(now, direction, unit);
+			const range = getRelativeDateRange(now, direction, count, unit);
 
 			if (!range) return undefined;
 			return and(gte(column, range.start), lte(column, range.end));
@@ -262,69 +267,81 @@ function isTextColumn<T extends Table>(table: T, columnKey: keyof T): boolean {
 
 /**
  * Gets the date range for relative date filters.
- * Supports all 12 combinations: (past|this|next) × (day|week|month|year)
+ * Supports direction (past/this/next), count, and unit (day/week/month/year).
  */
 function getRelativeDateRange(
 	now: Date,
 	direction: "past" | "this" | "next",
+	count: number,
 	unit: "day" | "week" | "month" | "year",
 ): { start: Date; end: Date } | undefined {
-	switch (`${direction}_${unit}`) {
-		// Day
-		case "past_day":
-			return {
-				start: startOfDay(subDays(now, 1)),
-				end: endOfDay(subDays(now, 1)),
-			};
-		case "this_day":
+	// For "this" direction, count is always 1
+	const n = direction === "this" ? 1 : count;
+
+	switch (unit) {
+		case "day":
+			if (direction === "past") {
+				return {
+					start: startOfDay(subDays(now, n)),
+					end: endOfDay(subDays(now, 1)),
+				};
+			}
+			if (direction === "next") {
+				return {
+					start: startOfDay(addDays(now, 1)),
+					end: endOfDay(addDays(now, n)),
+				};
+			}
+			// this
 			return { start: startOfDay(now), end: endOfDay(now) };
-		case "next_day":
-			return {
-				start: startOfDay(addDays(now, 1)),
-				end: endOfDay(addDays(now, 1)),
-			};
 
-		// Week
-		case "past_week":
-			return {
-				start: startOfWeek(subWeeks(now, 1)),
-				end: endOfWeek(subWeeks(now, 1)),
-			};
-		case "this_week":
+		case "week":
+			if (direction === "past") {
+				return {
+					start: startOfWeek(subWeeks(now, n)),
+					end: endOfWeek(subWeeks(now, 1)),
+				};
+			}
+			if (direction === "next") {
+				return {
+					start: startOfWeek(addWeeks(now, 1)),
+					end: endOfWeek(addWeeks(now, n)),
+				};
+			}
+			// this
 			return { start: startOfWeek(now), end: endOfWeek(now) };
-		case "next_week":
-			return {
-				start: startOfWeek(addWeeks(now, 1)),
-				end: endOfWeek(addWeeks(now, 1)),
-			};
 
-		// Month
-		case "past_month":
-			return {
-				start: startOfMonth(subMonths(now, 1)),
-				end: endOfMonth(subMonths(now, 1)),
-			};
-		case "this_month":
+		case "month":
+			if (direction === "past") {
+				return {
+					start: startOfMonth(subMonths(now, n)),
+					end: endOfMonth(subMonths(now, 1)),
+				};
+			}
+			if (direction === "next") {
+				return {
+					start: startOfMonth(addMonths(now, 1)),
+					end: endOfMonth(addMonths(now, n)),
+				};
+			}
+			// this
 			return { start: startOfMonth(now), end: endOfMonth(now) };
-		case "next_month":
-			return {
-				start: startOfMonth(addMonths(now, 1)),
-				end: endOfMonth(addMonths(now, 1)),
-			};
 
-		// Year
-		case "past_year":
-			return {
-				start: startOfYear(subYears(now, 1)),
-				end: endOfYear(subYears(now, 1)),
-			};
-		case "this_year":
+		case "year":
+			if (direction === "past") {
+				return {
+					start: startOfYear(subYears(now, n)),
+					end: endOfYear(subYears(now, 1)),
+				};
+			}
+			if (direction === "next") {
+				return {
+					start: startOfYear(addYears(now, 1)),
+					end: endOfYear(addYears(now, n)),
+				};
+			}
+			// this
 			return { start: startOfYear(now), end: endOfYear(now) };
-		case "next_year":
-			return {
-				start: startOfYear(addYears(now, 1)),
-				end: endOfYear(addYears(now, 1)),
-			};
 
 		default:
 			return undefined;

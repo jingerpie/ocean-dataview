@@ -40,9 +40,11 @@ import * as React from "react";
 import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
 import { BooleanPicker } from "../properties/boolean-picker";
 import {
-	DatePickerCalendar,
-	DateRangePicker,
 	type DateRangeValue,
+	RangeDateCalendar,
+	RelativeDateCalendar,
+	type RelativeToTodayValue,
+	SingleDateCalendar,
 } from "../properties/date-picker";
 import { OperatorPicker } from "./operator-picker";
 
@@ -99,7 +101,7 @@ export function FilterChip<T>({
 				<span className="max-w-24 truncate">{label}</span>
 				<ChevronDownIcon className="size-3 opacity-50" />
 			</PopoverTrigger>
-			<PopoverContent align="start" className="w-auto">
+			<PopoverContent align="start" className="w-80">
 				{/* Header: Property + Operator + Menu */}
 				<div className="flex items-center justify-between">
 					<div className="flex items-center">
@@ -251,14 +253,22 @@ function FilterChipValue<T>({
 		case "dateRange":
 			if (condition.operator === "isBetween") {
 				return (
-					<DateRangePicker
+					<RangeDateCalendar
 						value={condition.value as DateRangeValue | undefined}
 						onChange={onValueChange}
 					/>
 				);
 			}
+			if (condition.operator === "isRelativeToToday") {
+				return (
+					<RelativeDateCalendar
+						value={condition.value as RelativeToTodayValue | undefined}
+						onChange={onValueChange}
+					/>
+				);
+			}
 			return (
-				<DatePickerCalendar
+				<SingleDateCalendar
 					value={condition.value as string | undefined}
 					onChange={onValueChange}
 				/>

@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@ocean-dataview/ui/lib/utils";
+import { cn } from "@ocean-dataview/dataview/lib/utils";
 import {
 	ChevronDownIcon,
 	ChevronLeftIcon,
@@ -22,11 +22,16 @@ function Calendar({
 	buttonVariant = "ghost",
 	formatters,
 	components,
+	readOnly = false,
 	...props
 }: React.ComponentProps<typeof DayPicker> & {
 	buttonVariant?: React.ComponentProps<typeof Button>["variant"];
+	readOnly?: boolean;
 }) {
 	const defaultClassNames = getDefaultClassNames();
+
+	// Handle readOnly mode by overriding onSelect
+	const dayPickerProps = readOnly ? { ...props, onSelect: () => {} } : props;
 
 	return (
 		<DayPicker
@@ -108,6 +113,7 @@ function Calendar({
 						? "[&:nth-child(2)[data-selected=true]_button]:rounded-l-(--cell-radius)"
 						: "[&:first-child[data-selected=true]_button]:rounded-l-(--cell-radius)",
 					defaultClassNames.day,
+					readOnly && "pointer-events-none",
 				),
 				range_start: cn(
 					"elative isolate -z-0 rounded-l-(--cell-radius) bg-muted after:absolute after:inset-y-0 after:right-0 after:w-4 after:bg-muted",
@@ -176,7 +182,7 @@ function Calendar({
 				},
 				...components,
 			}}
-			{...props}
+			{...dayPickerProps}
 		/>
 	);
 }

@@ -18,11 +18,11 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@ocean-dataview/ui/components/tooltip";
+import { useIsMobile } from "@ocean-dataview/ui/hooks/use-mobile";
 import { cn } from "@ocean-dataview/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
 import * as React from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;

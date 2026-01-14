@@ -17,7 +17,13 @@ import {
 } from "@ocean-dataview/shared/utils";
 import * as React from "react";
 import { BooleanPicker } from "../properties/boolean-picker";
-import { DatePicker } from "../properties/date-picker";
+import {
+	type DateRangeValue,
+	RangeDateCalendar,
+	RelativeDateCalendar,
+	type RelativeToTodayValue,
+	SingleDateCalendar,
+} from "../properties/date-picker";
 import { SelectPicker } from "../properties/select-picker";
 import { FilterPropertyPicker } from "./filter-property-picker";
 import { LogicConnector } from "./logic-connector";
@@ -284,12 +290,26 @@ function ValueInput<T>({
 
 		case "date":
 		case "dateRange":
+			if (condition.operator === "isBetween") {
+				return (
+					<RangeDateCalendar
+						value={condition.value as DateRangeValue | undefined}
+						onChange={onValueChange}
+					/>
+				);
+			}
+			if (condition.operator === "isRelativeToToday") {
+				return (
+					<RelativeDateCalendar
+						value={condition.value as RelativeToTodayValue | undefined}
+						onChange={onValueChange}
+					/>
+				);
+			}
 			return (
-				<DatePicker
+				<SingleDateCalendar
 					value={condition.value as string | undefined}
-					onChange={onValueChange}
-					open={showSelector}
-					onOpenChange={onShowSelectorChange}
+					onChange={(value) => onValueChange(value)}
 				/>
 			);
 

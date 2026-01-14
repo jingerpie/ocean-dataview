@@ -1,6 +1,11 @@
 export { buildPaginationContext } from "./build-pagination-context";
 export type { GroupedDataWithMeta } from "./compute-data";
 export { getGroupCounts, groupByProperty } from "./compute-data";
+export {
+	formatDateForDisplay,
+	parseDate,
+	parseValue,
+} from "./date-picker-utils";
 export { groupByField } from "./group";
 export { paginateData } from "./paginate";
 export { searchData } from "./search";
