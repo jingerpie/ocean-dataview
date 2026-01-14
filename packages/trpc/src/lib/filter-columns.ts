@@ -210,10 +210,10 @@ function buildCondition<T extends Table>(
 		// Empty operators
 		// ============================================
 		case "isEmpty":
-			return or(isNull(column), eq(column, ""));
+			return isNull(column);
 
 		case "isNotEmpty":
-			return and(isNotNull(column), ne(column, ""));
+			return isNotNull(column);
 
 		default:
 			// Unknown operator - skip silently

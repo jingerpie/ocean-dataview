@@ -39,7 +39,11 @@ import {
 import * as React from "react";
 import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
 import { BooleanPicker } from "../properties/boolean-picker";
-import { DatePickerCalendar } from "../properties/date-picker";
+import {
+	DatePickerCalendar,
+	DateRangePicker,
+	type DateRangeValue,
+} from "../properties/date-picker";
 import { OperatorPicker } from "./operator-picker";
 
 interface FilterChipProps<T> {
@@ -245,6 +249,14 @@ function FilterChipValue<T>({
 
 		case "date":
 		case "dateRange":
+			if (condition.operator === "isBetween") {
+				return (
+					<DateRangePicker
+						value={condition.value as DateRangeValue | undefined}
+						onChange={onValueChange}
+					/>
+				);
+			}
 			return (
 				<DatePickerCalendar
 					value={condition.value as string | undefined}

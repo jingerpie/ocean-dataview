@@ -21,6 +21,7 @@
 		"@ocean-dataview/shared": "workspace:*",
 		"@tanstack/react-query": "catalog:",
 		"@tanstack/react-table": "catalog:",
+		"chrono-node": "catalog:",
 		"class-variance-authority": "catalog:",
 		"clsx": "catalog:",
 		"cmdk": "catalog:",
