@@ -234,7 +234,7 @@ function ValueInput<T>({
 		case "boolean":
 			return (
 				<BooleanPicker
-					value={condition.value as string | undefined}
+					value={condition.value as boolean | undefined}
 					onChange={onValueChange}
 				/>
 			);

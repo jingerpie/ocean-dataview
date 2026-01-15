@@ -70,4 +70,10 @@ export const productProperties = [
 		label: "Created At",
 		type: "date",
 	},
+	{
+		id: "hasType",
+		label: "Has Type",
+		type: "checkbox",
+		value: (item) => item.type !== "UNDEFINED",
+	},
 ] as const satisfies DataViewProperty<Product>[];

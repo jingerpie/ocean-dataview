@@ -110,7 +110,7 @@ export function FilterChip<T>({
 							value={condition.operator}
 							onChange={handleOperatorChange}
 							variant={variant}
-							appearance="inline"
+							inline
 						/>
 					</div>
 					<DropdownMenu>
@@ -194,7 +194,7 @@ function FilterChipValue<T>({
 		case "boolean":
 			return (
 				<BooleanPicker
-					value={condition.value as string | undefined}
+					value={condition.value as boolean | undefined}
 					onChange={onValueChange}
 				/>
 			);

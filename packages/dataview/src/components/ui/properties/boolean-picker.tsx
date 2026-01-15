@@ -9,43 +9,40 @@ import {
 } from "@ocean-dataview/dataview/components/ui/select";
 
 interface BooleanPickerProps {
-	/** Current value */
-	value: string | boolean | undefined;
-	/** Callback when value changes */
-	onChange: (value: string) => void;
-	/** Label for true option */
-	trueLabel?: string;
-	/** Label for false option */
-	falseLabel?: string;
+	value: boolean | undefined;
+	onChange: (value: boolean) => void;
 }
+
+const items = [
+	{ label: "True", value: "true" },
+	{ label: "False", value: "false" },
+];
 
 /**
  * A picker for boolean values (true/false).
  * Renders as a Select dropdown.
  */
-export function BooleanPicker({
-	value,
-	onChange,
-	trueLabel = "True",
-	falseLabel = "False",
-}: BooleanPickerProps) {
-	// Normalize value to string
-	const stringValue =
-		typeof value === "boolean" ? String(value) : (value ?? "true");
+export function BooleanPicker({ value, onChange }: BooleanPickerProps) {
+	// Convert boolean to string for Select (which requires string values)
+	const selectValue = value === false ? "false" : "true";
 
 	return (
 		<Select
-			value={stringValue}
+			items={items}
+			value={selectValue}
 			onValueChange={(value) => {
-				if (value) onChange(value);
+				if (value) onChange(value === "true");
 			}}
 		>
 			<SelectTrigger size="sm">
 				<SelectValue />
 			</SelectTrigger>
 			<SelectContent>
-				<SelectItem value="true">{trueLabel}</SelectItem>
-				<SelectItem value="false">{falseLabel}</SelectItem>
+				{items.map((item) => (
+					<SelectItem key={item.value} value={item.value}>
+						{item.label}
+					</SelectItem>
+				))}
 			</SelectContent>
 		</Select>
 	);

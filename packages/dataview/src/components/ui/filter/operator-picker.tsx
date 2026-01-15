@@ -15,36 +15,26 @@ import type {
 import { getFilterOperators } from "@ocean-dataview/shared/utils";
 
 interface OperatorPickerProps {
-	/** Current operator value */
 	value: FilterOperator;
-	/** Callback when operator changes */
 	onChange: (operator: FilterOperator) => void;
-	/** Filter variant to determine available operators */
 	variant: FilterVariant;
-	/** Visual style variant */
-	appearance?: "selector" | "inline";
-	/** Additional class name */
+	/** Inline style (no border, transparent) for filter chips */
+	inline?: boolean;
 	className?: string;
 }
 
-/**
- * Operator selector for filter conditions.
- * - `selector`: Default style with border (for filter builder)
- * - `inline`: Ghost/transparent style like inline text (for filter chip)
- */
 export function OperatorPicker({
 	value,
 	onChange,
 	variant,
-	appearance = "selector",
+	inline,
 	className,
 }: OperatorPickerProps) {
-	const operators = getFilterOperators(variant);
-	const currentLabel =
-		operators.find((op) => op.value === value)?.label ?? value;
+	const items = getFilterOperators(variant);
 
 	return (
 		<Select
+			items={items}
 			value={value}
 			onValueChange={(val) => {
 				if (val) onChange(val as FilterOperator);
@@ -53,16 +43,16 @@ export function OperatorPicker({
 			<SelectTrigger
 				size="sm"
 				className={cn(
-					appearance === "inline" && "border-none bg-transparent! lowercase",
+					inline && "border-none bg-transparent! lowercase",
 					className,
 				)}
 			>
-				<SelectValue>{currentLabel}</SelectValue>
+				<SelectValue />
 			</SelectTrigger>
 			<SelectContent align="start">
-				{operators.map((op) => (
-					<SelectItem key={op.value} value={op.value}>
-						{op.label}
+				{items.map((item) => (
+					<SelectItem key={item.value} value={item.value}>
+						{item.label}
 					</SelectItem>
 				))}
 			</SelectContent>
