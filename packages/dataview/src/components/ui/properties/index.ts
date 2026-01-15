@@ -1,17 +1,20 @@
 export type { CheckboxPickerProps } from "./checkbox-picker";
-export { CheckboxPicker } from "./checkbox-picker";
+export { CheckboxPicker, CheckboxPickerContent } from "./checkbox-picker";
 export { CheckboxProperty } from "./checkbox-property";
 export type {
 	DateRangeValue,
-	RangeDateCalendarProps,
-	RelativeDateCalendarProps,
+	RangeDatePickerProps,
+	RelativeDatePickerProps,
 	RelativeToTodayValue,
-	SingleDateCalendarProps,
+	SingleDatePickerProps,
 } from "./date-picker";
 export {
-	RangeDateCalendar,
-	RelativeDateCalendar,
-	SingleDateCalendar,
+	RangeDatePicker,
+	RangeDatePickerContent,
+	RelativeDatePicker,
+	RelativeDatePickerContent,
+	SingleDatePicker,
+	SingleDatePickerContent,
 } from "./date-picker";
 export { DateProperty } from "./date-property";
 export { EmailProperty } from "./email-property";

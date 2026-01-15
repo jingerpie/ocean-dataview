@@ -37,7 +37,7 @@ interface RelativeToTodayValue {
 	unit: RelativeUnit;
 }
 
-interface RelativeDateCalendarProps {
+interface RelativeDatePickerProps {
 	/** Current value with direction, count, and unit */
 	value: RelativeToTodayValue | undefined;
 	/** Callback when value changes */
@@ -140,18 +140,19 @@ function getRelativeDateRange(
 	}
 }
 
-/**
- * Relative date picker with dropdowns (direction/count/unit) and a read-only calendar.
- * Used for "is relative to today" filter operator.
- *
- * UI Layout:
- * - "This" direction: [This ▼] [week ▼]
- * - "Past/Next" direction: [Past ▼] [1] [week ▼]
- *
- * The calendar is display-only - it shows the computed date range
- * but users cannot click to select dates.
- */
-function RelativeDateCalendar({ value, onChange }: RelativeDateCalendarProps) {
+// ============================================================================
+// Shared dropdowns component
+// ============================================================================
+
+interface RelativeDateDropdownsProps {
+	value: RelativeToTodayValue | undefined;
+	onChange: (value: RelativeToTodayValue) => void;
+}
+
+function RelativeDateDropdowns({
+	value,
+	onChange,
+}: RelativeDateDropdownsProps) {
 	// Default to "This week" if no value
 	const direction = value?.direction ?? "This";
 	const count = value?.count ?? 1;
@@ -159,10 +160,6 @@ function RelativeDateCalendar({ value, onChange }: RelativeDateCalendarProps) {
 
 	// Show count input only for Past/Next (not "This")
 	const showCount = direction !== "This";
-
-	// Calculate date range for calendar display
-	const now = new Date();
-	const dateRange = getRelativeDateRange(now, direction, count, unit);
 
 	// Handle direction change
 	const handleDirectionChange = (newDirection: RelativeDirection | null) => {
@@ -187,50 +184,76 @@ function RelativeDateCalendar({ value, onChange }: RelativeDateCalendarProps) {
 	};
 
 	return (
+		<div className="flex w-full gap-2">
+			<Select
+				items={directionItems}
+				value={direction}
+				onValueChange={handleDirectionChange}
+			>
+				<SelectTrigger className="w-full">
+					<SelectValue />
+				</SelectTrigger>
+				<SelectContent>
+					{directionItems.map((item) => (
+						<SelectItem key={item.value} value={item.value}>
+							{item.label}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+
+			{/* Count input - only show for past/next */}
+			{showCount && (
+				<Input
+					type="number"
+					min={1}
+					value={count}
+					onChange={handleCountChange}
+					className="w-fit"
+				/>
+			)}
+
+			<Select items={unitItems} value={unit} onValueChange={handleUnitChange}>
+				<SelectTrigger className="w-full">
+					<SelectValue />
+				</SelectTrigger>
+				<SelectContent>
+					{unitItems.map((item) => (
+						<SelectItem key={item.value} value={item.value}>
+							{item.label}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+		</div>
+	);
+}
+
+// ============================================================================
+// RelativeDatePickerContent - For filter chips (dropdowns + readonly calendar)
+// ============================================================================
+
+/**
+ * Content component for relative date picker.
+ * Renders as dropdowns + readonly calendar - used inside filter chip popover.
+ */
+function RelativeDatePickerContent({
+	value,
+	onChange,
+}: RelativeDatePickerProps) {
+	// Default to "This week" if no value
+	const direction = value?.direction ?? "This";
+	const count = value?.count ?? 1;
+	const unit = value?.unit ?? "week";
+
+	// Calculate date range for calendar display
+	const now = new Date();
+	const dateRange = getRelativeDateRange(now, direction, count, unit);
+
+	return (
 		<div className="flex flex-col items-center gap-2">
 			{/* Dropdowns and count input */}
-			<div className="flex w-full gap-2">
-				<Select
-					items={directionItems}
-					value={direction}
-					onValueChange={handleDirectionChange}
-				>
-					<SelectTrigger className="w-full">
-						<SelectValue />
-					</SelectTrigger>
-					<SelectContent>
-						{directionItems.map((item) => (
-							<SelectItem key={item.value} value={item.value}>
-								{item.label}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-
-				{/* Count input - only show for past/next */}
-				{showCount && (
-					<Input
-						type="number"
-						min={1}
-						value={count}
-						onChange={handleCountChange}
-						className="w-fit"
-					/>
-				)}
-
-				<Select items={unitItems} value={unit} onValueChange={handleUnitChange}>
-					<SelectTrigger className="w-full">
-						<SelectValue />
-					</SelectTrigger>
-					<SelectContent>
-						{unitItems.map((item) => (
-							<SelectItem key={item.value} value={item.value}>
-								{item.label}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-			</div>
+			<RelativeDateDropdowns value={value} onChange={onChange} />
 
 			{/* Calendar - display only, shows computed range */}
 			{/* Key forces re-mount when range changes to update displayed month */}
@@ -246,5 +269,17 @@ function RelativeDateCalendar({ value, onChange }: RelativeDateCalendarProps) {
 	);
 }
 
-export type { RelativeDateCalendarProps, RelativeToTodayValue };
-export { RelativeDateCalendar };
+// ============================================================================
+// RelativeDatePicker - For advanced filter rules (inline dropdowns only)
+// ============================================================================
+
+/**
+ * Full picker component without popover.
+ * Renders as inline dropdowns only (no calendar) - used in advanced filter rules.
+ */
+function RelativeDatePicker({ value, onChange }: RelativeDatePickerProps) {
+	return <RelativeDateDropdowns value={value} onChange={onChange} />;
+}
+
+export type { RelativeDatePickerProps, RelativeToTodayValue };
+export { RelativeDatePicker, RelativeDatePickerContent };

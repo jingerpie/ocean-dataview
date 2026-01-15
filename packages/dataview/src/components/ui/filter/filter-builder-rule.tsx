@@ -19,10 +19,10 @@ import * as React from "react";
 import { CheckboxPicker } from "../properties/checkbox-picker";
 import {
 	type DateRangeValue,
-	RangeDateCalendar,
-	RelativeDateCalendar,
+	RangeDatePicker,
+	RelativeDatePicker,
 	type RelativeToTodayValue,
-	SingleDateCalendar,
+	SingleDatePicker,
 } from "../properties/date-picker";
 import { SelectPicker } from "../properties/select-picker";
 import { FilterPropertyPicker } from "./filter-property-picker";
@@ -292,7 +292,7 @@ function ValueInput<T>({
 		case "dateRange":
 			if (condition.operator === "isBetween") {
 				return (
-					<RangeDateCalendar
+					<RangeDatePicker
 						value={condition.value as DateRangeValue | undefined}
 						onChange={onValueChange}
 					/>
@@ -300,14 +300,14 @@ function ValueInput<T>({
 			}
 			if (condition.operator === "isRelativeToToday") {
 				return (
-					<RelativeDateCalendar
+					<RelativeDatePicker
 						value={condition.value as RelativeToTodayValue | undefined}
 						onChange={onValueChange}
 					/>
 				);
 			}
 			return (
-				<SingleDateCalendar
+				<SingleDatePicker
 					value={condition.value as string | undefined}
 					onChange={(value) => onValueChange(value)}
 				/>

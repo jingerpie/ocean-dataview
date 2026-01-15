@@ -38,13 +38,13 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
-import { CheckboxPicker } from "../properties/checkbox-picker";
+import { CheckboxPickerContent } from "../properties/checkbox-picker";
 import {
 	type DateRangeValue,
-	RangeDateCalendar,
-	RelativeDateCalendar,
+	RangeDatePickerContent,
+	RelativeDatePickerContent,
 	type RelativeToTodayValue,
-	SingleDateCalendar,
+	SingleDatePickerContent,
 } from "../properties/date-picker";
 import { OperatorPicker } from "./operator-picker";
 
@@ -193,7 +193,7 @@ function FilterChipValue<T>({
 
 		case "boolean":
 			return (
-				<CheckboxPicker
+				<CheckboxPickerContent
 					value={condition.value as boolean | undefined}
 					onChange={onValueChange}
 				/>
@@ -253,7 +253,7 @@ function FilterChipValue<T>({
 		case "dateRange":
 			if (condition.operator === "isBetween") {
 				return (
-					<RangeDateCalendar
+					<RangeDatePickerContent
 						value={condition.value as DateRangeValue | undefined}
 						onChange={onValueChange}
 					/>
@@ -261,14 +261,14 @@ function FilterChipValue<T>({
 			}
 			if (condition.operator === "isRelativeToToday") {
 				return (
-					<RelativeDateCalendar
+					<RelativeDatePickerContent
 						value={condition.value as RelativeToTodayValue | undefined}
 						onChange={onValueChange}
 					/>
 				);
 			}
 			return (
-				<SingleDateCalendar
+				<SingleDatePickerContent
 					value={condition.value as string | undefined}
 					onChange={onValueChange}
 				/>

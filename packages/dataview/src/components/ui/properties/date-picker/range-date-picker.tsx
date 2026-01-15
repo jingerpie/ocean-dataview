@@ -1,13 +1,20 @@
 "use client";
 
+import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import { Calendar } from "@ocean-dataview/dataview/components/ui/calendar";
 import { Input } from "@ocean-dataview/dataview/components/ui/input";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@ocean-dataview/dataview/components/ui/popover";
 import {
 	cn,
 	formatDateForDisplay,
 	parseDate,
 	parseValue,
 } from "@ocean-dataview/dataview/lib/utils";
+import { CalendarIcon } from "lucide-react";
 import * as React from "react";
 
 interface DateRangeValue {
@@ -15,18 +22,22 @@ interface DateRangeValue {
 	to?: string;
 }
 
-interface RangeDateCalendarProps {
+interface RangeDatePickerProps {
 	/** Current value with from/to dates */
 	value: DateRangeValue | undefined;
 	/** Callback when value changes */
 	onChange: (value: DateRangeValue) => void;
 }
 
+// ============================================================================
+// RangeDatePickerContent - For filter chips (inputs + calendar)
+// ============================================================================
+
 /**
- * Date range picker with two inputs (Starting/Ending) and a range calendar.
- * Used for "is between" filter operator.
+ * Content component for range date picker.
+ * Renders as inputs + calendar - used inside filter chip popover.
  */
-function RangeDateCalendar({ value, onChange }: RangeDateCalendarProps) {
+function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
 	// Draft state for inputs
 	const [fromDraft, setFromDraft] = React.useState<string | null>(null);
 	const [toDraft, setToDraft] = React.useState<string | null>(null);
@@ -143,5 +154,38 @@ function RangeDateCalendar({ value, onChange }: RangeDateCalendarProps) {
 	);
 }
 
-export type { RangeDateCalendarProps, DateRangeValue };
-export { RangeDateCalendar };
+// ============================================================================
+// RangeDatePicker - For advanced filter rules (Button trigger + Popover)
+// ============================================================================
+
+/**
+ * Full picker component with trigger.
+ * Renders as Button trigger → Popover with content - used in advanced filter rules.
+ */
+function RangeDatePicker({ value, onChange }: RangeDatePickerProps) {
+	const [open, setOpen] = React.useState(false);
+
+	const fromDate = parseValue(value?.from);
+	const toDate = parseValue(value?.to);
+
+	// Format display text
+	const displayText =
+		fromDate || toDate
+			? `${fromDate ? formatDateForDisplay(fromDate) : "..."} - ${toDate ? formatDateForDisplay(toDate) : "..."}`
+			: "Select a range";
+
+	return (
+		<Popover open={open} onOpenChange={setOpen}>
+			<PopoverTrigger render={<Button variant="outline" size="sm" />}>
+				<CalendarIcon className="mr-2 size-4" />
+				<span>{displayText}</span>
+			</PopoverTrigger>
+			<PopoverContent align="start" className="w-auto p-3">
+				<RangeDatePickerContent value={value} onChange={onChange} />
+			</PopoverContent>
+		</Popover>
+	);
+}
+
+export type { RangeDatePickerProps, DateRangeValue };
+export { RangeDatePicker, RangeDatePickerContent };

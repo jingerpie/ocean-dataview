@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import {
 	Select,
 	SelectContent,
@@ -7,6 +8,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@ocean-dataview/dataview/components/ui/select";
+import { CheckIcon } from "lucide-react";
 
 interface CheckboxPickerProps {
 	value: boolean | undefined;
@@ -19,10 +21,39 @@ const items = [
 ];
 
 /**
- * A picker for checkbox/boolean values.
- * Renders as a Select dropdown with Checked/Unchecked options.
+ * Content component for checkbox picker.
+ * Renders as a list of options - used inside filter chip popover.
  */
-export function CheckboxPicker({ value, onChange }: CheckboxPickerProps) {
+function CheckboxPickerContent({ value, onChange }: CheckboxPickerProps) {
+	return (
+		<div className="flex flex-col gap-0.5">
+			<Button
+				variant="ghost"
+				size="sm"
+				className="justify-start"
+				onClick={() => onChange(true)}
+			>
+				<span className="flex-1 text-left">Checked</span>
+				{value === true && <CheckIcon className="size-4" />}
+			</Button>
+			<Button
+				variant="ghost"
+				size="sm"
+				className="justify-start"
+				onClick={() => onChange(false)}
+			>
+				<span className="flex-1 text-left">Unchecked</span>
+				{value === false && <CheckIcon className="size-4" />}
+			</Button>
+		</div>
+	);
+}
+
+/**
+ * Full picker component with trigger.
+ * Renders as a Select dropdown - used in advanced filter rules.
+ */
+function CheckboxPicker({ value, onChange }: CheckboxPickerProps) {
 	const selectValue = value === false ? "unchecked" : "checked";
 
 	return (
@@ -47,4 +78,5 @@ export function CheckboxPicker({ value, onChange }: CheckboxPickerProps) {
 	);
 }
 
+export { CheckboxPicker, CheckboxPickerContent };
 export type { CheckboxPickerProps };

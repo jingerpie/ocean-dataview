@@ -1,12 +1,18 @@
 export type {
 	DateRangeValue,
-	RangeDateCalendarProps,
-} from "./range-date-calendar";
-export { RangeDateCalendar } from "./range-date-calendar";
+	RangeDatePickerProps,
+} from "./range-date-picker";
+export { RangeDatePicker, RangeDatePickerContent } from "./range-date-picker";
 export type {
-	RelativeDateCalendarProps,
+	RelativeDatePickerProps,
 	RelativeToTodayValue,
-} from "./relative-date-calendar";
-export { RelativeDateCalendar } from "./relative-date-calendar";
-export type { SingleDateCalendarProps } from "./single-date-calendar";
-export { SingleDateCalendar } from "./single-date-calendar";
+} from "./relative-date-picker";
+export {
+	RelativeDatePicker,
+	RelativeDatePickerContent,
+} from "./relative-date-picker";
+export type { SingleDatePickerProps } from "./single-date-picker";
+export {
+	SingleDatePicker,
+	SingleDatePickerContent,
+} from "./single-date-picker";
