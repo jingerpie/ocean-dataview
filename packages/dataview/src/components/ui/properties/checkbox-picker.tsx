@@ -8,30 +8,29 @@ import {
 	SelectValue,
 } from "@ocean-dataview/dataview/components/ui/select";
 
-interface BooleanPickerProps {
+interface CheckboxPickerProps {
 	value: boolean | undefined;
 	onChange: (value: boolean) => void;
 }
 
 const items = [
-	{ label: "True", value: "true" },
-	{ label: "False", value: "false" },
+	{ label: "Checked", value: "checked" },
+	{ label: "Unchecked", value: "unchecked" },
 ];
 
 /**
- * A picker for boolean values (true/false).
- * Renders as a Select dropdown.
+ * A picker for checkbox/boolean values.
+ * Renders as a Select dropdown with Checked/Unchecked options.
  */
-export function BooleanPicker({ value, onChange }: BooleanPickerProps) {
-	// Convert boolean to string for Select (which requires string values)
-	const selectValue = value === false ? "false" : "true";
+export function CheckboxPicker({ value, onChange }: CheckboxPickerProps) {
+	const selectValue = value === false ? "unchecked" : "checked";
 
 	return (
 		<Select
 			items={items}
 			value={selectValue}
 			onValueChange={(value) => {
-				if (value) onChange(value === "true");
+				if (value) onChange(value === "checked");
 			}}
 		>
 			<SelectTrigger size="sm">
@@ -48,4 +47,4 @@ export function BooleanPicker({ value, onChange }: BooleanPickerProps) {
 	);
 }
 
-export type { BooleanPickerProps };
+export type { CheckboxPickerProps };

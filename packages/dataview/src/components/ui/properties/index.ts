@@ -1,5 +1,5 @@
-export type { BooleanPickerProps } from "./boolean-picker";
-export { BooleanPicker } from "./boolean-picker";
+export type { CheckboxPickerProps } from "./checkbox-picker";
+export { CheckboxPicker } from "./checkbox-picker";
 export { CheckboxProperty } from "./checkbox-property";
 export type {
 	DateRangeValue,

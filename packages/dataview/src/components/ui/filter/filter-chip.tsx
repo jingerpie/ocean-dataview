@@ -38,7 +38,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
-import { BooleanPicker } from "../properties/boolean-picker";
+import { CheckboxPicker } from "../properties/checkbox-picker";
 import {
 	type DateRangeValue,
 	RangeDateCalendar,
@@ -193,7 +193,7 @@ function FilterChipValue<T>({
 
 		case "boolean":
 			return (
-				<BooleanPicker
+				<CheckboxPicker
 					value={condition.value as boolean | undefined}
 					onChange={onValueChange}
 				/>
