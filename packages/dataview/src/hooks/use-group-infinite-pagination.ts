@@ -1,7 +1,11 @@
 "use client";
 
 import { parseAsExpanded } from "@ocean-dataview/shared/lib";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import {
+	type InfiniteData,
+	type UseInfiniteQueryResult,
+	useInfiniteQuery,
+} from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useCallback, useMemo, useTransition } from "react";
 import type {
@@ -129,8 +133,14 @@ function useGroupInfiniteQueries(
 	expanded: string[],
 	maxGroups: number,
 	createQueryOptions: (groupKey: string) => GroupInfiniteQueryOptions
-) {
-	const queries: ReturnType<typeof useInfiniteQuery>[] = [];
+): UseInfiniteQueryResult<
+	InfiniteData<BasePaginatedResponse<unknown>>,
+	Error
+>[] {
+	const queries: UseInfiniteQueryResult<
+		InfiniteData<BasePaginatedResponse<unknown>>,
+		Error
+	>[] = [];
 
 	// Placeholder options for unused slots (items typed as unknown since never used)
 	const placeholderOptions = {

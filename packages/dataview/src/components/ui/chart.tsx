@@ -12,9 +12,12 @@ import {
 	useMemo,
 	useRef,
 } from "react";
-import { Legend, ResponsiveContainer, Tooltip } from "recharts";
-
-export type { LegendPayload } from "recharts/types/component/DefaultLegendContent";
+import {
+	Legend,
+	type LegendPayload,
+	ResponsiveContainer,
+	Tooltip,
+} from "recharts";
 
 import type {
 	NameType,
@@ -501,5 +504,4 @@ export {
 	ChartLegend,
 	ChartLegendContent,
 	ChartStyle,
-	type LegendPayload,
 };
