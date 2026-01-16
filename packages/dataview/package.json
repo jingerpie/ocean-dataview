@@ -17,6 +17,9 @@
   "scripts": {},
   "dependencies": {
     "@base-ui/react": "catalog:",
+    "@dnd-kit/core": "catalog:",
+    "@dnd-kit/sortable": "catalog:",
+    "@dnd-kit/utilities": "catalog:",
     "@hookform/resolvers": "catalog:",
     "@ocean-dataview/shared": "workspace:*",
     "@tanstack/react-query": "catalog:",
@@ -44,7 +47,7 @@
     "usehooks-ts": "catalog:",
     "vaul": "catalog:",
     "zod": "catalog:",
-    "zustand": "^5.0.10"
+    "zustand": "catalog:"
   },
   "devDependencies": {
     "@ocean-dataview/config": "workspace:*",

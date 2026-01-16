@@ -57,7 +57,7 @@ interface NotionToolbarProps<T> extends ComponentProps<"div"> {
  * Notion-style toolbar with two-row layout.
  *
  * Row 1: [children] -------- [Filter] [Sort] [Search] [Properties]
- * Row 2: [Sort Chip] [Filter Chips...] [+ Filter] (conditional)
+ * Row 2: [SortList] [Filter Chips...] [+ Filter] (conditional)
  */
 export function NotionToolbar<T>({
 	properties,
@@ -146,10 +146,9 @@ export function NotionToolbar<T>({
 		openAdvancedFilter();
 	};
 
-	// Handle selecting a property to sort (adds a new sort)
+	// Handle selecting a property to sort (adds first sort)
 	const handleSortPropertySelect = (property: DataViewProperty<T>) => {
 		onSortsChange([
-			...sorts,
 			{
 				propertyId: property.id as PropertySort<T>["propertyId"],
 				desc: false,
@@ -204,7 +203,7 @@ export function NotionToolbar<T>({
 								onClick={handleSortButtonClick}
 							/>
 						) : (
-							// No sorts - Combobox dropdown
+							// No sorts - Combobox dropdown to pick first sort
 							<Combobox
 								items={properties}
 								onOpenChange={setSortDropdownOpen}
@@ -216,7 +215,7 @@ export function NotionToolbar<T>({
 								open={sortDropdownOpen}
 							>
 								<ComboboxTrigger render={<Button size="sm" variant="ghost" />}>
-									<SortAscIcon />
+									<SortAscIcon className="size-4" />
 									<span>Sort</span>
 								</ComboboxTrigger>
 								<ComboboxContent align="start" className="w-56">

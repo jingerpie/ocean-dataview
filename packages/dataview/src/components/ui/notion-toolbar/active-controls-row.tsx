@@ -22,7 +22,7 @@ import {
 	FilterChip,
 	FilterPropertyPicker,
 } from "../filter";
-import { SortChip } from "../sort";
+import { SortList } from "../sort";
 
 interface ActiveControlsRowProps<T> {
 	/** Current sorts (multiple sorts supported) */
@@ -53,7 +53,7 @@ interface ActiveControlsRowProps<T> {
  * Row 2 of the NotionToolbar showing active sort/filter chips.
  *
  * Display Order (Fixed):
- * 1. Sort chips
+ * 1. Sort list (multi-sort with drag-and-drop)
  * 2. Advanced filter chip (if exists)
  * 3. Simple filter chips (in array order)
  * 4. "+ Filter" button
@@ -186,25 +186,14 @@ export function ActiveControlsRow<T>({
 				className
 			)}
 		>
-			{/* 1. Sort Chips */}
-			{sorts.map((sort, index) => (
-				<SortChip
-					key={`sort-${String(sort.propertyId)}-${index}`}
-					onSortChange={(newSort) => {
-						if (newSort === null) {
-							// Remove this sort
-							onSortsChange(sorts.filter((_, i) => i !== index));
-						} else {
-							// Update this sort
-							const newSorts = [...sorts];
-							newSorts[index] = newSort;
-							onSortsChange(newSorts);
-						}
-					}}
+			{/* 1. Sort List (multi-sort with drag-and-drop) */}
+			{sorts.length > 0 && (
+				<SortList
+					onSortsChange={onSortsChange}
 					properties={properties}
-					sort={sort}
+					sorts={sorts}
 				/>
-			))}
+			)}
 
 			{/* 2. Advanced Filter Chip (if exists) */}
 			{advancedFilter && (
