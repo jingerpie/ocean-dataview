@@ -1,0 +1,9 @@
+# Ignore all files in plans and docs directories
+plans/*
+docs/*
+tasks/*
+
+# Keep .gitkeep files
+!plans/.gitkeep
+!docs/.gitkeep
+!tasks/.gitkeep
