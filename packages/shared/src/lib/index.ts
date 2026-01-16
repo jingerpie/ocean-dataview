@@ -1,3 +1,4 @@
+// biome-ignore lint/performance/noBarrelFile: Shared lib public API
 export {
 	// TRPC zod schema
 	createSearchParamsSchema,

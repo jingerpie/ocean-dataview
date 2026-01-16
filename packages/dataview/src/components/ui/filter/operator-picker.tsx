@@ -35,17 +35,19 @@ export function OperatorPicker({
 	return (
 		<Select
 			items={items}
-			value={value}
 			onValueChange={(val) => {
-				if (val) onChange(val as FilterOperator);
+				if (val) {
+					onChange(val as FilterOperator);
+				}
 			}}
+			value={value}
 		>
 			<SelectTrigger
-				size="sm"
 				className={cn(
 					inline && "border-none bg-transparent! lowercase",
-					className,
+					className
 				)}
+				size="sm"
 			>
 				<SelectValue />
 			</SelectTrigger>

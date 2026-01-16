@@ -49,19 +49,19 @@ export function SearchBar({
 		<div className="relative flex items-center">
 			<Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
 			<Input
-				type="text"
-				placeholder={placeholder}
-				value={localValue}
-				onChange={(e) => setLocalValue(e.target.value)}
 				className="pr-9 pl-9"
+				onChange={(e) => setLocalValue(e.target.value)}
+				placeholder={placeholder}
+				type="text"
+				value={localValue}
 			/>
 			{localValue && (
 				<Button
+					className="absolute right-1"
+					onClick={handleClear}
+					size="icon-sm"
 					type="button"
 					variant="ghost"
-					size="icon-sm"
-					onClick={handleClear}
-					className="absolute right-1"
 				>
 					<X className="h-4 w-4" />
 					<span className="sr-only">Clear search</span>

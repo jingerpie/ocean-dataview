@@ -14,7 +14,7 @@ const productProperties = [familyGroupProperty] as const;
 function FamilyGroupHorizontal() {
 	const trpc = useTRPC();
 	const { data } = useSuspenseQuery(
-		trpc.product.getMany.queryOptions({ limit: 200 }),
+		trpc.product.getMany.queryOptions({ limit: 200 })
 	);
 
 	return (

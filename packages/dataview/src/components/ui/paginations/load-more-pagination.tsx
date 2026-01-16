@@ -19,7 +19,7 @@ export function LoadMorePagination({
 	error,
 }: LoadMorePaginationProps) {
 	// Don't show if no more items or no callback
-	if (!hasNext || !onNext) {
+	if (!(hasNext && onNext)) {
 		return null;
 	}
 
@@ -32,10 +32,10 @@ export function LoadMorePagination({
 				</span>
 			)}
 			<Button
-				variant="ghost"
-				onClick={onNext}
-				disabled={isFetchingNextPage}
 				className="gap-2 font-normal text-muted-foreground hover:text-foreground"
+				disabled={isFetchingNextPage}
+				onClick={onNext}
+				variant="ghost"
 			>
 				{isFetchingNextPage ? (
 					<>

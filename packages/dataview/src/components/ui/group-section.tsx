@@ -64,12 +64,12 @@ export function GroupSection<TData>({
 				<div className="flex items-center gap-2">
 					{groupByPropertyDef ? (
 						<PropertyDisplay
-							value={group.key}
-							property={groupByPropertyDef}
 							item={
 								group.items[0] ??
 								({ [groupByPropertyDef.id]: group.key } as TData)
 							}
+							property={groupByPropertyDef}
+							value={group.key}
 						/>
 					) : (
 						<span className="font-medium text-sm">{group.key}</span>

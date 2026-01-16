@@ -58,7 +58,7 @@ export function ProductGroupPaginationBoard({
 
 	// 1. Fetch group counts
 	const { data: groupCounts } = useSuspenseQuery(
-		trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" }),
+		trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" })
 	);
 
 	// 2. Get all group keys
@@ -79,7 +79,7 @@ export function ProductGroupPaginationBoard({
 				},
 				{
 					getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
-				},
+				}
 			),
 	});
 
@@ -96,8 +96,8 @@ export function ProductGroupPaginationBoard({
 		<Suspense fallback={<BoardSkeleton columnCount={4} />}>
 			<DataViewProvider
 				data={data}
-				properties={productProperties}
 				pagination={pagination}
+				properties={productProperties}
 			>
 				<div className="flex items-center justify-between">
 					<GroupPaginationTabs />
@@ -105,11 +105,11 @@ export function ProductGroupPaginationBoard({
 				</div>
 
 				<BoardView
+					counts={groupCounts}
+					pagination="loadMore"
 					view={{
 						group: { groupBy: "familyGroup", showAggregation: true },
 					}}
-					counts={groupCounts}
-					pagination="loadMore"
 				/>
 			</DataViewProvider>
 		</Suspense>

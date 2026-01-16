@@ -34,6 +34,7 @@ interface AreaChartInnerProps {
 	groupKeys?: string[];
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Chart rendering with conditional axes and legend handling
 export function AreaChartInner({
 	data,
 	height,
@@ -65,7 +66,9 @@ export function AreaChartInner({
 				const config: Record<string, { label: string; color: string }> = {};
 				for (let index = 0; index < groupKeys.length; index++) {
 					const key = groupKeys[index];
-					if (!key) continue;
+					if (!key) {
+						continue;
+					}
 					const color = colors[index % colors.length];
 					config[key] = {
 						label: key,
@@ -97,8 +100,8 @@ export function AreaChartInner({
 	return (
 		<div className="flex w-full flex-col gap-2">
 			<ChartContainer
-				config={chartConfig}
 				className="w-full"
+				config={chartConfig}
 				style={{ height }}
 			>
 				<RechartsAreaChart data={data} margin={chartMargin}>
@@ -106,11 +109,11 @@ export function AreaChartInner({
 						{isStacked ? (
 							groupKeys.map((key, index) => (
 								<linearGradient
-									key={key}
 									id={getGradientId(key, index)}
+									key={key}
 									x1="0"
-									y1="0"
 									x2="0"
+									y1="0"
 									y2="1"
 								>
 									<stop
@@ -126,7 +129,7 @@ export function AreaChartInner({
 								</linearGradient>
 							))
 						) : (
-							<linearGradient id="fillValue" x1="0" y1="0" x2="0" y2="1">
+							<linearGradient id="fillValue" x1="0" x2="0" y1="0" y2="1">
 								<stop offset="5%" stopColor={colors[0]} stopOpacity={0.8} />
 								<stop offset="95%" stopColor={colors[0]} stopOpacity={0.1} />
 							</linearGradient>
@@ -134,18 +137,15 @@ export function AreaChartInner({
 					</defs>
 
 					<CartesianGrid
-						strokeDasharray="3 3"
-						vertical={showGridX}
 						horizontal={showGridY}
 						stroke="hsl(var(--border))"
+						strokeDasharray="3 3"
+						vertical={showGridX}
 					/>
 
 					<XAxis
-						dataKey="name"
-						type="category"
-						tickLine={false}
 						axisLine={false}
-						tickMargin={8}
+						dataKey="name"
 						label={
 							axisName === "xAxis" || axisName === "both"
 								? {
@@ -156,12 +156,12 @@ export function AreaChartInner({
 									}
 								: undefined
 						}
+						tickLine={false}
+						tickMargin={8}
+						type="category"
 					/>
 
 					<YAxis
-						type="number"
-						width="auto"
-						tickLine={false}
 						axisLine={false}
 						domain={yAxisRange ? [yAxisRange.min, yAxisRange.max] : undefined}
 						label={
@@ -175,6 +175,9 @@ export function AreaChartInner({
 									}
 								: undefined
 						}
+						tickLine={false}
+						type="number"
+						width="auto"
 					/>
 
 					<ChartTooltip
@@ -190,40 +193,40 @@ export function AreaChartInner({
 						groupKeys.map((key, index) => {
 							const isHidden = areaProps[key] === true;
 							const fillOpacity = Number(
-								areaProps.hover === key || !areaProps.hover ? 1 : 0.2,
+								areaProps.hover === key || !areaProps.hover ? 1 : 0.2
 							);
 
 							return (
 								<Area
-									key={key}
-									type={areaType}
+									activeDot={showDots ? { r: 6 } : false}
 									dataKey={key}
-									stroke={colors[index % colors.length]}
-									fill={`url(#${getGradientId(key, index)})`}
-									strokeWidth={2}
-									fillOpacity={fillOpacity}
-									strokeOpacity={fillOpacity}
-									hide={isHidden}
 									dot={
 										showDots
 											? { fill: colors[index % colors.length], r: 4 }
 											: false
 									}
-									activeDot={showDots ? { r: 6 } : false}
+									fill={`url(#${getGradientId(key, index)})`}
+									fillOpacity={fillOpacity}
+									hide={isHidden}
 									isAnimationActive={false}
+									key={key}
+									stroke={colors[index % colors.length]}
+									strokeOpacity={fillOpacity}
+									strokeWidth={2}
+									type={areaType}
 								/>
 							);
 						})
 					) : (
 						<Area
-							type={areaType}
-							dataKey="value"
-							stroke={colors[0]}
-							fill="url(#fillValue)"
-							strokeWidth={2}
-							dot={showDots ? { fill: colors[0], r: 4 } : false}
 							activeDot={showDots ? { r: 6 } : false}
+							dataKey="value"
+							dot={showDots ? { fill: colors[0], r: 4 } : false}
+							fill="url(#fillValue)"
 							isAnimationActive={false}
+							stroke={colors[0]}
+							strokeWidth={2}
+							type={areaType}
 						/>
 					)}
 				</RechartsAreaChart>
@@ -231,12 +234,12 @@ export function AreaChartInner({
 
 			{isStacked && showLegend && (
 				<ChartPaginatedLegend
-					groupKeys={groupKeys}
 					colors={colors}
+					groupKeys={groupKeys}
 					legendState={legendState}
 					onClick={selectArea}
-					onMouseOver={handleLegendMouseEnter}
 					onMouseOut={handleLegendMouseLeave}
+					onMouseOver={handleLegendMouseEnter}
 				/>
 			)}
 		</div>

@@ -13,8 +13,8 @@ export default async function ChartsPage() {
 	const queryClient = getQueryClient();
 
 	// Prefetch product data for all charts
-	void queryClient.prefetchQuery(
-		trpc.product.getMany.queryOptions({ limit: 200 }),
+	await queryClient.prefetchQuery(
+		trpc.product.getMany.queryOptions({ limit: 200 })
 	);
 
 	return (

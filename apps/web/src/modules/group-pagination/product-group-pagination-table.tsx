@@ -68,7 +68,7 @@ export function ProductGroupPaginationTable({
 
 	// 1. Group counts (Suspense OK - matches server prefetch)
 	const { data: groupCounts } = useSuspenseQuery(
-		trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" }),
+		trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" })
 	);
 
 	// 2. Apply default on client
@@ -106,8 +106,8 @@ export function ProductGroupPaginationTable({
 		<Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
 			<DataViewProvider
 				data={data}
-				properties={productProperties}
 				pagination={pagination}
+				properties={productProperties}
 			>
 				<div className="flex items-center justify-between">
 					<GroupPaginationTabs />
@@ -115,6 +115,8 @@ export function ProductGroupPaginationTable({
 				</div>
 
 				<TableView
+					layout={{ showVerticalLines: false, wrapAllColumns: false }}
+					pagination="page"
 					view={{
 						group: {
 							groupBy: "familyGroup",
@@ -123,8 +125,6 @@ export function ProductGroupPaginationTable({
 							onExpandedChange: handleAccordionChange,
 						},
 					}}
-					layout={{ showVerticalLines: false, wrapAllColumns: false }}
-					pagination="page"
 				/>
 			</DataViewProvider>
 		</Suspense>

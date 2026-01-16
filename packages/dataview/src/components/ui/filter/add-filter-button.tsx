@@ -27,7 +27,7 @@ import {
 	CopyPlus,
 	PlusIcon,
 } from "lucide-react";
-import * as React from "react";
+import { useState } from "react";
 
 interface AddFilterButtonProps<T> {
 	/** Available properties to filter on */
@@ -55,8 +55,8 @@ export function AddFilterButton<T>({
 	onAddGroup,
 	className,
 }: AddFilterButtonProps<T>) {
-	const [open, setOpen] = React.useState(false);
-	const [view, setView] = React.useState<"menu" | "properties">("menu");
+	const [open, setOpen] = useState(false);
+	const [view, setView] = useState<"menu" | "properties">("menu");
 
 	const handleSelectProperty = (propertyId: string) => {
 		// Find property to get its type for the correct default operator
@@ -88,10 +88,10 @@ export function AddFilterButton<T>({
 	// If can add group, show menu with options
 	if (canAddGroup) {
 		return (
-			<Popover open={open} onOpenChange={handleOpenChange}>
+			<Popover onOpenChange={handleOpenChange} open={open}>
 				<PopoverTrigger
 					render={
-						<Button variant="ghost" size="sm" className={className}>
+						<Button className={className} size="sm" variant="ghost">
 							<PlusIcon />
 							<span>Add filter rule</span>
 							<ChevronDownIcon className="size-3 opacity-50" />
@@ -103,10 +103,10 @@ export function AddFilterButton<T>({
 						<>
 							{/* Add Filter Rule */}
 							<Button
-								variant="ghost"
-								size="sm"
 								className="w-full justify-start"
 								onClick={() => setView("properties")}
+								size="sm"
+								variant="ghost"
 							>
 								<PlusIcon />
 								<span>Add filter rule</span>
@@ -114,10 +114,10 @@ export function AddFilterButton<T>({
 
 							{/* Add Filter Group */}
 							<Button
-								variant="ghost"
-								size="sm"
 								className="h-auto w-full flex-col items-start"
 								onClick={handleAddGroup}
+								size="sm"
+								variant="ghost"
 							>
 								<div className="flex items-center gap-2">
 									<CopyPlus />
@@ -132,10 +132,10 @@ export function AddFilterButton<T>({
 						<>
 							{/* Back button */}
 							<Button
-								variant="ghost"
-								size="sm"
 								className="w-full justify-start border-b text-muted-foreground text-xs"
 								onClick={() => setView("menu")}
+								size="sm"
+								variant="ghost"
 							>
 								<ChevronLeftIcon className="size-3" />
 								<span>Back</span>
@@ -148,8 +148,8 @@ export function AddFilterButton<T>({
 										{properties.map((prop) => (
 											<CommandItem
 												key={String(prop.id)}
-												value={String(prop.id)}
 												onSelect={() => handleSelectProperty(String(prop.id))}
+												value={String(prop.id)}
 											>
 												<span className="truncate">
 													{prop.label ?? String(prop.id)}
@@ -168,10 +168,10 @@ export function AddFilterButton<T>({
 
 	// At max depth, show simple button with property selector
 	return (
-		<Popover open={open} onOpenChange={handleOpenChange}>
+		<Popover onOpenChange={handleOpenChange} open={open}>
 			<PopoverTrigger
 				render={
-					<Button variant="ghost" size="sm" className={className}>
+					<Button className={className} size="sm" variant="ghost">
 						<PlusIcon className="size-3.5" />
 						<span>Add filter rule</span>
 					</Button>
@@ -186,8 +186,8 @@ export function AddFilterButton<T>({
 							{properties.map((prop) => (
 								<CommandItem
 									key={String(prop.id)}
-									value={String(prop.id)}
 									onSelect={() => handleSelectProperty(String(prop.id))}
+									value={String(prop.id)}
 								>
 									<span className="truncate">
 										{prop.label ?? String(prop.id)}

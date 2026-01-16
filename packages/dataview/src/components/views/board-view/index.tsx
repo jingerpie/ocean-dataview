@@ -240,7 +240,7 @@ export function BoardView<
 	// Validate property keys
 	const propertyValidationError = useMemo(
 		() => validatePropertyKeys(properties),
-		[properties],
+		[properties]
 	);
 
 	// Transform data FIRST before grouping (so grouping only works with property IDs)
@@ -250,7 +250,9 @@ export function BoardView<
 
 	// Prepare group configuration (only needed for client-side grouping)
 	const clientGroupConfig = useMemo(() => {
-		if (!groupConfig || hasGroupedPagination) return undefined;
+		if (!groupConfig || hasGroupedPagination) {
+			return undefined;
+		}
 		return {
 			groupBy: String(groupConfig.groupBy),
 			showAs: groupConfig.showAs,
@@ -276,7 +278,7 @@ export function BoardView<
 		if (hasGroupedPagination && groupConfig?.groupBy) {
 			// Server pagination - find property manually
 			return properties.find(
-				(p) => String(p.id) === String(groupConfig.groupBy),
+				(p) => String(p.id) === String(groupConfig.groupBy)
 			);
 		}
 		// Client grouping - use from hook
@@ -295,7 +297,7 @@ export function BoardView<
 					count: group.count,
 					displayCount: group.displayCount,
 					sortValue: group.value,
-				}),
+				})
 			);
 		}
 		return clientGroupedData;
@@ -313,7 +315,7 @@ export function BoardView<
 					sort: subGroupConfig.sort,
 					hideEmptyGroups: subGroupConfig.hideEmptyGroups,
 				}
-			: undefined,
+			: undefined
 	);
 
 	// Combine validation errors
@@ -324,7 +326,9 @@ export function BoardView<
 
 	// Prepare effectiveSubGroupConfig for DataBoard component
 	const effectiveSubGroupConfig = useMemo(() => {
-		if (!subGroupConfig) return undefined;
+		if (!subGroupConfig) {
+			return undefined;
+		}
 
 		return {
 			subGroupBy: subGroupConfig.subGroupBy,
@@ -340,7 +344,9 @@ export function BoardView<
 
 	// Get group options from property config
 	const groupOptions = useMemo(() => {
-		if (!groupByProperty) return [];
+		if (!groupByProperty) {
+			return [];
+		}
 
 		if (
 			groupByProperty.type === "select" ||
@@ -359,12 +365,12 @@ export function BoardView<
 	// Use shared hook for display properties filtering (exclude groupBy and preview)
 	const activeGroupBy = groupByProperty?.id;
 	const excludeKeys = [cardPreview, activeGroupBy].filter(
-		(key): key is string => key !== undefined,
+		(key): key is string => key !== undefined
 	);
 	const displayProperties = useDisplayProperties(
 		properties,
 		propertyVisibility,
-		excludeKeys,
+		excludeKeys
 	);
 
 	// Get card dimensions based on size
@@ -384,7 +390,7 @@ export function BoardView<
 			<Card
 				className={cn(
 					"gap-0 overflow-hidden py-0 transition-all hover:shadow-lg",
-					onCardClick && "cursor-pointer",
+					onCardClick && "cursor-pointer"
 				)}
 				onClick={() => onCardClick?.(item)}
 			>
@@ -392,11 +398,11 @@ export function BoardView<
 				{imageUrl && (
 					<div className="relative bg-muted" style={{ height: imageHeight }}>
 						<Image
-							src={imageUrl}
 							alt="Preview"
-							fill
 							className="object-cover"
+							fill
 							loading="lazy"
+							src={imageUrl}
 						/>
 					</div>
 				)}
@@ -408,15 +414,15 @@ export function BoardView<
 
 						return (
 							<div
-								key={String(property.id)}
 								className={cn(
 									"flex flex-col items-start",
 									(property.type === "select" ||
 										property.type === "multiSelect" ||
 										property.type === "status" ||
 										property.type === "filesMedia") &&
-										"gap-1",
+										"gap-1"
 								)}
+								key={String(property.id)}
 							>
 								{showPropertyNames && (
 									<span className="text-muted-foreground text-xs">
@@ -424,9 +430,9 @@ export function BoardView<
 									</span>
 								)}
 								<PropertyDisplay
-									value={value}
-									property={property}
 									item={item}
+									property={property}
+									value={value}
 									wrap={wrapAllProperties}
 								/>
 							</div>
@@ -442,8 +448,7 @@ export function BoardView<
 	const getColumnBgClass = (groupName: string): string => {
 		// Use transparent background for non-badge types or when colorColumns is disabled
 		if (
-			!colorColumns ||
-			!groupByProperty ||
+			!(colorColumns && groupByProperty) ||
 			(groupByProperty.type !== "select" &&
 				groupByProperty.type !== "multiSelect" &&
 				groupByProperty.type !== "status")
@@ -463,15 +468,19 @@ export function BoardView<
 				Canceled: "red",
 			};
 			const color = statusGroupMap[groupName];
-			if (color) return getBgClass(color);
+			if (color) {
+				return getBgClass(color);
+			}
 		}
 
 		// Find the option by value or label
 		const option = groupOptions.find(
-			(opt) => opt.value === groupName || opt.label === groupName,
+			(opt) => opt.value === groupName || opt.label === groupName
 		);
 
-		if (!option) return getBgClass("gray");
+		if (!option) {
+			return getBgClass("gray");
+		}
 
 		// For select and multi-select types - use color if defined
 		if ("color" in option) {
@@ -503,9 +512,9 @@ export function BoardView<
 			<div className="flex items-center gap-2">
 				{groupByProperty ? (
 					<PropertyDisplay
-						value={groupName}
-						property={groupByProperty}
 						item={{} as TData}
+						property={groupByProperty}
+						value={groupName}
 					/>
 				) : (
 					<Badge variant="gray-subtle">{groupName}</Badge>
@@ -540,9 +549,9 @@ export function BoardView<
 	if (isEmpty) {
 		return (
 			<EmptyState
+				description="There are no items to display"
 				icon={Columns3}
 				title="No items available"
-				description="There are no items to display"
 			/>
 		);
 	}
@@ -563,40 +572,41 @@ export function BoardView<
 	if (effectiveSubGroupConfig) {
 		return (
 			<BoardRowLayout
-				groups={groups}
-				properties={properties}
-				subGroup={effectiveSubGroupConfig}
 				cardContent={getCardContent}
-				keyExtractor={keyExtractor}
-				columnHeader={getColumnHeader}
-				getColumnBgClass={getColumnBgClass}
-				columnWidth={columnWidth}
-				renderColumnFooter={renderColumnFooter}
 				className={className}
+				columnHeader={getColumnHeader}
+				columnWidth={columnWidth}
+				getColumnBgClass={getColumnBgClass}
+				groups={groups}
+				keyExtractor={keyExtractor}
+				properties={properties}
+				renderColumnFooter={renderColumnFooter}
 				stickyHeader={{
 					enabled: true,
 					offset: 56,
 				}}
+				subGroup={effectiveSubGroupConfig}
 			/>
 		);
 	}
 
 	return (
 		<BoardColumnCard
-			groups={groups}
 			cardContent={getCardContent}
-			keyExtractor={keyExtractor}
-			columnHeader={getColumnHeader}
-			getColumnBgClass={getColumnBgClass}
-			columnWidth={columnWidth}
-			renderColumnFooter={renderColumnFooter}
 			className={className}
+			columnHeader={getColumnHeader}
+			columnWidth={columnWidth}
+			getColumnBgClass={getColumnBgClass}
+			groups={groups}
+			keyExtractor={keyExtractor}
+			renderColumnFooter={renderColumnFooter}
 		/>
 	);
 }
 
 // Re-export from shared with view-specific aliases
 export type { DataViewContextValue as BoardContextValue } from "../../../lib/providers/data-view-context";
+// biome-ignore lint/performance/noBarrelFile: Re-exporting shared components with view-specific names
 export { useDataViewContext as useBoardContext } from "../../../lib/providers/data-view-context";
 export type { DataViewProviderProps as BoardProviderProps } from "../../../lib/providers/data-view-provider";
 export { DataViewProvider as BoardProvider } from "../../../lib/providers/data-view-provider";

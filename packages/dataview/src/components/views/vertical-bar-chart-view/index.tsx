@@ -30,7 +30,7 @@ export function VerticalBarChartView<
 	const height = getChartHeight(config.style.height);
 	const colors = getChartColors(
 		config.style.color,
-		groupKeys.length > 0 ? groupKeys.length : chartData.length,
+		groupKeys.length > 0 ? groupKeys.length : chartData.length
 	);
 
 	// Error state
@@ -74,22 +74,23 @@ export function VerticalBarChartView<
 
 			<div className="rounded-lg border bg-card p-4">
 				<VerticalBarChartInner
-					data={chartData}
-					height={height}
-					colors={colors}
-					colorScheme={config.style.color}
-					gridLine={config.style.gridLine}
 					axisName={config.style.axisName}
+					colorScheme={config.style.color}
+					colors={colors}
+					data={chartData}
 					dataLabels={config.style.dataLabels}
+					gridLine={config.style.gridLine}
+					groupKeys={groupKeys}
+					height={height}
+					showLegend={config.style.showLegend}
 					xAxisLabel={xAxisLabel}
 					yAxisLabel={yAxisLabel}
 					yAxisRange={config.yAxis?.range}
-					groupKeys={groupKeys}
-					showLegend={config.style.showLegend}
 				/>
 			</div>
 		</div>
 	);
 }
 
+// biome-ignore lint/performance/noBarrelFile: Re-exporting chart inner component
 export { VerticalBarChartInner } from "./vertical-bar-chart";

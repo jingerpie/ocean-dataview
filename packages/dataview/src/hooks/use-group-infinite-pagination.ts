@@ -114,7 +114,7 @@ const DEFAULT_MAX_GROUPS = 10;
  * Used as fallback when TRPC's infiniteQueryOptions doesn't provide one.
  */
 const defaultGetNextPageParam = (
-	lastPage: BasePaginatedResponse<unknown>,
+	lastPage: BasePaginatedResponse<unknown>
 ): string | undefined =>
 	lastPage.hasNextPage && lastPage.endCursor
 		? String(lastPage.endCursor)
@@ -128,9 +128,9 @@ function useGroupInfiniteQueries(
 	allGroupKeys: string[],
 	expanded: string[],
 	maxGroups: number,
-	createQueryOptions: (groupKey: string) => GroupInfiniteQueryOptions,
+	createQueryOptions: (groupKey: string) => GroupInfiniteQueryOptions
 ) {
-	const queries = [];
+	const queries: ReturnType<typeof useInfiniteQuery>[] = [];
 
 	// Placeholder options for unused slots (items typed as unknown since never used)
 	const placeholderOptions = {
@@ -234,7 +234,7 @@ export function useGroupInfinitePagination<
 	TQueryOptions extends GroupInfiniteQueryOptions,
 	TData = InferItemsFromQueryOptions<TQueryOptions>,
 >(
-	options: UseGroupInfinitePaginationOptions<TQueryOptions, TData>,
+	options: UseGroupInfinitePaginationOptions<TQueryOptions, TData>
 ): GroupInfinitePaginationResult<TData> {
 	const {
 		allGroupKeys,
@@ -251,11 +251,11 @@ export function useGroupInfinitePagination<
 	// URL setters - shallow: false for server re-render to update props
 	const [, setExpanded] = useQueryState(
 		"expanded",
-		parseAsExpanded.withOptions({ shallow: false }),
+		parseAsExpanded.withOptions({ shallow: false })
 	);
 	const [, setLimit] = useQueryState(
 		"limit",
-		parseAsInteger.withOptions({ shallow: false, clearOnDefault: true }),
+		parseAsInteger.withOptions({ shallow: false, clearOnDefault: true })
 	);
 
 	// Create infinite queries internally
@@ -263,7 +263,7 @@ export function useGroupInfinitePagination<
 		allGroupKeys,
 		expanded,
 		maxGroups,
-		createQueryOptions,
+		createQueryOptions
 	);
 
 	// Build groups array with items and pagination info
@@ -276,7 +276,7 @@ export function useGroupInfinitePagination<
 			// Flatten all pages for this group
 			const items = isExpanded
 				? ((query?.data?.pages?.flatMap(
-						(page) => (page as BasePaginatedResponse<TData>).items,
+						(page) => (page as BasePaginatedResponse<TData>).items
 					) ?? []) as TData[])
 				: ([] as TData[]);
 
@@ -316,7 +316,7 @@ export function useGroupInfinitePagination<
 				setLimit(newLimit);
 			});
 		},
-		[setLimit],
+		[setLimit]
 	);
 
 	// Accordion change handler
@@ -326,7 +326,7 @@ export function useGroupInfinitePagination<
 				setExpanded(newExpanded.length > 0 ? newExpanded : null);
 			});
 		},
-		[setExpanded],
+		[setExpanded]
 	);
 
 	// Check if any group is loading

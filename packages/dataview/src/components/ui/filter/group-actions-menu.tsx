@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "@ocean-dataview/dataview/lib/utils";
 import {
 	CopyIcon,
 	MoreHorizontalIcon,
@@ -53,7 +52,7 @@ export function GroupActionsMenu({
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
-				render={<Button variant="ghost" size="icon-sm" className={className} />}
+				render={<Button className={className} size="icon-sm" variant="ghost" />}
 			>
 				<MoreHorizontalIcon className="size-4" />
 				<span className="sr-only">Group actions</span>
@@ -79,8 +78,8 @@ export function GroupActionsMenu({
 
 				{canWrapInGroup && (
 					<DropdownMenuItem
-						onClick={onWrapInGroup}
 						className="flex-col items-start"
+						onClick={onWrapInGroup}
 					>
 						<div className="flex items-center gap-2">
 							<SquareStackIcon className="size-4" />

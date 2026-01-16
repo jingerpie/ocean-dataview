@@ -15,12 +15,15 @@ import {
 import { PropertyDisplay } from "../../ui/properties";
 import { BoardStickyHeader } from "./board-sticky-header";
 
+/** Regex to extract width number from Tailwind class (e.g., "w-80" -> "80") */
+const TAILWIND_WIDTH_REGEX = /w-(\d+)/;
+
 /**
  * Extract numeric width from Tailwind class (e.g., "w-80" -> 320px)
  * Tailwind w-N = N * 0.25rem = N * 4px (at 16px base)
  */
 function parseColumnWidth(columnWidth: string): number {
-	const match = columnWidth.match(/w-(\d+)/);
+	const match = columnWidth.match(TAILWIND_WIDTH_REGEX);
 	if (match) {
 		return Number.parseInt(match[1] ?? "0", 10) * 4;
 	}
@@ -158,14 +161,16 @@ export function BoardRowLayout<
 		// Flatten all items from all groups
 		const allItems = groups.flatMap((g) => g.items);
 
-		if (allItems.length === 0) return [];
+		if (allItems.length === 0) {
+			return [];
+		}
 
 		const { groups: subGroups, sortValues } = groupDataByProperty(
 			allItems,
 			subGroupConfig.subGroupBy,
 			properties,
 			subGroupConfig.showAs,
-			subGroupConfig.startWeekOn,
+			subGroupConfig.startWeekOn
 		);
 
 		// Build sub-group array with counts
@@ -198,7 +203,9 @@ export function BoardRowLayout<
 	const getItemsForCell = useCallback(
 		(groupKey: string, subGroupKey: string): TData[] => {
 			const group = groups.find((g) => g.key === groupKey);
-			if (!group) return [];
+			if (!group) {
+				return [];
+			}
 
 			// Group items by sub-group property
 			const { groups: subGroups } = groupDataByProperty(
@@ -206,25 +213,27 @@ export function BoardRowLayout<
 				subGroupConfig.subGroupBy,
 				properties,
 				subGroupConfig.showAs,
-				subGroupConfig.startWeekOn,
+				subGroupConfig.startWeekOn
 			);
 
 			return (subGroups[subGroupKey] as TData[]) || [];
 		},
-		[groups, subGroupConfig, properties],
+		[groups, subGroupConfig, properties]
 	);
 
 	// Filter sub-groups based on hideEmptyGroups
 	const visibleSubGroups = useMemo(() => {
 		const hideEmpty = subGroupConfig.hideEmptyGroups ?? true;
 
-		if (!hideEmpty) return allSubGroupData;
+		if (!hideEmpty) {
+			return allSubGroupData;
+		}
 
 		// Only show sub-groups that have at least one item in any column
 		return allSubGroupData.filter((subGroup) =>
 			groups.some(
-				(group) => getItemsForCell(group.key, subGroup.key).length > 0,
-			),
+				(group) => getItemsForCell(group.key, subGroup.key).length > 0
+			)
 		);
 	}, [
 		allSubGroupData,
@@ -240,31 +249,31 @@ export function BoardRowLayout<
 			{/* Portal-based sticky header */}
 			{stickyHeader?.enabled && (
 				<BoardStickyHeader
-					groups={groups}
-					columnWidthPx={columnWidthPx}
 					columnHeader={columnHeader}
-					getColumnBgClass={getColumnBgClass}
-					enabled={stickyHeader.enabled}
-					headerRef={headerRef}
+					columnWidthPx={columnWidthPx}
 					containerRef={containerRef}
+					enabled={stickyHeader.enabled}
+					getColumnBgClass={getColumnBgClass}
+					groups={groups}
+					headerRef={headerRef}
 					offset={stickyHeader.offset}
 				/>
 			)}
 
-			<div ref={containerRef} className="overflow-x-auto pb-4">
+			<div className="overflow-x-auto pb-4" ref={containerRef}>
 				<div className="min-w-fit">
 					{/* Original column headers */}
 					<div
-						ref={headerRef}
 						className="sticky top-0 z-10 flex gap-3 bg-background"
+						ref={headerRef}
 					>
 						{groups.map((group) => (
 							<div
-								key={group.key}
 								className={cn(
 									"flex-shrink-0 pb-3",
-									getColumnBgClass?.(group.key) || "bg-muted/30",
+									getColumnBgClass?.(group.key) || "bg-muted/30"
 								)}
+								key={group.key}
 								style={{ width: columnWidthPx }}
 							>
 								{columnHeader ? (
@@ -283,26 +292,26 @@ export function BoardRowLayout<
 
 					{/* Sub-group rows */}
 					<Accordion
-						multiple
-						value={subGroupConfig.expandedSubGroups}
 						defaultValue={subGroupConfig.defaultExpanded}
+						multiple
 						onValueChange={subGroupConfig.onExpandedSubGroupsChange}
+						value={subGroupConfig.expandedSubGroups}
 					>
 						{visibleSubGroups.map((subGroup) => (
 							<AccordionItem
+								className="border-b-0"
 								key={subGroup.key}
 								value={subGroup.key}
-								className="border-b-0"
 							>
 								<AccordionTrigger className="flex-initial py-2 hover:no-underline">
 									<div className="flex items-center gap-2">
 										{subGroupByPropertyDef ? (
 											<PropertyDisplay
-												value={subGroup.key}
-												property={subGroupByPropertyDef}
 												item={
 													{ [subGroupByPropertyDef.id]: subGroup.key } as TData
 												}
+												property={subGroupByPropertyDef}
+												value={subGroup.key}
 											/>
 										) : (
 											<span className="font-medium text-sm">
@@ -320,17 +329,17 @@ export function BoardRowLayout<
 										{groups.map((group) => {
 											const cellItems = getItemsForCell(
 												group.key,
-												subGroup.key,
+												subGroup.key
 											);
 											const columnBgClass = getColumnBgClass?.(group.key);
 
 											return (
 												<div
-													key={group.key}
 													className={cn(
 														"flex-shrink-0 rounded-lg",
-														columnBgClass || "bg-muted/10",
+														columnBgClass || "bg-muted/10"
 													)}
+													key={group.key}
 													style={{ width: columnWidthPx }}
 												>
 													{cellItems.length > 0 ? (
@@ -359,8 +368,8 @@ export function BoardRowLayout<
 						<div className="mt-4 flex gap-3">
 							{groups.map((group) => (
 								<div
-									key={group.key}
 									className="flex-shrink-0"
+									key={group.key}
 									style={{ width: columnWidthPx }}
 								>
 									{renderColumnFooter(group.key)}

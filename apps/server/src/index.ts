@@ -15,7 +15,7 @@ app.use(
 		origin: env.CORS_ORIGIN,
 		allowMethods: ["GET", "POST", "OPTIONS"],
 		credentials: true,
-	}),
+	})
 );
 
 app.use(
@@ -25,7 +25,7 @@ app.use(
 		createContext: (_opts, context) => {
 			return createContext({ context });
 		},
-	}),
+	})
 );
 
 app.get("/", (c) => {

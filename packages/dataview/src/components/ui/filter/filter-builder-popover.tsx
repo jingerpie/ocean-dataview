@@ -46,9 +46,9 @@ export function FilterBuilderPopover<T>({
 
 	const defaultTrigger = (
 		<Button
-			variant={hasFilters ? "secondary" : "outline"}
-			size="sm"
 			className={triggerClassName}
+			size="sm"
+			variant={hasFilters ? "secondary" : "outline"}
 		>
 			<FilterIcon className="size-3.5" />
 			<span>Filter</span>
@@ -61,17 +61,17 @@ export function FilterBuilderPopover<T>({
 	);
 
 	return (
-		<Popover open={open} onOpenChange={onOpenChange}>
+		<Popover onOpenChange={onOpenChange} open={open}>
 			<PopoverTrigger render={trigger ?? defaultTrigger} />
 			<PopoverContent
 				align="start"
 				className={cn("w-auto min-w-80 p-3", contentClassName)}
 			>
 				<FilterBuilder
-					properties={properties}
 					filter={filter}
 					onChange={onChange}
 					onDelete={() => onOpenChange?.(false)}
+					properties={properties}
 				/>
 			</PopoverContent>
 		</Popover>

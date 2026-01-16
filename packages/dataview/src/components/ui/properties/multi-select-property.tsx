@@ -28,7 +28,7 @@ export function MultiSelectProperty<T>({
 			{visibleValues.map((val) => {
 				const stringValue = String(val);
 				const option = property.config?.options?.find(
-					(opt) => opt.value === stringValue,
+					(opt) => opt.value === stringValue
 				);
 
 				// If option not found, still render as badge with gray color

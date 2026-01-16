@@ -20,8 +20,8 @@ export function useInteractiveLegend(groupKeys: string[]) {
 				acc[key] = false;
 				return acc;
 			},
-			{ hover: null } as Record<string, boolean | string | null>,
-		),
+			{ hover: null } as Record<string, boolean | string | null>
+		)
 	);
 
 	// Handle mouse enter on legend item
@@ -52,7 +52,7 @@ export function useInteractiveLegend(groupKeys: string[]) {
 	// Compute legend state for ChartLegendContent
 	const legendState = {
 		hiddenItems: Object.fromEntries(
-			groupKeys.map((key) => [key, legendProps[key] === true]),
+			groupKeys.map((key) => [key, legendProps[key] === true])
 		),
 		hoveredItem: String(legendProps.hover || ""),
 	};

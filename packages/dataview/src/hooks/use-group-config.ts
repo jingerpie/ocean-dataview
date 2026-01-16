@@ -68,26 +68,36 @@ export function useGroupConfig<TData>(
 	data: TData[],
 	properties: readonly DataViewProperty<TData>[] | DataViewProperty<TData>[],
 	groupConfig: GroupConfig | undefined,
-	options?: UseGroupConfigOptions,
+	options?: UseGroupConfigOptions
 ): UseGroupConfigResult<TData> {
 	const { required = false, autoSelectGroupBy = false } = options || {};
 
 	// Auto-select groupBy if enabled and not provided
 	const activeGroupBy = useMemo(() => {
-		if (groupConfig?.groupBy) return groupConfig.groupBy;
-		if (!autoSelectGroupBy) return undefined;
+		if (groupConfig?.groupBy) {
+			return groupConfig.groupBy;
+		}
+		if (!autoSelectGroupBy) {
+			return undefined;
+		}
 
 		// Auto-select first status, select, or multi-select property
 		const statusProp = properties.find((prop) => prop.type === "status");
-		if (statusProp) return String(statusProp.id);
+		if (statusProp) {
+			return String(statusProp.id);
+		}
 
 		const selectProp = properties.find((prop) => prop.type === "select");
-		if (selectProp) return String(selectProp.id);
+		if (selectProp) {
+			return String(selectProp.id);
+		}
 
 		const multiSelectProp = properties.find(
-			(prop) => prop.type === "multiSelect",
+			(prop) => prop.type === "multiSelect"
 		);
-		if (multiSelectProp) return String(multiSelectProp.id);
+		if (multiSelectProp) {
+			return String(multiSelectProp.id);
+		}
 
 		return properties[0] ? String(properties[0].id) : undefined;
 	}, [groupConfig?.groupBy, autoSelectGroupBy, properties]);
@@ -105,13 +115,17 @@ export function useGroupConfig<TData>(
 
 	// Find the property being grouped by
 	const groupByPropertyDef = useMemo(() => {
-		if (!activeGroupBy) return undefined;
+		if (!activeGroupBy) {
+			return undefined;
+		}
 		return properties.find((prop) => String(prop.id) === activeGroupBy);
 	}, [properties, activeGroupBy]);
 
 	// Group data if groupBy is configured
 	const groupedData = useMemo(() => {
-		if (!activeGroupBy || !groupConfig || validationError) return null;
+		if (!(activeGroupBy && groupConfig) || validationError) {
+			return null;
+		}
 
 		// Apply intelligent defaults for showAs based on property type
 		let effectiveShowAs = groupConfig.showAs;
@@ -128,7 +142,7 @@ export function useGroupConfig<TData>(
 			activeGroupBy,
 			properties,
 			effectiveShowAs,
-			groupConfig.startWeekOn,
+			groupConfig.startWeekOn
 		);
 
 		// Get counts for sorting
@@ -173,6 +187,8 @@ export function useGroupConfig<TData>(
 					return String(b.sortValue).localeCompare(String(a.sortValue));
 				});
 				break;
+			default:
+				break;
 		}
 
 		return groupArray;
@@ -188,7 +204,9 @@ export function useGroupConfig<TData>(
 	// Compute actual default expanded values for Accordion
 	// Since defaultExpanded is now always an array, just return it
 	const accordionDefaultValue = useMemo(() => {
-		if (!groupedData || !groupConfig?.defaultExpanded) return undefined;
+		if (!(groupedData && groupConfig?.defaultExpanded)) {
+			return undefined;
+		}
 		return groupConfig.defaultExpanded;
 	}, [groupedData, groupConfig]);
 

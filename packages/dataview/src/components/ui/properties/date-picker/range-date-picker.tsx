@@ -15,7 +15,7 @@ import {
 	parseValue,
 } from "@ocean-dataview/dataview/lib/utils";
 import { CalendarIcon } from "lucide-react";
-import * as React from "react";
+import { type ChangeEvent, type KeyboardEvent, useState } from "react";
 
 interface DateRangeValue {
 	from?: string;
@@ -39,10 +39,10 @@ interface RangeDatePickerProps {
  */
 function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
 	// Draft state for inputs
-	const [fromDraft, setFromDraft] = React.useState<string | null>(null);
-	const [toDraft, setToDraft] = React.useState<string | null>(null);
-	const [fromValid, setFromValid] = React.useState(true);
-	const [toValid, setToValid] = React.useState(true);
+	const [fromDraft, setFromDraft] = useState<string | null>(null);
+	const [toDraft, setToDraft] = useState<string | null>(null);
+	const [fromValid, setFromValid] = useState(true);
+	const [toValid, setToValid] = useState(true);
 
 	// Parse values to Date
 	const fromDate = parseValue(value?.from);
@@ -54,20 +54,22 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
 	const toDisplay = toDraft ?? (toDate ? formatDateForDisplay(toDate) : "");
 
 	// Handle from input change
-	const handleFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleFromChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setFromDraft(e.target.value);
 		setFromValid(true);
 	};
 
 	// Handle to input change
-	const handleToChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleToChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setToDraft(e.target.value);
 		setToValid(true);
 	};
 
 	// Handle from input blur
 	const handleFromBlur = () => {
-		if (!fromDraft) return;
+		if (!fromDraft) {
+			return;
+		}
 
 		const parsed = parseDate(fromDraft);
 		if (parsed) {
@@ -82,7 +84,9 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
 
 	// Handle to input blur
 	const handleToBlur = () => {
-		if (!toDraft) return;
+		if (!toDraft) {
+			return;
+		}
 
 		const parsed = parseDate(toDraft);
 		if (parsed) {
@@ -96,12 +100,16 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
 	};
 
 	// Handle Enter key
-	const handleFromKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-		if (e.key === "Enter") e.currentTarget.blur();
+	const handleFromKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === "Enter") {
+			e.currentTarget.blur();
+		}
 	};
 
-	const handleToKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-		if (e.key === "Enter") e.currentTarget.blur();
+	const handleToKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === "Enter") {
+			e.currentTarget.blur();
+		}
 	};
 
 	// Handle calendar range selection
@@ -121,34 +129,34 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
 			{/* Two inputs side by side */}
 			<div className="flex gap-2">
 				<Input
-					type="text"
-					placeholder="Starting"
-					value={fromDisplay}
-					onChange={handleFromChange}
-					onBlur={handleFromBlur}
-					onKeyDown={handleFromKeyDown}
 					className={cn(
-						!fromValid && "border-destructive focus-visible:ring-destructive",
+						!fromValid && "border-destructive focus-visible:ring-destructive"
 					)}
+					onBlur={handleFromBlur}
+					onChange={handleFromChange}
+					onKeyDown={handleFromKeyDown}
+					placeholder="Starting"
+					type="text"
+					value={fromDisplay}
 				/>
 				<Input
-					type="text"
-					placeholder="Ending"
-					value={toDisplay}
-					onChange={handleToChange}
-					onBlur={handleToBlur}
-					onKeyDown={handleToKeyDown}
 					className={cn(
-						!toValid && "border-destructive focus-visible:ring-destructive",
+						!toValid && "border-destructive focus-visible:ring-destructive"
 					)}
+					onBlur={handleToBlur}
+					onChange={handleToChange}
+					onKeyDown={handleToKeyDown}
+					placeholder="Ending"
+					type="text"
+					value={toDisplay}
 				/>
 			</div>
 
 			{/* Range calendar */}
 			<Calendar
 				mode="range"
-				selected={{ from: fromDate, to: toDate }}
 				onSelect={handleRangeSelect}
+				selected={{ from: fromDate, to: toDate }}
 			/>
 		</div>
 	);
@@ -163,7 +171,7 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
  * Renders as Button trigger → Popover with content - used in advanced filter rules.
  */
 function RangeDatePicker({ value, onChange }: RangeDatePickerProps) {
-	const [open, setOpen] = React.useState(false);
+	const [open, setOpen] = useState(false);
 
 	const fromDate = parseValue(value?.from);
 	const toDate = parseValue(value?.to);
@@ -175,13 +183,13 @@ function RangeDatePicker({ value, onChange }: RangeDatePickerProps) {
 			: "Select a range";
 
 	return (
-		<Popover open={open} onOpenChange={setOpen}>
-			<PopoverTrigger render={<Button variant="outline" size="sm" />}>
+		<Popover onOpenChange={setOpen} open={open}>
+			<PopoverTrigger render={<Button size="sm" variant="outline" />}>
 				<CalendarIcon className="mr-2 size-4" />
 				<span>{displayText}</span>
 			</PopoverTrigger>
 			<PopoverContent align="start" className="w-auto p-3">
-				<RangeDatePickerContent value={value} onChange={onChange} />
+				<RangeDatePickerContent onChange={onChange} value={value} />
 			</PopoverContent>
 		</Popover>
 	);

@@ -31,16 +31,16 @@ function HoverCardContent({
 			<PreviewCardPrimitive.Positioner
 				align={align}
 				alignOffset={alignOffset}
+				className="isolate z-50"
 				side={side}
 				sideOffset={sideOffset}
-				className="isolate z-50"
 			>
 				<PreviewCardPrimitive.Popup
-					data-slot="hover-card-content"
 					className={cn(
 						"data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-64 origin-(--transform-origin) rounded-lg bg-popover p-4 text-popover-foreground text-sm shadow-md outline-hidden ring-1 ring-foreground/10 duration-100 data-closed:animate-out data-open:animate-in",
-						className,
+						className
 					)}
+					data-slot="hover-card-content"
 					{...props}
 				/>
 			</PreviewCardPrimitive.Positioner>

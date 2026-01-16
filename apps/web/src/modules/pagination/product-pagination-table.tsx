@@ -60,7 +60,7 @@ export function ProductPaginationTable(props: PaginationProps) {
 			limit,
 			filter,
 			sort: sorts,
-		}),
+		})
 	);
 
 	// Pagination controls using the new hook
@@ -84,21 +84,21 @@ export function ProductPaginationTable(props: PaginationProps) {
 		<Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
 			<DataViewProvider
 				data={data.items}
-				properties={productProperties}
 				pagination={pagination}
+				properties={productProperties}
 			>
 				<NotionToolbar
-					properties={productProperties}
+					enableFilter
+					enableProperties
+					enableSearch
+					enableSort
 					filter={filter}
 					onFilterChange={setFilter}
-					sorts={sorts}
-					onSortsChange={setSorts}
-					search={search}
 					onSearchChange={setSearch}
-					enableSearch
-					enableFilter
-					enableSort
-					enableProperties
+					onSortsChange={setSorts}
+					properties={productProperties}
+					search={search}
+					sorts={sorts}
 				>
 					<PaginationTabs />
 				</NotionToolbar>

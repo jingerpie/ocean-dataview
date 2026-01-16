@@ -28,11 +28,9 @@ export function PhoneProperty<T>({ value, property }: PhonePropertyProps<T>) {
 		} else if (cleaned.length === 11 && cleaned[0] === "1") {
 			formattedPhone = `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
 		}
-	} else if (format === "international") {
+	} else if (format === "international" && !phone.startsWith("+")) {
 		// Keep as is but ensure it starts with +
-		if (!phone.startsWith("+")) {
-			formattedPhone = `+${phone}`;
-		}
+		formattedPhone = `+${phone}`;
 	}
 
 	if (!showAsLink) {
@@ -41,8 +39,8 @@ export function PhoneProperty<T>({ value, property }: PhonePropertyProps<T>) {
 
 	return (
 		<a
-			href={`tel:${phone}`}
 			className="inline-flex items-center gap-1 text-blue-600 text-sm hover:text-blue-800 hover:underline"
+			href={`tel:${phone}`}
 			onClick={(e) => e.stopPropagation()}
 		>
 			<Phone className="h-3 w-3 flex-shrink-0" />

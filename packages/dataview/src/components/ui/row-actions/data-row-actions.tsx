@@ -95,9 +95,9 @@ export function DataRowActions({
 	return (
 		<div className="flex items-center justify-end">
 			<SplitButton
-				primaryLabel={primaryLabel}
-				onPrimaryAction={onPrimaryAction ?? (() => {})}
 				dropdownActions={dropdownActions}
+				onPrimaryAction={onPrimaryAction ?? (() => undefined)}
+				primaryLabel={primaryLabel}
 				size="sm"
 			/>
 		</div>

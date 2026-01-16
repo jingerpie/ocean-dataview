@@ -4,7 +4,10 @@
  * Usage: bun run scripts/update-catalog.ts
  */
 
+import { readFileSync, writeFileSync } from "node:fs";
+
 const PACKAGE_JSON_PATH = "./package.json";
+const VERSION_PREFIX_REGEX = /^[\^~]/;
 
 interface PackageJson {
 	workspaces: {
@@ -17,7 +20,7 @@ interface PackageJson {
 async function getLatestVersion(packageName: string): Promise<string | null> {
 	try {
 		const response = await fetch(
-			`https://registry.npmjs.org/${packageName}/latest`,
+			`https://registry.npmjs.org/${packageName}/latest`
 		);
 		if (!response.ok) {
 			console.error(`  ✗ Failed to fetch ${packageName}: ${response.status}`);
@@ -33,15 +36,16 @@ async function getLatestVersion(packageName: string): Promise<string | null> {
 
 function parseVersion(version: string): string {
 	// Remove ^ or ~ prefix to get the actual version
-	return version.replace(/^[\^~]/, "");
+	return version.replace(VERSION_PREFIX_REGEX, "");
 }
 
 async function main() {
 	console.log("📦 Updating workspace catalog versions...\n");
 
 	// Read package.json
-	const file = Bun.file(PACKAGE_JSON_PATH);
-	const packageJson: PackageJson = await file.json();
+	const packageJson: PackageJson = JSON.parse(
+		readFileSync(PACKAGE_JSON_PATH, "utf-8")
+	);
 
 	if (!packageJson.workspaces?.catalog) {
 		console.error("No workspaces.catalog found in package.json");
@@ -67,11 +71,13 @@ async function main() {
 				const currentVersion = parseVersion(catalog[pkg]);
 				const latestVersion = await getLatestVersion(pkg);
 				return { pkg, currentVersion, latestVersion };
-			}),
+			})
 		);
 
 		for (const { pkg, currentVersion, latestVersion } of results) {
-			if (!latestVersion) continue;
+			if (!latestVersion) {
+				continue;
+			}
 
 			if (currentVersion !== latestVersion) {
 				updates.push({
@@ -100,9 +106,9 @@ async function main() {
 	packageJson.workspaces.catalog = sortedCatalog;
 
 	// Write back to package.json
-	await Bun.write(
+	writeFileSync(
 		PACKAGE_JSON_PATH,
-		`${JSON.stringify(packageJson, null, "\t")}\n`,
+		`${JSON.stringify(packageJson, null, "\t")}\n`
 	);
 
 	console.log(`\n✅ Updated ${updates.length} packages`);

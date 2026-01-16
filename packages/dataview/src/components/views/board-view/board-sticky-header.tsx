@@ -84,7 +84,9 @@ export function BoardStickyHeader({
 
 		const headerElement = headerRef.current;
 		const containerElement = containerRef.current;
-		if (!headerElement || !containerElement) return;
+		if (!(headerElement && containerElement)) {
+			return;
+		}
 
 		// Update container position for viewport positioning
 		const updateContainerRect = () => {
@@ -95,7 +97,9 @@ export function BoardStickyHeader({
 
 		// Synchronous scroll update function
 		const updateScrollPosition = (newScrollLeft: number) => {
-			if (scrollStateRef.current.isUpdating) return;
+			if (scrollStateRef.current.isUpdating) {
+				return;
+			}
 
 			scrollStateRef.current.isUpdating = true;
 			scrollStateRef.current.scrollLeft = newScrollLeft;
@@ -127,7 +131,7 @@ export function BoardStickyHeader({
 			// 1. The top of the original header goes above the threshold AND
 			// 2. We haven't scrolled past the bottom of the container
 			setShowStickyHeader(
-				headerRect.top < offset && contRect.bottom > offset + headerRect.height,
+				headerRect.top < offset && contRect.bottom > offset + headerRect.height
 			);
 		};
 
@@ -170,16 +174,22 @@ export function BoardStickyHeader({
 
 	// Effect for sticky header scroll synchronization
 	useEffect(() => {
-		if (!enabled) return;
+		if (!enabled) {
+			return;
+		}
 
 		const stickyScrollElement = stickyHeaderScrollRef.current;
 		const containerElement = containerRef.current;
 
-		if (!stickyScrollElement || !containerElement || !showStickyHeader) return;
+		if (!(stickyScrollElement && containerElement && showStickyHeader)) {
+			return;
+		}
 
 		// Synchronous scroll update function
 		const updateScrollPosition = (newScrollLeft: number) => {
-			if (scrollStateRef.current.isUpdating) return;
+			if (scrollStateRef.current.isUpdating) {
+				return;
+			}
 
 			scrollStateRef.current.isUpdating = true;
 			scrollStateRef.current.scrollLeft = newScrollLeft;
@@ -216,7 +226,7 @@ export function BoardStickyHeader({
 	}, [enabled, showStickyHeader, containerRef]);
 
 	// Don't render anything if not enabled, not mounted, or conditions not met
-	if (!enabled || !mounted || !showStickyHeader || !containerRect) {
+	if (!(enabled && mounted && showStickyHeader && containerRect)) {
 		return null;
 	}
 
@@ -229,22 +239,22 @@ export function BoardStickyHeader({
 				left: Math.max(0, containerRect.left),
 				width: Math.min(
 					containerRect.width,
-					window.innerWidth - Math.max(0, containerRect.left),
+					window.innerWidth - Math.max(0, containerRect.left)
 				),
 			}}
 		>
 			<div
-				ref={stickyHeaderScrollRef}
 				className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+				ref={stickyHeaderScrollRef}
 			>
 				<div className="flex min-w-fit gap-3">
 					{groups.map((group) => (
 						<div
-							key={group.key}
 							className={cn(
 								"flex-shrink-0 pb-3",
-								getColumnBgClass?.(group.key) || "bg-muted/30",
+								getColumnBgClass?.(group.key) || "bg-muted/30"
 							)}
+							key={group.key}
 							style={{ width: columnWidthPx }}
 						>
 							{columnHeader ? (
@@ -262,6 +272,6 @@ export function BoardStickyHeader({
 				</div>
 			</div>
 		</div>,
-		document.body,
+		document.body
 	);
 }

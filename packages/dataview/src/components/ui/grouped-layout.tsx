@@ -56,8 +56,8 @@ export function GroupedLayout<TData>({
 	return (
 		<div className={className}>
 			<Accordion
-				multiple
 				defaultValue={defaultExpanded}
+				multiple
 				onValueChange={onAccordionChange}
 			>
 				{groups.map((group) => {
@@ -65,12 +65,12 @@ export function GroupedLayout<TData>({
 
 					return (
 						<GroupSection
-							key={group.key}
 							group={group}
 							groupByPropertyDef={groupByProperty}
 							isLoading={false}
-							showAggregation={showAggregation}
+							key={group.key}
 							renderFooter={renderPagination(pagination, paginationContext)}
+							showAggregation={showAggregation}
 						>
 							{renderGroupContent(group)}
 						</GroupSection>

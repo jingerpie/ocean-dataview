@@ -15,7 +15,7 @@ import {
 	getDefaultFilterOperator,
 	getFilterVariantFromPropertyType,
 } from "@ocean-dataview/shared/utils";
-import * as React from "react";
+import { useState } from "react";
 import { CheckboxPicker } from "../properties/checkbox-picker";
 import {
 	type DateRangeValue,
@@ -78,7 +78,7 @@ export function FilterRule<T>({
 	canWrapInGroup,
 	className,
 }: FilterRuleProps<T>) {
-	const [showValueSelector, setShowValueSelector] = React.useState(false);
+	const [showValueSelector, setShowValueSelector] = useState(false);
 
 	// Find the property for this condition
 	const property = properties.find((p) => String(p.id) === condition.property);
@@ -124,16 +124,16 @@ export function FilterRule<T>({
 
 			{/* Property Selector */}
 			<FilterPropertyPicker
+				onSelect={handlePropertySelect}
 				properties={properties}
 				value={property}
-				onSelect={handlePropertySelect}
 				variant="selector"
 			/>
 
 			{/* Operator Picker */}
 			<OperatorPicker
-				value={condition.operator}
 				onChange={handleOperatorChange}
+				value={condition.operator}
 				variant={variant}
 			/>
 
@@ -141,20 +141,20 @@ export function FilterRule<T>({
 			{property && (
 				<ValueInput
 					condition={condition}
-					property={property}
-					variant={variant}
-					onValueChange={(value) => updateCondition({ value })}
-					showSelector={showValueSelector}
 					onShowSelectorChange={setShowValueSelector}
+					onValueChange={(value) => updateCondition({ value })}
+					property={property}
+					showSelector={showValueSelector}
+					variant={variant}
 				/>
 			)}
 
 			{/* Actions Menu */}
 			<RuleActionsMenu
-				level={level}
 				canWrapInGroup={canWrapInGroup}
-				onRemove={onRemove}
+				level={level}
 				onDuplicate={onDuplicate}
+				onRemove={onRemove}
 				onWrapInGroup={onWrapInGroup}
 			/>
 		</div>
@@ -178,15 +178,15 @@ export function FilterValue<T>({
 	variant,
 	onValueChange,
 }: FilterValueProps<T>) {
-	const [showSelector, setShowSelector] = React.useState(false);
+	const [showSelector, setShowSelector] = useState(false);
 	return (
 		<ValueInput
 			condition={condition}
-			property={property}
-			variant={variant}
-			onValueChange={onValueChange}
-			showSelector={showSelector}
 			onShowSelectorChange={setShowSelector}
+			onValueChange={onValueChange}
+			property={property}
+			showSelector={showSelector}
+			variant={variant}
 		/>
 	);
 }
@@ -204,6 +204,7 @@ interface ValueInputProps<T> {
 	onShowSelectorChange: (show: boolean) => void;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Switch statement handling different filter variant types
 function ValueInput<T>({
 	condition,
 	property,
@@ -223,19 +224,19 @@ function ValueInput<T>({
 		case "range":
 			return (
 				<Input
-					type={variant === "text" ? "text" : "number"}
 					inputMode={variant === "text" ? undefined : "numeric"}
-					placeholder="Enter value..."
-					value={condition.value != null ? String(condition.value) : ""}
 					onChange={(e) => onValueChange(e.target.value)}
+					placeholder="Enter value..."
+					type={variant === "text" ? "text" : "number"}
+					value={condition.value != null ? String(condition.value) : ""}
 				/>
 			);
 
 		case "boolean":
 			return (
 				<CheckboxPicker
-					value={condition.value as boolean | undefined}
 					onChange={onValueChange}
+					value={condition.value as boolean | undefined}
 				/>
 			);
 
@@ -246,20 +247,23 @@ function ValueInput<T>({
 					? property.config.options
 					: [];
 
-			const selectedValues = Array.isArray(condition.value)
-				? (condition.value as string[])
-				: condition.value
-					? [condition.value as string]
-					: [];
+			let selectedValues: string[];
+			if (Array.isArray(condition.value)) {
+				selectedValues = condition.value as string[];
+			} else if (condition.value) {
+				selectedValues = [condition.value as string];
+			} else {
+				selectedValues = [];
+			}
 
 			return (
 				<SelectPicker
-					options={options}
-					value={selectedValues}
 					onChange={onValueChange}
-					placeholder="Select an option"
-					open={showSelector}
 					onOpenChange={onShowSelectorChange}
+					open={showSelector}
+					options={options}
+					placeholder="Select an option"
+					value={selectedValues}
 				/>
 			);
 		}
@@ -270,20 +274,23 @@ function ValueInput<T>({
 					? property.config.options
 					: [];
 
-			const selectedValues = Array.isArray(condition.value)
-				? (condition.value as string[])
-				: condition.value
-					? [condition.value as string]
-					: [];
+			let selectedValues: string[];
+			if (Array.isArray(condition.value)) {
+				selectedValues = condition.value as string[];
+			} else if (condition.value) {
+				selectedValues = [condition.value as string];
+			} else {
+				selectedValues = [];
+			}
 
 			return (
 				<SelectPicker
-					options={options}
-					value={selectedValues}
 					onChange={onValueChange}
-					placeholder="Select..."
-					open={showSelector}
 					onOpenChange={onShowSelectorChange}
+					open={showSelector}
+					options={options}
+					placeholder="Select..."
+					value={selectedValues}
 				/>
 			);
 		}
@@ -293,23 +300,23 @@ function ValueInput<T>({
 			if (condition.operator === "isBetween") {
 				return (
 					<RangeDatePicker
-						value={condition.value as DateRangeValue | undefined}
 						onChange={onValueChange}
+						value={condition.value as DateRangeValue | undefined}
 					/>
 				);
 			}
 			if (condition.operator === "isRelativeToToday") {
 				return (
 					<RelativeDatePicker
-						value={condition.value as RelativeToTodayValue | undefined}
 						onChange={onValueChange}
+						value={condition.value as RelativeToTodayValue | undefined}
 					/>
 				);
 			}
 			return (
 				<SingleDatePicker
-					value={condition.value as string | undefined}
 					onChange={(value) => onValueChange(value)}
+					value={condition.value as string | undefined}
 				/>
 			);
 

@@ -94,11 +94,11 @@ export function GalleryCard<TData>({
 
 				return (
 					<Card
-						key={uniqueKey}
 						className={cn(
 							"gap-0 overflow-hidden py-0 transition-all hover:shadow-lg",
-							onCardClick && "cursor-pointer",
+							onCardClick && "cursor-pointer"
 						)}
+						key={uniqueKey}
 						onClick={() => onCardClick?.(item)}
 					>
 						{/* Image Preview - only show if cardPreview is provided */}
@@ -109,14 +109,14 @@ export function GalleryCard<TData>({
 							>
 								{imageUrl ? (
 									<Image
-										src={imageUrl}
 										alt="Preview"
-										fill
 										className={cn(
 											"transition-opacity",
-											fitImage ? "object-cover" : "object-contain",
+											fitImage ? "object-cover" : "object-contain"
 										)}
+										fill
 										loading="lazy"
+										src={imageUrl}
 									/>
 								) : (
 									<div className="flex h-full items-center justify-center">
@@ -134,7 +134,6 @@ export function GalleryCard<TData>({
 
 								return (
 									<div
-										key={String(property.id)}
 										className={cn(
 											"flex flex-col items-start",
 											isFirst && "font-medium",
@@ -142,8 +141,9 @@ export function GalleryCard<TData>({
 												property.type === "multiSelect" ||
 												property.type === "status" ||
 												property.type === "filesMedia") &&
-												"gap-1",
+												"gap-1"
 										)}
+										key={String(property.id)}
 									>
 										{showPropertyNames && (
 											<span className="text-muted-foreground text-xs">
@@ -151,9 +151,9 @@ export function GalleryCard<TData>({
 											</span>
 										)}
 										<PropertyDisplay
-											value={value}
-											property={property}
 											item={item}
+											property={property}
+											value={value}
 											wrap={wrapAllProperties}
 										/>
 									</div>

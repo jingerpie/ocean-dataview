@@ -88,6 +88,8 @@ function getDateFromPreset(preset: DatePreset): Date | null {
 			return addMonths(now, 1);
 		case "custom":
 			return null;
+		default:
+			return null;
 	}
 }
 
@@ -135,7 +137,9 @@ function SingleDatePickerContent({ value, onChange }: SingleDatePickerProps) {
 	};
 
 	const handleBlur = () => {
-		if (!draft) return;
+		if (!draft) {
+			return;
+		}
 
 		const parsed = parseDate(draft);
 		if (parsed) {
@@ -166,11 +170,11 @@ function SingleDatePickerContent({ value, onChange }: SingleDatePickerProps) {
 			<div className="flex flex-col gap-0.5">
 				{DATE_PRESET_ITEMS.map((preset) => (
 					<Button
-						key={preset.value}
-						variant="ghost"
-						size="sm"
 						className="justify-start"
+						key={preset.value}
 						onClick={() => handlePresetSelect(preset.value)}
+						size="sm"
+						variant="ghost"
 					>
 						<span className="flex-1 text-left">{preset.label}</span>
 						{preset.value === "custom" && showCustomCalendar && (
@@ -188,22 +192,22 @@ function SingleDatePickerContent({ value, onChange }: SingleDatePickerProps) {
 					)}
 					<InputGroup className={cn("mb-2", !isValid && "border-destructive")}>
 						<InputGroupInput
-							value={displayValue}
-							onChange={handleInputChange}
 							onBlur={handleBlur}
+							onChange={handleInputChange}
 							onKeyDown={handleKeyDown}
 							placeholder="Type a date..."
+							value={displayValue}
 						/>
 						<InputGroupAddon align="inline-end">
-							<InputGroupButton size="icon-sm" onClick={handleClear}>
+							<InputGroupButton onClick={handleClear} size="icon-sm">
 								<XIcon className="size-3.5" />
 							</InputGroupButton>
 						</InputGroupAddon>
 					</InputGroup>
 					<Calendar
 						mode="single"
-						selected={dateValue}
 						onSelect={handleCalendarSelect}
+						selected={dateValue}
 					/>
 				</div>
 			)}
@@ -234,7 +238,9 @@ function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
 		draft ?? (dateValue ? formatDateForDisplay(dateValue) : "");
 
 	const handlePresetChange = (preset: string | null) => {
-		if (!preset) return;
+		if (!preset) {
+			return;
+		}
 
 		if (preset === "custom") {
 			setIsCustomMode(true);
@@ -262,7 +268,9 @@ function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
 	};
 
 	const handleInputBlur = () => {
-		if (!draft) return;
+		if (!draft) {
+			return;
+		}
 
 		const parsed = parseDate(draft);
 		if (parsed) {
@@ -292,8 +300,8 @@ function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
 			{/* Preset Select */}
 			<Select
 				items={DATE_PRESET_ITEMS}
-				value={isCustomMode ? "custom" : "today"}
 				onValueChange={handlePresetChange}
+				value={isCustomMode ? "custom" : "today"}
 			>
 				<SelectTrigger size="sm">
 					<SelectValue />
@@ -309,8 +317,8 @@ function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
 
 			{/* Date picker button - only when custom mode */}
 			{isCustomMode && (
-				<Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-					<PopoverTrigger render={<Button variant="outline" size="sm" />}>
+				<Popover onOpenChange={setCalendarOpen} open={calendarOpen}>
+					<PopoverTrigger render={<Button size="sm" variant="outline" />}>
 						<span>
 							{dateValue ? formatDateForDisplay(dateValue) : "Select a date"}
 						</span>
@@ -320,22 +328,22 @@ function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
 							className={cn("mb-2", !isValid && "border-destructive")}
 						>
 							<InputGroupInput
-								value={displayValue}
-								onChange={handleInputChange}
 								onBlur={handleInputBlur}
+								onChange={handleInputChange}
 								onKeyDown={handleInputKeyDown}
 								placeholder="Select or type a date..."
+								value={displayValue}
 							/>
 							<InputGroupAddon align="inline-end">
-								<InputGroupButton size="icon-sm" onClick={handleClear}>
+								<InputGroupButton onClick={handleClear} size="icon-sm">
 									<XIcon className="size-3.5" />
 								</InputGroupButton>
 							</InputGroupAddon>
 						</InputGroup>
 						<Calendar
 							mode="single"
-							selected={dateValue}
 							onSelect={handleCalendarSelect}
+							selected={dateValue}
 						/>
 					</PopoverContent>
 				</Popover>

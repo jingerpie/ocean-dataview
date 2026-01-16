@@ -47,7 +47,9 @@ export function DataTableStickyHeader<TData>({
 
 		const headerElement = tableHeaderRef.current;
 		const containerElement = tableContainerRef.current;
-		if (!headerElement || !containerElement) return;
+		if (!(headerElement && containerElement)) {
+			return;
+		}
 
 		// Sticky header position (accounts for site header/navbar)
 		const calculateStickyOffset = (): number => {
@@ -61,7 +63,7 @@ export function DataTableStickyHeader<TData>({
 			if (headerElement) {
 				const headerCells = headerElement.querySelectorAll("th");
 				const widths = Array.from(headerCells).map(
-					(cell) => cell.getBoundingClientRect().width,
+					(cell) => cell.getBoundingClientRect().width
 				);
 				setColumnWidths(widths);
 			}
@@ -76,7 +78,9 @@ export function DataTableStickyHeader<TData>({
 
 		// Synchronous scroll update function
 		const updateScrollPosition = (newScrollLeft: number) => {
-			if (scrollStateRef.current.isUpdating) return;
+			if (scrollStateRef.current.isUpdating) {
+				return;
+			}
 
 			scrollStateRef.current.isUpdating = true;
 			scrollStateRef.current.scrollLeft = newScrollLeft;
@@ -110,7 +114,7 @@ export function DataTableStickyHeader<TData>({
 			// 2. We haven't scrolled past the bottom of the table container
 			setShowStickyHeader(
 				headerRect.top < threshold &&
-					containerRect.bottom > threshold + headerRect.height,
+					containerRect.bottom > threshold + headerRect.height
 			);
 		};
 
@@ -155,16 +159,22 @@ export function DataTableStickyHeader<TData>({
 
 	// Effect for sticky header scroll synchronization
 	useEffect(() => {
-		if (!enabled) return;
+		if (!enabled) {
+			return;
+		}
 
 		const stickyScrollElement = stickyHeaderScrollRef.current;
 		const containerElement = tableContainerRef.current;
 
-		if (!stickyScrollElement || !containerElement || !showStickyHeader) return;
+		if (!(stickyScrollElement && containerElement && showStickyHeader)) {
+			return;
+		}
 
 		// Synchronous scroll update function
 		const updateScrollPosition = (newScrollLeft: number) => {
-			if (scrollStateRef.current.isUpdating) return;
+			if (scrollStateRef.current.isUpdating) {
+				return;
+			}
 
 			scrollStateRef.current.isUpdating = true;
 			scrollStateRef.current.scrollLeft = newScrollLeft;
@@ -202,10 +212,7 @@ export function DataTableStickyHeader<TData>({
 
 	// Don't render anything if not enabled, not mounted, or conditions not met
 	if (
-		!enabled ||
-		!mounted ||
-		!showStickyHeader ||
-		!containerRect ||
+		!(enabled && mounted && showStickyHeader && containerRect) ||
 		columnWidths.length === 0
 	) {
 		return null;
@@ -220,13 +227,13 @@ export function DataTableStickyHeader<TData>({
 				left: Math.max(0, containerRect.left),
 				width: Math.min(
 					containerRect.width,
-					window.innerWidth - Math.max(0, containerRect.left),
+					window.innerWidth - Math.max(0, containerRect.left)
 				),
 			}}
 		>
 			<div
-				ref={stickyHeaderScrollRef}
 				className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+				ref={stickyHeaderScrollRef}
 			>
 				<Table>
 					<TableHeader>
@@ -234,8 +241,8 @@ export function DataTableStickyHeader<TData>({
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header, headerIndex) => (
 									<TableHead
-										key={header.id}
 										colSpan={header.colSpan}
+										key={header.id}
 										style={{
 											...(columnWidths[headerIndex]
 												? {
@@ -250,7 +257,7 @@ export function DataTableStickyHeader<TData>({
 											? null
 											: flexRender(
 													header.column.columnDef.header,
-													header.getContext(),
+													header.getContext()
 												)}
 									</TableHead>
 								))}
@@ -260,6 +267,6 @@ export function DataTableStickyHeader<TData>({
 				</Table>
 			</div>
 		</div>,
-		document.body,
+		document.body
 	);
 }

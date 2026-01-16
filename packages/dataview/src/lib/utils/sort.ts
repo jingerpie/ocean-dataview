@@ -6,11 +6,14 @@ import type { SortConfig } from "../../types";
  * Supports multi-column sorting
  */
 export function sortData<T>(data: T[], sorts: SortConfig<T>[]): T[] {
-	if (!sorts || sorts.length === 0) return data;
+	if (!sorts || sorts.length === 0) {
+		return data;
+	}
 
 	// Create a new array to avoid mutating the original
 	const sortedData = [...data];
 
+	// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex multi-column sorting with type handling
 	sortedData.sort((a, b) => {
 		for (const sort of sorts) {
 			const propertyKey = sort.propertyKey;
@@ -18,9 +21,15 @@ export function sortData<T>(data: T[], sorts: SortConfig<T>[]): T[] {
 			const bValue = b[propertyKey];
 
 			// Handle null/undefined values
-			if (aValue == null && bValue == null) continue;
-			if (aValue == null) return 1;
-			if (bValue == null) return -1;
+			if (aValue == null && bValue == null) {
+				continue;
+			}
+			if (aValue == null) {
+				return 1;
+			}
+			if (bValue == null) {
+				return -1;
+			}
 
 			let comparison = 0;
 

@@ -38,25 +38,25 @@ export const restaurant = pgTable(
 	(table) => [
 		index("idx_restaurants_area").using(
 			"btree",
-			table.area.asc().nullsLast().op("text_ops"),
+			table.area.asc().nullsLast().op("text_ops")
 		),
 		index("idx_restaurants_city_town").using(
 			"btree",
-			table.cityTown.asc().nullsLast().op("text_ops"),
+			table.cityTown.asc().nullsLast().op("text_ops")
 		),
 		index("idx_restaurants_coordinates").using(
 			"btree",
 			table.latitude.asc().nullsLast().op("numeric_ops"),
-			table.longitude.asc().nullsLast().op("numeric_ops"),
+			table.longitude.asc().nullsLast().op("numeric_ops")
 		),
 		index("idx_restaurants_postal_zip").using(
 			"btree",
-			table.zipCode.asc().nullsLast().op("text_ops"),
+			table.zipCode.asc().nullsLast().op("text_ops")
 		),
 		index("idx_restaurants_sub_division").using(
 			"btree",
-			table.state.asc().nullsLast().op("text_ops"),
+			table.state.asc().nullsLast().op("text_ops")
 		),
 		unique("restaurant_page_id_key").on(table.pageId),
-	],
+	]
 );

@@ -24,9 +24,11 @@ export type PaginationMode = "page" | "loadMore" | "infiniteScroll";
  */
 export function renderPagination(
 	mode: PaginationMode | undefined,
-	context: PaginationContext | undefined,
+	context: PaginationContext | undefined
 ): React.ReactNode {
-	if (!mode || !context) return null;
+	if (!(mode && context)) {
+		return null;
+	}
 
 	switch (mode) {
 		case "page":

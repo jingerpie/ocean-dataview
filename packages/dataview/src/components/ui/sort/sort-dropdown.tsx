@@ -48,7 +48,7 @@ export function SortDropdown<T = unknown>({
 
 	const handleSortChange = (
 		field: string | null,
-		order: "asc" | "desc" = "asc",
+		order: "asc" | "desc" = "asc"
 	) => {
 		if (field === null) {
 			onSortChange([]);
@@ -65,13 +65,13 @@ export function SortDropdown<T = unknown>({
 	return (
 		<div className="flex items-center gap-2">
 			<DropdownMenu>
-				<DropdownMenuTrigger render={<Button variant="outline" size="sm" />}>
+				<DropdownMenuTrigger render={<Button size="sm" variant="outline" />}>
 					<ArrowUpDown className="mr-2 h-4 w-4" />
 					Sort
 					{activeOption && (
 						<Badge
-							variant="secondary"
 							className="ml-2 flex h-5 items-center gap-1 px-1.5"
+							variant="secondary"
 						>
 							{currentOrder === "asc" ? (
 								<ArrowUp className="h-3 w-3" />
@@ -123,8 +123,8 @@ export function SortDropdown<T = unknown>({
 							<>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
-									onClick={() => handleSortChange(null)}
 									className="text-destructive"
+									onClick={() => handleSortChange(null)}
 								>
 									<X className="mr-2 h-4 w-4" />
 									Clear sorting
@@ -137,7 +137,7 @@ export function SortDropdown<T = unknown>({
 
 			{/* Active sort badge */}
 			{activeOption && (
-				<Badge variant="secondary" className="gap-1 pr-1">
+				<Badge className="gap-1 pr-1" variant="secondary">
 					<span className="flex items-center gap-1 text-xs">
 						{activeOption.label}
 						{currentOrder === "asc" ? (
@@ -147,9 +147,9 @@ export function SortDropdown<T = unknown>({
 						)}
 					</span>
 					<Button
-						variant="ghost"
-						size="icon-sm"
 						onClick={() => handleSortChange(null)}
+						size="icon-sm"
+						variant="ghost"
 					>
 						<X className="h-3 w-3" />
 						<span className="sr-only">Clear sort</span>

@@ -4,7 +4,7 @@ import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import { Input } from "@ocean-dataview/dataview/components/ui/input";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { SearchIcon, XIcon } from "lucide-react";
-import * as React from "react";
+import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 
 interface SearchInputProps {
 	/** Current search value */
@@ -31,17 +31,17 @@ export function SearchInput({
 	debounceMs = 300,
 	className,
 }: SearchInputProps) {
-	const [expanded, setExpanded] = React.useState(false);
-	const [localValue, setLocalValue] = React.useState(value);
-	const inputRef = React.useRef<HTMLInputElement>(null);
+	const [expanded, setExpanded] = useState(false);
+	const [localValue, setLocalValue] = useState(value);
+	const inputRef = useRef<HTMLInputElement>(null);
 
 	// Sync local value when external value changes
-	React.useEffect(() => {
+	useEffect(() => {
 		setLocalValue(value);
 	}, [value]);
 
 	// Debounced onChange
-	React.useEffect(() => {
+	useEffect(() => {
 		const timer = setTimeout(() => {
 			if (localValue !== value) {
 				onChange(localValue);
@@ -52,14 +52,14 @@ export function SearchInput({
 	}, [localValue, debounceMs, onChange, value]);
 
 	// Auto-expand when value exists
-	React.useEffect(() => {
+	useEffect(() => {
 		if (value && !expanded) {
 			setExpanded(true);
 		}
 	}, [value, expanded]);
 
 	// Focus input when expanded
-	React.useEffect(() => {
+	useEffect(() => {
 		if (expanded) {
 			inputRef.current?.focus();
 		}
@@ -82,7 +82,7 @@ export function SearchInput({
 		}
 	};
 
-	const handleKeyDown = (e: React.KeyboardEvent) => {
+	const handleKeyDown = (e: KeyboardEvent) => {
 		if (e.key === "Escape") {
 			if (localValue) {
 				handleClear();
@@ -97,11 +97,11 @@ export function SearchInput({
 	if (!expanded) {
 		return (
 			<Button
-				variant="ghost"
-				size="icon-sm"
+				aria-label="Open search"
 				className={className}
 				onClick={handleExpand}
-				aria-label="Open search"
+				size="icon-sm"
+				variant="ghost"
 			>
 				<SearchIcon className="size-4" />
 			</Button>
@@ -114,27 +114,27 @@ export function SearchInput({
 			className={cn(
 				"relative flex items-center",
 				"fade-in slide-in-from-right-2 w-[200px] animate-in duration-200",
-				className,
+				className
 			)}
 		>
 			<SearchIcon className="absolute left-2.5 size-4 text-muted-foreground" />
 			<Input
+				className="h-8 pr-8 pl-8"
+				onBlur={handleBlur}
+				onChange={(e) => setLocalValue(e.target.value)}
+				onKeyDown={handleKeyDown}
+				placeholder={placeholder}
 				ref={inputRef}
 				type="text"
 				value={localValue}
-				onChange={(e) => setLocalValue(e.target.value)}
-				onBlur={handleBlur}
-				onKeyDown={handleKeyDown}
-				placeholder={placeholder}
-				className="h-8 pr-8 pl-8"
 			/>
 			{localValue && (
 				<Button
+					className="absolute right-1"
+					onClick={handleClear}
+					size="icon-sm"
 					type="button"
 					variant="ghost"
-					size="icon-sm"
-					onClick={handleClear}
-					className="absolute right-1"
 				>
 					<XIcon className="size-3.5" />
 					<span className="sr-only">Clear search</span>

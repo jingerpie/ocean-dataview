@@ -20,7 +20,7 @@ type GroupedPaginationOutput<TData> =
  * Type guard to check if pagination is grouped (has groups array)
  */
 function isGroupedPagination<TData>(
-	pagination: FlatPaginationOutput | GroupedPaginationOutput<TData>,
+	pagination: FlatPaginationOutput | GroupedPaginationOutput<TData>
 ): pagination is GroupedPaginationOutput<TData> {
 	return "groups" in pagination && Array.isArray(pagination.groups);
 }
@@ -45,31 +45,38 @@ type PaginationOutput<TData> =
  */
 export function buildPaginationContext<TData>(
 	pagination: PaginationOutput<TData> | undefined,
-	groupKey: string,
+	groupKey: string
 ): PaginationContext | undefined {
-	if (!pagination) return undefined;
+	if (!pagination) {
+		return undefined;
+	}
 
 	// Handle grouped pagination
 	if (isGroupedPagination(pagination)) {
 		const group = pagination.groups.find((g) => g.key === groupKey);
-		if (!group) return undefined;
+		if (!group) {
+			return undefined;
+		}
 
 		return {
 			hasNext: group.hasNext,
 			hasPrev: "hasPrev" in group ? group.hasPrev : false,
 			onNext: group.onNext,
-			onPrev: "onPrev" in group ? group.onPrev : () => {},
+			onPrev: "onPrev" in group ? group.onPrev : () => undefined,
 			isLoading: group.isLoading,
 			limit: pagination.limit,
 			onLimitChange: pagination.onLimitChange,
 			limitOptions: pagination.limitOptions,
 			displayStart: "displayStart" in group ? group.displayStart : 1,
-			displayEnd:
-				"displayEnd" in group
-					? group.displayEnd
-					: "totalLoaded" in group
-						? group.totalLoaded
-						: 0,
+			displayEnd: (() => {
+				if ("displayEnd" in group) {
+					return group.displayEnd;
+				}
+				if ("totalLoaded" in group) {
+					return group.totalLoaded;
+				}
+				return 0;
+			})(),
 		};
 	}
 
@@ -84,11 +91,14 @@ export function buildPaginationContext<TData>(
 		onLimitChange: pagination.onLimitChange,
 		limitOptions: pagination.limitOptions,
 		displayStart: "displayStart" in pagination ? pagination.displayStart : 1,
-		displayEnd:
-			"displayEnd" in pagination
-				? pagination.displayEnd
-				: "totalLoaded" in pagination
-					? pagination.totalLoaded
-					: 0,
+		displayEnd: (() => {
+			if ("displayEnd" in pagination) {
+				return pagination.displayEnd;
+			}
+			if ("totalLoaded" in pagination) {
+				return pagination.totalLoaded;
+			}
+			return 0;
+		})(),
 	};
 }

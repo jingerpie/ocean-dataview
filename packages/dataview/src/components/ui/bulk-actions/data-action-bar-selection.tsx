@@ -9,7 +9,7 @@ import {
 } from "@ocean-dataview/dataview/components/ui/tooltip";
 import type { Table } from "@tanstack/react-table";
 import { X } from "lucide-react";
-import * as React from "react";
+import { useCallback } from "react";
 
 interface DataActionBarSelectionProps<TData> {
 	/**
@@ -42,7 +42,7 @@ export function DataActionBarSelection<TData>({
 		? table.getFilteredSelectedRowModel().rows.length
 		: (selectedCountProp ?? 0);
 
-	const handleClearSelection = React.useCallback(() => {
+	const handleClearSelection = useCallback(() => {
 		if (table) {
 			table.toggleAllRowsSelected(false);
 		} else if (onClearSelection) {
@@ -55,27 +55,27 @@ export function DataActionBarSelection<TData>({
 			<span className="whitespace-nowrap text-sm">
 				{selectedCount} selected
 			</span>
-			<Separator orientation="vertical" className="mr-1 ml-2 h-4" />
+			<Separator className="mr-1 ml-2 h-4" orientation="vertical" />
 			<Tooltip>
 				<TooltipTrigger
 					render={
 						<Button
-							variant="ghost"
-							size="icon"
 							className="size-6"
 							onClick={handleClearSelection}
+							size="icon"
+							variant="ghost"
 						/>
 					}
 				>
 					<X className="size-4" />
 				</TooltipTrigger>
 				<TooltipContent
-					sideOffset={10}
 					className="flex items-center gap-2 border bg-accent px-2 py-1 font-semibold text-foreground"
+					sideOffset={10}
 				>
 					<p>Clear selection</p>
 					<kbd className="select-none rounded border bg-background px-1.5 py-px font-mono font-normal text-[0.7rem] text-foreground shadow-sm">
-						<abbr title="Escape" className="no-underline">
+						<abbr className="no-underline" title="Escape">
 							Esc
 						</abbr>
 					</kbd>

@@ -30,7 +30,7 @@ export function AreaChartView<
 	const height = getChartHeight(config.style.height);
 	const colors = getChartColors(
 		config.style.color,
-		groupKeys.length > 0 ? groupKeys.length : chartData.length,
+		groupKeys.length > 0 ? groupKeys.length : chartData.length
 	);
 
 	if (validationError) {
@@ -71,23 +71,24 @@ export function AreaChartView<
 
 			<div className="rounded-lg border bg-card p-4">
 				<AreaChartInner
-					data={chartData}
-					height={height}
-					colors={colors}
-					colorScheme={config.style.color}
-					gridLine={config.style.gridLine}
 					axisName={config.style.axisName}
+					colorScheme={config.style.color}
+					colors={colors}
+					data={chartData}
+					gridLine={config.style.gridLine}
+					groupKeys={groupKeys}
+					height={height}
+					showDots={config.style.showDots}
+					showLegend={config.style.showLegend}
+					smoothLine={config.style.smoothLine}
 					xAxisLabel={xAxisLabel}
 					yAxisLabel={yAxisLabel}
 					yAxisRange={config.yAxis?.range}
-					smoothLine={config.style.smoothLine}
-					showLegend={config.style.showLegend}
-					showDots={config.style.showDots}
-					groupKeys={groupKeys}
 				/>
 			</div>
 		</div>
 	);
 }
 
+// biome-ignore lint/performance/noBarrelFile: Re-exporting chart inner component
 export { AreaChartInner } from "./area-chart";

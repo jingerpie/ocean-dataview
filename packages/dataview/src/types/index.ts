@@ -3,6 +3,7 @@
 // Export action types
 export type { Action } from "./action.type";
 // Export chart types
+// biome-ignore lint/performance/noBarrelFile: Intentional public API barrel file
 export * from "./chart.type";
 // Export pagination types
 export type { PaginationContext } from "./pagination";

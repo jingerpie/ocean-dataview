@@ -15,12 +15,12 @@ interface ChartPaginatedLegendProps {
 	onMouseOver?: (
 		data: LegendPayload,
 		index: number,
-		e: React.MouseEvent,
+		e: React.MouseEvent
 	) => void;
 	onMouseOut?: (
 		data: LegendPayload,
 		index: number,
-		e: React.MouseEvent,
+		e: React.MouseEvent
 	) => void;
 }
 
@@ -42,7 +42,7 @@ export function ChartPaginatedLegend({
 					color: color ?? "#000000", // Fallback to black if colors array is empty
 				};
 			}),
-		[groupKeys, colors],
+		[groupKeys, colors]
 	);
 
 	return (
@@ -50,8 +50,8 @@ export function ChartPaginatedLegend({
 			items={items}
 			legendState={legendState}
 			onClick={onClick}
-			onMouseOver={onMouseOver}
 			onMouseOut={onMouseOut}
+			onMouseOver={onMouseOver}
 		/>
 	);
 }

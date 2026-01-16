@@ -30,7 +30,7 @@ export function HorizontalBarChartView<
 	const height = getChartHeight(config.style.height);
 	const colors = getChartColors(
 		config.style.color,
-		groupKeys.length > 0 ? groupKeys.length : chartData.length,
+		groupKeys.length > 0 ? groupKeys.length : chartData.length
 	);
 
 	if (validationError) {
@@ -71,22 +71,23 @@ export function HorizontalBarChartView<
 
 			<div className="rounded-lg border bg-card p-4">
 				<HorizontalBarChartInner
-					data={chartData}
-					height={height}
-					colors={colors}
-					colorScheme={config.style.color}
-					gridLine={config.style.gridLine}
 					axisName={config.style.axisName}
+					colorScheme={config.style.color}
+					colors={colors}
+					data={chartData}
 					dataLabels={config.style.dataLabels}
-					xAxisLabel={xAxisLabel}
-					yAxisLabel={yAxisLabel}
-					xAxisRange={config.xAxis?.range}
+					gridLine={config.style.gridLine}
 					groupKeys={groupKeys}
+					height={height}
 					showLegend={config.style.showLegend}
+					xAxisLabel={xAxisLabel}
+					xAxisRange={config.xAxis?.range}
+					yAxisLabel={yAxisLabel}
 				/>
 			</div>
 		</div>
 	);
 }
 
+// biome-ignore lint/performance/noBarrelFile: Re-exporting chart inner component
 export { HorizontalBarChartInner } from "./horizontal-bar-chart";

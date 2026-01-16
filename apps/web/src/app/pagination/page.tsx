@@ -19,36 +19,36 @@ export default async function PaginationPage(props: PageProps) {
 
 	const queryClient = getQueryClient();
 
-	void queryClient.prefetchQuery(
+	await queryClient.prefetchQuery(
 		trpc.product.getMany.queryOptions({
 			cursor,
 			limit,
 			filter,
 			sort,
-		}),
+		})
 	);
 
 	return (
 		<HydrationBoundary state={dehydrate(queryClient)}>
-			<Tabs defaultValue="table" className="w-full">
+			<Tabs className="w-full" defaultValue="table">
 				<TabsContent value="table">
 					<ProductPaginationTable
 						cursor={cursor}
-						limit={limit}
 						filter={filter}
+						limit={limit}
 						sorts={sort ?? []}
 					/>
 				</TabsContent>
 				<TabsContent value="list">
-					<ProductPaginationList limit={limit} filter={filter} sort={sort} />
+					<ProductPaginationList filter={filter} limit={limit} sort={sort} />
 				</TabsContent>
 				<TabsContent value="gallery">
-					<ProductPaginationGallery limit={limit} filter={filter} sort={sort} />
+					<ProductPaginationGallery filter={filter} limit={limit} sort={sort} />
 				</TabsContent>
 				<TabsContent value="board">
 					<ProductGroupPaginationBoard
-						limit={limit}
 						filter={filter}
+						limit={limit}
 						sort={sort}
 					/>
 				</TabsContent>

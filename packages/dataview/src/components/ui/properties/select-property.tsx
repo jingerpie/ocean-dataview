@@ -23,7 +23,7 @@ export function SelectProperty<T>({ value, property }: SelectPropertyProps<T>) {
 
 	const stringValue = String(value);
 	const option = property.config?.options?.find(
-		(opt) => opt.value === stringValue,
+		(opt) => opt.value === stringValue
 	);
 
 	// If option not found, still render as badge with gray color

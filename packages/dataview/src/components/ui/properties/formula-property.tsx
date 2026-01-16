@@ -39,72 +39,72 @@ const EMPTY_ID = "" as keyof EmptyObject;
 export const Property = {
 	Text: ({ value, wrap = false }: PropertyComponentProps<"text">) => (
 		<TextProperty
-			value={value}
 			property={{ id: EMPTY_ID, type: "text" }}
+			value={value}
 			wrap={wrap}
 		/>
 	),
 
 	Number: ({ value, config }: PropertyComponentProps<"number">) => (
 		<NumberProperty
-			value={value}
 			property={{ id: EMPTY_ID, type: "number", config }}
+			value={value}
 		/>
 	),
 
 	Select: ({ value, config }: PropertyComponentProps<"select">) => (
 		<SelectProperty
-			value={value}
 			property={{ id: EMPTY_ID, type: "select", config }}
+			value={value}
 		/>
 	),
 
 	MultiSelect: ({ value, config }: PropertyComponentProps<"multiSelect">) => (
 		<MultiSelectProperty
-			value={value}
 			property={{ id: EMPTY_ID, type: "multiSelect", config }}
+			value={value}
 		/>
 	),
 
 	Status: ({ value, config }: PropertyComponentProps<"status">) => (
 		<StatusProperty
-			value={value}
 			property={{ id: EMPTY_ID, type: "status", config }}
+			value={value}
 		/>
 	),
 
 	Date: ({ value, config }: PropertyComponentProps<"date">) => (
 		<DateProperty
-			value={value}
 			property={{ id: EMPTY_ID, type: "date", config }}
+			value={value}
 		/>
 	),
 
 	Checkbox: ({ value }: PropertyComponentProps<"checkbox">) => (
 		<CheckboxProperty
-			value={value}
 			property={{ id: EMPTY_ID, type: "checkbox" }}
+			value={value}
 		/>
 	),
 
 	Url: ({ value, config }: PropertyComponentProps<"url">) => (
 		<UrlProperty
-			value={value}
 			property={{ id: EMPTY_ID, type: "url", config }}
+			value={value}
 		/>
 	),
 
 	Email: ({ value, config }: PropertyComponentProps<"email">) => (
 		<EmailProperty
-			value={value}
 			property={{ id: EMPTY_ID, type: "email", config }}
+			value={value}
 		/>
 	),
 
 	Phone: ({ value, config }: PropertyComponentProps<"phone">) => (
 		<PhoneProperty
-			value={value}
 			property={{ id: EMPTY_ID, type: "phone", config }}
+			value={value}
 		/>
 	),
 
@@ -114,8 +114,8 @@ export const Property = {
 		wrap = false,
 	}: PropertyComponentProps<"filesMedia">) => (
 		<FilesMediaProperty
-			value={value}
 			property={{ id: EMPTY_ID, type: "filesMedia", config }}
+			value={value}
 			wrap={wrap}
 		/>
 	),

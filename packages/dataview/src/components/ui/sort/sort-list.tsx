@@ -18,7 +18,7 @@ import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type { PropertySort } from "@ocean-dataview/shared/types";
 import { ArrowDownAZ, ArrowUpZA, Check, Plus, SortAsc, X } from "lucide-react";
-import * as React from "react";
+import { useCallback, useState } from "react";
 
 interface SortListProps<T> {
 	properties: DataViewProperty<T>[];
@@ -41,9 +41,9 @@ export function SortList<T>({
 	onSortsChange,
 	align = "end",
 }: SortListProps<T>) {
-	const [open, setOpen] = React.useState(false);
+	const [open, setOpen] = useState(false);
 
-	const onSortAdd = React.useCallback(
+	const onSortAdd = useCallback(
 		(propertyId: string) => {
 			const newSort: PropertySort<T> = {
 				propertyId: propertyId as PropertySort<T>["propertyId"],
@@ -51,42 +51,42 @@ export function SortList<T>({
 			};
 			onSortsChange([...sorts, newSort]);
 		},
-		[sorts, onSortsChange],
+		[sorts, onSortsChange]
 	);
 
-	const onSortUpdate = React.useCallback(
+	const onSortUpdate = useCallback(
 		(index: number, updates: Partial<PropertySort<T>>) => {
 			const updatedSorts = sorts.map((sort, i) =>
-				i === index ? { ...sort, ...updates } : sort,
+				i === index ? { ...sort, ...updates } : sort
 			);
 			onSortsChange(updatedSorts);
 		},
-		[sorts, onSortsChange],
+		[sorts, onSortsChange]
 	);
 
-	const onSortRemove = React.useCallback(
+	const onSortRemove = useCallback(
 		(index: number) => {
 			const updatedSorts = sorts.filter((_, i) => i !== index);
 			onSortsChange(updatedSorts);
 		},
-		[sorts, onSortsChange],
+		[sorts, onSortsChange]
 	);
 
 	// Get properties not already in sort list
 	const availableProperties = properties.filter(
-		(prop) => !sorts.some((sort) => sort.propertyId === prop.id),
+		(prop) => !sorts.some((sort) => sort.propertyId === prop.id)
 	);
 
 	return (
-		<Popover open={open} onOpenChange={setOpen}>
+		<Popover onOpenChange={setOpen} open={open}>
 			<PopoverTrigger
 				render={
 					<Button
-						variant="outline"
-						size="sm"
-						role="combobox"
 						aria-expanded={open}
 						aria-label="Show sort menu"
+						role="combobox"
+						size="sm"
+						variant="outline"
 					/>
 				}
 			>
@@ -109,18 +109,20 @@ export function SortList<T>({
 						<div className="flex flex-col gap-2">
 							{sorts.map((sort, index) => {
 								const property = properties.find(
-									(p) => p.id === sort.propertyId,
+									(p) => p.id === sort.propertyId
 								);
-								if (!property) return null;
+								if (!property) {
+									return null;
+								}
 
 								return (
 									<SortItem
 										key={`${sort.propertyId}-${index}`}
-										sort={sort}
-										property={property}
-										properties={properties}
-										onUpdate={(updates) => onSortUpdate(index, updates)}
 										onRemove={() => onSortRemove(index)}
+										onUpdate={(updates) => onSortUpdate(index, updates)}
+										properties={properties}
+										property={property}
+										sort={sort}
 									/>
 								);
 							})}
@@ -130,18 +132,18 @@ export function SortList<T>({
 					{/* Add Sort Button */}
 					{availableProperties.length > 0 && (
 						<AddSortButton
-							properties={availableProperties}
 							onSelect={onSortAdd}
+							properties={availableProperties}
 						/>
 					)}
 
 					{/* Clear All */}
 					{sorts.length > 0 && (
 						<Button
-							variant="ghost"
-							size="sm"
 							className="w-full justify-start text-destructive hover:text-destructive"
 							onClick={() => onSortsChange([])}
+							size="sm"
+							variant="ghost"
 						>
 							<X className="mr-2 h-4 w-4" />
 							Clear all sorts
@@ -168,18 +170,18 @@ function SortItem<T>({
 	onUpdate,
 	onRemove,
 }: SortItemProps<T>) {
-	const [showFieldSelector, setShowFieldSelector] = React.useState(false);
+	const [showFieldSelector, setShowFieldSelector] = useState(false);
 
 	return (
 		<div className="flex items-center gap-2 rounded-md bg-muted/50 p-1">
 			{/* Field Selector */}
-			<Popover open={showFieldSelector} onOpenChange={setShowFieldSelector}>
+			<Popover onOpenChange={setShowFieldSelector} open={showFieldSelector}>
 				<PopoverTrigger
 					render={
 						<Button
-							variant="ghost"
-							size="sm"
 							className="flex-1 justify-start font-normal"
+							size="sm"
+							variant="ghost"
 						/>
 					}
 				>
@@ -194,13 +196,13 @@ function SortItem<T>({
 								{properties.map((prop) => (
 									<CommandItem
 										key={prop.id}
-										value={prop.id}
 										onSelect={() => {
 											onUpdate({
 												propertyId: prop.id as PropertySort<T>["propertyId"],
 											});
 											setShowFieldSelector(false);
 										}}
+										value={prop.id}
 									>
 										<span className="truncate">{prop.label ?? prop.id}</span>
 										<Check
@@ -208,7 +210,7 @@ function SortItem<T>({
 												"ml-auto",
 												prop.id === sort.propertyId
 													? "opacity-100"
-													: "opacity-0",
+													: "opacity-0"
 											)}
 										/>
 									</CommandItem>
@@ -221,10 +223,10 @@ function SortItem<T>({
 
 			{/* Direction Toggle */}
 			<Button
-				variant="ghost"
-				size="icon-sm"
-				onClick={() => onUpdate({ desc: !sort.desc })}
 				aria-label={sort.desc ? "Sort descending" : "Sort ascending"}
+				onClick={() => onUpdate({ desc: !sort.desc })}
+				size="icon-sm"
+				variant="ghost"
 			>
 				{sort.desc ? (
 					<ArrowUpZA className="h-4 w-4" />
@@ -235,10 +237,10 @@ function SortItem<T>({
 
 			{/* Remove Button */}
 			<Button
-				variant="ghost"
-				size="icon-sm"
-				onClick={onRemove}
 				aria-label="Remove sort"
+				onClick={onRemove}
+				size="icon-sm"
+				variant="ghost"
 			>
 				<X className="h-4 w-4" />
 			</Button>
@@ -252,16 +254,16 @@ interface AddSortButtonProps<T> {
 }
 
 function AddSortButton<T>({ properties, onSelect }: AddSortButtonProps<T>) {
-	const [open, setOpen] = React.useState(false);
+	const [open, setOpen] = useState(false);
 
 	return (
-		<Popover open={open} onOpenChange={setOpen}>
+		<Popover onOpenChange={setOpen} open={open}>
 			<PopoverTrigger
 				render={
 					<Button
-						variant="outline"
-						size="sm"
 						className="w-full justify-start"
+						size="sm"
+						variant="outline"
 					/>
 				}
 			>
@@ -277,11 +279,11 @@ function AddSortButton<T>({ properties, onSelect }: AddSortButtonProps<T>) {
 							{properties.map((property) => (
 								<CommandItem
 									key={property.id}
-									value={property.id}
 									onSelect={() => {
 										onSelect(property.id);
 										setOpen(false);
 									}}
+									value={property.id}
 								>
 									<span className="truncate">
 										{property.label ?? property.id}

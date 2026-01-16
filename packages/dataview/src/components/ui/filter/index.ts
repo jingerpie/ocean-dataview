@@ -1,5 +1,6 @@
 // Filter components - Simple and Advanced filter UI
 
+// biome-ignore lint/performance/noBarrelFile: Intentional public API barrel file
 export {
 	AddFilterButton,
 	type AddFilterButtonProps,

@@ -64,7 +64,9 @@ export function VerticalBarChartInner({
 				const config: Record<string, { label: string; color: string }> = {};
 				for (let index = 0; index < groupKeys.length; index++) {
 					const key = groupKeys[index];
-					if (!key) continue;
+					if (!key) {
+						continue;
+					}
 					const color = colors[index % colors.length];
 					config[key] = {
 						label: key,
@@ -79,7 +81,9 @@ export function VerticalBarChartInner({
 				};
 				for (let index = 0; index < data.length; index++) {
 					const item = data[index];
-					if (!item) continue;
+					if (!item) {
+						continue;
+					}
 					config[item.name] = {
 						label: item.name,
 						color: colors[index % colors.length],
@@ -100,7 +104,9 @@ export function VerticalBarChartInner({
 	const chartDataWithTotalLabels = useMemo(() => {
 		return chartData.map((item) => {
 			const totalLabel = groupKeys.reduce((sum, key) => {
-				if (barProps[key] === true) return sum;
+				if (barProps[key] === true) {
+					return sum;
+				}
 				const value = item[key as keyof typeof item];
 				return sum + (typeof value === "number" ? value : 0);
 			}, 0);
@@ -115,23 +121,20 @@ export function VerticalBarChartInner({
 	return (
 		<div className="flex w-full flex-col gap-2">
 			<ChartContainer
-				config={chartConfig}
 				className="w-full"
+				config={chartConfig}
 				style={{ height }}
 			>
 				<BarChart data={chartDataWithTotalLabels} margin={chartMargin}>
 					<CartesianGrid
-						strokeDasharray="3 3"
-						vertical={showGridX}
 						horizontal={showGridY}
 						stroke="hsl(var(--border))"
+						strokeDasharray="3 3"
+						vertical={showGridX}
 					/>
 					<XAxis
-						dataKey="name"
-						type="category"
-						tickLine={false}
 						axisLine={false}
-						tickMargin={8}
+						dataKey="name"
 						label={
 							axisName === "xAxis" || axisName === "both"
 								? {
@@ -142,11 +145,11 @@ export function VerticalBarChartInner({
 									}
 								: undefined
 						}
+						tickLine={false}
+						tickMargin={8}
+						type="category"
 					/>
 					<YAxis
-						type="number"
-						width="auto"
-						tickLine={false}
 						axisLine={false}
 						domain={yAxisRange ? [yAxisRange.min, yAxisRange.max] : undefined}
 						label={
@@ -160,6 +163,9 @@ export function VerticalBarChartInner({
 									}
 								: undefined
 						}
+						tickLine={false}
+						type="number"
+						width="auto"
 					/>
 
 					<ChartTooltip
@@ -174,25 +180,25 @@ export function VerticalBarChartInner({
 					{isStacked ? (
 						(() => {
 							const visibleKeys = groupKeys.filter(
-								(key) => barProps[key] !== true,
+								(key) => barProps[key] !== true
 							);
-							const lastVisibleKey = visibleKeys[visibleKeys.length - 1];
+							const lastVisibleKey = visibleKeys.at(-1);
 
 							return groupKeys.map((key, groupIndex) => {
 								return (
 									<Bar
-										key={key}
 										dataKey={key}
 										fill={colors[groupIndex % colors.length]}
-										stackId="a"
-										hide={barProps[key] === true}
 										fillOpacity={Number(
-											barProps.hover === key || !barProps.hover ? 1 : 0.2,
+											barProps.hover === key || !barProps.hover ? 1 : 0.2
 										)}
+										hide={barProps[key] === true}
+										isAnimationActive={false}
+										key={key}
 										radius={
 											key === lastVisibleKey ? [4, 4, 0, 0] : [0, 0, 0, 0]
 										}
-										isAnimationActive={false}
+										stackId="a"
 									/>
 								);
 							});
@@ -201,40 +207,40 @@ export function VerticalBarChartInner({
 						<Bar
 							dataKey="value"
 							fill={colors[0]}
-							radius={[4, 4, 0, 0]}
 							isAnimationActive={false}
+							radius={[4, 4, 0, 0]}
 						>
 							{dataLabels && (
 								<LabelList
+									className="fill-foreground"
 									dataKey="value"
-									position="top"
 									fontSize={12}
 									offset={8}
-									className="fill-foreground"
+									position="top"
 								/>
 							)}
 						</Bar>
 					)}
 					{dataLabels && isStacked && (
 						<Bar
+							activeBar={false}
 							dataKey="__PLACEHOLDER_BAR__"
 							fill="transparent"
-							stroke="none"
 							isAnimationActive={false}
-							stackId="a"
 							radius={[0, 0, 0, 0]}
-							activeBar={false}
+							stackId="a"
+							stroke="none"
 						>
 							<LabelList
+								className="fill-foreground"
 								dataKey={
 									barProps.hover
 										? String(barProps.hover)
 										: "__BAR_TOTAL_LABEL__"
 								}
-								position="top"
 								fontSize={12}
 								offset={8}
-								className="fill-foreground"
+								position="top"
 							/>
 						</Bar>
 					)}
@@ -243,12 +249,12 @@ export function VerticalBarChartInner({
 
 			{isStacked && showLegend && (
 				<ChartPaginatedLegend
-					groupKeys={groupKeys}
 					colors={colors}
+					groupKeys={groupKeys}
 					legendState={legendState}
 					onClick={selectBar}
-					onMouseOver={handleLegendMouseEnter}
 					onMouseOut={handleLegendMouseLeave}
+					onMouseOver={handleLegendMouseEnter}
 				/>
 			)}
 		</div>

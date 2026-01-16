@@ -28,19 +28,19 @@ function CheckboxPickerContent({ value, onChange }: CheckboxPickerProps) {
 	return (
 		<div className="flex flex-col gap-0.5">
 			<Button
-				variant="ghost"
-				size="sm"
 				className="justify-start"
 				onClick={() => onChange(true)}
+				size="sm"
+				variant="ghost"
 			>
 				<span className="flex-1 text-left">Checked</span>
 				{value === true && <CheckIcon className="size-4" />}
 			</Button>
 			<Button
-				variant="ghost"
-				size="sm"
 				className="justify-start"
 				onClick={() => onChange(false)}
+				size="sm"
+				variant="ghost"
 			>
 				<span className="flex-1 text-left">Unchecked</span>
 				{value === false && <CheckIcon className="size-4" />}
@@ -59,10 +59,12 @@ function CheckboxPicker({ value, onChange }: CheckboxPickerProps) {
 	return (
 		<Select
 			items={items}
-			value={selectValue}
 			onValueChange={(value) => {
-				if (value) onChange(value === "checked");
+				if (value) {
+					onChange(value === "checked");
+				}
 			}}
+			value={selectValue}
 		>
 			<SelectTrigger size="sm">
 				<SelectValue />

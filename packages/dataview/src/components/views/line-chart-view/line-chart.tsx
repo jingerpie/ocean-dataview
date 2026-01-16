@@ -61,7 +61,9 @@ export function LineChartInner({
 				const config: Record<string, { label: string; color: string }> = {};
 				for (let index = 0; index < groupKeys.length; index++) {
 					const key = groupKeys[index];
-					if (!key) continue;
+					if (!key) {
+						continue;
+					}
 					const color = colors[index % colors.length];
 					config[key] = {
 						label: key,
@@ -91,24 +93,21 @@ export function LineChartInner({
 	return (
 		<div className="flex w-full flex-col gap-2">
 			<ChartContainer
-				config={chartConfig}
 				className="w-full"
+				config={chartConfig}
 				style={{ height }}
 			>
 				<RechartsLineChart data={data} margin={chartMargin}>
 					<CartesianGrid
-						strokeDasharray="3 3"
-						vertical={showGridX}
 						horizontal={showGridY}
 						stroke="hsl(var(--border))"
+						strokeDasharray="3 3"
+						vertical={showGridX}
 					/>
 
 					<XAxis
-						dataKey="name"
-						type="category"
-						tickLine={false}
 						axisLine={false}
-						tickMargin={8}
+						dataKey="name"
 						label={
 							axisName === "xAxis" || axisName === "both"
 								? {
@@ -119,12 +118,12 @@ export function LineChartInner({
 									}
 								: undefined
 						}
+						tickLine={false}
+						tickMargin={8}
+						type="category"
 					/>
 
 					<YAxis
-						type="number"
-						width="auto"
-						tickLine={false}
 						axisLine={false}
 						domain={yAxisRange ? [yAxisRange.min, yAxisRange.max] : undefined}
 						label={
@@ -138,6 +137,9 @@ export function LineChartInner({
 									}
 								: undefined
 						}
+						tickLine={false}
+						type="number"
+						width="auto"
 					/>
 
 					<ChartTooltip
@@ -153,19 +155,14 @@ export function LineChartInner({
 						groupKeys.map((key, index) => {
 							const isHidden = lineProps[key] === true;
 							const strokeOpacity = Number(
-								lineProps.hover === key || !lineProps.hover ? 1 : 0.2,
+								lineProps.hover === key || !lineProps.hover ? 1 : 0.2
 							);
 							const strokeWidth = lineProps.hover === key ? 3 : 2;
 
 							return (
 								<Line
-									key={key}
-									type={lineType}
+									activeDot={showDots ? { r: 6 } : false}
 									dataKey={key}
-									stroke={colors[index % colors.length]}
-									strokeWidth={strokeWidth}
-									strokeOpacity={strokeOpacity}
-									hide={isHidden}
 									dot={
 										showDots
 											? {
@@ -175,20 +172,25 @@ export function LineChartInner({
 												}
 											: false
 									}
-									activeDot={showDots ? { r: 6 } : false}
+									hide={isHidden}
 									isAnimationActive={false}
+									key={key}
+									stroke={colors[index % colors.length]}
+									strokeOpacity={strokeOpacity}
+									strokeWidth={strokeWidth}
+									type={lineType}
 								/>
 							);
 						})
 					) : (
 						<Line
-							type={lineType}
+							activeDot={showDots ? { r: 6 } : false}
 							dataKey="value"
+							dot={showDots ? { fill: colors[0], r: 4 } : false}
+							isAnimationActive={false}
 							stroke={colors[0]}
 							strokeWidth={2}
-							dot={showDots ? { fill: colors[0], r: 4 } : false}
-							activeDot={showDots ? { r: 6 } : false}
-							isAnimationActive={false}
+							type={lineType}
 						/>
 					)}
 				</RechartsLineChart>
@@ -196,12 +198,12 @@ export function LineChartInner({
 
 			{isMultiSeries && showLegend && (
 				<ChartPaginatedLegend
-					groupKeys={groupKeys}
 					colors={colors}
+					groupKeys={groupKeys}
 					legendState={legendState}
 					onClick={selectLine}
-					onMouseOver={handleLegendMouseEnter}
 					onMouseOut={handleLegendMouseLeave}
+					onMouseOver={handleLegendMouseEnter}
 				/>
 			)}
 		</div>

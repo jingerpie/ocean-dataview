@@ -45,7 +45,7 @@ export const GALLERY_CARD_SIZES: Record<CardSize, GalleryCardDimensions> = {
  * Get board card dimensions by size
  */
 export function getBoardCardDimensions(
-	cardSize: CardSize = "medium",
+	cardSize: CardSize = "medium"
 ): BoardCardDimensions {
 	return BOARD_CARD_SIZES[cardSize];
 }
@@ -54,7 +54,7 @@ export function getBoardCardDimensions(
  * Get gallery card dimensions by size
  */
 export function getGalleryCardDimensions(
-	cardSize: CardSize = "medium",
+	cardSize: CardSize = "medium"
 ): GalleryCardDimensions {
 	return GALLERY_CARD_SIZES[cardSize];
 }

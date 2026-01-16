@@ -28,7 +28,7 @@ export function getFilterLogic(filter: CompoundFilter): "and" | "or" {
  */
 export function createCompoundFilter(
 	logic: "and" | "or",
-	items: Filter[],
+	items: Filter[]
 ): CompoundFilter {
 	return logic === "and" ? { and: items } : { or: items };
 }
@@ -38,7 +38,7 @@ export function createCompoundFilter(
  */
 export function createDefaultCondition(
 	property: string,
-	operator: FilterCondition["operator"] = "eq",
+	operator: FilterCondition["operator"] = "eq"
 ): FilterCondition {
 	return { property, operator };
 }
@@ -52,9 +52,11 @@ export function createDefaultCondition(
  * Wraps single conditions in an AND group
  */
 export function normalizeFilter(
-	filter: Filter | null | undefined,
+	filter: Filter | null | undefined
 ): CompoundFilter | null {
-	if (!filter) return null;
+	if (!filter) {
+		return null;
+	}
 	if (isFilterCondition(filter)) {
 		return { and: [filter] };
 	}
@@ -168,9 +170,11 @@ export function analyzeFilter(filter: Filter | null): FilterAnalysis {
  * Called on save/modify to ensure consistent structure.
  */
 export function normalizeFilterStructure(
-	filter: Filter | null,
+	filter: Filter | null
 ): CompoundFilter | null {
-	if (!filter) return null;
+	if (!filter) {
+		return null;
+	}
 
 	// Single condition → wrap in { and: [...] }
 	if (isFilterCondition(filter)) {
@@ -193,7 +197,9 @@ export function normalizeFilterStructure(
 
 	// Merge all compounds into one (preserve first's logic)
 	const firstCompound = compounds[0];
-	if (!firstCompound) return filter as CompoundFilter;
+	if (!firstCompound) {
+		return filter as CompoundFilter;
+	}
 	const firstLogic = "and" in firstCompound ? "and" : "or";
 	const mergedItems = compounds.flatMap((c) => c.and ?? c.or ?? []);
 	const mergedAdvanced: CompoundFilter =
@@ -220,9 +226,11 @@ export function flattenFilter(
 	filter: Filter | null | undefined,
 	parentPath = [] as number[],
 	parentLogic = "and" as "and" | "or",
-	depth = 0,
+	depth = 0
 ): FlattenedCondition[] {
-	if (!filter) return [];
+	if (!filter) {
+		return [];
+	}
 
 	if (isFilterCondition(filter)) {
 		return [{ condition: filter, path: parentPath, parentLogic, depth }];
@@ -259,19 +267,27 @@ export function flattenFilter(
  */
 export function getItemAtPath(
 	filter: CompoundFilter,
-	path: number[],
+	path: number[]
 ): Filter | null {
-	if (path.length === 0) return filter;
+	if (path.length === 0) {
+		return filter;
+	}
 
 	const items = getFilterItems(filter);
 	const [index, ...rest] = path;
 
-	if (index === undefined || index >= items.length) return null;
+	if (index === undefined || index >= items.length) {
+		return null;
+	}
 
 	const item = items[index];
-	if (!item) return null;
+	if (!item) {
+		return null;
+	}
 
-	if (rest.length === 0) return item;
+	if (rest.length === 0) {
+		return item;
+	}
 
 	if (isCompoundFilter(item)) {
 		return getItemAtPath(item, rest);
@@ -288,7 +304,7 @@ export function getItemAtPath(
 function updateItemAtPath(
 	filter: CompoundFilter,
 	path: number[],
-	updater: (item: Filter) => Filter | null,
+	updater: (item: Filter) => Filter | null
 ): CompoundFilter {
 	const logic = getFilterLogic(filter);
 	const items = [...getFilterItems(filter)];
@@ -300,12 +316,16 @@ function updateItemAtPath(
 
 	const [index, ...rest] = path;
 
-	if (index === undefined || index >= items.length) return filter;
+	if (index === undefined || index >= items.length) {
+		return filter;
+	}
 
 	if (rest.length === 0) {
 		// Update this item
 		const current = items[index];
-		if (!current) return filter;
+		if (!current) {
+			return filter;
+		}
 
 		const updated = updater(current);
 		if (updated === null) {
@@ -317,7 +337,9 @@ function updateItemAtPath(
 	} else {
 		// Recurse into nested compound filter
 		const current = items[index];
-		if (!current || !isCompoundFilter(current)) return filter;
+		if (!(current && isCompoundFilter(current))) {
+			return filter;
+		}
 
 		const updated = updateItemAtPath(current, rest, updater);
 		// Preserve empty compound filters (don't remove them)
@@ -339,7 +361,7 @@ function updateItemAtPath(
 export function addCondition(
 	filter: CompoundFilter,
 	path: number[],
-	condition: FilterCondition,
+	condition: FilterCondition
 ): CompoundFilter {
 	if (path.length === 0) {
 		// Add to root
@@ -353,10 +375,14 @@ export function addCondition(
 	const items = [...getFilterItems(filter)];
 	const [index, ...rest] = path;
 
-	if (index === undefined || index >= items.length) return filter;
+	if (index === undefined || index >= items.length) {
+		return filter;
+	}
 
 	const current = items[index];
-	if (!current || !isCompoundFilter(current)) return filter;
+	if (!(current && isCompoundFilter(current))) {
+		return filter;
+	}
 
 	items[index] = addCondition(current, rest, condition);
 	return createCompoundFilter(logic, items);
@@ -370,7 +396,7 @@ export function addGroup(
 	filter: CompoundFilter,
 	path: number[],
 	groupLogic: "and" | "or" = "and",
-	defaultProperty?: string,
+	defaultProperty?: string
 ): CompoundFilter {
 	// Create new group with one placeholder condition
 	const defaultCondition = createDefaultCondition(defaultProperty ?? "", "eq");
@@ -387,10 +413,14 @@ export function addGroup(
 	const items = [...getFilterItems(filter)];
 	const [index, ...rest] = path;
 
-	if (index === undefined || index >= items.length) return filter;
+	if (index === undefined || index >= items.length) {
+		return filter;
+	}
 
 	const current = items[index];
-	if (!current || !isCompoundFilter(current)) return filter;
+	if (!(current && isCompoundFilter(current))) {
+		return filter;
+	}
 
 	items[index] = addGroup(current, rest, groupLogic, defaultProperty);
 	return createCompoundFilter(logic, items);
@@ -402,7 +432,7 @@ export function addGroup(
 export function updateCondition(
 	filter: CompoundFilter,
 	path: number[],
-	condition: FilterCondition,
+	condition: FilterCondition
 ): CompoundFilter {
 	return updateItemAtPath(filter, path, () => condition);
 }
@@ -413,7 +443,7 @@ export function updateCondition(
  */
 export function removeItem(
 	filter: CompoundFilter,
-	path: number[],
+	path: number[]
 ): CompoundFilter {
 	return updateItemAtPath(filter, path, () => null);
 }
@@ -424,26 +454,34 @@ export function removeItem(
  */
 export function duplicateItem(
 	filter: CompoundFilter,
-	path: number[],
+	path: number[]
 ): CompoundFilter {
-	if (path.length === 0) return filter;
+	if (path.length === 0) {
+		return filter;
+	}
 
 	const parentPath = path.slice(0, -1);
-	const itemIndex = path[path.length - 1];
+	const itemIndex = path.at(-1);
 
-	if (itemIndex === undefined) return filter;
+	if (itemIndex === undefined) {
+		return filter;
+	}
 
 	// Get the parent group
 	const parent =
 		parentPath.length === 0 ? filter : getItemAtPath(filter, parentPath);
 
-	if (!parent || !isCompoundFilter(parent)) return filter;
+	if (!(parent && isCompoundFilter(parent))) {
+		return filter;
+	}
 
 	const parentLogic = getFilterLogic(parent);
 	const parentItems = getFilterItems(parent);
 	const itemToDuplicate = parentItems[itemIndex];
 
-	if (!itemToDuplicate) return filter;
+	if (!itemToDuplicate) {
+		return filter;
+	}
 
 	// Deep clone the item
 	const clonedItem = JSON.parse(JSON.stringify(itemToDuplicate)) as Filter;
@@ -469,10 +507,12 @@ export function duplicateItem(
 export function wrapInGroup(
 	filter: CompoundFilter,
 	path: number[],
-	groupLogic: "and" | "or" = "and",
+	groupLogic: "and" | "or" = "and"
 ): CompoundFilter {
 	const item = getItemAtPath(filter, path);
-	if (!item) return filter;
+	if (!item) {
+		return filter;
+	}
 
 	// Create a new group containing just this item
 	const newGroup = createCompoundFilter(groupLogic, [item]);
@@ -487,7 +527,7 @@ export function wrapInGroup(
 export function changeLogic(
 	filter: CompoundFilter,
 	path: number[],
-	logic: "and" | "or",
+	logic: "and" | "or"
 ): CompoundFilter {
 	if (path.length === 0) {
 		// Change root logic
@@ -516,10 +556,14 @@ export function getDepthAtPath(filter: CompoundFilter, path: number[]): number {
 	let current: Filter = filter;
 
 	for (const index of path) {
-		if (!isCompoundFilter(current)) break;
+		if (!isCompoundFilter(current)) {
+			break;
+		}
 		const items = getFilterItems(current);
 		const item = items[index];
-		if (!item) break;
+		if (!item) {
+			break;
+		}
 
 		if (isCompoundFilter(item)) {
 			depth++;
@@ -535,18 +579,22 @@ export function getDepthAtPath(filter: CompoundFilter, path: number[]): number {
  */
 export function canAddGroupAtPath(
 	filter: CompoundFilter,
-	path: number[],
+	path: number[]
 ): boolean {
 	// Count how many group levels we're already in
 	let groupDepth = 0;
 	let current: Filter = filter;
 
 	for (const index of path) {
-		if (!isCompoundFilter(current)) break;
+		if (!isCompoundFilter(current)) {
+			break;
+		}
 		groupDepth++; // We're entering a group
 		const items = getFilterItems(current);
 		const item = items[index];
-		if (!item) break;
+		if (!item) {
+			break;
+		}
 		current = item;
 	}
 
@@ -568,23 +616,30 @@ export function canAddGroupAtPath(
  */
 export function getConditionSummary(
 	condition: FilterCondition,
-	propertyLabel?: string,
+	propertyLabel?: string
 ): string {
 	const prop = propertyLabel ?? condition.property;
 	const op = condition.operator;
 
 	// Handle operators without values
-	if (op === "isEmpty") return `${prop} is empty`;
-	if (op === "isNotEmpty") return `${prop} is not empty`;
+	if (op === "isEmpty") {
+		return `${prop} is empty`;
+	}
+	if (op === "isNotEmpty") {
+		return `${prop} is not empty`;
+	}
 
 	// Format value
 	const value = condition.value;
-	const valueStr =
-		value === undefined
-			? ""
-			: Array.isArray(value)
-				? value.join(", ")
-				: String(value);
+	const valueStr = (() => {
+		if (value === undefined) {
+			return "";
+		}
+		if (Array.isArray(value)) {
+			return value.join(", ");
+		}
+		return String(value);
+	})();
 
 	// Operator labels
 	const opLabels: Record<string, string> = {

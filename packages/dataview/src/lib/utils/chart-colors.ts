@@ -93,7 +93,7 @@ const CHART_COLOR_MAP: Record<ChartColorScheme, string[]> = {
  */
 export function getChartColors(
 	colorScheme: ChartColorScheme,
-	count: number,
+	count: number
 ): string[] {
 	const colors = CHART_COLOR_MAP[colorScheme] || CHART_COLOR_MAP.colorful;
 	if (colors.length === 0) {
@@ -111,7 +111,7 @@ export function getChartColors(
  * Get chart height in pixels based on size
  */
 export function getChartHeight(
-	size: "small" | "medium" | "large" | "extraLarge",
+	size: "small" | "medium" | "large" | "extraLarge"
 ): number {
 	const heightMap = {
 		small: 200,

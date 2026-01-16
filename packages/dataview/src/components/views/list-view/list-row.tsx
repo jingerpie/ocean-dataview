@@ -60,7 +60,7 @@ export function ListRow<TData>({
 							className={cn(
 								"flex w-full items-center gap-4 px-3 py-2",
 								onItemClick &&
-									"cursor-pointer border-0 bg-transparent text-left transition-colors hover:bg-muted/50",
+									"cursor-pointer border-0 bg-transparent text-left transition-colors hover:bg-muted/50"
 							)}
 							onClick={() => onItemClick?.(item)}
 							{...(onItemClick && { type: "button" as const })}
@@ -71,16 +71,16 @@ export function ListRow<TData>({
 
 								return (
 									<div
-										key={String(property.id)}
 										className={cn(
 											"flex items-center",
-											isFirst ? "flex-1 font-medium" : "flex-shrink-0",
+											isFirst ? "flex-1 font-medium" : "flex-shrink-0"
 										)}
+										key={String(property.id)}
 									>
 										<PropertyDisplay
-											value={value}
-											property={property}
 											item={item}
+											property={property}
+											value={value}
 											wrap={false}
 										/>
 									</div>

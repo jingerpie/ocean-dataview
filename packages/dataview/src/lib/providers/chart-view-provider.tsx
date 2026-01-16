@@ -30,7 +30,7 @@ export function ChartViewProvider<
 }: ChartViewProviderProps<TData, TProperties>) {
 	const contextValue = useMemo<ChartViewContextValue<TData, TProperties>>(
 		() => ({ data, properties }),
-		[data, properties],
+		[data, properties]
 	);
 
 	return (

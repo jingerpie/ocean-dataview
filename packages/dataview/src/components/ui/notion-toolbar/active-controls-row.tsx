@@ -16,7 +16,7 @@ import {
 	removeItem,
 	updateCondition,
 } from "@ocean-dataview/shared/utils";
-import * as React from "react";
+import { useState } from "react";
 import {
 	AdvancedFilterChip,
 	FilterChip,
@@ -71,14 +71,14 @@ export function ActiveControlsRow<T>({
 	onOpenAdvancedFilter,
 	className,
 }: ActiveControlsRowProps<T>) {
-	const [addFilterOpen, setAddFilterOpen] = React.useState(false);
+	const [addFilterOpen, setAddFilterOpen] = useState(false);
 
 	// Get normalized filter for operations
 	const normalizedFilter = normalizeFilter(filter);
 
 	// Get property IDs already used in simple filters (to hide from picker)
 	const usedPropertyIds = simpleFilterConditions.map(
-		(f) => f.condition.property,
+		(f) => f.condition.property
 	);
 
 	// Handle adding a new simple filter (adds FilterCondition to root)
@@ -88,7 +88,7 @@ export function ActiveControlsRow<T>({
 		const defaultOperator = getDefaultFilterOperator(filterVariant);
 		const condition = createDefaultCondition(
 			String(property.id),
-			defaultOperator,
+			defaultOperator
 		);
 
 		if (normalizedFilter) {
@@ -105,22 +105,28 @@ export function ActiveControlsRow<T>({
 	// Handle updating a simple filter condition
 	const handleConditionChange = (
 		index: number,
-		newCondition: FilterCondition,
+		newCondition: FilterCondition
 	) => {
-		if (!normalizedFilter) return;
+		if (!normalizedFilter) {
+			return;
+		}
 		onFilterChange(updateCondition(normalizedFilter, [index], newCondition));
 	};
 
 	// Handle removing a simple filter condition
 	const handleConditionRemove = (index: number) => {
-		if (!normalizedFilter) return;
+		if (!normalizedFilter) {
+			return;
+		}
 		const result = removeItem(normalizedFilter, [index]);
 		onFilterChange(result);
 	};
 
 	// Handle adding a simple condition to advanced filter
 	const handleAddToAdvanced = (index: number, condition: FilterCondition) => {
-		if (!normalizedFilter) return;
+		if (!normalizedFilter) {
+			return;
+		}
 
 		const items = [...(normalizedFilter.and ?? [])];
 
@@ -177,15 +183,13 @@ export function ActiveControlsRow<T>({
 			className={cn(
 				"flex flex-wrap items-center gap-1.5",
 				"fade-in slide-in-from-top-1 animate-in duration-150",
-				className,
+				className
 			)}
 		>
 			{/* 1. Sort Chips */}
 			{sorts.map((sort, index) => (
 				<SortChip
 					key={`sort-${String(sort.propertyId)}-${index}`}
-					sort={sort}
-					properties={properties}
 					onSortChange={(newSort) => {
 						if (newSort === null) {
 							// Remove this sort
@@ -197,6 +201,8 @@ export function ActiveControlsRow<T>({
 							onSortsChange(newSorts);
 						}
 					}}
+					properties={properties}
+					sort={sort}
 				/>
 			))}
 
@@ -204,8 +210,8 @@ export function ActiveControlsRow<T>({
 			{advancedFilter && (
 				<AdvancedFilterChip
 					filter={advancedFilter}
-					properties={properties}
 					onFilterChange={handleAdvancedFilterChange}
+					properties={properties}
 					ruleCount={ruleCount}
 				/>
 			)}
@@ -213,33 +219,35 @@ export function ActiveControlsRow<T>({
 			{/* 3. Simple Filter Chips (in array order) */}
 			{simpleFilterConditions.map(({ condition, index }) => {
 				const property = properties.find(
-					(p) => String(p.id) === condition.property,
+					(p) => String(p.id) === condition.property
 				);
-				if (!property) return null;
+				if (!property) {
+					return null;
+				}
 
 				return (
 					<FilterChip
-						key={`filter-${condition.property}-${index}`}
 						condition={condition}
-						property={property}
+						key={`filter-${condition.property}-${index}`}
+						onAddToAdvanced={() => handleAddToAdvanced(index, condition)}
 						onConditionChange={(newCondition) =>
 							handleConditionChange(index, newCondition)
 						}
 						onRemove={() => handleConditionRemove(index)}
-						onAddToAdvanced={() => handleAddToAdvanced(index, condition)}
+						property={property}
 					/>
 				);
 			})}
 
 			{/* 4. + Filter Button */}
 			<FilterPropertyPicker
-				properties={properties}
-				open={addFilterOpen}
+				excludePropertyIds={usedPropertyIds}
+				onAdvancedFilter={onOpenAdvancedFilter}
 				onOpenChange={setAddFilterOpen}
 				onSelect={handleAddFilter}
-				onAdvancedFilter={onOpenAdvancedFilter}
+				open={addFilterOpen}
+				properties={properties}
 				variant="add"
-				excludePropertyIds={usedPropertyIds}
 			/>
 		</div>
 	);

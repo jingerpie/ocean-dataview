@@ -7,9 +7,11 @@ import type { ChartViewProps, DataViewProperty } from "../../types";
 function validateShowAs(
 	propertyType: string,
 	propertyKey: string,
-	showAs: string | undefined,
+	showAs: string | undefined
 ): string | null {
-	if (!showAs) return null;
+	if (!showAs) {
+		return null;
+	}
 
 	// Check date property with date-specific showAs
 	if (propertyType === "date") {
@@ -51,14 +53,14 @@ function validateShowAs(
  */
 function validateDonutChart<TData>(
 	config: ChartViewProps<TData>["config"],
-	properties: readonly DataViewProperty<TData>[],
+	properties: readonly DataViewProperty<TData>[]
 ): string | null {
 	if (!config.data?.whatToShow?.property) {
 		return "Donut chart requires data.whatToShow.property configuration";
 	}
 
 	const property = properties.find(
-		(p) => p.id === config.data?.whatToShow?.property,
+		(p) => p.id === config.data?.whatToShow?.property
 	);
 	if (!property) {
 		return `Property "${String(config.data?.whatToShow?.property)}" not found`;
@@ -70,9 +72,11 @@ function validateDonutChart<TData>(
 		const error = validateShowAs(
 			property.type,
 			String(whatToShow.property),
-			whatToShow.showAs,
+			whatToShow.showAs
 		);
-		if (error) return error;
+		if (error) {
+			return error;
+		}
 	}
 
 	if (config.data.showAs !== "count" && !config.data.computeProperty) {
@@ -85,9 +89,10 @@ function validateDonutChart<TData>(
 /**
  * Validates horizontal bar chart configuration
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex validation logic for chart configuration
 function validateHorizontalBarChart<TData>(
 	config: ChartViewProps<TData>["config"],
-	properties: readonly DataViewProperty<TData>[],
+	properties: readonly DataViewProperty<TData>[]
 ): string | null {
 	// For horizontal: xAxis = values, yAxis = categories
 	if (!config.yAxis?.whatToShow) {
@@ -106,23 +111,27 @@ function validateHorizontalBarChart<TData>(
 			const error = validateShowAs(
 				yProperty.type,
 				String(yAxisWhatToShow.property),
-				yAxisWhatToShow.showAs,
+				yAxisWhatToShow.showAs
 			);
-			if (error) return error;
+			if (error) {
+				return error;
+			}
 		}
 
 		// Validate groupBy if present
 		if (config.xAxis?.groupBy && config.xAxis) {
 			const groupByProperty = properties.find(
-				(p) => p.id === config.xAxis?.groupBy?.property,
+				(p) => p.id === config.xAxis?.groupBy?.property
 			);
 			if (groupByProperty && "showAs" in config.xAxis.groupBy) {
 				const error = validateShowAs(
 					groupByProperty.type,
 					String(config.xAxis.groupBy.property),
-					config.xAxis.groupBy.showAs,
+					config.xAxis.groupBy.showAs
 				);
-				if (error) return error;
+				if (error) {
+					return error;
+				}
 			}
 		}
 	} else {
@@ -155,9 +164,10 @@ function validateHorizontalBarChart<TData>(
 /**
  * Validates vertical bar and line chart configuration
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex validation logic for chart configuration
 function validateVerticalChart<TData>(
 	config: ChartViewProps<TData>["config"],
-	properties: readonly DataViewProperty<TData>[],
+	properties: readonly DataViewProperty<TData>[]
 ): string | null {
 	const xAxisWhatToShow = config.xAxis?.whatToShow;
 	if (
@@ -178,23 +188,27 @@ function validateVerticalChart<TData>(
 		const error = validateShowAs(
 			xProperty.type,
 			String(xAxisWhatToShow.property),
-			xAxisWhatToShow.showAs,
+			xAxisWhatToShow.showAs
 		);
-		if (error) return error;
+		if (error) {
+			return error;
+		}
 	}
 
 	// Validate groupBy if present
 	if (config.yAxis?.groupBy && config.yAxis) {
 		const groupByProperty = properties.find(
-			(p) => p.id === config.yAxis?.groupBy?.property,
+			(p) => p.id === config.yAxis?.groupBy?.property
 		);
 		if (groupByProperty && "showAs" in config.yAxis.groupBy) {
 			const error = validateShowAs(
 				groupByProperty.type,
 				String(config.yAxis.groupBy.property),
-				config.yAxis.groupBy.showAs,
+				config.yAxis.groupBy.showAs
 			);
-			if (error) return error;
+			if (error) {
+				return error;
+			}
 		}
 	}
 
@@ -227,7 +241,7 @@ function validateVerticalChart<TData>(
 export function validateChartConfig<TData>(
 	chartType: "verticalBar" | "horizontalBar" | "line" | "area" | "donut",
 	config: ChartViewProps<TData>["config"],
-	properties: readonly DataViewProperty<TData>[],
+	properties: readonly DataViewProperty<TData>[]
 ): string | null {
 	if (chartType === "donut") {
 		return validateDonutChart(config, properties);

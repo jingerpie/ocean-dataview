@@ -29,11 +29,11 @@ export function UrlProperty<T>({ value, property }: UrlPropertyProps<T>) {
 
 	return (
 		<a
-			href={url}
-			target="_blank"
-			rel="noopener noreferrer"
 			className="inline-flex items-center gap-1 text-blue-600 text-sm hover:text-blue-800 hover:underline"
+			href={url}
 			onClick={(e) => e.stopPropagation()}
+			rel="noopener noreferrer"
+			target="_blank"
 		>
 			<span className="truncate">{displayText}</span>
 			<ExternalLink className="h-3 w-3 flex-shrink-0" />

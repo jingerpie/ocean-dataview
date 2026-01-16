@@ -61,7 +61,7 @@ export function ProductSubGroupPaginationBoard({
 
 	// 1. Fetch group counts (suspends until data is ready)
 	const { data: groupCounts } = useSuspenseQuery(
-		trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" }),
+		trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" })
 	);
 
 	// 2. Get all group keys - all columns are always visible in BoardView
@@ -96,8 +96,8 @@ export function ProductSubGroupPaginationBoard({
 		<Suspense fallback={<BoardSkeleton columnCount={4} />}>
 			<DataViewProvider
 				data={data}
-				properties={productProperties}
 				pagination={pagination}
+				properties={productProperties}
 			>
 				<div className="flex items-center justify-between">
 					<GroupPaginationTabs />
@@ -105,12 +105,12 @@ export function ProductSubGroupPaginationBoard({
 				</div>
 
 				<BoardView
+					counts={groupCounts}
+					pagination="page"
 					view={{
 						group: { groupBy: "familyGroup", showAggregation: true },
 						subGroup: { subGroupBy: "tag" },
 					}}
-					counts={groupCounts}
-					pagination="page"
 				/>
 			</DataViewProvider>
 		</Suspense>

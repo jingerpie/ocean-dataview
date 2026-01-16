@@ -149,7 +149,7 @@ export function useInfinitePagination<
 	TQuery extends InfiniteQueryState,
 	TData = InferItemsFromInfiniteQuery<TQuery>,
 >(
-	options: UseInfinitePaginationOptions<TQuery, TData>,
+	options: UseInfinitePaginationOptions<TQuery, TData>
 ): InfinitePaginationResult<TData> {
 	const {
 		infiniteQuery,
@@ -175,13 +175,13 @@ export function useInfinitePagination<
 		parseAsInteger.withDefault(defaultLimit).withOptions({
 			shallow: false,
 			clearOnDefault: true,
-		}),
+		})
 	);
 
 	// Flatten all pages into single array
 	const items = useMemo(() => {
 		return data.pages.flatMap(
-			(page: BasePaginatedResponse<TData>) => page.items,
+			(page: BasePaginatedResponse<TData>) => page.items
 		);
 	}, [data.pages]);
 
@@ -198,7 +198,7 @@ export function useInfinitePagination<
 			hasNext: hasNextPage ?? false,
 			hasPrev: false,
 			onNext,
-			onPrev: () => {},
+			onPrev: () => undefined,
 
 			// Limit control
 			limit,

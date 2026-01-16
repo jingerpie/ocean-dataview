@@ -2,6 +2,7 @@
 
 import type { Locale } from "date-fns";
 import { format, formatDistanceToNow, parseISO } from "date-fns";
+// biome-ignore lint/performance/noNamespaceImport: Dynamic locale lookup requires all locales
 import * as locales from "date-fns/locale";
 import { useMemo } from "react";
 import { getUserLocale } from "../../../lib/utils/locale-helpers";
@@ -49,7 +50,9 @@ interface DatePropertyProps<T> {
 export function DateProperty<T>({ value, property }: DatePropertyProps<T>) {
 	// Parse date value - must be called unconditionally
 	const date = useMemo(() => {
-		if (!value) return null;
+		if (!value) {
+			return null;
+		}
 
 		try {
 			if (value instanceof Date) {
@@ -76,7 +79,9 @@ export function DateProperty<T>({ value, property }: DatePropertyProps<T>) {
 
 	// Memoize formatted date - must be called unconditionally
 	const formattedDate = useMemo(() => {
-		if (!date || Number.isNaN(date.getTime())) return null;
+		if (!date || Number.isNaN(date.getTime())) {
+			return null;
+		}
 
 		let formatted: string;
 

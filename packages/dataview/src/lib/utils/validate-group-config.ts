@@ -10,16 +10,18 @@ import type { DataViewProperty } from "../../types";
 export function validateShowAs(
 	propertyType: string,
 	propertyKey: string,
-	showAs: string | undefined,
+	showAs: string | undefined
 ): string | null {
-	if (!showAs) return null;
+	if (!showAs) {
+		return null;
+	}
 
 	// Check date property with date-specific showAs
 	if (propertyType === "date") {
 		const validDateShowAs = ["day", "week", "month", "year", "relative"];
 		if (!validDateShowAs.includes(showAs)) {
 			return `Property "${propertyKey}" is type 'date' and cannot use showAs: '${showAs}'. Valid options for date properties: ${validDateShowAs.join(
-				", ",
+				", "
 			)}`;
 		}
 	}
@@ -29,7 +31,7 @@ export function validateShowAs(
 		const validStatusShowAs = ["option", "group"];
 		if (!validStatusShowAs.includes(showAs)) {
 			return `Property "${propertyKey}" is type 'status' and cannot use showAs: '${showAs}'. Valid options for status properties: ${validStatusShowAs.join(
-				", ",
+				", "
 			)}`;
 		}
 	}
@@ -63,7 +65,7 @@ export function validateShowAs(
 export function validateGroupConfig<TData>(
 	properties: readonly DataViewProperty<TData>[],
 	groupBy: string,
-	showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option",
+	showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option"
 ): string | null {
 	// groupBy references property IDs
 	// Find a property that matches this ID for validation

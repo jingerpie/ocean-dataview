@@ -91,7 +91,7 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
  * ```
  */
 export function usePagePagination<TData>(
-	options: UsePagePaginationOptions<TData>,
+	options: UsePagePaginationOptions<TData>
 ): PagePaginationResult {
 	const { cursor, limit, data, limitOptions = DEFAULT_LIMIT_OPTIONS } = options;
 
@@ -103,14 +103,14 @@ export function usePagePagination<TData>(
 	// URL setters (shallow: false triggers server re-render)
 	const [, setCursor] = useQueryState(
 		"cursor",
-		parseAsCursor.withOptions({ shallow: false }),
+		parseAsCursor.withOptions({ shallow: false })
 	);
 	const [, setLimit] = useQueryState(
 		"limit",
 		parseAsInteger.withOptions({
 			shallow: false,
 			clearOnDefault: true,
-		}),
+		})
 	);
 
 	const items = data.items;
@@ -149,7 +149,7 @@ export function usePagePagination<TData>(
 				setCursor(null);
 			});
 		},
-		[setLimit, setCursor],
+		[setLimit, setCursor]
 	);
 
 	return {

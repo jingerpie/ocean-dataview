@@ -42,7 +42,7 @@ export function FilesMediaProperty<T>({
 		return (
 			<div className={wrap ? "flex flex-wrap gap-2" : "flex gap-2"}>
 				{value.map((url) => (
-					<div key={url} className="flex-shrink-0">
+					<div className="flex-shrink-0" key={url}>
 						{renderFile(url)}
 					</div>
 				))}
@@ -61,12 +61,12 @@ function renderFile(url: string) {
 	if (!isImage) {
 		return (
 			<a
-				href={url}
-				target="_blank"
-				rel="noopener noreferrer"
 				className="inline-flex items-center justify-center rounded border border-border bg-muted hover:bg-muted/80"
-				style={{ width: dimensions.width, height: dimensions.height }}
+				href={url}
 				onClick={(e) => e.stopPropagation()}
+				rel="noopener noreferrer"
+				style={{ width: dimensions.width, height: dimensions.height }}
+				target="_blank"
 			>
 				<FileIcon className="h-4 w-4 text-muted-foreground" />
 			</a>
@@ -77,19 +77,19 @@ function renderFile(url: string) {
 	// Always maintain original aspect ratio with height constraint
 	return (
 		<a
-			href={url}
-			target="_blank"
-			rel="noopener noreferrer"
 			className="inline-block overflow-hidden rounded align-top hover:opacity-80"
+			href={url}
 			onClick={(e) => e.stopPropagation()}
+			rel="noopener noreferrer"
+			target="_blank"
 		>
 			<Image
-				src={url}
 				alt="Media"
-				width={dimensions.width}
-				height={dimensions.height}
 				className="block object-contain"
+				height={dimensions.height}
+				src={url}
 				style={{ height: dimensions.height, width: "auto" }}
+				width={dimensions.width}
 			/>
 		</a>
 	);
@@ -97,10 +97,14 @@ function renderFile(url: string) {
 
 function checkIsImage(url: string): boolean {
 	// Check for known image extensions (with query params/fragments)
-	if (IMAGE_EXTENSION_REGEX.test(url)) return true;
+	if (IMAGE_EXTENSION_REGEX.test(url)) {
+		return true;
+	}
 
 	// Check for known non-image extensions
-	if (NON_IMAGE_EXTENSION_REGEX.test(url)) return false;
+	if (NON_IMAGE_EXTENSION_REGEX.test(url)) {
+		return false;
+	}
 
 	// If no extension found (e.g., Unsplash URLs), treat as image
 	return !ANY_EXTENSION_REGEX.test(url);

@@ -163,7 +163,7 @@ export function useGroupPagePagination<
 	TQueryOptions extends GroupPageQueryOptions,
 	TData = InferItemsFromQueryOptions<TQueryOptions>,
 >(
-	options: UseGroupPagePaginationOptions<TQueryOptions, TData>,
+	options: UseGroupPagePaginationOptions<TQueryOptions, TData>
 ): GroupPagePaginationResult<TData> {
 	const {
 		allGroupKeys,
@@ -196,15 +196,15 @@ export function useGroupPagePagination<
 	// URL setters (shallow: false triggers server re-render)
 	const [, setExpanded] = useQueryState(
 		"expanded",
-		parseAsExpanded.withOptions({ shallow: false }),
+		parseAsExpanded.withOptions({ shallow: false })
 	);
 	const [, setCursors] = useQueryState(
 		"cursors",
-		parseAsCursors.withDefault({}).withOptions({ shallow: false }),
+		parseAsCursors.withDefault({}).withOptions({ shallow: false })
 	);
 	const [, setLimit] = useQueryState(
 		"limit",
-		parseAsInteger.withOptions({ shallow: false, clearOnDefault: true }),
+		parseAsInteger.withOptions({ shallow: false, clearOnDefault: true })
 	);
 
 	// Build groups array with items and pagination info
@@ -236,7 +236,9 @@ export function useGroupPagePagination<
 
 				onNext: () => {
 					const endCursor = queryData?.endCursor;
-					if (endCursor == null) return;
+					if (endCursor == null) {
+						return;
+					}
 					startTransition(() => {
 						setCursors({
 							...cursors,
@@ -257,7 +259,9 @@ export function useGroupPagePagination<
 							setCursors(Object.keys(rest).length > 0 ? rest : {});
 						} else {
 							const startCursor = queryData?.startCursor;
-							if (startCursor == null) return;
+							if (startCursor == null) {
+								return;
+							}
 							setCursors({
 								...cursors,
 								[groupKey]: {
@@ -293,7 +297,7 @@ export function useGroupPagePagination<
 				setCursors({}); // Reset all cursors when limit changes
 			});
 		},
-		[setLimit, setCursors],
+		[setLimit, setCursors]
 	);
 
 	// Accordion change handler
@@ -310,7 +314,7 @@ export function useGroupPagePagination<
 				setExpanded(newExpanded.length > 0 ? newExpanded : null);
 			});
 		},
-		[expanded, cursors, setExpanded, setCursors],
+		[expanded, cursors, setExpanded, setCursors]
 	);
 
 	// Check if any group is loading

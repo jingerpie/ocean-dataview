@@ -21,7 +21,7 @@ import {
 	ChevronDownIcon,
 	TrashIcon,
 } from "lucide-react";
-import * as React from "react";
+import { useState } from "react";
 
 interface SortChipProps<T> {
 	/** Current sort configuration */
@@ -41,14 +41,16 @@ export function SortChip<T>({
 	properties,
 	onSortChange,
 }: SortChipProps<T>) {
-	const [open, setOpen] = React.useState(false);
+	const [open, setOpen] = useState(false);
 
 	// Find the property for the current sort
 	const property = properties.find((p) => p.id === sort.propertyId);
 	const label = property?.label ?? String(sort.propertyId);
 
 	const handlePropertyChange = (propertyId: string | null) => {
-		if (!propertyId) return;
+		if (!propertyId) {
+			return;
+		}
 		onSortChange({
 			...sort,
 			propertyId: propertyId as PropertySort<T>["propertyId"],
@@ -68,8 +70,8 @@ export function SortChip<T>({
 	};
 
 	return (
-		<Popover open={open} onOpenChange={setOpen}>
-			<PopoverTrigger render={<Button variant="secondary" size="sm" />}>
+		<Popover onOpenChange={setOpen} open={open}>
+			<PopoverTrigger render={<Button size="sm" variant="secondary" />}>
 				{sort.desc ? (
 					<ArrowDownIcon className="size-3" />
 				) : (
@@ -84,8 +86,8 @@ export function SortChip<T>({
 					<div className="flex flex-col gap-1.5">
 						<span className="text-muted-foreground text-xs">Sort by</span>
 						<Select
-							value={String(sort.propertyId)}
 							onValueChange={handlePropertyChange}
+							value={String(sort.propertyId)}
 						>
 							<SelectTrigger size="sm">
 								<SelectValue />
@@ -105,19 +107,19 @@ export function SortChip<T>({
 						<span className="text-muted-foreground text-xs">Order</span>
 						<div className="flex gap-1">
 							<Button
-								variant={!sort.desc ? "secondary" : "ghost"}
-								size="sm"
 								className="flex-1"
 								onClick={() => !sort.desc || handleDirectionToggle()}
+								size="sm"
+								variant={sort.desc ? "ghost" : "secondary"}
 							>
 								<ArrowUpIcon className="mr-1 size-3" />
 								Ascending
 							</Button>
 							<Button
-								variant={sort.desc ? "secondary" : "ghost"}
-								size="sm"
 								className="flex-1"
 								onClick={() => sort.desc || handleDirectionToggle()}
+								size="sm"
+								variant={sort.desc ? "secondary" : "ghost"}
 							>
 								<ArrowDownIcon className="mr-1 size-3" />
 								Descending
@@ -126,7 +128,7 @@ export function SortChip<T>({
 					</div>
 
 					{/* Remove button */}
-					<Button variant="destructive" size="sm" onClick={handleRemove}>
+					<Button onClick={handleRemove} size="sm" variant="destructive">
 						<TrashIcon className="size-3.5" />
 						Remove sort
 					</Button>

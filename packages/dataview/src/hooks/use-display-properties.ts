@@ -17,7 +17,7 @@ import type { DataViewProperty } from "../types";
 export function useDisplayProperties<TData>(
 	properties: readonly DataViewProperty<TData>[] | DataViewProperty<TData>[],
 	propertyVisibility?: string[],
-	excludeKeys?: string[],
+	excludeKeys?: string[]
 ): DataViewProperty<TData>[] {
 	return useMemo(() => {
 		let props: DataViewProperty<TData>[] = Array.from(properties);

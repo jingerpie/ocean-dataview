@@ -17,7 +17,7 @@ const productProperties = [createdAtProperty, productTypeProperty] as const;
 function ProductsOverTimeLine() {
 	const trpc = useTRPC();
 	const { data } = useSuspenseQuery(
-		trpc.product.getMany.queryOptions({ limit: 200 }),
+		trpc.product.getMany.queryOptions({ limit: 200 })
 	);
 
 	return (

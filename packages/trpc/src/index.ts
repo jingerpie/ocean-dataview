@@ -3,6 +3,7 @@ import superjson from "superjson";
 import type { Context } from "./context";
 
 // Re-export context types and functions
+// biome-ignore lint/performance/noBarrelFile: tRPC public API
 export { type Context, createContext } from "./context";
 
 const t = initTRPC.context<Context>().create({

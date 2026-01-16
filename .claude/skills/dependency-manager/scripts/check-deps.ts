@@ -5,9 +5,9 @@
  * Checks for violations: hardcoded versions, missing catalog entries, misplaced deps.
  */
 
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { Glob } from "bun";
-import { existsSync, readFileSync } from "fs";
-import { join } from "path";
 
 interface PackageJson {
 	name?: string;
@@ -42,8 +42,12 @@ const ROOT_INFRA_PACKAGES = new Set([
 ]);
 
 function isInfraPackage(pkg: string): boolean {
-	if (ROOT_INFRA_PACKAGES.has(pkg)) return true;
-	if (pkg.startsWith("@types/bun")) return true;
+	if (ROOT_INFRA_PACKAGES.has(pkg)) {
+		return true;
+	}
+	if (pkg.startsWith("@types/bun")) {
+		return true;
+	}
 	return false;
 }
 
@@ -60,13 +64,17 @@ function checkDependencySection(
 	section: string,
 	file: string,
 	catalog: Record<string, string>,
-	isRoot: boolean,
+	isRoot: boolean
 ): Violation[] {
-	if (!deps) return [];
+	if (!deps) {
+		return [];
+	}
 	const violations: Violation[] = [];
 
 	for (const [pkg, version] of Object.entries(deps)) {
-		if (isWorkspaceRef(version)) continue;
+		if (isWorkspaceRef(version)) {
+			continue;
+		}
 
 		if (isRoot) {
 			// Root should only have infrastructure packages
@@ -79,33 +87,98 @@ function checkDependencySection(
 					section,
 				});
 			}
-		} else {
+		} else if (!isCatalogRef(version)) {
 			// Workspace packages must use catalog:
-			if (!isCatalogRef(version)) {
-				violations.push({
-					file,
-					type: "hardcoded",
-					package: pkg,
-					version,
-					section,
-				});
-			} else if (!catalog[pkg]) {
-				// Check if referenced package exists in catalog
-				violations.push({
-					file,
-					type: "missing-catalog",
-					package: pkg,
-					version,
-					section,
-				});
-			}
+			violations.push({
+				file,
+				type: "hardcoded",
+				package: pkg,
+				version,
+				section,
+			});
+		} else if (!catalog[pkg]) {
+			// Check if referenced package exists in catalog
+			violations.push({
+				file,
+				type: "missing-catalog",
+				package: pkg,
+				version,
+				section,
+			});
 		}
 	}
 
 	return violations;
 }
 
-async function main() {
+function getViolationDisplay(v: Violation): { icon: string; msg: string } {
+	if (v.type === "hardcoded") {
+		return {
+			icon: "⚠️",
+			msg: `Hardcoded version "${v.version}" should be "catalog:"`,
+		};
+	}
+	if (v.type === "missing-catalog") {
+		return {
+			icon: "❓",
+			msg: `"${v.package}" not found in catalog`,
+		};
+	}
+	return {
+		icon: "🚫",
+		msg: `Application dependency should be in catalog, not root ${v.section}`,
+	};
+}
+
+function reportViolations(violations: Violation[]): void {
+	// Group by file
+	const byFile = new Map<string, Violation[]>();
+	for (const v of violations) {
+		if (!byFile.has(v.file)) {
+			byFile.set(v.file, []);
+		}
+		byFile.get(v.file)?.push(v);
+	}
+
+	for (const [file, fileViolations] of byFile) {
+		console.log(`📄 ${file}`);
+		for (const v of fileViolations) {
+			const { icon, msg } = getViolationDisplay(v);
+			console.log(`   ${icon} ${v.section}.${v.package}: ${msg}`);
+		}
+		console.log();
+	}
+}
+
+function printSuggestedFixes(violations: Violation[]): void {
+	console.log("💡 Suggested fixes:");
+
+	const hardcoded = violations.filter((v) => v.type === "hardcoded");
+	const missingCatalog = violations.filter((v) => v.type === "missing-catalog");
+	const rootAppDeps = violations.filter((v) => v.type === "root-app-dep");
+
+	if (hardcoded.length > 0) {
+		console.log("\n  For hardcoded versions:");
+		console.log("  1. Add the version to root package.json workspaces.catalog");
+		console.log('  2. Replace the version with "catalog:" in the workspace');
+	}
+
+	if (missingCatalog.length > 0) {
+		console.log("\n  For missing catalog entries:");
+		console.log(
+			"  Add the package with its version to root package.json workspaces.catalog"
+		);
+	}
+
+	if (rootAppDeps.length > 0) {
+		console.log("\n  For application deps in root:");
+		console.log("  1. Move the version to workspaces.catalog");
+		console.log("  2. Remove from root dependencies/devDependencies");
+		console.log('  3. Add to the appropriate workspace with "catalog:"');
+	}
+}
+
+function main() {
 	const rootDir = process.cwd();
 	const rootPkgPath = join(rootDir, "package.json");
 
@@ -128,8 +201,8 @@ async function main() {
 			"dependencies",
 			"package.json",
 			catalog,
-			true,
-		),
+			true
+		)
 	);
 	violations.push(
 		...checkDependencySection(
@@ -137,8 +210,8 @@ async function main() {
 			"devDependencies",
 			"package.json",
 			catalog,
-			true,
-		),
+			true
+		)
 	);
 
 	// Find workspace packages
@@ -153,7 +226,9 @@ async function main() {
 
 	for (const pkgPath of workspacePaths) {
 		const fullPath = join(rootDir, pkgPath);
-		if (!existsSync(fullPath)) continue;
+		if (!existsSync(fullPath)) {
+			continue;
+		}
 
 		const pkg: PackageJson = JSON.parse(readFileSync(fullPath, "utf-8"));
 		packagesChecked++;
@@ -170,8 +245,8 @@ async function main() {
 					section,
 					pkgPath,
 					catalog,
-					false,
-				),
+					false
+				)
 			);
 		}
 	}
@@ -187,61 +262,10 @@ async function main() {
 
 	console.log(`❌ Found ${violations.length} violation(s):\n`);
 
-	// Group by file
-	const byFile = new Map<string, Violation[]>();
-	for (const v of violations) {
-		if (!byFile.has(v.file)) byFile.set(v.file, []);
-		byFile.get(v.file)!.push(v);
-	}
-
-	for (const [file, fileViolations] of byFile) {
-		console.log(`📄 ${file}`);
-		for (const v of fileViolations) {
-			const icon =
-				v.type === "hardcoded"
-					? "⚠️"
-					: v.type === "missing-catalog"
-						? "❓"
-						: "🚫";
-			const msg =
-				v.type === "hardcoded"
-					? `Hardcoded version "${v.version}" should be "catalog:"`
-					: v.type === "missing-catalog"
-						? `"${v.package}" not found in catalog`
-						: `Application dependency should be in catalog, not root ${v.section}`;
-			console.log(`   ${icon} ${v.section}.${v.package}: ${msg}`);
-		}
-		console.log();
-	}
-
-	// Suggested fixes
-	console.log("💡 Suggested fixes:");
-
-	const hardcoded = violations.filter((v) => v.type === "hardcoded");
-	const missingCatalog = violations.filter((v) => v.type === "missing-catalog");
-	const rootAppDeps = violations.filter((v) => v.type === "root-app-dep");
-
-	if (hardcoded.length > 0) {
-		console.log("\n  For hardcoded versions:");
-		console.log("  1. Add the version to root package.json workspaces.catalog");
-		console.log('  2. Replace the version with "catalog:" in the workspace');
-	}
-
-	if (missingCatalog.length > 0) {
-		console.log("\n  For missing catalog entries:");
-		console.log(
-			"  Add the package with its version to root package.json workspaces.catalog",
-		);
-	}
-
-	if (rootAppDeps.length > 0) {
-		console.log("\n  For application deps in root:");
-		console.log("  1. Move the version to workspaces.catalog");
-		console.log("  2. Remove from root dependencies/devDependencies");
-		console.log('  3. Add to the appropriate workspace with "catalog:"');
-	}
+	reportViolations(violations);
+	printSuggestedFixes(violations);
 
 	process.exit(1);
 }
 
-main().catch(console.error);
+main();

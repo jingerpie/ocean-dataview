@@ -21,7 +21,7 @@ interface UseSortParamsOptions<T = unknown> {
  * ```
  */
 export function useSortParams<T = unknown>(
-	options: UseSortParamsOptions<T> = {},
+	options: UseSortParamsOptions<T> = {}
 ) {
 	const [sortJson, setSortJson] = useQueryState("sort", {
 		...parseAsSort,
@@ -33,7 +33,7 @@ export function useSortParams<T = unknown>(
 
 	const setSort = (newSort: PropertySort<T>[]) => {
 		setSortJson(
-			newSort.length === 0 ? null : (newSort as PropertySort<unknown>[]),
+			newSort.length === 0 ? null : (newSort as PropertySort<unknown>[])
 		);
 	};
 
@@ -43,8 +43,8 @@ export function useSortParams<T = unknown>(
 			// Toggle direction
 			setSort(
 				sort.map((s) =>
-					s.propertyId === propertyId ? { ...s, desc: !s.desc } : s,
-				),
+					s.propertyId === propertyId ? { ...s, desc: !s.desc } : s
+				)
 			);
 		} else {
 			setSort([...sort, { propertyId, desc }]);

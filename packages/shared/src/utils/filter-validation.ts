@@ -21,9 +21,15 @@ function isConditionValid(condition: FilterCondition): boolean {
 	const value = condition.value;
 
 	// Check for empty values
-	if (value === undefined || value === null) return false;
-	if (typeof value === "string" && value.trim() === "") return false;
-	if (Array.isArray(value) && value.length === 0) return false;
+	if (value === undefined || value === null) {
+		return false;
+	}
+	if (typeof value === "string" && value.trim() === "") {
+		return false;
+	}
+	if (Array.isArray(value) && value.length === 0) {
+		return false;
+	}
 
 	return true;
 }
@@ -42,7 +48,9 @@ function isConditionValid(condition: FilterCondition): boolean {
  * ```
  */
 export function validateFilter(filter: Filter | null): Filter | null {
-	if (!filter) return null;
+	if (!filter) {
+		return null;
+	}
 
 	// Single condition
 	if (isFilterCondition(filter)) {
@@ -60,7 +68,9 @@ export function validateFilter(filter: Filter | null): Filter | null {
 			.filter((item): item is Filter => item !== null);
 
 		// If no valid items, return null
-		if (validItems.length === 0) return null;
+		if (validItems.length === 0) {
+			return null;
+		}
 
 		return createCompoundFilter(logic, validItems);
 	}

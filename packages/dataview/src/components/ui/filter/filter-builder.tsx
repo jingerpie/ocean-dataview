@@ -43,7 +43,7 @@ export function FilterBuilder<T>({
 	// Handle adding the first rule
 	// Creates wrapped structure { and: [{ and: [condition] }] } for advanced filter
 	const handleAddFirstRule = (
-		condition: ReturnType<typeof createDefaultCondition>,
+		condition: ReturnType<typeof createDefaultCondition>
 	) => {
 		onChange({ and: [{ and: [condition] }] });
 	};
@@ -72,19 +72,19 @@ export function FilterBuilder<T>({
 			{normalizedFilter ? (
 				<FilterGroup
 					filter={normalizedFilter}
-					properties={properties}
-					level={0}
 					isFirst={true}
+					level={0}
 					onChange={handleFilterChange}
 					onRemove={handleDeleteFilter}
+					properties={properties}
 				/>
 			) : (
 				<AddFilterButton
-					properties={properties}
 					canAddGroup={true}
-					onAddRule={handleAddFirstRule}
-					onAddGroup={handleAddFirstGroup}
 					className="justify-start"
+					onAddGroup={handleAddFirstGroup}
+					onAddRule={handleAddFirstRule}
+					properties={properties}
 				/>
 			)}
 
@@ -93,10 +93,10 @@ export function FilterBuilder<T>({
 			{/* Delete Filter Button - Always visible */}
 			<div>
 				<Button
-					variant="destructive"
-					size="sm"
 					className="w-full justify-start"
 					onClick={handleDeleteFilter}
+					size="sm"
+					variant="destructive"
 				>
 					<TrashIcon />
 					<span>Delete filter</span>

@@ -55,7 +55,7 @@ export function useDataViewContext<
 	const context = useContext(DataViewContext);
 	if (!context) {
 		throw new Error(
-			"useDataViewContext must be used within a DataViewProvider",
+			"useDataViewContext must be used within a DataViewProvider"
 		);
 	}
 	return context as DataViewContextValue<TData, TProperties>;

@@ -27,7 +27,7 @@ type PropertyTypeValue =
  * @returns The corresponding FilterVariant for filter UI
  */
 export function getFilterVariantFromPropertyType(
-	type: PropertyTypeValue | string,
+	type: PropertyTypeValue | string
 ): FilterVariant {
 	switch (type) {
 		case "text":

@@ -64,7 +64,9 @@ export function HorizontalBarChartInner({
 				const config: Record<string, { label: string; color: string }> = {};
 				for (let index = 0; index < groupKeys.length; index++) {
 					const key = groupKeys[index];
-					if (!key) continue;
+					if (!key) {
+						continue;
+					}
 					const color = colors[index % colors.length];
 					config[key] = {
 						label: key,
@@ -79,7 +81,9 @@ export function HorizontalBarChartInner({
 				};
 				for (let index = 0; index < data.length; index++) {
 					const item = data[index];
-					if (!item) continue;
+					if (!item) {
+						continue;
+					}
 					config[item.name] = {
 						label: item.name,
 						color: colors[index % colors.length],
@@ -100,7 +104,9 @@ export function HorizontalBarChartInner({
 	const chartDataWithTotalLabels = useMemo(() => {
 		return chartData.map((item) => {
 			const totalLabel = groupKeys.reduce((sum, key) => {
-				if (barProps[key] === true) return sum;
+				if (barProps[key] === true) {
+					return sum;
+				}
 				const value = item[key as keyof typeof item];
 				return sum + (typeof value === "number" ? value : 0);
 			}, 0);
@@ -115,8 +121,8 @@ export function HorizontalBarChartInner({
 	return (
 		<div className="flex w-full flex-col gap-2">
 			<ChartContainer
-				config={chartConfig}
 				className="w-full"
+				config={chartConfig}
 				style={{ height }}
 			>
 				<BarChart
@@ -125,17 +131,14 @@ export function HorizontalBarChartInner({
 					margin={chartMargin}
 				>
 					<CartesianGrid
-						strokeDasharray="3 3"
-						vertical={showGridX}
 						horizontal={showGridY}
 						stroke="hsl(var(--border))"
+						strokeDasharray="3 3"
+						vertical={showGridX}
 					/>
 
 					<XAxis
-						type="number"
-						tickLine={false}
 						axisLine={false}
-						tickMargin={8}
 						domain={xAxisRange ? [xAxisRange.min, xAxisRange.max] : undefined}
 						label={
 							axisName === "xAxis" || axisName === "both"
@@ -147,14 +150,14 @@ export function HorizontalBarChartInner({
 									}
 								: undefined
 						}
+						tickLine={false}
+						tickMargin={8}
+						type="number"
 					/>
 
 					<YAxis
-						dataKey="name"
-						type="category"
-						width="auto"
-						tickLine={false}
 						axisLine={false}
+						dataKey="name"
 						label={
 							axisName === "yAxis" || axisName === "both"
 								? {
@@ -166,6 +169,9 @@ export function HorizontalBarChartInner({
 									}
 								: undefined
 						}
+						tickLine={false}
+						type="category"
+						width="auto"
 					/>
 
 					<ChartTooltip
@@ -180,27 +186,27 @@ export function HorizontalBarChartInner({
 					{isStacked ? (
 						(() => {
 							const visibleKeys = groupKeys.filter(
-								(key) => barProps[key] !== true,
+								(key) => barProps[key] !== true
 							);
-							const lastVisibleKey = visibleKeys[visibleKeys.length - 1];
+							const lastVisibleKey = visibleKeys.at(-1);
 
 							return groupKeys.map((key, groupIndex) => {
 								const isHidden = barProps[key] === true;
 								const fillOpacity = Number(
-									barProps.hover === key || !barProps.hover ? 1 : 0.2,
+									barProps.hover === key || !barProps.hover ? 1 : 0.2
 								);
 								const isLastVisible = key === lastVisibleKey;
 
 								return (
 									<Bar
-										key={key}
 										dataKey={key}
-										stackId="a"
 										fill={colors[groupIndex % colors.length]}
 										fillOpacity={fillOpacity}
 										hide={isHidden}
-										radius={isLastVisible ? [0, 4, 4, 0] : [0, 0, 0, 0]}
 										isAnimationActive={false}
+										key={key}
+										radius={isLastVisible ? [0, 4, 4, 0] : [0, 0, 0, 0]}
+										stackId="a"
 									/>
 								);
 							});
@@ -209,8 +215,8 @@ export function HorizontalBarChartInner({
 						<Bar
 							dataKey="value"
 							fill={colors[0]}
-							radius={[0, 4, 4, 0]}
 							isAnimationActive={false}
+							radius={[0, 4, 4, 0]}
 						/>
 					)}
 
@@ -218,23 +224,24 @@ export function HorizontalBarChartInner({
 						<Bar
 							dataKey="__PLACEHOLDER_BAR__"
 							fill="transparent"
-							stroke="none"
 							isAnimationActive={false}
-							stackId={isStacked ? "a" : undefined}
 							radius={[0, 0, 0, 0]}
+							stackId={isStacked ? "a" : undefined}
+							stroke="none"
 						>
 							<LabelList
-								dataKey={
-									isStacked
-										? barProps.hover
+								className="fill-foreground"
+								dataKey={(() => {
+									if (isStacked) {
+										return barProps.hover
 											? String(barProps.hover)
-											: "__BAR_TOTAL_LABEL__"
-										: "value"
-								}
-								position="right"
+											: "__BAR_TOTAL_LABEL__";
+									}
+									return "value";
+								})()}
 								fontSize={12}
 								offset={8}
-								className="fill-foreground"
+								position="right"
 							/>
 						</Bar>
 					)}
@@ -243,12 +250,12 @@ export function HorizontalBarChartInner({
 
 			{isStacked && showLegend && (
 				<ChartPaginatedLegend
-					groupKeys={groupKeys}
 					colors={colors}
+					groupKeys={groupKeys}
 					legendState={legendState}
 					onClick={selectBar}
-					onMouseOver={handleLegendMouseEnter}
 					onMouseOut={handleLegendMouseLeave}
+					onMouseOver={handleLegendMouseEnter}
 				/>
 			)}
 		</div>

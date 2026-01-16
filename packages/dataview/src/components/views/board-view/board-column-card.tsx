@@ -69,14 +69,14 @@ export function BoardColumnCard<TData>({
 		<div className={cn("flex gap-4 overflow-x-auto pb-4", className)}>
 			{groups.map((group) => (
 				<BoardColumn
-					key={group.key}
+					cardContent={cardContent}
+					columnBgClass={getColumnBgClass?.(group.key)}
+					columnHeader={columnHeader}
+					columnWidth={columnWidth}
 					groupName={group.key}
 					items={group.items}
-					cardContent={cardContent}
+					key={group.key}
 					keyExtractor={keyExtractor}
-					columnHeader={columnHeader}
-					columnBgClass={getColumnBgClass?.(group.key)}
-					columnWidth={columnWidth}
 					renderFooter={
 						renderColumnFooter ? () => renderColumnFooter(group.key) : undefined
 					}

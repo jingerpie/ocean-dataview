@@ -36,7 +36,7 @@ import {
 	MoreHorizontalIcon,
 	TrashIcon,
 } from "lucide-react";
-import * as React from "react";
+import { useState } from "react";
 import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
 import { CheckboxPickerContent } from "../properties/checkbox-picker";
 import {
@@ -72,7 +72,7 @@ export function FilterChip<T>({
 	onRemove,
 	onAddToAdvanced,
 }: FilterChipProps<T>) {
-	const [open, setOpen] = React.useState(false);
+	const [open, setOpen] = useState(false);
 
 	const variant = getFilterVariantFromPropertyType(property.type);
 	const label = property.label ?? String(property.id);
@@ -96,8 +96,8 @@ export function FilterChip<T>({
 	};
 
 	return (
-		<Popover open={open} onOpenChange={setOpen}>
-			<PopoverTrigger render={<Button variant="secondary" size="sm" />}>
+		<Popover onOpenChange={setOpen} open={open}>
+			<PopoverTrigger render={<Button size="sm" variant="secondary" />}>
 				<span className="max-w-24 truncate">{label}</span>
 				<ChevronDownIcon className="size-3 opacity-50" />
 			</PopoverTrigger>
@@ -107,23 +107,23 @@ export function FilterChip<T>({
 					<div className="flex items-center">
 						<span className="font-medium text-sm">{label}</span>
 						<OperatorPicker
-							value={condition.operator}
-							onChange={handleOperatorChange}
-							variant={variant}
 							inline
+							onChange={handleOperatorChange}
+							value={condition.operator}
+							variant={variant}
 						/>
 					</div>
 					<DropdownMenu>
-						<DropdownMenuTrigger render={<Button variant="ghost" size="sm" />}>
+						<DropdownMenuTrigger render={<Button size="sm" variant="ghost" />}>
 							<MoreHorizontalIcon />
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="start" side="bottom" className="w-auto">
+						<DropdownMenuContent align="start" className="w-auto" side="bottom">
 							<DropdownMenuItem
-								variant="destructive"
 								onClick={() => {
 									onRemove();
 									setOpen(false);
 								}}
+								variant="destructive"
 							>
 								<TrashIcon />
 								Delete filter
@@ -146,9 +146,9 @@ export function FilterChip<T>({
 				{/* Value Input */}
 				<FilterChipValue
 					condition={condition}
+					onValueChange={handleValueChange}
 					property={property}
 					variant={variant}
-					onValueChange={handleValueChange}
 				/>
 			</PopoverContent>
 		</Popover>
@@ -183,19 +183,19 @@ function FilterChipValue<T>({
 		case "range":
 			return (
 				<Input
-					type={variant === "text" ? "text" : "number"}
 					inputMode={variant === "text" ? undefined : "numeric"}
-					placeholder="Enter value..."
-					value={condition.value != null ? String(condition.value) : ""}
 					onChange={(e) => onValueChange(e.target.value)}
+					placeholder="Enter value..."
+					type={variant === "text" ? "text" : "number"}
+					value={condition.value != null ? String(condition.value) : ""}
 				/>
 			);
 
 		case "boolean":
 			return (
 				<CheckboxPickerContent
-					value={condition.value as boolean | undefined}
 					onChange={onValueChange}
+					value={condition.value as boolean | undefined}
 				/>
 			);
 
@@ -209,31 +209,34 @@ function FilterChipValue<T>({
 					? property.config.options
 					: [];
 
-			const selectedValues = Array.isArray(condition.value)
-				? (condition.value as string[])
-				: condition.value
-					? [condition.value as string]
-					: [];
+			let selectedValues: string[];
+			if (Array.isArray(condition.value)) {
+				selectedValues = condition.value as string[];
+			} else if (condition.value) {
+				selectedValues = [condition.value as string];
+			} else {
+				selectedValues = [];
+			}
 
 			const selectedOptions = options.filter((o) =>
-				selectedValues.includes(o.value),
+				selectedValues.includes(o.value)
 			);
 
 			return (
 				<Combobox
-					multiple
-					open
 					items={options}
-					value={selectedOptions}
+					multiple
 					onValueChange={(newValues) => {
 						const values = (newValues as SelectOption[]).map((o) => o.value);
 						onValueChange(values);
 					}}
+					open
+					value={selectedOptions}
 				>
 					<ComboboxInput
-						showTrigger={false}
-						placeholder="Search options..."
 						className="h-8"
+						placeholder="Search options..."
+						showTrigger={false}
 					/>
 					<ComboboxEmpty>No options found.</ComboboxEmpty>
 					<ComboboxList className="max-h-48">
@@ -254,23 +257,23 @@ function FilterChipValue<T>({
 			if (condition.operator === "isBetween") {
 				return (
 					<RangeDatePickerContent
-						value={condition.value as DateRangeValue | undefined}
 						onChange={onValueChange}
+						value={condition.value as DateRangeValue | undefined}
 					/>
 				);
 			}
 			if (condition.operator === "isRelativeToToday") {
 				return (
 					<RelativeDatePickerContent
-						value={condition.value as RelativeToTodayValue | undefined}
 						onChange={onValueChange}
+						value={condition.value as RelativeToTodayValue | undefined}
 					/>
 				);
 			}
 			return (
 				<SingleDatePickerContent
-					value={condition.value as string | undefined}
 					onChange={onValueChange}
+					value={condition.value as string | undefined}
 				/>
 			);
 

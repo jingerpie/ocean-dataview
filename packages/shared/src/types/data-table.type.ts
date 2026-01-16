@@ -107,8 +107,8 @@ export const compoundFilterSchema: z.ZodType<CompoundFilter> = z.lazy(() =>
 				// Must have exactly one of 'and' or 'or'
 				return (hasAnd && !hasOr) || (!hasAnd && hasOr);
 			},
-			{ message: "Exactly one of 'and' or 'or' required" },
-		),
+			{ message: "Exactly one of 'and' or 'or' required" }
+		)
 );
 
 /**

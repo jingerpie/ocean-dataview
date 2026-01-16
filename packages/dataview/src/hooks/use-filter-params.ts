@@ -18,7 +18,7 @@ import { useQueryState } from "nuqs";
 export function useFilterParams() {
 	const [filter, setFilterState] = useQueryState(
 		"filter",
-		parseAsFilter.withOptions({ shallow: false }),
+		parseAsFilter.withOptions({ shallow: false })
 	);
 
 	// Set the entire filter object (replaces previous filter)

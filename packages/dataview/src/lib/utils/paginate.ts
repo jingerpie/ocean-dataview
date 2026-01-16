@@ -7,7 +7,7 @@ import type { PaginationResult } from "../../types";
 export function paginateData<T>(
 	data: T[],
 	page = 1,
-	pageSize = 10,
+	pageSize = 10
 ): PaginationResult<T> {
 	const totalItems = data.length;
 	const totalPages = Math.ceil(totalItems / pageSize);

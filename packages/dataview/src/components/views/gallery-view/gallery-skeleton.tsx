@@ -69,7 +69,7 @@ export function GallerySkeleton({
 			{/* Card Grid */}
 			<div className={cn("grid gap-4", cols)}>
 				{Array.from({ length: cardCount }).map((_, i) => (
-					<Card key={i} className="gap-0 overflow-hidden py-0">
+					<Card className="gap-0 overflow-hidden py-0" key={i}>
 						{/* Image placeholder */}
 						{withImage && (
 							<Skeleton
@@ -82,8 +82,8 @@ export function GallerySkeleton({
 						<CardContent className="flex flex-col gap-2 p-3">
 							{Array.from({ length: propertyCount }).map((_, j) => (
 								<Skeleton
-									key={j}
 									className="h-4"
+									key={j}
 									style={{ width: j === 0 ? "75%" : "50%" }}
 								/>
 							))}

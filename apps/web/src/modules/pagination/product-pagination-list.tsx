@@ -45,8 +45,8 @@ export function ProductPaginationList({
 			},
 			{
 				getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
-			},
-		),
+			}
+		)
 	);
 
 	// Use the new hook for pagination state
@@ -69,8 +69,8 @@ export function ProductPaginationList({
 		<Suspense fallback={<ListSkeleton rowCount={8} />}>
 			<DataViewProvider
 				data={items}
-				properties={productProperties}
 				pagination={pagination}
+				properties={productProperties}
 			>
 				<div className="flex items-center justify-between">
 					<PaginationTabs />

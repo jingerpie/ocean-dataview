@@ -1,4 +1,5 @@
 export type { CheckboxPickerProps } from "./checkbox-picker";
+// biome-ignore lint/performance/noBarrelFile: Intentional public API barrel file
 export { CheckboxPicker, CheckboxPickerContent } from "./checkbox-picker";
 export { CheckboxProperty } from "./checkbox-property";
 export type {

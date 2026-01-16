@@ -45,8 +45,8 @@ export function ProductPaginationGallery({
 			},
 			{
 				getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
-			},
-		),
+			}
+		)
 	);
 
 	// Use the new hook for pagination state
@@ -69,8 +69,8 @@ export function ProductPaginationGallery({
 		<Suspense fallback={<GallerySkeleton cardCount={6} />}>
 			<DataViewProvider
 				data={items}
-				properties={productProperties}
 				pagination={pagination}
+				properties={productProperties}
 			>
 				<div className="flex items-center justify-between">
 					<PaginationTabs />

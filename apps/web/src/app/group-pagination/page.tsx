@@ -18,45 +18,45 @@ export default async function GroupPaginationPage(props: PageProps) {
 	const { expanded, cursors, limit, filter, sort } = params;
 	const queryClient = getQueryClient();
 
-	void queryClient.prefetchQuery(
-		trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" }),
+	await queryClient.prefetchQuery(
+		trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" })
 	);
 
 	return (
 		<HydrationBoundary state={dehydrate(queryClient)}>
-			<Tabs defaultValue="table" className="w-full">
+			<Tabs className="w-full" defaultValue="table">
 				<TabsContent value="table">
 					<ProductGroupPaginationTable
-						expanded={expanded}
 						cursors={cursors}
-						limit={limit}
+						expanded={expanded}
 						filter={filter}
+						limit={limit}
 						sort={sort}
 					/>
 				</TabsContent>
 				<TabsContent value="list">
 					<ProductGroupPaginationList
-						expanded={expanded}
 						cursors={cursors}
-						limit={limit}
+						expanded={expanded}
 						filter={filter}
+						limit={limit}
 						sort={sort}
 					/>
 				</TabsContent>
 				<TabsContent value="gallery">
 					<ProductGroupPaginationGallery
-						expanded={expanded}
 						cursors={cursors}
-						limit={limit}
+						expanded={expanded}
 						filter={filter}
+						limit={limit}
 						sort={sort}
 					/>
 				</TabsContent>
 				<TabsContent value="board">
 					<ProductSubGroupPaginationBoard
 						cursors={cursors}
-						limit={limit}
 						filter={filter}
+						limit={limit}
 						sort={sort}
 					/>
 				</TabsContent>

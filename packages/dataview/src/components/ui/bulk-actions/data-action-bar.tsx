@@ -2,8 +2,8 @@
 
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { Table } from "@tanstack/react-table";
-import * as React from "react";
-import * as ReactDOM from "react-dom";
+import { type ReactNode, useEffect, useLayoutEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface DataActionBarProps<TData> {
 	/**
@@ -37,7 +37,7 @@ interface DataActionBarProps<TData> {
 	/**
 	 * Child components (action buttons, selection info, etc.)
 	 */
-	children?: React.ReactNode;
+	children?: ReactNode;
 
 	/**
 	 * Additional class names
@@ -64,14 +64,14 @@ export function DataActionBar<TData>({
 	children,
 	className,
 }: DataActionBarProps<TData>) {
-	const [mounted, setMounted] = React.useState(false);
+	const [mounted, setMounted] = useState(false);
 
-	React.useLayoutEffect(() => {
+	useLayoutEffect(() => {
 		setMounted(true);
 	}, []);
 
 	// Handle Escape key to clear selection
-	React.useEffect(() => {
+	useEffect(() => {
 		function onKeyDown(event: KeyboardEvent) {
 			if (event.key === "Escape") {
 				if (table) {
@@ -89,7 +89,9 @@ export function DataActionBar<TData>({
 	const container =
 		containerProp ?? (mounted ? globalThis.document?.body : null);
 
-	if (!container) return null;
+	if (!container) {
+		return null;
+	}
 
 	// Auto-calculate visibility from table or selectedCount
 	const selectedCount = table
@@ -98,20 +100,20 @@ export function DataActionBar<TData>({
 
 	const visible = visibleProp ?? selectedCount > 0;
 
-	return ReactDOM.createPortal(
+	return createPortal(
 		visible && (
 			<div
-				role="toolbar"
 				aria-orientation="horizontal"
 				className={cn(
 					"fixed inset-x-0 bottom-8 z-50 mx-auto flex w-fit flex-wrap items-center justify-center gap-3 rounded-lg border bg-background p-3 text-foreground shadow-md transition-all duration-200 ease-in-out",
 					visible ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0",
-					className,
+					className
 				)}
+				role="toolbar"
 			>
 				{children}
 			</div>
 		),
-		container,
+		container
 	);
 }

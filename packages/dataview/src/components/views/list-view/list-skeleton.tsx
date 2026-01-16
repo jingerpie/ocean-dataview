@@ -63,7 +63,7 @@ export function ListSkeleton({
 						<div
 							className={cn(
 								"flex flex-col gap-2 rounded-lg p-4",
-								!withDividers && "border",
+								!withDividers && "border"
 							)}
 						>
 							{/* Title line - wider */}
@@ -72,8 +72,8 @@ export function ListSkeleton({
 							{/* Property lines - varying widths */}
 							{Array.from({ length: propertyCount - 1 }).map((_, j) => (
 								<Skeleton
-									key={j}
 									className="h-4"
+									key={j}
 									style={{ width: j === 0 ? "100%" : "66%" }}
 								/>
 							))}

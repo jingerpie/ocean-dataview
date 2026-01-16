@@ -19,14 +19,14 @@ import {
 	normalizeFilter,
 } from "@ocean-dataview/shared/utils";
 import { ListFilterIcon, SortAscIcon } from "lucide-react";
-import * as React from "react";
+import { type ComponentProps, type ReactNode, useState } from "react";
 import { FilterPropertyPicker } from "../filter";
 import { SearchInput } from "../search";
 import { ToolbarButton, useToolbarState } from "../toolbar";
 import { DataViewOptions } from "../visibility";
 import { ActiveControlsRow } from "./active-controls-row";
 
-interface NotionToolbarProps<T> extends React.ComponentProps<"div"> {
+interface NotionToolbarProps<T> extends ComponentProps<"div"> {
 	/** Available properties */
 	properties: DataViewProperty<T>[];
 	/** Current filter */
@@ -50,7 +50,7 @@ interface NotionToolbarProps<T> extends React.ComponentProps<"div"> {
 	/** Enable properties visibility button */
 	enableProperties?: boolean;
 	/** Children (tabs, etc.) - always visible on left */
-	children?: React.ReactNode;
+	children?: ReactNode;
 }
 
 /**
@@ -75,8 +75,8 @@ export function NotionToolbar<T>({
 	className,
 	...props
 }: NotionToolbarProps<T>) {
-	const [filterDropdownOpen, setFilterDropdownOpen] = React.useState(false);
-	const [sortDropdownOpen, setSortDropdownOpen] = React.useState(false);
+	const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+	const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
 
 	const openAdvancedFilter = useAdvanceFilterBuilder((state) => state.open);
 
@@ -160,9 +160,9 @@ export function NotionToolbar<T>({
 
 	return (
 		<div
+			aria-orientation="horizontal"
 			className={cn("flex flex-col gap-2", className)}
 			role="toolbar"
-			aria-orientation="horizontal"
 			{...props}
 		>
 			{/* Row 1: Primary Toolbar */}
@@ -178,18 +178,18 @@ export function NotionToolbar<T>({
 							// Filter exists - simple button to toggle Row 2
 							<ToolbarButton
 								icon={<ListFilterIcon />}
-								label="Filter"
 								isActive={true}
+								label="Filter"
 								onClick={handleFilterButtonClick}
 							/>
 						) : (
 							// No filter - FilterPropertyPicker dropdown
 							<FilterPropertyPicker
-								properties={properties}
-								open={filterDropdownOpen}
+								onAdvancedFilter={handleOpenAdvancedFilter}
 								onOpenChange={setFilterDropdownOpen}
 								onSelect={handleFilterPropertySelect}
-								onAdvancedFilter={handleOpenAdvancedFilter}
+								open={filterDropdownOpen}
+								properties={properties}
 							/>
 						))}
 
@@ -199,28 +199,28 @@ export function NotionToolbar<T>({
 							// Sorts exist - simple button to toggle Row 2
 							<ToolbarButton
 								icon={<SortAscIcon className="size-4" />}
-								label="Sort"
 								isActive={true}
+								label="Sort"
 								onClick={handleSortButtonClick}
 							/>
 						) : (
 							// No sorts - Combobox dropdown
 							<Combobox
 								items={properties}
-								open={sortDropdownOpen}
 								onOpenChange={setSortDropdownOpen}
 								onValueChange={(value) => {
 									if (value) {
 										handleSortPropertySelect(value as DataViewProperty<T>);
 									}
 								}}
+								open={sortDropdownOpen}
 							>
-								<ComboboxTrigger render={<Button variant="ghost" size="sm" />}>
+								<ComboboxTrigger render={<Button size="sm" variant="ghost" />}>
 									<SortAscIcon />
 									<span>Sort</span>
 								</ComboboxTrigger>
 								<ComboboxContent align="start" className="w-56">
-									<ComboboxInput showTrigger={false} placeholder="Sort by..." />
+									<ComboboxInput placeholder="Sort by..." showTrigger={false} />
 									<ComboboxEmpty>No properties found.</ComboboxEmpty>
 									<ComboboxList>
 										{(property) => (
@@ -236,9 +236,9 @@ export function NotionToolbar<T>({
 					{/* Search Input */}
 					{enableSearch && (
 						<SearchInput
-							value={search}
 							onChange={onSearchChange}
 							placeholder="Type to search..."
+							value={search}
 						/>
 					)}
 
@@ -250,16 +250,16 @@ export function NotionToolbar<T>({
 			{/* Row 2: Active Controls (conditional) */}
 			{hasActiveControls && row2Visible && (
 				<ActiveControlsRow
-					sorts={sorts}
-					onSortsChange={onSortsChange}
-					filter={filter}
-					onFilterChange={onFilterChange}
-					properties={properties}
 					advancedFilter={advancedFilter}
 					advancedFilterIndex={advancedFilterIndex}
-					simpleFilterConditions={simpleFilterConditions}
-					ruleCount={ruleCount}
+					filter={filter}
+					onFilterChange={onFilterChange}
 					onOpenAdvancedFilter={handleOpenAdvancedFilter}
+					onSortsChange={onSortsChange}
+					properties={properties}
+					ruleCount={ruleCount}
+					simpleFilterConditions={simpleFilterConditions}
+					sorts={sorts}
 				/>
 			)}
 		</div>

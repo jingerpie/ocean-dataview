@@ -34,7 +34,7 @@ export function BoardColumn<TData>({
 			className={cn(
 				"flex flex-shrink-0 flex-col gap-2 rounded-lg p-2 transition-colors",
 				columnWidth,
-				columnBgClass || "bg-muted/10",
+				columnBgClass || "bg-muted/10"
 			)}
 		>
 			{/* Column Header */}
@@ -43,7 +43,7 @@ export function BoardColumn<TData>({
 			) : (
 				<div className="flex items-center justify-between">
 					<h3 className="font-semibold text-sm">{groupName}</h3>
-					<Badge variant="secondary" className="ml-2">
+					<Badge className="ml-2" variant="secondary">
 						{items.length}
 					</Badge>
 				</div>

@@ -57,14 +57,16 @@ function getQueryClient() {
 	// This is very important, so we don't re-make a new client if React
 	// suspends during the initial render. This may not be needed if we
 	// have a suspense boundary BELOW the creation of the query client
-	if (!browserQueryClient) browserQueryClient = makeQueryClient();
+	if (!browserQueryClient) {
+		browserQueryClient = makeQueryClient();
+	}
 	return browserQueryClient;
 }
 
 export function TRPCReactProvider(
 	props: Readonly<{
 		children: React.ReactNode;
-	}>,
+	}>
 ) {
 	// NOTE: Avoid useState when initializing the query client if you don't
 	//       have a suspense boundary between this and the code that may
@@ -85,11 +87,11 @@ export function TRPCReactProvider(
 					transformer: superjson,
 				}),
 			],
-		}),
+		})
 	);
 	return (
 		<QueryClientProvider client={queryClient}>
-			<TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
+			<TRPCProvider queryClient={queryClient} trpcClient={trpcClient}>
 				{props.children}
 			</TRPCProvider>
 		</QueryClientProvider>

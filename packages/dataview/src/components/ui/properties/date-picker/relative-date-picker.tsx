@@ -65,7 +65,7 @@ function getRelativeDateRange(
 	now: Date,
 	direction: RelativeDirection,
 	count: number,
-	unit: RelativeUnit,
+	unit: RelativeUnit
 ): { start: Date; end: Date } {
 	// For "This" direction, count is always 1
 	const n = direction === "This" ? 1 : count;
@@ -163,7 +163,9 @@ function RelativeDateDropdowns({
 
 	// Handle direction change
 	const handleDirectionChange = (newDirection: RelativeDirection | null) => {
-		if (!newDirection) return;
+		if (!newDirection) {
+			return;
+		}
 		onChange({
 			direction: newDirection,
 			count,
@@ -179,7 +181,9 @@ function RelativeDateDropdowns({
 
 	// Handle unit change
 	const handleUnitChange = (newUnit: RelativeUnit | null) => {
-		if (!newUnit) return;
+		if (!newUnit) {
+			return;
+		}
 		onChange({ direction, count, unit: newUnit });
 	};
 
@@ -187,8 +191,8 @@ function RelativeDateDropdowns({
 		<div className="flex w-full gap-2">
 			<Select
 				items={directionItems}
-				value={direction}
 				onValueChange={handleDirectionChange}
+				value={direction}
 			>
 				<SelectTrigger className="w-full">
 					<SelectValue />
@@ -205,15 +209,15 @@ function RelativeDateDropdowns({
 			{/* Count input - only show for past/next */}
 			{showCount && (
 				<Input
-					type="number"
-					min={1}
-					value={count}
-					onChange={handleCountChange}
 					className="w-fit"
+					min={1}
+					onChange={handleCountChange}
+					type="number"
+					value={count}
 				/>
 			)}
 
-			<Select items={unitItems} value={unit} onValueChange={handleUnitChange}>
+			<Select items={unitItems} onValueChange={handleUnitChange} value={unit}>
 				<SelectTrigger className="w-full">
 					<SelectValue />
 				</SelectTrigger>
@@ -253,17 +257,17 @@ function RelativeDatePickerContent({
 	return (
 		<div className="flex flex-col items-center gap-2">
 			{/* Dropdowns and count input */}
-			<RelativeDateDropdowns value={value} onChange={onChange} />
+			<RelativeDateDropdowns onChange={onChange} value={value} />
 
 			{/* Calendar - display only, shows computed range */}
 			{/* Key forces re-mount when range changes to update displayed month */}
 			{/* Using defaultMonth instead of month to allow navigation with < > buttons */}
 			<Calendar
+				defaultMonth={dateRange.start}
 				key={`${direction}-${count}-${unit}`}
 				mode="range"
-				selected={{ from: dateRange.start, to: dateRange.end }}
-				defaultMonth={dateRange.start}
 				readOnly
+				selected={{ from: dateRange.start, to: dateRange.end }}
 			/>
 		</div>
 	);
@@ -278,7 +282,7 @@ function RelativeDatePickerContent({
  * Renders as inline dropdowns only (no calendar) - used in advanced filter rules.
  */
 function RelativeDatePicker({ value, onChange }: RelativeDatePickerProps) {
-	return <RelativeDateDropdowns value={value} onChange={onChange} />;
+	return <RelativeDateDropdowns onChange={onChange} value={value} />;
 }
 
 export type { RelativeDatePickerProps, RelativeToTodayValue };

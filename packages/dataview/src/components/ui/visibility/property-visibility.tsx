@@ -15,7 +15,7 @@ import {
 	PopoverTrigger,
 } from "@ocean-dataview/dataview/components/ui/popover";
 import { ChevronsUpDown, Settings2 } from "lucide-react";
-import * as React from "react";
+import { useMemo } from "react";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 
 interface PropertyLike {
@@ -36,18 +36,18 @@ export function DataViewOptions({
 		excludedPropertyIds,
 		toggleProperty,
 	} = useDataViewContext();
-	const columns = React.useMemo(
+	const columns = useMemo(
 		() =>
 			(properties as readonly PropertyLike[])
 				.filter(
-					(property) => !excludedPropertyIds.some((id) => id === property.id),
+					(property) => !excludedPropertyIds.some((id) => id === property.id)
 				)
 				.map((property) => ({
 					id: String(property.id),
 					label: property.label ?? String(property.id),
 					isVisible: propertyVisibility.some((id) => id === property.id),
 				})),
-		[properties, propertyVisibility, excludedPropertyIds],
+		[properties, propertyVisibility, excludedPropertyIds]
 	);
 
 	return (
@@ -57,10 +57,10 @@ export function DataViewOptions({
 					render={
 						<Button
 							aria-label="Toggle columns"
-							role="combobox"
-							variant="outline"
-							size="sm"
 							className="h-8 w-8 p-0"
+							role="combobox"
+							size="sm"
+							variant="outline"
 						/>
 					}
 				>
@@ -71,10 +71,10 @@ export function DataViewOptions({
 					render={
 						<Button
 							aria-label="Toggle columns"
-							role="combobox"
-							variant="outline"
-							size="sm"
 							className="hidden h-8 lg:flex"
+							role="combobox"
+							size="sm"
+							variant="outline"
 						/>
 					}
 				>
@@ -91,18 +91,18 @@ export function DataViewOptions({
 						<CommandGroup>
 							{columns.map((column) => {
 								const propertyId = (properties as readonly PropertyLike[]).find(
-									(p) => String(p.id) === column.id,
+									(p) => String(p.id) === column.id
 								)?.id;
 								return (
 									<CommandItem
-										key={column.id}
-										value={column.id}
 										data-checked={column.isVisible}
+										key={column.id}
 										onSelect={() => {
 											if (propertyId !== undefined) {
 												toggleProperty(propertyId as string);
 											}
 										}}
+										value={column.id}
 									>
 										{column.label}
 									</CommandItem>

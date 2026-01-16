@@ -42,41 +42,41 @@ function PropertyDisplayComponent<T>({
 
 		case "text":
 			return (
-				<TextProperty value={displayValue} property={property} wrap={wrap} />
+				<TextProperty property={property} value={displayValue} wrap={wrap} />
 			);
 
 		case "number":
-			return <NumberProperty value={displayValue} property={property} />;
+			return <NumberProperty property={property} value={displayValue} />;
 
 		case "select":
-			return <SelectProperty value={displayValue} property={property} />;
+			return <SelectProperty property={property} value={displayValue} />;
 
 		case "multiSelect":
-			return <MultiSelectProperty value={displayValue} property={property} />;
+			return <MultiSelectProperty property={property} value={displayValue} />;
 
 		case "status":
-			return <StatusProperty value={displayValue} property={property} />;
+			return <StatusProperty property={property} value={displayValue} />;
 
 		case "date":
-			return <DateProperty value={displayValue} property={property} />;
+			return <DateProperty property={property} value={displayValue} />;
 
 		case "checkbox":
-			return <CheckboxProperty value={displayValue} property={property} />;
+			return <CheckboxProperty property={property} value={displayValue} />;
 
 		case "url":
-			return <UrlProperty value={displayValue} property={property} />;
+			return <UrlProperty property={property} value={displayValue} />;
 
 		case "email":
-			return <EmailProperty value={displayValue} property={property} />;
+			return <EmailProperty property={property} value={displayValue} />;
 
 		case "phone":
-			return <PhoneProperty value={displayValue} property={property} />;
+			return <PhoneProperty property={property} value={displayValue} />;
 
 		case "filesMedia":
 			return (
 				<FilesMediaProperty
-					value={displayValue}
 					property={property}
+					value={displayValue}
 					wrap={wrap}
 				/>
 			);
@@ -96,5 +96,5 @@ function PropertyDisplayComponent<T>({
  * Prevents unnecessary re-renders in table cells and list items
  */
 export const PropertyDisplay = memo(
-	PropertyDisplayComponent,
+	PropertyDisplayComponent
 ) as typeof PropertyDisplayComponent;

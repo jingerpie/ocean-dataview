@@ -21,7 +21,9 @@ export function InfiniteScrollPagination({
 
 	useEffect(() => {
 		const sentinel = sentinelRef.current;
-		if (!sentinel || !onNext || !hasNext) return;
+		if (!(sentinel && onNext && hasNext)) {
+			return;
+		}
 
 		const observer = new IntersectionObserver(
 			(entries) => {
@@ -34,7 +36,7 @@ export function InfiniteScrollPagination({
 			{
 				rootMargin: "100px", // Trigger 100px before reaching the sentinel
 				threshold: 0,
-			},
+			}
 		);
 
 		observer.observe(sentinel);
@@ -45,12 +47,12 @@ export function InfiniteScrollPagination({
 	}, [hasNext, isFetchingNextPage, onNext]);
 
 	// Don't render if no more items and not loading
-	if (!hasNext && !isFetchingNextPage) {
+	if (!(hasNext || isFetchingNextPage)) {
 		return null;
 	}
 
 	return (
-		<div ref={sentinelRef} className="flex items-center justify-center py-4">
+		<div className="flex items-center justify-center py-4" ref={sentinelRef}>
 			{error && <p className="text-destructive text-sm">Failed to load</p>}
 			{isFetchingNextPage && (
 				<div className="flex items-center gap-2 text-muted-foreground">

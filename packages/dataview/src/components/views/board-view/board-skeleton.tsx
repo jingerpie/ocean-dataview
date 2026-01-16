@@ -51,8 +51,8 @@ export function BoardSkeleton({
 		>
 			{Array.from({ length: columnCount }).map((_, colIndex) => (
 				<div
-					key={colIndex}
 					className={cn("flex shrink-0 flex-col gap-3", columnWidth)}
+					key={colIndex}
 				>
 					{/* Column Header */}
 					<div className="flex items-center gap-2 px-2 py-1">
@@ -63,7 +63,7 @@ export function BoardSkeleton({
 					{/* Cards */}
 					<div className="flex flex-col gap-3">
 						{Array.from({ length: cardsPerColumn }).map((_, cardIndex) => (
-							<Card key={cardIndex} className="gap-0 overflow-hidden py-0">
+							<Card className="gap-0 overflow-hidden py-0" key={cardIndex}>
 								{/* Image placeholder */}
 								{withImage && (
 									<Skeleton
@@ -76,8 +76,8 @@ export function BoardSkeleton({
 								<CardContent className="flex flex-col gap-2 p-3">
 									{Array.from({ length: propertyCount }).map((_, j) => (
 										<Skeleton
-											key={j}
 											className="h-4"
+											key={j}
 											style={{ width: j === 0 ? "80%" : "60%" }}
 										/>
 									))}

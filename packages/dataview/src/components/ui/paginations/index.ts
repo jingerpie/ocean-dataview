@@ -1,3 +1,4 @@
+// biome-ignore lint/performance/noBarrelFile: Intentional public API barrel file
 export { InfiniteScrollPagination } from "./infinite-scroll-pagination";
 export { LoadMorePagination } from "./load-more-pagination";
 export { PagePagination } from "./page-pagination";

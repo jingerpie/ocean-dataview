@@ -2,6 +2,7 @@ export type {
 	DateRangeValue,
 	RangeDatePickerProps,
 } from "./range-date-picker";
+// biome-ignore lint/performance/noBarrelFile: Intentional public API barrel file
 export { RangeDatePicker, RangeDatePickerContent } from "./range-date-picker";
 export type {
 	RelativeDatePickerProps,

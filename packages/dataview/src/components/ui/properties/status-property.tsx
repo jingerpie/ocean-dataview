@@ -51,8 +51,8 @@ export function StatusProperty<T>({ value, property }: StatusPropertyProps<T>) {
 		const { variant, dotColor } = GROUP_BADGE_CONFIG[group];
 		return (
 			<Badge
-				variant={variant}
 				render={<div className={`h-2 w-2 rounded-full ${dotColor}`} />}
+				variant={variant}
 			>
 				{stringValue}
 			</Badge>
@@ -61,7 +61,7 @@ export function StatusProperty<T>({ value, property }: StatusPropertyProps<T>) {
 
 	// Try to find option by value
 	const option = property.config?.options?.find(
-		(opt) => opt.value === stringValue,
+		(opt) => opt.value === stringValue
 	);
 
 	// If option not found, still render as badge with gray color (default todo group)
@@ -69,8 +69,8 @@ export function StatusProperty<T>({ value, property }: StatusPropertyProps<T>) {
 		const { variant, dotColor } = GROUP_BADGE_CONFIG.todo;
 		return (
 			<Badge
-				variant={variant}
 				render={<div className={`h-2 w-2 rounded-full ${dotColor}`} />}
+				variant={variant}
 			>
 				{stringValue}
 			</Badge>
@@ -82,8 +82,8 @@ export function StatusProperty<T>({ value, property }: StatusPropertyProps<T>) {
 
 	return (
 		<Badge
-			variant={variant}
 			render={<div className={`h-2 w-2 rounded-full ${dotColor}`} />}
+			variant={variant}
 		>
 			{option.label}
 		</Badge>

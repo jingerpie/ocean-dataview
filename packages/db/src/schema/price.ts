@@ -35,7 +35,7 @@ export const price = pgTable(
 	(table) => [
 		index("idx_price_product_id").using(
 			"btree",
-			table.productId.asc().nullsLast().op("int4_ops"),
+			table.productId.asc().nullsLast().op("int4_ops")
 		),
 		foreignKey({
 			columns: [table.productId],
@@ -48,5 +48,5 @@ export const price = pgTable(
 			name: "price_restaurant_id_fkey",
 		}),
 		unique("unique_restaurant_product").on(table.restaurantId, table.productId),
-	],
+	]
 );

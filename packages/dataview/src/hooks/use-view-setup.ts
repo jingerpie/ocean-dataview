@@ -121,7 +121,7 @@ export function useViewSetup<
 	// Pattern 3: Validate property keys
 	const propertyValidationError = useMemo(
 		() => validatePropertyKeys(properties),
-		[properties],
+		[properties]
 	);
 
 	// Pattern 4: Transform data FIRST before grouping
@@ -133,12 +133,14 @@ export function useViewSetup<
 	const hasGroupedPagination = Boolean(
 		contextPagination &&
 			typeof contextPagination === "object" &&
-			"groups" in contextPagination,
+			"groups" in contextPagination
 	);
 
 	// Pattern 6: Prepare group configuration (only needed for client-side grouping)
 	const groupConfig = useMemo(() => {
-		if (!groupBy || hasGroupedPagination) return undefined;
+		if (!groupBy || hasGroupedPagination) {
+			return undefined;
+		}
 		return {
 			groupBy: String(groupBy.groupBy),
 			showAs: groupBy.showAs,
@@ -184,7 +186,7 @@ export function useViewSetup<
 					count: group.count,
 					displayCount: group.displayCount,
 					sortValue: group.value,
-				}),
+				})
 			);
 		}
 		return clientGroupedData;

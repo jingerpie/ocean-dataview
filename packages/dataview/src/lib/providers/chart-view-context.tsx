@@ -24,7 +24,7 @@ export function useChartViewContext<
 	const context = useContext(ChartViewContext);
 	if (!context) {
 		throw new Error(
-			"useChartViewContext must be used within ChartViewProvider",
+			"useChartViewContext must be used within ChartViewProvider"
 		);
 	}
 	return context as ChartViewContextValue<TData, TProperties>;

@@ -53,7 +53,9 @@ export function DonutChartInner({
 		const config: Record<string, { label: string; color: string }> = {};
 		for (let index = 0; index < data.length; index++) {
 			const item = data[index];
-			if (!item) continue;
+			if (!item) {
+				continue;
+			}
 			const color = colors[index % colors.length];
 			config[item.name] = {
 				label: item.name,
@@ -66,10 +68,14 @@ export function DonutChartInner({
 	const total = visibleData.reduce((sum, item) => sum + (item.value || 0), 0);
 
 	const renderLabel = (props: PieLabelRenderProps) => {
-		if (dataLabelFormat === "none") return null;
+		if (dataLabelFormat === "none") {
+			return null;
+		}
 
 		const entry = data[props.index];
-		if (!entry) return null;
+		if (!entry) {
+			return null;
+		}
 
 		const percentage = entry.percentage?.toFixed(1) || "0.0";
 
@@ -88,16 +94,14 @@ export function DonutChartInner({
 	return (
 		<div className="flex w-full flex-col gap-2">
 			<ChartContainer
-				config={chartConfig}
 				className="w-full"
+				config={chartConfig}
 				style={{ height }}
 			>
 				<RechartsPieChart>
 					<ChartTooltip
 						content={
 							<ChartTooltipContent
-								hideLabel
-								hideZeroValues={true}
 								formatter={(value, name) => {
 									const dataPoint = data.find((d) => d.name === name);
 									const percentage = dataPoint?.percentage?.toFixed(1) || "0.0";
@@ -113,6 +117,8 @@ export function DonutChartInner({
 										</div>
 									);
 								}}
+								hideLabel
+								hideZeroValues={true}
 							/>
 						}
 					/>
@@ -120,27 +126,27 @@ export function DonutChartInner({
 					<Pie
 						data={visibleData}
 						dataKey="value"
-						nameKey="name"
 						innerRadius={90}
-						outerRadius={110}
-						paddingAngle={1}
+						isAnimationActive={false}
 						label={dataLabelFormat !== "none" ? renderLabel : false}
 						labelLine={dataLabelFormat !== "none"}
-						isAnimationActive={false}
+						nameKey="name"
+						outerRadius={110}
+						paddingAngle={1}
 					>
 						{visibleData.map((entry) => {
 							const originalIndex = data.findIndex(
-								(d) => d.name === entry.name,
+								(d) => d.name === entry.name
 							);
 							const fillOpacity = Number(
-								pieProps.hover === entry.name || !pieProps.hover ? 1 : 0.5,
+								pieProps.hover === entry.name || !pieProps.hover ? 1 : 0.5
 							);
 
 							return (
 								<Cell
-									key={`cell-${entry.name}`}
 									fill={colors[originalIndex % colors.length]}
 									fillOpacity={fillOpacity}
+									key={`cell-${entry.name}`}
 								/>
 							);
 						})}
@@ -151,22 +157,22 @@ export function DonutChartInner({
 									if (viewBox && "cx" in viewBox && "cy" in viewBox) {
 										return (
 											<text
+												dominantBaseline="middle"
+												textAnchor="middle"
 												x={viewBox.cx}
 												y={viewBox.cy}
-												textAnchor="middle"
-												dominantBaseline="middle"
 											>
 												<tspan
+													className="fill-foreground font-bold text-3xl"
 													x={viewBox.cx}
 													y={viewBox.cy}
-													className="fill-foreground font-bold text-3xl"
 												>
 													{total.toLocaleString()}
 												</tspan>
 												<tspan
+													className="fill-muted-foreground"
 													x={viewBox.cx}
 													y={(viewBox.cy || 0) + 24}
-													className="fill-muted-foreground"
 												>
 													Total
 												</tspan>
@@ -182,12 +188,12 @@ export function DonutChartInner({
 
 			{showLegend && (
 				<ChartPaginatedLegend
-					groupKeys={groupKeys}
 					colors={colors}
+					groupKeys={groupKeys}
 					legendState={legendState}
 					onClick={selectPie}
-					onMouseOver={handleLegendMouseEnter}
 					onMouseOut={handleLegendMouseLeave}
+					onMouseOver={handleLegendMouseEnter}
 				/>
 			)}
 		</div>

@@ -87,7 +87,7 @@ export interface FilesMediaPropertyComponentProps
  * Mapped type for property component props
  * More maintainable than deeply nested conditional types
  */
-type PropertyComponentPropsMap = {
+interface PropertyComponentPropsMap {
 	text: TextPropertyComponentProps;
 	number: NumberPropertyComponentProps;
 	select: SelectPropertyComponentProps;
@@ -100,7 +100,7 @@ type PropertyComponentPropsMap = {
 	phone: PhonePropertyComponentProps;
 	filesMedia: FilesMediaPropertyComponentProps;
 	formula: never; // Formula type doesn't use these props
-};
+}
 
 /**
  * Get property component props for a given property type

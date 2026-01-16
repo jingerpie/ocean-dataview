@@ -67,8 +67,8 @@ function FilterPropertyPicker<T>({
 		if (variant === "selector") {
 			return (
 				<ComboboxTrigger
-					render={<Button variant="outline" size="sm" />}
 					className="min-w-28 justify-between"
+					render={<Button size="sm" variant="outline" />}
 				>
 					<ComboboxValue>
 						{selectedProperty
@@ -81,7 +81,7 @@ function FilterPropertyPicker<T>({
 
 		const TriggerIcon = variant === "add" ? PlusIcon : ListFilterIcon;
 		return (
-			<ComboboxTrigger render={<Button variant="ghost" size="sm" />}>
+			<ComboboxTrigger render={<Button size="sm" variant="ghost" />}>
 				<TriggerIcon />
 				<span>Filter</span>
 			</ComboboxTrigger>
@@ -97,18 +97,18 @@ function FilterPropertyPicker<T>({
 	return (
 		<Combobox
 			items={availableProperties}
-			value={comboboxValue}
-			open={open}
 			onOpenChange={onOpenChange}
 			onValueChange={(newValue) => {
 				if (newValue) {
 					onSelect(newValue as DataViewProperty<T>);
 				}
 			}}
+			open={open}
+			value={comboboxValue}
 		>
 			{renderTrigger()}
 			<ComboboxContent align="start" className="flex w-56 flex-col">
-				<ComboboxInput showTrigger={false} placeholder="Filter by..." />
+				<ComboboxInput placeholder="Filter by..." showTrigger={false} />
 				<ComboboxEmpty>No properties found.</ComboboxEmpty>
 				<ComboboxList>
 					{(property) => (
@@ -121,13 +121,13 @@ function FilterPropertyPicker<T>({
 					<>
 						<ComboboxSeparator className="my-0" />
 						<Button
-							variant="ghost"
-							size="sm"
 							className="my-1 w-full justify-start"
 							onClick={() => {
 								onOpenChange?.(false);
 								onAdvancedFilter();
 							}}
+							size="sm"
+							variant="ghost"
 						>
 							<PlusIcon />
 							<span>Add advanced filter</span>

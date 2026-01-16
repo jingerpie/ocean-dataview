@@ -145,7 +145,7 @@ export function ListView<
 	const displayProperties = useDisplayProperties(
 		properties,
 		propertyVisibility,
-		groupConfig ? [groupConfig.groupBy] : undefined,
+		groupConfig ? [groupConfig.groupBy] : undefined
 	);
 
 	// Transform flat data for non-grouped view (must be before early returns)
@@ -174,30 +174,30 @@ export function ListView<
 			<div className={className}>
 				<Accordion
 					multiple
-					value={groupBy.expandedGroups ?? []}
 					onValueChange={groupBy.onExpandedChange}
+					value={groupBy.expandedGroups ?? []}
 				>
 					{groupedData.map((group: GroupedDataItem<TData>) => {
 						// Build pagination context for this group using shared utility
 						const paginationContext = buildPaginationContext(
 							contextPagination,
-							group.key,
+							group.key
 						);
 
 						return (
 							<GroupSection
-								key={group.key}
 								group={group}
 								groupByPropertyDef={groupByProperty}
 								isLoading={false}
-								showAggregation={groupBy?.showAggregation ?? true}
+								key={group.key}
 								renderFooter={renderPagination(pagination, paginationContext)}
+								showAggregation={groupBy?.showAggregation ?? true}
 							>
 								<ListRow
 									data={group.items}
 									displayProperties={displayProperties}
-									showDividers={showDividers}
 									onItemClick={onItemClick}
+									showDividers={showDividers}
 								/>
 							</GroupSection>
 						);
@@ -219,7 +219,7 @@ export function ListView<
 	// Build pagination context for flat view
 	const flatPaginationContext = buildPaginationContext(
 		contextPagination,
-		"$all",
+		"$all"
 	);
 
 	// STANDARD VIEW: Flat list without grouping
@@ -228,8 +228,8 @@ export function ListView<
 			<ListRow
 				data={transformedFlatData}
 				displayProperties={displayProperties}
-				showDividers={showDividers}
 				onItemClick={onItemClick}
+				showDividers={showDividers}
 			/>
 			{renderPagination(pagination, flatPaginationContext)}
 		</div>
@@ -238,6 +238,7 @@ export function ListView<
 
 // Re-export from shared with view-specific aliases
 export type { DataViewContextValue as ListContextValue } from "../../../lib/providers/data-view-context";
+// biome-ignore lint/performance/noBarrelFile: Re-exporting shared components with view-specific names
 export { useDataViewContext as useListContext } from "../../../lib/providers/data-view-context";
 export type { DataViewProviderProps as ListProviderProps } from "../../../lib/providers/data-view-provider";
 export { DataViewProvider as ListProvider } from "../../../lib/providers/data-view-provider";

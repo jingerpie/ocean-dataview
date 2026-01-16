@@ -8,7 +8,7 @@ export function groupByField<T>(
 	data: T[],
 	propertyKey: keyof T,
 	groups?: string[],
-	propertyName?: string,
+	propertyName?: string
 ): GroupedData<T> {
 	const grouped: GroupedData<T> = {};
 	const emptyGroupLabel = propertyName ? `No ${propertyName}` : "Uncategorized";

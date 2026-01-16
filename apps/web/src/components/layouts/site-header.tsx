@@ -8,12 +8,12 @@ export function SiteHeader() {
 		<header className="sticky top-0 z-50 w-full border-border/40 border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
 			<div className="container flex h-14 items-center">
 				<Link
-					href="/"
 					className={buttonVariants({
 						variant: "ghost",
 						size: "icon",
 						className: "size-8",
 					})}
+					href="/"
 				>
 					<LayoutGrid />
 				</Link>

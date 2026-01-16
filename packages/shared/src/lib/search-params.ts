@@ -34,7 +34,9 @@ const filterValidator = (value: unknown): Filter | null => {
 };
 
 const sortValidator = (value: unknown): PropertySort<unknown>[] | null => {
-	if (!Array.isArray(value)) return null;
+	if (!Array.isArray(value)) {
+		return null;
+	}
 
 	const isValid = value.every(
 		(item) =>
@@ -43,27 +45,31 @@ const sortValidator = (value: unknown): PropertySort<unknown>[] | null => {
 			"propertyId" in item &&
 			"desc" in item &&
 			typeof item.propertyId === "string" &&
-			typeof item.desc === "boolean",
+			typeof item.desc === "boolean"
 	);
 	return isValid ? (value as PropertySort<unknown>[]) : null;
 };
 
 const cursorValidator = (value: unknown): CursorValue | null => {
-	if (typeof value !== "object" || value === null || Array.isArray(value))
+	if (typeof value !== "object" || value === null || Array.isArray(value)) {
 		return null;
+	}
 	const result = cursorValueSchema.safeParse(value);
 	return result.success ? result.data : null;
 };
 
 const cursorsValidator = (value: unknown): Cursors | null => {
-	if (typeof value !== "object" || value === null || Array.isArray(value))
+	if (typeof value !== "object" || value === null || Array.isArray(value)) {
 		return null;
+	}
 	const result = cursorsSchema.safeParse(value);
 	return result.success ? result.data : null;
 };
 
 const expandedValidator = (value: unknown): string[] | null => {
-	if (!Array.isArray(value)) return null;
+	if (!Array.isArray(value)) {
+		return null;
+	}
 	return value.every((v) => typeof v === "string") ? (value as string[]) : null;
 };
 
@@ -82,13 +88,13 @@ const expandedValidator = (value: unknown): string[] | null => {
  * ```
  */
 export const createSearchParamsSchema = <T extends z.ZodRawShape>(
-	schema: z.ZodObject<T>,
+	schema: z.ZodObject<T>
 ) => {
-	const keys = Object.keys(schema.shape) as Array<Extract<keyof T, string>>;
+	const keys = Object.keys(schema.shape) as Extract<keyof T, string>[];
 
 	const sortSchema = z.object({
 		propertyId: z.enum(
-			keys as [Extract<keyof T, string>, ...Extract<keyof T, string>[]],
+			keys as [Extract<keyof T, string>, ...Extract<keyof T, string>[]]
 		),
 		desc: z.boolean(),
 	});

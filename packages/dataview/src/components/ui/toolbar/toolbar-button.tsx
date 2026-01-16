@@ -48,13 +48,13 @@ export function ToolbarButton({
 	// If dropdown content provided, render with popover
 	if (dropdownContent) {
 		return (
-			<Popover open={open} onOpenChange={onOpenChange}>
+			<Popover onOpenChange={onOpenChange} open={open}>
 				<PopoverTrigger
 					render={
 						<Button
-							variant={isActive ? "secondary" : "ghost"}
-							size="sm"
 							className={className}
+							size="sm"
+							variant={isActive ? "secondary" : "ghost"}
 						/>
 					}
 				>
@@ -70,10 +70,10 @@ export function ToolbarButton({
 	// Simple button without dropdown
 	return (
 		<Button
-			variant={isActive ? "secondary" : "ghost"}
-			size="sm"
 			className={className}
 			onClick={onClick}
+			size="sm"
+			variant={isActive ? "secondary" : "ghost"}
 		>
 			{icon}
 			<span>{label}</span>

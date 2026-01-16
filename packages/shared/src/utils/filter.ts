@@ -21,7 +21,7 @@ export function getFilterOperators(filterVariant: FilterVariant) {
 }
 
 export function getDefaultFilterOperator(
-	filterVariant: FilterVariant,
+	filterVariant: FilterVariant
 ): FilterOperator {
 	// Explicit defaults that differ from first operator in list
 	const explicitDefaults: Partial<Record<FilterVariant, FilterOperator>> = {
@@ -31,7 +31,9 @@ export function getDefaultFilterOperator(
 	};
 
 	const explicit = explicitDefaults[filterVariant];
-	if (explicit) return explicit;
+	if (explicit) {
+		return explicit;
+	}
 
 	// Otherwise use first operator
 	const operators = getFilterOperators(filterVariant);
@@ -43,7 +45,7 @@ export function getDefaultFilterOperator(
  */
 export function isValidOperatorForVariant(
 	operator: FilterOperator,
-	variant: FilterVariant,
+	variant: FilterVariant
 ): boolean {
 	const validOperators = getFilterOperators(variant);
 	return validOperators.some((op) => op.value === operator);

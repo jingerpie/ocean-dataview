@@ -6,7 +6,7 @@
 export function searchData<T>(
 	data: T[],
 	searchTerm: string,
-	searchablePropertyKeys: string[],
+	searchablePropertyKeys: string[]
 ): T[] {
 	if (
 		!searchTerm ||
@@ -22,7 +22,9 @@ export function searchData<T>(
 		return searchablePropertyKeys.some((propertyKey) => {
 			const value = (item as Record<string, unknown>)[propertyKey];
 
-			if (value == null) return false;
+			if (value == null) {
+				return false;
+			}
 
 			// Convert value to string and search
 			const stringValue = String(value).toLowerCase();

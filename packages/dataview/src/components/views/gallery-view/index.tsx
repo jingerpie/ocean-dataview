@@ -161,7 +161,7 @@ export function GalleryView<
 	const displayProperties = useDisplayProperties(
 		properties,
 		propertyVisibility,
-		excludeKeys,
+		excludeKeys
 	);
 
 	const { imageHeight, cols } = getGalleryCardDimensions(cardSize);
@@ -192,35 +192,35 @@ export function GalleryView<
 			<div className={className}>
 				<Accordion
 					multiple
-					value={groupBy.expandedGroups ?? []}
 					onValueChange={groupBy.onExpandedChange}
+					value={groupBy.expandedGroups ?? []}
 				>
 					{groupedData.map((group: GroupedDataItem<TData>) => {
 						// Build pagination context for this group using shared utility
 						const paginationContext = buildPaginationContext(
 							contextPagination,
-							group.key,
+							group.key
 						);
 
 						return (
 							<GroupSection
-								key={group.key}
 								group={group}
 								groupByPropertyDef={groupByProperty}
 								isLoading={false}
-								showAggregation={groupBy?.showAggregation ?? true}
+								key={group.key}
 								renderFooter={renderPagination(pagination, paginationContext)}
+								showAggregation={groupBy?.showAggregation ?? true}
 							>
 								<GalleryCard
+									cardPreview={cardPreview}
+									cols={cols}
 									data={group.items}
 									displayProperties={displayProperties}
-									cardPreview={cardPreview}
-									imageHeight={imageHeight}
-									cols={cols}
 									fitImage={fitImage}
-									wrapAllProperties={wrapAllProperties}
-									showPropertyNames={showPropertyNames}
+									imageHeight={imageHeight}
 									onCardClick={onCardClick}
+									showPropertyNames={showPropertyNames}
+									wrapAllProperties={wrapAllProperties}
 								/>
 							</GroupSection>
 						);
@@ -242,22 +242,22 @@ export function GalleryView<
 	// Build pagination context for flat view
 	const flatPaginationContext = buildPaginationContext(
 		contextPagination,
-		"$all",
+		"$all"
 	);
 
 	// STANDARD VIEW: Flat gallery without grouping
 	return (
 		<div className={className}>
 			<GalleryCard
+				cardPreview={cardPreview}
+				cols={cols}
 				data={transformedFlatData}
 				displayProperties={displayProperties}
-				cardPreview={cardPreview}
-				imageHeight={imageHeight}
-				cols={cols}
 				fitImage={fitImage}
-				wrapAllProperties={wrapAllProperties}
-				showPropertyNames={showPropertyNames}
+				imageHeight={imageHeight}
 				onCardClick={onCardClick}
+				showPropertyNames={showPropertyNames}
+				wrapAllProperties={wrapAllProperties}
 			/>
 			{renderPagination(pagination, flatPaginationContext)}
 		</div>
@@ -266,6 +266,7 @@ export function GalleryView<
 
 // Re-export from shared with view-specific aliases
 export type { DataViewContextValue as GalleryContextValue } from "../../../lib/providers/data-view-context";
+// biome-ignore lint/performance/noBarrelFile: Re-exporting shared components with view-specific names
 export { useDataViewContext as useGalleryContext } from "../../../lib/providers/data-view-context";
 export type { DataViewProviderProps as GalleryProviderProps } from "../../../lib/providers/data-view-provider";
 export { DataViewProvider as GalleryProvider } from "../../../lib/providers/data-view-provider";

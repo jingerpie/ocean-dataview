@@ -60,7 +60,7 @@ export function DataViewProvider<
 				return allIds.filter((id) => prev.includes(id) || id === propertyId);
 			});
 		},
-		[properties],
+		[properties]
 	);
 
 	const showAllProperties = useCallback(() => {
@@ -93,7 +93,7 @@ export function DataViewProvider<
 			showAllProperties,
 			hideAllProperties,
 			pagination,
-		],
+		]
 	);
 
 	return (

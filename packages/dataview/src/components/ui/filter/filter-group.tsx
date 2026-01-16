@@ -137,7 +137,7 @@ export function FilterGroup<T>({
 	const containerStyles = cn(
 		"flex-1",
 		level === 1 && "rounded-lg border border-border/50 bg-muted/30 p-3",
-		level === 2 && "rounded-md border border-border/40 bg-muted/20 p-2",
+		level === 2 && "rounded-md border border-border/40 bg-muted/20 p-2"
 	);
 
 	// Is this a nested group?
@@ -149,10 +149,10 @@ export function FilterGroup<T>({
 			<div className={cn("flex items-start gap-1.5", className)}>
 				{/* Group connector */}
 				<GroupConnector
-					logic={connectorLogic}
-					onLogicChange={onConnectorLogicChange ?? (() => {})}
 					isFirst={isFirst}
 					isSecond={isSecond}
+					logic={connectorLogic}
+					onLogicChange={onConnectorLogicChange ?? (() => undefined)}
 				/>
 
 				{/* Group container */}
@@ -163,21 +163,21 @@ export function FilterGroup<T>({
 							if (isFilterCondition(item)) {
 								return (
 									<FilterRule
-										key={index}
+										canWrapInGroup={level < 2}
 										condition={item}
-										properties={properties}
 										isFirst={index === 0}
 										isSecond={index === 1}
-										logic={logic}
+										key={index}
 										level={level}
+										logic={logic}
 										onConditionChange={(condition) =>
 											handleUpdateCondition(index, condition)
 										}
+										onDuplicate={() => handleDuplicateItem(index)}
 										onLogicChange={handleLogicChange}
 										onRemove={() => handleRemoveItem(index)}
-										onDuplicate={() => handleDuplicateItem(index)}
 										onWrapInGroup={() => handleWrapInGroup(index)}
-										canWrapInGroup={level < 2}
+										properties={properties}
 									/>
 								);
 							}
@@ -186,29 +186,29 @@ export function FilterGroup<T>({
 							const nextLevel = Math.min(level + 1, 2) as 0 | 1 | 2;
 							return (
 								<FilterGroup
-									key={index}
+									connectorLogic={logic}
 									filter={item}
-									properties={properties}
-									level={nextLevel}
 									isFirst={index === 0}
 									isSecond={index === 1}
+									key={index}
+									level={nextLevel}
 									onChange={(newGroup) =>
 										handleNestedGroupChange(index, newGroup)
 									}
-									onRemove={() => handleRemoveItem(index)}
+									onConnectorLogicChange={(newLogic) => {
+										handleLogicChange(newLogic);
+									}}
 									onDuplicate={() => handleDuplicateItem(index)}
+									onRemove={() => handleRemoveItem(index)}
 									onUnwrap={(unwrappedItem) => {
 										const newItems = [...items];
 										newItems[index] = unwrappedItem;
 										onChange(
-											logic === "and" ? { and: newItems } : { or: newItems },
+											logic === "and" ? { and: newItems } : { or: newItems }
 										);
 									}}
 									onWrapInGroup={() => handleWrapInGroup(index)}
-									connectorLogic={logic}
-									onConnectorLogicChange={(newLogic) => {
-										handleLogicChange(newLogic);
-									}}
+									properties={properties}
 								/>
 							);
 						})}
@@ -217,10 +217,10 @@ export function FilterGroup<T>({
 					{/* Add filter button */}
 					<div className="mt-2">
 						<AddFilterButton
-							properties={properties}
 							canAddGroup={canAddGroup}
-							onAddRule={handleAddRule}
 							onAddGroup={handleAddGroup}
+							onAddRule={handleAddRule}
+							properties={properties}
 						/>
 					</div>
 				</div>
@@ -228,12 +228,12 @@ export function FilterGroup<T>({
 				{/* Group actions menu (next to the group) */}
 				{onRemove && (
 					<GroupActionsMenu
-						itemCount={items.length}
 						canWrapInGroup={level < 2}
+						itemCount={items.length}
+						onDuplicate={onDuplicate ?? (() => undefined)}
 						onRemove={onRemove}
-						onDuplicate={onDuplicate ?? (() => {})}
 						onUnwrap={handleUnwrap}
-						onWrapInGroup={onWrapInGroup ?? (() => {})}
+						onWrapInGroup={onWrapInGroup ?? (() => undefined)}
 					/>
 				)}
 			</div>
@@ -249,21 +249,21 @@ export function FilterGroup<T>({
 					if (isFilterCondition(item)) {
 						return (
 							<FilterRule
-								key={index}
+								canWrapInGroup={level < 2}
 								condition={item}
-								properties={properties}
 								isFirst={index === 0}
 								isSecond={index === 1}
-								logic={logic}
+								key={index}
 								level={level}
+								logic={logic}
 								onConditionChange={(condition) =>
 									handleUpdateCondition(index, condition)
 								}
+								onDuplicate={() => handleDuplicateItem(index)}
 								onLogicChange={handleLogicChange}
 								onRemove={() => handleRemoveItem(index)}
-								onDuplicate={() => handleDuplicateItem(index)}
 								onWrapInGroup={() => handleWrapInGroup(index)}
-								canWrapInGroup={level < 2}
+								properties={properties}
 							/>
 						);
 					}
@@ -272,30 +272,30 @@ export function FilterGroup<T>({
 					const nextLevel = Math.min(level + 1, 2) as 0 | 1 | 2;
 					return (
 						<FilterGroup
-							key={index}
+							connectorLogic={logic}
 							filter={item}
-							properties={properties}
-							level={nextLevel}
 							isFirst={index === 0}
 							isSecond={index === 1}
+							key={index}
+							level={nextLevel}
 							onChange={(newGroup) => handleNestedGroupChange(index, newGroup)}
-							onRemove={() => handleRemoveItem(index)}
-							onDuplicate={() => handleDuplicateItem(index)}
-							onUnwrap={(unwrappedItem) => {
-								// Replace the group with its single item
-								const newItems = [...items];
-								newItems[index] = unwrappedItem;
-								onChange(
-									logic === "and" ? { and: newItems } : { or: newItems },
-								);
-							}}
-							onWrapInGroup={() => handleWrapInGroup(index)}
-							connectorLogic={logic}
 							onConnectorLogicChange={(newLogic) => {
 								// This changes how THIS group connects to siblings
 								// which means changing the parent's logic
 								handleLogicChange(newLogic);
 							}}
+							onDuplicate={() => handleDuplicateItem(index)}
+							onRemove={() => handleRemoveItem(index)}
+							onUnwrap={(unwrappedItem) => {
+								// Replace the group with its single item
+								const newItems = [...items];
+								newItems[index] = unwrappedItem;
+								onChange(
+									logic === "and" ? { and: newItems } : { or: newItems }
+								);
+							}}
+							onWrapInGroup={() => handleWrapInGroup(index)}
+							properties={properties}
 						/>
 					);
 				})}
@@ -303,11 +303,11 @@ export function FilterGroup<T>({
 
 			{/* Add filter button */}
 			<AddFilterButton
-				properties={properties}
 				canAddGroup={canAddGroup}
-				onAddRule={handleAddRule}
-				onAddGroup={handleAddGroup}
 				className="w-full justify-start"
+				onAddGroup={handleAddGroup}
+				onAddRule={handleAddRule}
+				properties={properties}
 			/>
 		</div>
 	);

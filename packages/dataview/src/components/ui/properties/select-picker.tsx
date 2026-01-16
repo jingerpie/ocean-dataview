@@ -12,7 +12,7 @@ import {
 	ComboboxTrigger,
 } from "@ocean-dataview/dataview/components/ui/combobox";
 import type { SelectOption } from "@ocean-dataview/dataview/types";
-import * as React from "react";
+import { type ReactNode, useState } from "react";
 import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
 
 // ============================================================================
@@ -43,7 +43,7 @@ function SelectPickerContent({
 }: SelectPickerContentProps) {
 	return (
 		<ComboboxContent align={align} className={className}>
-			<ComboboxInput showTrigger={false} placeholder={searchPlaceholder} />
+			<ComboboxInput placeholder={searchPlaceholder} showTrigger={false} />
 			<ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
 			<ComboboxList>
 				{(option: SelectOption) => (
@@ -89,7 +89,7 @@ interface SelectPickerProps {
 	/** Callback when open state changes */
 	onOpenChange?: (open: boolean) => void;
 	/** Custom trigger render function */
-	trigger?: (props: SelectPickerTriggerProps) => React.ReactNode;
+	trigger?: (props: SelectPickerTriggerProps) => ReactNode;
 	/** Content alignment */
 	align?: "start" | "center" | "end";
 	/** Additional class name for content */
@@ -113,7 +113,7 @@ function SelectPicker({
 	className,
 }: SelectPickerProps) {
 	// Internal open state if not controlled
-	const [internalOpen, setInternalOpen] = React.useState(false);
+	const [internalOpen, setInternalOpen] = useState(false);
 	const isControlled = open !== undefined;
 	const isOpen = isControlled ? open : internalOpen;
 	const setIsOpen = isControlled ? onOpenChange : setInternalOpen;
@@ -132,32 +132,32 @@ function SelectPicker({
 	};
 
 	// Default trigger content
-	const defaultTriggerContent = (
-		<span className="truncate">
-			{value.length === 0
-				? placeholder
-				: value.length > 1
-					? `${value.length} selected`
-					: (selectedLabels[0] ?? value[0])}
-		</span>
-	);
+	let triggerText: string;
+	if (value.length === 0) {
+		triggerText = placeholder;
+	} else if (value.length > 1) {
+		triggerText = `${value.length} selected`;
+	} else {
+		triggerText = selectedLabels[0] ?? value[0] ?? placeholder;
+	}
+	const defaultTriggerContent = <span className="truncate">{triggerText}</span>;
 
 	return (
 		<Combobox
-			multiple
 			items={options}
-			value={selectedOptions}
-			open={isOpen}
+			multiple
 			onOpenChange={setIsOpen}
 			onValueChange={(newValues) => {
 				const values = (newValues as SelectOption[]).map((o) => o.value);
 				onChange(values);
 			}}
+			open={isOpen}
+			value={selectedOptions}
 		>
 			{trigger ? (
 				<ComboboxTrigger>{trigger(triggerProps)}</ComboboxTrigger>
 			) : (
-				<ComboboxTrigger render={<Button variant="outline" size="sm" />}>
+				<ComboboxTrigger render={<Button size="sm" variant="outline" />}>
 					{defaultTriggerContent}
 				</ComboboxTrigger>
 			)}

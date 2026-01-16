@@ -69,7 +69,7 @@ export function TableSkeleton({
 	// Cycle through cellWidths for each column
 	const resolvedCellWidths = Array.from(
 		{ length: columnCount },
-		(_, index) => cellWidths[index % cellWidths.length] ?? "auto",
+		(_, index) => cellWidths[index % cellWidths.length] ?? "auto"
 	);
 
 	return (
@@ -83,7 +83,7 @@ export function TableSkeleton({
 					<div className="flex flex-1 items-center gap-2">
 						{filterCount > 0 &&
 							Array.from({ length: filterCount }).map((_, i) => (
-								<Skeleton key={i} className="h-7 w-[4.5rem] border-dashed" />
+								<Skeleton className="h-7 w-[4.5rem] border-dashed" key={i} />
 							))}
 					</div>
 					{withViewOptions && (
@@ -112,7 +112,7 @@ export function TableSkeleton({
 					</TableHeader>
 					<TableBody>
 						{Array.from({ length: rowCount }).map((_, i) => (
-							<TableRow key={i} className="hover:bg-transparent">
+							<TableRow className="hover:bg-transparent" key={i}>
 								{Array.from({ length: columnCount }).map((_, j) => (
 									<TableCell
 										key={j}

@@ -17,7 +17,7 @@ import type { DataViewProperty } from "../types/property-types";
 
 // Helper: Check if showAs value is a date/status grouping type
 function isDateGroupingType(
-	showAs: string | undefined,
+	showAs: string | undefined
 ): showAs is DateGroupingType | "option" | "group" {
 	return (
 		showAs === "day" ||
@@ -32,7 +32,7 @@ function isDateGroupingType(
 
 // Helper: Check if showAs value is a computation type
 function isComputationType(
-	showAs: string | undefined,
+	showAs: string | undefined
 ): showAs is ComputationType {
 	return (
 		showAs === "count" ||
@@ -114,7 +114,7 @@ export function useChartTransform<
 	data: TData[],
 	properties: TProperties,
 	chartType: ChartType,
-	config: ChartConfig,
+	config: ChartConfig
 ): UseChartTransformResult {
 	// Validate configuration
 	const validationError = useMemo(
@@ -122,20 +122,23 @@ export function useChartTransform<
 			validateChartConfig(
 				chartType,
 				config as Parameters<typeof validateChartConfig>[1],
-				properties,
+				properties
 			),
-		[chartType, config, properties],
+		[chartType, config, properties]
 	);
 
 	// Transform data to only include property-defined fields
 	const transformedData = useMemo(
 		() => transformData(data, properties),
-		[data, properties],
+		[data, properties]
 	);
 
 	// Transform data for charts
+	// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex chart data transformation with multiple chart types
 	const chartData = useMemo(() => {
-		if (validationError) return [];
+		if (validationError) {
+			return [];
+		}
 
 		if (chartType === "horizontalBar" && config.xAxis && config.yAxis) {
 			const yAxisWhatToShow = config.yAxis.whatToShow;
@@ -157,27 +160,37 @@ export function useChartTransform<
 				yGroupingShowAs,
 				"startWeekOn" in yAxisWhatToShow
 					? yAxisWhatToShow.startWeekOn
-					: undefined,
+					: undefined
 			);
 
-			const xAxisShowAs =
-				config.xAxis.whatToShow === "count"
-					? "count"
-					: typeof config.xAxis.whatToShow === "object" &&
-							"showAs" in config.xAxis.whatToShow
-						? config.xAxis.whatToShow.showAs
-						: undefined;
+			const xAxisShowAs = (() => {
+				if (config.xAxis.whatToShow === "count") {
+					return "count";
+				}
+				if (
+					typeof config.xAxis.whatToShow === "object" &&
+					"showAs" in config.xAxis.whatToShow
+				) {
+					return config.xAxis.whatToShow.showAs;
+				}
+				return undefined;
+			})();
 			const computationType: ComputationType = isComputationType(xAxisShowAs)
 				? xAxisShowAs
 				: "count";
 
-			const computeProperty =
-				config.xAxis.whatToShow === "count"
-					? undefined
-					: typeof config.xAxis.whatToShow === "object" &&
-							"property" in config.xAxis.whatToShow
-						? (config.xAxis.whatToShow.property as TProperties[number]["id"])
-						: undefined;
+			const computeProperty = (() => {
+				if (config.xAxis.whatToShow === "count") {
+					return undefined;
+				}
+				if (
+					typeof config.xAxis.whatToShow === "object" &&
+					"property" in config.xAxis.whatToShow
+				) {
+					return config.xAxis.whatToShow.property as TProperties[number]["id"];
+				}
+				return undefined;
+			})();
 
 			if (config.xAxis.groupBy) {
 				const groupedComputedData = computeGroupedData(
@@ -186,7 +199,7 @@ export function useChartTransform<
 					properties,
 					computationType,
 					computeProperty,
-					config.xAxis.groupBy as Parameters<typeof computeGroupedData>[5],
+					config.xAxis.groupBy as Parameters<typeof computeGroupedData>[5]
 				);
 
 				const allSecondaryGroupKeys = new Set<string>();
@@ -197,18 +210,18 @@ export function useChartTransform<
 				}
 
 				const transformed: ChartDataPoint[] = Object.entries(
-					groupedComputedData,
+					groupedComputedData
 				).map(([yAxisKey, secondaryGroups]) => {
 					const dataPoint: ChartDataPoint = {
 						name: yAxisKey,
 						sortValue: sortValues[yAxisKey],
 					};
 					let total = 0;
-					allSecondaryGroupKeys.forEach((groupKey) => {
+					for (const groupKey of allSecondaryGroupKeys) {
 						const value = secondaryGroups[groupKey] || 0;
 						dataPoint[groupKey] = value;
 						total += value;
-					});
+					}
 					dataPoint._total = total;
 					return dataPoint;
 				});
@@ -226,11 +239,12 @@ export function useChartTransform<
 
 				if (config.yAxis.hideGroups && config.yAxis.hideGroups.length > 0) {
 					result = result.filter(
-						(point) => !config.yAxis?.hideGroups?.includes(String(point.name)),
+						(point) => !config.yAxis?.hideGroups?.includes(String(point.name))
 					);
 				}
 
 				if (config.yAxis.sortBy) {
+					// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex sorting logic for multiple sort modes
 					result.sort((a, b) => {
 						if (config.yAxis?.sortBy === "propertyAscending") {
 							if (a.sortValue !== undefined && b.sortValue !== undefined) {
@@ -277,7 +291,7 @@ export function useChartTransform<
 				grouped,
 				computationType,
 				computeProperty,
-				properties,
+				properties
 			);
 
 			const transformed = transformToChartData(
@@ -285,7 +299,7 @@ export function useChartTransform<
 				config.yAxis.sortBy as Parameters<typeof transformToChartData>[1],
 				config.yAxis.omitZeroValues,
 				config.yAxis.hideGroups,
-				sortValues,
+				sortValues
 			);
 
 			const counts = getGroupCounts(grouped);
@@ -302,14 +316,14 @@ export function useChartTransform<
 				whatToShow.property as TProperties[number]["id"],
 				properties,
 				whatToShow.showAs as DateGroupingType | "option" | "group" | undefined,
-				whatToShow.startWeekOn,
+				whatToShow.startWeekOn
 			);
 
 			const computed = computeData(
 				grouped,
 				config.data.showAs,
 				config.data.computeProperty as TProperties[number]["id"] | undefined,
-				properties,
+				properties
 			);
 
 			return transformToChartData(
@@ -317,7 +331,7 @@ export function useChartTransform<
 				config.data.sortBy as Parameters<typeof transformToChartData>[1],
 				config.data.omitZeroValues,
 				undefined,
-				sortValues,
+				sortValues
 			);
 		}
 
@@ -341,26 +355,38 @@ export function useChartTransform<
 				xGroupingShowAs,
 				"startWeekOn" in xAxisWhatToShow
 					? xAxisWhatToShow.startWeekOn
-					: undefined,
+					: undefined
 			);
 
 			const yAxisWhatToShow = config.yAxis.whatToShow;
-			const yShowAs =
-				yAxisWhatToShow === "count"
-					? "count"
-					: typeof yAxisWhatToShow === "object" && "showAs" in yAxisWhatToShow
-						? yAxisWhatToShow.showAs
-						: undefined;
+			const yShowAs = (() => {
+				if (yAxisWhatToShow === "count") {
+					return "count";
+				}
+				if (
+					typeof yAxisWhatToShow === "object" &&
+					"showAs" in yAxisWhatToShow
+				) {
+					return yAxisWhatToShow.showAs;
+				}
+				return undefined;
+			})();
 			const computationType: ComputationType = isComputationType(yShowAs)
 				? yShowAs
 				: "count";
 
-			const computeProperty =
-				yAxisWhatToShow === "count"
-					? undefined
-					: typeof yAxisWhatToShow === "object" && "property" in yAxisWhatToShow
-						? (yAxisWhatToShow.property as TProperties[number]["id"])
-						: undefined;
+			const computeProperty = (() => {
+				if (yAxisWhatToShow === "count") {
+					return undefined;
+				}
+				if (
+					typeof yAxisWhatToShow === "object" &&
+					"property" in yAxisWhatToShow
+				) {
+					return yAxisWhatToShow.property as TProperties[number]["id"];
+				}
+				return undefined;
+			})();
 
 			if (config.yAxis.groupBy) {
 				const groupedComputedData = computeGroupedData(
@@ -369,7 +395,7 @@ export function useChartTransform<
 					properties,
 					computationType,
 					computeProperty,
-					config.yAxis.groupBy as Parameters<typeof computeGroupedData>[5],
+					config.yAxis.groupBy as Parameters<typeof computeGroupedData>[5]
 				);
 
 				const allSecondaryGroupKeys = new Set<string>();
@@ -380,18 +406,18 @@ export function useChartTransform<
 				}
 
 				const transformed: ChartDataPoint[] = Object.entries(
-					groupedComputedData,
+					groupedComputedData
 				).map(([xAxisKey, secondaryGroups]) => {
 					const dataPoint: ChartDataPoint = {
 						name: xAxisKey,
 						sortValue: sortValues[xAxisKey],
 					};
 					let total = 0;
-					allSecondaryGroupKeys.forEach((groupKey) => {
+					for (const groupKey of allSecondaryGroupKeys) {
 						const value = secondaryGroups[groupKey] || 0;
 						dataPoint[groupKey] = value;
 						total += value;
-					});
+					}
 					dataPoint._total = total;
 					return dataPoint;
 				});
@@ -409,11 +435,12 @@ export function useChartTransform<
 
 				if (config.xAxis.hideGroups && config.xAxis.hideGroups.length > 0) {
 					result = result.filter(
-						(point) => !config.xAxis?.hideGroups?.includes(String(point.name)),
+						(point) => !config.xAxis?.hideGroups?.includes(String(point.name))
 					);
 				}
 
 				if (config.xAxis.sortBy) {
+					// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex sorting logic for multiple sort modes
 					result.sort((a, b) => {
 						if (config.xAxis?.sortBy === "propertyAscending") {
 							if (a.sortValue !== undefined && b.sortValue !== undefined) {
@@ -460,7 +487,7 @@ export function useChartTransform<
 				grouped,
 				computationType,
 				computeProperty,
-				properties,
+				properties
 			);
 
 			const transformed = transformToChartData(
@@ -468,7 +495,7 @@ export function useChartTransform<
 				config.xAxis.sortBy as Parameters<typeof transformToChartData>[1],
 				config.xAxis.omitZeroValues,
 				config.xAxis.hideGroups,
-				sortValues,
+				sortValues
 			);
 
 			const counts = getGroupCounts(grouped);
@@ -483,9 +510,13 @@ export function useChartTransform<
 
 	// Get group keys for stacked charts
 	const groupKeys = useMemo(() => {
-		if (chartData.length === 0) return [];
+		if (chartData.length === 0) {
+			return [];
+		}
 		const firstDataPoint = chartData[0];
-		if (!firstDataPoint) return [];
+		if (!firstDataPoint) {
+			return [];
+		}
 		const reservedKeys = [
 			"name",
 			"sortValue",
@@ -495,7 +526,7 @@ export function useChartTransform<
 			"_total",
 		];
 		const keys = Object.keys(firstDataPoint).filter(
-			(key) => !reservedKeys.includes(key),
+			(key) => !reservedKeys.includes(key)
 		);
 
 		const sortBy =
@@ -527,13 +558,15 @@ export function useChartTransform<
 	const xAxisLabel = useMemo(() => {
 		if (chartType === "horizontalBar") {
 			const xAxisWhatToShow = config.xAxis?.whatToShow;
-			if (xAxisWhatToShow === "count") return "Count";
+			if (xAxisWhatToShow === "count") {
+				return "Count";
+			}
 			if (
 				typeof xAxisWhatToShow === "object" &&
 				"property" in xAxisWhatToShow
 			) {
 				const property = properties.find(
-					(p) => p.id === xAxisWhatToShow.property,
+					(p) => p.id === xAxisWhatToShow.property
 				);
 				return property?.label;
 			}
@@ -542,7 +575,7 @@ export function useChartTransform<
 		const xAxisWhatToShow = config.xAxis?.whatToShow;
 		if (typeof xAxisWhatToShow === "object" && "property" in xAxisWhatToShow) {
 			const property = properties.find(
-				(p) => p.id === xAxisWhatToShow.property,
+				(p) => p.id === xAxisWhatToShow.property
 			);
 			return property?.label;
 		}
@@ -557,17 +590,19 @@ export function useChartTransform<
 				"property" in yAxisWhatToShow
 			) {
 				const property = properties.find(
-					(p) => p.id === yAxisWhatToShow.property,
+					(p) => p.id === yAxisWhatToShow.property
 				);
 				return property?.label;
 			}
 			return undefined;
 		}
 		const yAxisWhatToShow = config.yAxis?.whatToShow;
-		if (yAxisWhatToShow === "count") return "Count";
+		if (yAxisWhatToShow === "count") {
+			return "Count";
+		}
 		if (typeof yAxisWhatToShow === "object" && "property" in yAxisWhatToShow) {
 			const property = properties.find(
-				(p) => p.id === yAxisWhatToShow.property,
+				(p) => p.id === yAxisWhatToShow.property
 			);
 			return property?.label;
 		}

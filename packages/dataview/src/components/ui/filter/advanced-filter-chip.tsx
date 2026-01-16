@@ -40,18 +40,18 @@ export function AdvancedFilterChip<T>({
 	const ruleText = ruleCount === 1 ? "1 rule" : `${ruleCount} rules`;
 
 	return (
-		<Popover open={isOpen} onOpenChange={setOpen}>
-			<PopoverTrigger render={<Button variant="secondary" size="sm" />}>
+		<Popover onOpenChange={setOpen} open={isOpen}>
+			<PopoverTrigger render={<Button size="sm" variant="secondary" />}>
 				<ListFilterIcon className="size-3" />
 				<span>{ruleText}</span>
 				<ChevronDownIcon className="size-3 opacity-50" />
 			</PopoverTrigger>
 			<PopoverContent align="start" className="w-auto min-w-80 p-3">
 				<FilterBuilder
-					properties={properties}
 					filter={filter}
 					onChange={onFilterChange}
 					onDelete={() => setOpen(false)}
+					properties={properties}
 				/>
 			</PopoverContent>
 		</Popover>

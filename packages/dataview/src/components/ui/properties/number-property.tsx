@@ -101,32 +101,32 @@ export function NumberProperty<T>({ value, property }: NumberPropertyProps<T>) {
 			return (
 				<div className="flex items-center gap-2">
 					<svg
-						width="36"
-						height="36"
-						className="-rotate-90 transform"
-						role="img"
 						aria-label={`Progress: ${clampedPercentage}%`}
+						className="-rotate-90 transform"
+						height="36"
+						role="img"
+						width="36"
 					>
 						<title>{`Progress: ${clampedPercentage}%`}</title>
 						<circle
+							className="text-muted"
 							cx="18"
 							cy="18"
-							r={radius}
 							fill="none"
+							r={radius}
 							stroke="currentColor"
 							strokeWidth="3"
-							className="text-muted"
 						/>
 						<circle
 							cx="18"
 							cy="18"
-							r={radius}
 							fill="none"
+							r={radius}
 							stroke={showAs.color}
-							strokeWidth="3"
 							strokeDasharray={circumference}
 							strokeDashoffset={strokeDashoffset}
 							strokeLinecap="round"
+							strokeWidth="3"
 						/>
 					</svg>
 					{showAs.showNumber && (

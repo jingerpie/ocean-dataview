@@ -34,16 +34,16 @@ export const product = pgTable(
 	(table) => [
 		index("idx_product_family_group").using(
 			"btree",
-			table.familyGroup.asc().nullsLast().op("text_ops"),
+			table.familyGroup.asc().nullsLast().op("text_ops")
 		),
 		index("idx_product_tag").using(
 			"btree",
-			table.tag.asc().nullsLast().op("text_ops"),
+			table.tag.asc().nullsLast().op("text_ops")
 		),
 		index("idx_product_type").using(
 			"btree",
-			table.type.asc().nullsLast().op("text_ops"),
+			table.type.asc().nullsLast().op("text_ops")
 		),
 		unique("product_pageId_key").on(table.pageId),
-	],
+	]
 );

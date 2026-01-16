@@ -31,7 +31,7 @@ export type TransformedData = Record<string, unknown>;
  */
 export function transformData<TData>(
 	rawData: readonly TData[],
-	properties: readonly DataViewProperty<TData>[],
+	properties: readonly DataViewProperty<TData>[]
 ): TransformedData[] {
 	return rawData.map((item) => {
 		const transformed: TransformedData = {};

@@ -1,3 +1,4 @@
+// biome-ignore lint/performance/noBarrelFile: Shared utils public API
 export {
 	getDefaultFilterOperator,
 	getFilterOperators,

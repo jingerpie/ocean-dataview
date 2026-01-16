@@ -22,12 +22,12 @@ interface PaginatedLegendProps {
 	onMouseOver?: (
 		data: LegendPayload,
 		index: number,
-		e: React.MouseEvent,
+		e: React.MouseEvent
 	) => void;
 	onMouseOut?: (
 		data: LegendPayload,
 		index: number,
-		e: React.MouseEvent,
+		e: React.MouseEvent
 	) => void;
 	className?: string;
 }
@@ -70,7 +70,9 @@ export function PaginatedLegend({
 
 	// Measure grid layout
 	const measureGrid = useCallback(() => {
-		if (!gridRef.current) return;
+		if (!gridRef.current) {
+			return;
+		}
 
 		const grid = gridRef.current;
 		const gridItems = Array.from(grid.children) as HTMLElement[];
@@ -91,7 +93,9 @@ export function PaginatedLegend({
 
 		// Get height of first item + gap
 		const firstItem = gridItems[0];
-		if (!firstItem) return;
+		if (!firstItem) {
+			return;
+		}
 
 		const itemRect = firstItem.getBoundingClientRect();
 		const gap = Number.parseFloat(computedStyle.rowGap) || 0;
@@ -130,7 +134,7 @@ export function PaginatedLegend({
 
 	const handleScrollDown = useCallback(() => {
 		setCurrentTopRow((prev) =>
-			Math.min(totalRows - VISIBLE_ROWS, prev + SCROLL_ROWS),
+			Math.min(totalRows - VISIBLE_ROWS, prev + SCROLL_ROWS)
 		);
 	}, [totalRows]);
 
@@ -143,7 +147,7 @@ export function PaginatedLegend({
 				onClick(payload, index, e);
 			}
 		},
-		[onClick],
+		[onClick]
 	);
 
 	const handleMouseOver = useCallback(
@@ -153,7 +157,7 @@ export function PaginatedLegend({
 				onMouseOver(payload, index, e);
 			}
 		},
-		[onMouseOver],
+		[onMouseOver]
 	);
 
 	const handleMouseOut = useCallback(
@@ -163,15 +167,15 @@ export function PaginatedLegend({
 				onMouseOut(payload, index, e);
 			}
 		},
-		[onMouseOut],
+		[onMouseOut]
 	);
 
 	return (
 		<div className={cn("@container w-full", className)}>
 			{/* Legend Items Viewport */}
 			<div
-				ref={viewportRef}
 				className="overflow-hidden"
+				ref={viewportRef}
 				style={{
 					height:
 						rowHeight > 0 && hasOverflow
@@ -181,7 +185,6 @@ export function PaginatedLegend({
 				}}
 			>
 				<div
-					ref={gridRef}
 					className={cn(
 						"-mr-4 grid grid-flow-row place-content-center gap-y-3 space-x-4 transition-transform duration-300 ease-in-out",
 						"@[316px]:grid-cols-[repeat(2,max-content)]",
@@ -189,8 +192,9 @@ export function PaginatedLegend({
 						"@[648px]:grid-cols-[repeat(4,max-content)]",
 						"@[814px]:grid-cols-[repeat(5,max-content)]",
 						"@[980px]:grid-cols-[repeat(6,max-content)]",
-						"@[1146px]:grid-cols-[repeat(7,max-content)]",
+						"@[1146px]:grid-cols-[repeat(7,max-content)]"
 					)}
+					ref={gridRef}
 					style={{
 						transform: hasOverflow ? `translateY(${translateY}px)` : undefined,
 					}}
@@ -216,35 +220,35 @@ export function PaginatedLegend({
 						const baseClassName = cn(
 							"flex max-w-[150px] items-center gap-1.5 transition-opacity",
 							isHidden && "line-through opacity-40",
-							isDimmed && "opacity-60",
+							isDimmed && "opacity-60"
 						);
 
 						if (onClick) {
 							return (
 								<button
-									key={item.name}
-									type="button"
 									className={cn(
 										baseClassName,
-										"cursor-pointer select-none border-0 bg-transparent p-0 text-left",
+										"cursor-pointer select-none border-0 bg-transparent p-0 text-left"
 									)}
-									onClick={(e) => handleClick(item, index, e)}
-									onMouseEnter={(e) => handleMouseOver(item, index, e)}
-									onMouseLeave={(e) => handleMouseOut(item, index, e)}
-									onFocus={(e) =>
-										handleMouseOver(
-											item,
-											index,
-											e as unknown as React.MouseEvent,
-										)
-									}
+									key={item.name}
 									onBlur={(e) =>
 										handleMouseOut(
 											item,
 											index,
-											e as unknown as React.MouseEvent,
+											e as unknown as React.MouseEvent
 										)
 									}
+									onClick={(e) => handleClick(item, index, e)}
+									onFocus={(e) =>
+										handleMouseOver(
+											item,
+											index,
+											e as unknown as React.MouseEvent
+										)
+									}
+									onMouseEnter={(e) => handleMouseOver(item, index, e)}
+									onMouseLeave={(e) => handleMouseOut(item, index, e)}
+									type="button"
 								>
 									{legendContent}
 								</button>
@@ -252,7 +256,7 @@ export function PaginatedLegend({
 						}
 
 						return (
-							<div key={item.name} className={baseClassName}>
+							<div className={baseClassName} key={item.name}>
 								{legendContent}
 							</div>
 						);
@@ -264,22 +268,22 @@ export function PaginatedLegend({
 			{hasOverflow && (
 				<div className="flex items-center justify-center gap-2 pt-1">
 					<Button
-						variant="ghost"
-						size="icon"
-						className="h-5 w-5 p-0"
-						onClick={handleScrollUp}
-						disabled={!canScrollUp}
 						aria-label="Scroll up"
+						className="h-5 w-5 p-0"
+						disabled={!canScrollUp}
+						onClick={handleScrollUp}
+						size="icon"
+						variant="ghost"
 					>
 						<ChevronUp className="h-3 w-3" />
 					</Button>
 					<Button
-						variant="ghost"
-						size="icon"
-						className="h-5 w-5 p-0"
-						onClick={handleScrollDown}
-						disabled={!canScrollDown}
 						aria-label="Scroll down"
+						className="h-5 w-5 p-0"
+						disabled={!canScrollDown}
+						onClick={handleScrollDown}
+						size="icon"
+						variant="ghost"
 					>
 						<ChevronDown className="h-3 w-3" />
 					</Button>

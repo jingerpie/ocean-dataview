@@ -18,7 +18,7 @@ const buttonGroupVariants = cva(
 		defaultVariants: {
 			orientation: "horizontal",
 		},
-	},
+	}
 );
 
 function ButtonGroup({
@@ -29,10 +29,10 @@ function ButtonGroup({
 	return (
 		// biome-ignore lint/a11y/useSemanticElements: fieldset has default styling unsuitable for button groups
 		<div
-			role="group"
-			data-slot="button-group"
-			data-orientation={orientation}
 			className={cn(buttonGroupVariants({ orientation }), className)}
+			data-orientation={orientation}
+			data-slot="button-group"
+			role="group"
 			{...props}
 		/>
 	);
@@ -49,10 +49,10 @@ function ButtonGroupText({
 			{
 				className: cn(
 					"flex items-center gap-2 rounded-md border bg-muted px-2.5 font-medium text-sm shadow-xs [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none",
-					className,
+					className
 				),
 			},
-			props,
+			props
 		),
 		render,
 		state: {
@@ -68,12 +68,12 @@ function ButtonGroupSeparator({
 }: React.ComponentProps<typeof Separator>) {
 	return (
 		<Separator
-			data-slot="button-group-separator"
-			orientation={orientation}
 			className={cn(
 				"relative self-stretch bg-input data-[orientation=horizontal]:mx-px data-[orientation=vertical]:my-px data-[orientation=vertical]:h-auto data-[orientation=horizontal]:w-auto",
-				className,
+				className
 			)}
+			data-slot="button-group-separator"
+			orientation={orientation}
 			{...props}
 		/>
 	);

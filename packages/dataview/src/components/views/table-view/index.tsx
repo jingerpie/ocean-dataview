@@ -186,7 +186,7 @@ export function TableView<
 	const displayProperties = useDisplayProperties(
 		properties,
 		propertyVisibility,
-		groupConfig ? [groupConfig.groupBy] : undefined,
+		groupConfig ? [groupConfig.groupBy] : undefined
 	);
 
 	// Extract flat table data for non-grouped view (must be before early returns for hooks)
@@ -201,13 +201,13 @@ export function TableView<
 				header: property.label ?? String(property.id),
 				cell: ({ getValue, row }) => (
 					<PropertyDisplay
-						value={getValue()}
-						property={property}
 						item={row.original}
+						property={property}
+						value={getValue()}
 						wrap={wrapAllColumns}
 					/>
 				),
-			}),
+			})
 		);
 
 		const allColumns: ColumnDef<TData>[] = [];
@@ -218,6 +218,7 @@ export function TableView<
 				id: "select",
 				header: ({ table }) => (
 					<Checkbox
+						aria-label="Select all"
 						checked={table.getIsAllPageRowsSelected()}
 						indeterminate={
 							!table.getIsAllPageRowsSelected() &&
@@ -226,14 +227,13 @@ export function TableView<
 						onCheckedChange={(value) =>
 							table.toggleAllPageRowsSelected(!!value)
 						}
-						aria-label="Select all"
 					/>
 				),
 				cell: ({ row }) => (
 					<Checkbox
+						aria-label="Select row"
 						checked={row.getIsSelected()}
 						onCheckedChange={(value) => row.toggleSelected(!!value)}
-						aria-label="Select row"
 					/>
 				),
 				enableSorting: false,
@@ -258,7 +258,7 @@ export function TableView<
 				.filter((a) => !a.primary)
 				.map((action) => ({
 					label: action.label,
-					onClick: () => {}, // Will be set in cell render
+					onClick: () => undefined, // Will be set in cell render
 					className:
 						action.variant === "destructive"
 							? "text-destructive focus:text-destructive"
@@ -270,13 +270,6 @@ export function TableView<
 				header: "",
 				cell: ({ row }) => (
 					<SplitButton
-						primaryLabel={primaryAction?.label}
-						primaryIcon={primaryAction?.icon}
-						onPrimaryAction={() => {
-							if (primaryAction) {
-								primaryAction.onClick([row.original]);
-							}
-						}}
 						dropdownActions={dropdownActions.map((dropdownAction, idx) => ({
 							...dropdownAction,
 							onClick: () => {
@@ -286,6 +279,13 @@ export function TableView<
 								}
 							},
 						}))}
+						onPrimaryAction={() => {
+							if (primaryAction) {
+								primaryAction.onClick([row.original]);
+							}
+						}}
+						primaryIcon={primaryAction?.icon}
+						primaryLabel={primaryAction?.label}
 						size="sm"
 					/>
 				),
@@ -300,7 +300,9 @@ export function TableView<
 
 	// Generate action bar if actions provided
 	const actionBar = useMemo(() => {
-		if (!actions || actions.length === 0) return undefined;
+		if (!actions || actions.length === 0) {
+			return undefined;
+		}
 
 		// Capture actions in closure to satisfy TypeScript
 		const definedActions = actions;
@@ -318,10 +320,10 @@ export function TableView<
 					<DataActionBarSelection table={table} />
 					{bulkActions.map((action) => (
 						<DataActionBarAction
-							key={action.label}
-							tooltip={action.label}
 							isPending={action.isPending}
+							key={action.label}
 							onClick={() => action.onClick(selectedRows)}
+							tooltip={action.label}
 						>
 							{action.icon}
 							{action.label}
@@ -357,9 +359,10 @@ export function TableView<
 			<div className={className}>
 				<Accordion
 					multiple
-					value={groupBy.expandedGroups ?? []}
 					onValueChange={groupBy.onExpandedChange}
+					value={groupBy.expandedGroups ?? []}
 				>
+					{/* biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex pagination context building for grouped data */}
 					{groupedData.map((group: GroupedDataItem<TData>) => {
 						// Find matching pagination group to build context
 						// Groups can be either GroupInfo (page) or GroupInfiniteInfo (infinite)
@@ -369,7 +372,7 @@ export function TableView<
 							"groups" in contextPagination
 								? contextPagination.groups.find(
 										(g: GroupInfo<TData> | GroupInfiniteInfo<TData>) =>
-											g.key === group.key,
+											g.key === group.key
 									)
 								: null;
 
@@ -387,7 +390,7 @@ export function TableView<
 										onPrev:
 											"onPrev" in paginationGroup
 												? paginationGroup.onPrev
-												: () => {},
+												: () => undefined,
 										limit: contextPagination.limit,
 										onLimitChange: contextPagination.onLimitChange,
 										limitOptions: contextPagination.limitOptions,
@@ -396,12 +399,15 @@ export function TableView<
 											"displayStart" in paginationGroup
 												? paginationGroup.displayStart
 												: 1,
-										displayEnd:
-											"displayEnd" in paginationGroup
-												? paginationGroup.displayEnd
-												: "totalLoaded" in paginationGroup
-													? paginationGroup.totalLoaded
-													: 0,
+										displayEnd: (() => {
+											if ("displayEnd" in paginationGroup) {
+												return paginationGroup.displayEnd;
+											}
+											if ("totalLoaded" in paginationGroup) {
+												return paginationGroup.totalLoaded;
+											}
+											return 0;
+										})(),
 										totalCount: paginationGroup.count,
 										hasMoreThanMax: paginationGroup.hasMore,
 									}
@@ -409,25 +415,25 @@ export function TableView<
 
 						return (
 							<GroupSection
-								key={group.key}
 								group={group}
 								groupByPropertyDef={groupByProperty}
 								isLoading={false}
-								showAggregation={groupBy?.showAggregation ?? true}
+								key={group.key}
 								renderFooter={renderPagination(pagination, paginationContext)}
+								showAggregation={groupBy?.showAggregation ?? true}
 							>
 								<DataTable
-									data={group.items}
-									columns={columns}
-									showVerticalLines={showVerticalLines}
-									wrapAllColumns={wrapAllColumns}
-									onRowClick={onRowClick}
-									enableRowSelection={enableRowSelection}
-									rowSelection={rowSelection}
-									onRowSelectionChange={setRowSelection}
 									actionBar={actionBar}
+									columns={columns}
+									data={group.items}
+									enableRowSelection={enableRowSelection}
 									header={{ enabled: true, sticky: true }}
 									offset={56}
+									onRowClick={onRowClick}
+									onRowSelectionChange={setRowSelection}
+									rowSelection={rowSelection}
+									showVerticalLines={showVerticalLines}
+									wrapAllColumns={wrapAllColumns}
 								/>
 							</GroupSection>
 						);
@@ -449,24 +455,24 @@ export function TableView<
 	// Build pagination context for flat view
 	const flatPaginationContext = buildPaginationContext(
 		contextPagination,
-		"$all",
+		"$all"
 	);
 
 	// STANDARD VIEW: Flat table without grouping
 	return (
 		<div className={className}>
 			<DataTable
-				data={flatTableData}
-				columns={columns}
-				showVerticalLines={showVerticalLines}
-				wrapAllColumns={wrapAllColumns}
-				onRowClick={onRowClick}
-				enableRowSelection={enableRowSelection}
-				rowSelection={rowSelection}
-				onRowSelectionChange={setRowSelection}
 				actionBar={actionBar}
+				columns={columns}
+				data={flatTableData}
+				enableRowSelection={enableRowSelection}
 				header={{ enabled: true, sticky: true }}
 				offset={56}
+				onRowClick={onRowClick}
+				onRowSelectionChange={setRowSelection}
+				rowSelection={rowSelection}
+				showVerticalLines={showVerticalLines}
+				wrapAllColumns={wrapAllColumns}
 			/>
 			{renderPagination(pagination, flatPaginationContext)}
 		</div>
@@ -475,6 +481,7 @@ export function TableView<
 
 // Re-export from shared with view-specific aliases
 export type { DataViewContextValue as TableContextValue } from "../../../lib/providers/data-view-context";
+// biome-ignore lint/performance/noBarrelFile: Re-exporting shared components with view-specific names
 export { useDataViewContext as useTableContext } from "../../../lib/providers/data-view-context";
 export type { DataViewProviderProps as TableProviderProps } from "../../../lib/providers/data-view-provider";
 export { DataViewProvider as TableProvider } from "../../../lib/providers/data-view-provider";

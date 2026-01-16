@@ -15,15 +15,15 @@ export type ComputationType =
 	| "median"
 	| "distinct";
 
-export type GroupedDataWithMeta<TData> = {
+export interface GroupedDataWithMeta<TData> {
 	groups: Record<string, TData[]>;
 	sortValues: Record<string, string | number>; // Mapping of group key to sortable value
-};
+}
 
-type GroupResult = {
+interface GroupResult {
 	groupKey: string;
 	sortValue: string | number;
-};
+}
 
 /**
  * Handle date property grouping
@@ -31,7 +31,7 @@ type GroupResult = {
 function handleDateGrouping(
 	value: unknown,
 	showAs: "day" | "week" | "month" | "year" | "relative",
-	startWeekOn?: "monday" | "sunday",
+	startWeekOn?: "monday" | "sunday"
 ): GroupResult {
 	const date = new Date(value as string);
 
@@ -70,6 +70,8 @@ function handleDateGrouping(
 				groupKey: date.getFullYear().toString(),
 				sortValue: new Date(date.getFullYear(), 0, 1).getTime(),
 			};
+		default:
+			return { groupKey: String(value), sortValue: String(value) };
 	}
 }
 
@@ -79,7 +81,7 @@ function handleDateGrouping(
 function handleStatusGroupGrouping(
 	value: unknown,
 	config?: { options: Array<{ value: string; label: string; group: string }> },
-	emptyLabel?: string,
+	emptyLabel?: string
 ): GroupResult {
 	const statusValue = String(value);
 	const option = config?.options.find((opt) => opt.value === statusValue);
@@ -103,7 +105,7 @@ function handleStatusGroupGrouping(
 function handleStatusOptionGrouping(
 	value: unknown,
 	config?: { options: Array<{ value: string; label: string; group: string }> },
-	emptyLabel?: string,
+	emptyLabel?: string
 ): GroupResult {
 	const statusValue = String(value);
 	const option = config?.options.find((opt) => opt.value === statusValue);
@@ -140,7 +142,7 @@ function getGroupKeyAndSortValue<TData>(
 		| "group"
 		| undefined,
 	startWeekOn: "monday" | "sunday" | undefined,
-	emptyGroupLabel: string,
+	emptyGroupLabel: string
 ): GroupResult {
 	// Handle date grouping
 	if (
@@ -191,7 +193,7 @@ export function groupByProperty<TData>(
 	propertyId: string,
 	properties: readonly DataViewProperty<TData>[],
 	showAs?: "day" | "week" | "month" | "year" | "relative" | "option" | "group",
-	startWeekOn?: "monday" | "sunday",
+	startWeekOn?: "monday" | "sunday"
 ): GroupedDataWithMeta<TData> {
 	const property = properties.find((p) => p.id === propertyId);
 	const propertyName = property?.label || propertyId;
@@ -199,7 +201,7 @@ export function groupByProperty<TData>(
 	const groups: Record<string, TData[]> = {};
 	const sortValues: Record<string, string | number> = {};
 
-	data.forEach((item) => {
+	for (const item of data) {
 		// Extract value using property transformation
 		let value: unknown;
 		if (property?.value) {
@@ -215,7 +217,7 @@ export function groupByProperty<TData>(
 			property,
 			showAs,
 			startWeekOn,
-			emptyGroupLabel,
+			emptyGroupLabel
 		);
 
 		if (!groups[groupKey]) {
@@ -223,7 +225,7 @@ export function groupByProperty<TData>(
 			sortValues[groupKey] = sortValue;
 		}
 		groups[groupKey]?.push(item);
-	});
+	}
 
 	return { groups, sortValues };
 }
@@ -238,21 +240,29 @@ function getRelativeDateGroup(date: Date): string {
 	const itemDate = new Date(
 		date.getFullYear(),
 		date.getMonth(),
-		date.getDate(),
+		date.getDate()
 	);
 
 	const diffTime = itemDate.getTime() - today.getTime();
 	const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
 	// Today
-	if (diffDays === 0) return "Today";
+	if (diffDays === 0) {
+		return "Today";
+	}
 
 	// Past dates
 	if (diffDays < 0) {
 		const absDays = Math.abs(diffDays);
-		if (absDays === 1) return "Yesterday";
-		if (absDays <= 7) return "Last 7 days";
-		if (absDays <= 30) return "Last 30 days";
+		if (absDays === 1) {
+			return "Yesterday";
+		}
+		if (absDays <= 7) {
+			return "Last 7 days";
+		}
+		if (absDays <= 30) {
+			return "Last 30 days";
+		}
 		// Far past: show as "MMM yyyy"
 		return date.toLocaleDateString(getUserLocale(), {
 			month: "short",
@@ -261,9 +271,15 @@ function getRelativeDateGroup(date: Date): string {
 	}
 
 	// Future dates
-	if (diffDays === 1) return "Tomorrow";
-	if (diffDays <= 7) return "Next 7 days";
-	if (diffDays <= 30) return "Next 30 days";
+	if (diffDays === 1) {
+		return "Tomorrow";
+	}
+	if (diffDays <= 7) {
+		return "Next 7 days";
+	}
+	if (diffDays <= 30) {
+		return "Next 30 days";
+	}
 	// Far future: show as "MMM yyyy"
 	return date.toLocaleDateString(getUserLocale(), {
 		month: "short",
@@ -278,7 +294,7 @@ function getRelativeDateGroup(date: Date): string {
  */
 function getWeekStart(
 	date: Date,
-	startWeekOn: "monday" | "sunday" = "sunday",
+	startWeekOn: "monday" | "sunday" = "sunday"
 ): Date {
 	const d = new Date(date);
 	const day = d.getDay(); // 0 = Sunday, 1 = Monday, etc.
@@ -302,7 +318,7 @@ function getWeekStart(
  */
 function getWeekEnd(
 	date: Date,
-	startWeekOn: "monday" | "sunday" = "sunday",
+	startWeekOn: "monday" | "sunday" = "sunday"
 ): Date {
 	const weekStart = getWeekStart(date, startWeekOn);
 	const weekEnd = new Date(weekStart);
@@ -317,7 +333,7 @@ function getWeekEnd(
  */
 function formatWeekRange(
 	date: Date,
-	startWeekOn: "monday" | "sunday" = "sunday",
+	startWeekOn: "monday" | "sunday" = "sunday"
 ): string {
 	const weekStart = getWeekStart(date, startWeekOn);
 	const weekEnd = getWeekEnd(date, startWeekOn);
@@ -353,11 +369,12 @@ function formatWeekRange(
  * Compute grouped data with various computation functions
  * @param propertyId - Property ID to compute on (references property.id, not data key)
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex switch for different computation types
 export function computeData<TData>(
 	groupedData: Record<string, TData[]>,
 	showAs: ComputationType,
 	propertyId?: string,
-	properties?: readonly DataViewProperty<TData>[],
+	properties?: readonly DataViewProperty<TData>[]
 ): Record<string, number> {
 	const result: Record<string, number> = {};
 
@@ -366,7 +383,9 @@ export function computeData<TData>(
 
 	// Helper to extract value from item using property transformation
 	const extractValue = (item: TData): unknown => {
-		if (!propertyId) return undefined;
+		if (!propertyId) {
+			return undefined;
+		}
 
 		if (property?.value) {
 			// Use transformation function if defined
@@ -376,14 +395,16 @@ export function computeData<TData>(
 		return (item as Record<string, unknown>)[propertyId];
 	};
 
-	Object.entries(groupedData).forEach(([groupKey, items]) => {
+	for (const [groupKey, items] of Object.entries(groupedData)) {
 		switch (showAs) {
 			case "count":
 				result[groupKey] = items.length;
 				break;
 
 			case "sum":
-				if (!propertyId) break;
+				if (!propertyId) {
+					break;
+				}
 				result[groupKey] = items.reduce((sum, item) => {
 					const value = Number(extractValue(item)) || 0;
 					return sum + value;
@@ -391,31 +412,39 @@ export function computeData<TData>(
 				break;
 
 			case "average": {
-				if (!propertyId) break;
+				if (!propertyId) {
+					break;
+				}
 				const sum = items.reduce(
 					(s, item) => s + (Number(extractValue(item)) || 0),
-					0,
+					0
 				);
 				result[groupKey] = items.length > 0 ? sum / items.length : 0;
 				break;
 			}
 
 			case "min": {
-				if (!propertyId) break;
+				if (!propertyId) {
+					break;
+				}
 				const values = items.map((item) => Number(extractValue(item)) || 0);
 				result[groupKey] = values.length > 0 ? Math.min(...values) : 0;
 				break;
 			}
 
 			case "max": {
-				if (!propertyId) break;
+				if (!propertyId) {
+					break;
+				}
 				const maxValues = items.map((item) => Number(extractValue(item)) || 0);
 				result[groupKey] = maxValues.length > 0 ? Math.max(...maxValues) : 0;
 				break;
 			}
 
 			case "median": {
-				if (!propertyId) break;
+				if (!propertyId) {
+					break;
+				}
 				const sorted = items
 					.map((item) => Number(extractValue(item)) || 0)
 					.sort((a, b) => a - b);
@@ -433,15 +462,21 @@ export function computeData<TData>(
 			}
 
 			case "distinct": {
-				if (!propertyId) break;
+				if (!propertyId) {
+					break;
+				}
 				const uniqueValues = new Set(
-					items.map((item) => String(extractValue(item))),
+					items.map((item) => String(extractValue(item)))
 				);
 				result[groupKey] = uniqueValues.size;
 				break;
 			}
+
+			default:
+				result[groupKey] = items.length;
+				break;
 		}
-	});
+	}
 
 	return result;
 }
@@ -469,7 +504,7 @@ export function transformToChartData(
 	sortBy?: SortType,
 	omitZeroValues?: boolean,
 	hideGroups?: string[],
-	sortValues?: Record<string, string | number>,
+	sortValues?: Record<string, string | number>
 ): ChartDataPoint[] {
 	let chartData = Object.entries(computedData).map(([name, value]) => ({
 		name,
@@ -528,6 +563,8 @@ export function transformToChartData(
 				// Sort by value descending (tallest → shortest bars)
 				chartData.sort((a, b) => b.value - a.value);
 				break;
+			default:
+				break;
 		}
 	}
 
@@ -563,19 +600,19 @@ export function computeGroupedData<TData>(
 			| "option"
 			| "group";
 		startWeekOn?: "monday" | "sunday";
-	},
+	}
 ): Record<string, Record<string, number>> {
 	const result: Record<string, Record<string, number>> = {};
 
 	// For each x-axis group, compute values for each secondary group
-	Object.entries(xAxisGroupedData).forEach(([xAxisKey, items]) => {
+	for (const [xAxisKey, items] of Object.entries(xAxisGroupedData)) {
 		// Group items by the secondary property
 		const { groups: secondaryGroups } = groupByProperty(
 			items,
 			secondaryPropertyId,
 			properties,
 			groupByConfig?.showAs,
-			groupByConfig?.startWeekOn,
+			groupByConfig?.startWeekOn
 		);
 
 		// Compute values for each secondary group
@@ -583,10 +620,10 @@ export function computeGroupedData<TData>(
 			secondaryGroups,
 			computationType,
 			computePropertyId,
-			properties,
+			properties
 		);
 		result[xAxisKey] = computed;
-	});
+	}
 
 	return result;
 }
@@ -595,11 +632,11 @@ export function computeGroupedData<TData>(
  * Get the raw count of items in each group (useful for tooltips)
  */
 export function getGroupCounts<TData>(
-	groupedData: Record<string, TData[]>,
+	groupedData: Record<string, TData[]>
 ): Record<string, number> {
 	const counts: Record<string, number> = {};
-	Object.entries(groupedData).forEach(([key, items]) => {
+	for (const [key, items] of Object.entries(groupedData)) {
 		counts[key] = items.length;
-	});
+	}
 	return counts;
 }

@@ -43,7 +43,7 @@ export function GroupConnector({
 			<span
 				className={cn(
 					"inline-flex h-7 w-14 shrink-0 items-center justify-start font-medium text-muted-foreground text-sm",
-					className,
+					className
 				)}
 			>
 				Where
@@ -57,7 +57,7 @@ export function GroupConnector({
 			<span
 				className={cn(
 					"inline-flex h-7 w-14 shrink-0 items-center justify-end pr-2 font-medium text-muted-foreground text-sm capitalize",
-					className,
+					className
 				)}
 			>
 				{logic}
@@ -71,7 +71,7 @@ export function GroupConnector({
 			<DropdownMenu>
 				<DropdownMenuTrigger
 					className={cn(
-						"inline-flex h-6 items-center gap-0.5 rounded px-1.5 font-medium text-muted-foreground text-xs hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-1 focus:ring-ring",
+						"inline-flex h-6 items-center gap-0.5 rounded px-1.5 font-medium text-muted-foreground text-xs hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-1 focus:ring-ring"
 					)}
 				>
 					<span className="capitalize">{logic}</span>
@@ -79,16 +79,16 @@ export function GroupConnector({
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="start">
 					<DropdownMenuRadioGroup
-						value={logic}
 						onValueChange={(value) => onLogicChange(value as "and" | "or")}
+						value={logic}
 					>
-						<DropdownMenuRadioItem value="and" className="flex-col items-start">
+						<DropdownMenuRadioItem className="flex-col items-start" value="and">
 							<span className="font-medium">And</span>
 							<span className="text-muted-foreground text-xs">
 								All conditions in this group must match
 							</span>
 						</DropdownMenuRadioItem>
-						<DropdownMenuRadioItem value="or" className="flex-col items-start">
+						<DropdownMenuRadioItem className="flex-col items-start" value="or">
 							<span className="font-medium">Or</span>
 							<span className="text-muted-foreground text-xs">
 								At least one condition must match

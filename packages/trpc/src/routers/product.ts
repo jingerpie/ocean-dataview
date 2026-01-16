@@ -59,7 +59,7 @@ export const productRouter = router({
 
 			// Build ORDER BY clause from sort columns
 			let orderBy = sortColumns.map((col) =>
-				col.desc ? desc(product[col.propertyId]) : asc(product[col.propertyId]),
+				col.desc ? desc(product[col.propertyId]) : asc(product[col.propertyId])
 			);
 
 			// For backward navigation, reverse sort order (results are reversed after fetch)
@@ -67,7 +67,7 @@ export const productRouter = router({
 				orderBy = sortColumns.map((col) =>
 					col.desc
 						? asc(product[col.propertyId])
-						: desc(product[col.propertyId]),
+						: desc(product[col.propertyId])
 				);
 			}
 
@@ -108,7 +108,7 @@ export const productRouter = router({
 				channelId: z.string().optional(),
 				groupBy: z.enum(["type", "familyGroup"]),
 				subGroupBy: z.enum(["type", "familyGroup", "tag"]).optional(),
-			}),
+			})
 		)
 		.query(async ({ input }) => {
 			const { groupBy, subGroupBy } = input;

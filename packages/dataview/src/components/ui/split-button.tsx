@@ -9,7 +9,7 @@ import {
 } from "@ocean-dataview/dataview/components/ui/dropdown-menu";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { MoreVertical } from "lucide-react";
-import * as React from "react";
+import { type ReactNode, useState } from "react";
 
 export interface DropdownAction {
 	label: string;
@@ -26,7 +26,7 @@ interface SplitButtonProps {
 	/**
 	 * Icon for the primary action button
 	 */
-	primaryIcon?: React.ReactNode;
+	primaryIcon?: ReactNode;
 
 	/**
 	 * Primary action callback
@@ -56,7 +56,7 @@ export function SplitButton({
 	dropdownActions,
 	size = "default",
 }: SplitButtonProps) {
-	const [open, setOpen] = React.useState(false);
+	const [open, setOpen] = useState(false);
 
 	const buttonVariants = {
 		sm: {
@@ -92,8 +92,8 @@ export function SplitButton({
 		<div className="flex gap-[0.5px]">
 			<Button
 				className={cn("rounded-r-none", currentSize.text)}
-				size={size}
 				onClick={onPrimaryAction}
+				size={size}
 			>
 				<span className="flex">
 					{primaryIcon && (
@@ -102,7 +102,7 @@ export function SplitButton({
 					{primaryLabel}
 				</span>
 			</Button>
-			<DropdownMenu open={open} onOpenChange={setOpen}>
+			<DropdownMenu onOpenChange={setOpen} open={open}>
 				<DropdownMenuTrigger
 					render={
 						<Button
@@ -116,8 +116,8 @@ export function SplitButton({
 				<DropdownMenuContent align="end">
 					{dropdownActions.map((action, index) => (
 						<DropdownMenuItem
-							key={`${action.label}-${index}`}
 							className={cn("cursor-pointer", action.className)}
+							key={`${action.label}-${index}`}
 							onClick={() => handleActionClick(action)}
 						>
 							{action.label}

@@ -61,7 +61,7 @@ export function ProductGroupPaginationGallery({
 
 	// 1. Group counts (Suspense OK - matches server prefetch)
 	const { data: groupCounts } = useSuspenseQuery(
-		trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" }),
+		trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" })
 	);
 
 	// 2. Apply default on client
@@ -86,7 +86,7 @@ export function ProductGroupPaginationGallery({
 					},
 					{
 						getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
-					},
+					}
 				),
 		});
 
@@ -103,8 +103,8 @@ export function ProductGroupPaginationGallery({
 		<Suspense fallback={<GallerySkeleton cardCount={6} />}>
 			<DataViewProvider
 				data={data}
-				properties={productProperties}
 				pagination={pagination}
+				properties={productProperties}
 			>
 				<div className="flex items-center justify-between">
 					<GroupPaginationTabs />
@@ -117,6 +117,7 @@ export function ProductGroupPaginationGallery({
 						cardSize: "medium",
 						fitImage: true,
 					}}
+					pagination="loadMore"
 					view={{
 						group: {
 							groupBy: "familyGroup",
@@ -125,7 +126,6 @@ export function ProductGroupPaginationGallery({
 							onExpandedChange: handleAccordionChange,
 						},
 					}}
-					pagination="loadMore"
 				/>
 			</DataViewProvider>
 		</Suspense>

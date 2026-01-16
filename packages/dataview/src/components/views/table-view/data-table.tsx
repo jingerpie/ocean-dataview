@@ -117,7 +117,7 @@ export function DataTable<TData>({
 		data,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
-		enableRowSelection: enableRowSelection,
+		enableRowSelection,
 		state: {
 			rowSelection,
 		},
@@ -139,30 +139,30 @@ export function DataTable<TData>({
 		<>
 			{/* Sticky Header Component */}
 			<DataTableStickyHeader
-				table={table}
 				enabled={!!headerConfig.sticky}
-				tableHeaderRef={tableHeaderRef}
-				tableContainerRef={tableContainerRef}
 				offset={offset}
+				table={table}
+				tableContainerRef={tableContainerRef}
+				tableHeaderRef={tableHeaderRef}
 			/>
 
 			{/* Original Table */}
 			<div
 				className={cn("overflow-clip rounded-md border shadow-sm", className)}
 			>
-				<div ref={tableContainerRef} className="overflow-x-auto">
+				<div className="overflow-x-auto" ref={tableContainerRef}>
 					<Table>
 						{headerConfig.enabled && (
-							<TableHeader ref={tableHeaderRef} className="bg-muted">
+							<TableHeader className="bg-muted" ref={tableHeaderRef}>
 								{table.getHeaderGroups().map((headerGroup) => (
 									<TableRow key={headerGroup.id}>
 										{headerGroup.headers.map((header) => (
-											<TableHead key={header.id} colSpan={header.colSpan}>
+											<TableHead colSpan={header.colSpan} key={header.id}>
 												{header.isPlaceholder
 													? null
 													: flexRender(
 															header.column.columnDef.header,
-															header.getContext(),
+															header.getContext()
 														)}
 											</TableHead>
 										))}
@@ -174,8 +174,8 @@ export function DataTable<TData>({
 							{table.getRowModel().rows.length === 0 ? (
 								<TableRow>
 									<TableCell
-										colSpan={columns.length}
 										className="h-24 text-center text-muted-foreground"
+										colSpan={columns.length}
 									>
 										No data to display
 									</TableCell>
@@ -183,22 +183,22 @@ export function DataTable<TData>({
 							) : (
 								table.getRowModel().rows.map((row) => (
 									<TableRow
-										key={row.id}
-										onClick={() => onRowClick?.(row.original)}
 										className={cn(onRowClick && "cursor-pointer")}
 										data-state={row.getIsSelected() && "selected"}
+										key={row.id}
+										onClick={() => onRowClick?.(row.original)}
 									>
 										{row.getVisibleCells().map((cell) => (
 											<TableCell
-												key={cell.id}
 												className={cn(
 													showVerticalLines && "border-r last:border-r-0",
-													wrapAllColumns ? "whitespace-normal" : "truncate",
+													wrapAllColumns ? "whitespace-normal" : "truncate"
 												)}
+												key={cell.id}
 											>
 												{flexRender(
 													cell.column.columnDef.cell,
-													cell.getContext(),
+													cell.getContext()
 												)}
 											</TableCell>
 										))}

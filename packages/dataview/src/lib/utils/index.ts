@@ -1,3 +1,4 @@
+// biome-ignore lint/performance/noBarrelFile: Intentional public API barrel file
 export { buildPaginationContext } from "./build-pagination-context";
 export type { GroupedDataWithMeta } from "./compute-data";
 export { getGroupCounts, groupByProperty } from "./compute-data";

@@ -77,9 +77,11 @@ import {
  */
 export function buildWhere<T extends Table>(
 	table: T,
-	filter: Filter | null | undefined,
+	filter: Filter | null | undefined
 ): SQL | undefined {
-	if (!filter) return undefined;
+	if (!filter) {
+		return undefined;
+	}
 
 	// Handle compound filter (AND/OR)
 	if (isCompoundFilter(filter)) {
@@ -107,14 +109,17 @@ export function buildWhere<T extends Table>(
 /**
  * Builds SQL condition for a single filter condition.
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex SQL condition building logic
 function buildCondition<T extends Table>(
 	table: T,
-	filter: FilterCondition,
+	filter: FilterCondition
 ): SQL | undefined {
 	const { property, operator, value } = filter;
 	const column = getColumn(table, property as keyof T);
 
-	if (!column) return undefined;
+	if (!column) {
+		return undefined;
+	}
 
 	switch (operator) {
 		// ============================================
@@ -176,8 +181,12 @@ function buildCondition<T extends Table>(
 			if (Array.isArray(value) && value.length === 2) {
 				const [min, max] = value;
 				const conditions: SQL[] = [];
-				if (min != null) conditions.push(gte(column, min));
-				if (max != null) conditions.push(lte(column, max));
+				if (min != null) {
+					conditions.push(gte(column, min));
+				}
+				if (max != null) {
+					conditions.push(lte(column, max));
+				}
 				return conditions.length > 0 ? and(...conditions) : undefined;
 			}
 			return undefined;
@@ -207,7 +216,9 @@ function buildCondition<T extends Table>(
 			const now = new Date();
 			const range = getRelativeDateRange(now, direction, count, unit);
 
-			if (!range) return undefined;
+			if (!range) {
+				return undefined;
+			}
 			return and(gte(column, range.start), lte(column, range.end));
 		}
 
@@ -239,7 +250,7 @@ function buildCondition<T extends Table>(
  */
 export function getColumn<T extends Table>(
 	table: T,
-	columnKey: keyof T,
+	columnKey: keyof T
 ): AnyColumn {
 	return table[columnKey] as AnyColumn;
 }
@@ -254,7 +265,9 @@ export function getColumn<T extends Table>(
  */
 function isTextColumn<T extends Table>(table: T, columnKey: keyof T): boolean {
 	const column = table[columnKey] as AnyColumn;
-	if (!column) return false;
+	if (!column) {
+		return false;
+	}
 
 	// Check the PostgreSQL column type (e.g., 'PgText', 'PgVarchar', 'PgChar')
 	const columnType = (column as { columnType?: string }).columnType;
@@ -273,7 +286,7 @@ function getRelativeDateRange(
 	now: Date,
 	direction: "past" | "this" | "next",
 	count: number,
-	unit: "day" | "week" | "month" | "year",
+	unit: "day" | "week" | "month" | "year"
 ): { start: Date; end: Date } | undefined {
 	// For "this" direction, count is always 1
 	const n = direction === "this" ? 1 : count;

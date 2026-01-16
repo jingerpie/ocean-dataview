@@ -6,7 +6,7 @@ import type {
 	FilterCondition,
 } from "@ocean-dataview/shared/types";
 import { analyzeFilter } from "@ocean-dataview/shared/utils";
-import * as React from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export interface UseToolbarStateOptions {
 	filter: Filter | null;
@@ -48,19 +48,19 @@ export function useToolbarState({
 	filter,
 	sorts,
 }: UseToolbarStateOptions): UseToolbarStateReturn {
-	const [row2Visible, setRow2Visible] = React.useState(true);
+	const [row2Visible, setRow2Visible] = useState(true);
 
 	// Analyze filter structure using shared utility
-	const filterAnalysis = React.useMemo(() => analyzeFilter(filter), [filter]);
+	const filterAnalysis = useMemo(() => analyzeFilter(filter), [filter]);
 
 	// Derived state
 	const hasActiveControls = filter !== null || sorts.length > 0;
 
 	// Track previous hasActiveControls to detect when controls become active
-	const prevHasActiveControls = React.useRef(hasActiveControls);
+	const prevHasActiveControls = useRef(hasActiveControls);
 
 	// Auto-show Row 2 only when controls become active (not when already active)
-	React.useEffect(() => {
+	useEffect(() => {
 		// Only show when transitioning from no controls to having controls
 		if (hasActiveControls && !prevHasActiveControls.current) {
 			setRow2Visible(true);
@@ -68,7 +68,7 @@ export function useToolbarState({
 		prevHasActiveControls.current = hasActiveControls;
 	}, [hasActiveControls]);
 
-	const toggleRow2 = React.useCallback(() => {
+	const toggleRow2 = useCallback(() => {
 		setRow2Visible((prev) => !prev);
 	}, []);
 

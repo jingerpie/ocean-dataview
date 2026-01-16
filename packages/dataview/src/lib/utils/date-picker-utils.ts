@@ -15,7 +15,9 @@ export function formatDateForDisplay(date: Date) {
  * Parse natural language date strings via chrono.
  */
 export function parseDate(text: string): Date | null {
-	if (!text) return null;
+	if (!text) {
+		return null;
+	}
 	return chronoParseDate(text);
 }
 
@@ -23,9 +25,11 @@ export function parseDate(text: string): Date | null {
  * Normalize ISO string or timestamp values to Date instances.
  */
 export function parseValue(
-	value: string | number | undefined,
+	value: string | number | undefined
 ): Date | undefined {
-	if (!value) return undefined;
+	if (!value) {
+		return undefined;
+	}
 	const date = new Date(value);
 	return Number.isNaN(date.getTime()) ? undefined : date;
 }

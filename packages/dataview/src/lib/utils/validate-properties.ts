@@ -6,7 +6,7 @@ import type { DataViewProperty } from "../../types/property-types";
  * @returns Error message if duplicate IDs found, undefined otherwise
  */
 export function validatePropertyKeys<T>(
-	properties: readonly DataViewProperty<T>[] | DataViewProperty<T>[],
+	properties: readonly DataViewProperty<T>[] | DataViewProperty<T>[]
 ): string | undefined {
 	const ids = properties.map((p) => p.id);
 	const uniqueIds = new Set(ids);

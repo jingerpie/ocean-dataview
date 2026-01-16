@@ -28,7 +28,7 @@ export function DonutChartView<
 		data,
 		properties,
 		"donut",
-		config,
+		config
 	);
 
 	const height = getChartHeight(config.style.height);
@@ -72,16 +72,17 @@ export function DonutChartView<
 
 			<div className="rounded-lg border bg-card p-4">
 				<DonutChartInner
-					data={chartData}
-					height={height}
 					colors={colors}
-					showValueInCenter={config.style.showValueInCenter}
-					showLegend={config.style.showLegend}
+					data={chartData}
 					dataLabelFormat={config.style.dataLabelFormat}
+					height={height}
+					showLegend={config.style.showLegend}
+					showValueInCenter={config.style.showValueInCenter}
 				/>
 			</div>
 		</div>
 	);
 }
 
+// biome-ignore lint/performance/noBarrelFile: Re-exporting chart inner component
 export { DonutChartInner } from "./donut-chart";
