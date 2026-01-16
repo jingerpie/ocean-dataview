@@ -12,6 +12,8 @@ export {
 	RelativeDatePicker,
 	RelativeDatePickerContent,
 } from "./relative-date-picker";
+export type { SingleDateCalendarProps } from "./single-date-calendar";
+export { SingleDateCalendar } from "./single-date-calendar";
 export type { SingleDatePickerProps } from "./single-date-picker";
 export {
 	SingleDatePicker,

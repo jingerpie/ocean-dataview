@@ -44,7 +44,7 @@ import {
 	RangeDatePickerContent,
 	RelativeDatePickerContent,
 	type RelativeToTodayValue,
-	SingleDatePickerContent,
+	SingleDateCalendar,
 } from "../properties/date-picker";
 import { OperatorPicker } from "./operator-picker";
 
@@ -271,7 +271,7 @@ function FilterChipValue<T>({
 				);
 			}
 			return (
-				<SingleDatePickerContent
+				<SingleDateCalendar
 					onChange={onValueChange}
 					value={condition.value as string | undefined}
 				/>

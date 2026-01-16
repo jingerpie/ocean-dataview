@@ -34,7 +34,7 @@ import {
 	subMonths,
 	subWeeks,
 } from "date-fns";
-import { CheckIcon, XIcon } from "lucide-react";
+import { XIcon } from "lucide-react";
 import type * as React from "react";
 import { useState } from "react";
 
@@ -94,123 +94,62 @@ function getDateFromPreset(preset: DatePreset): Date | null {
 }
 
 // ============================================================================
-// SingleDatePickerContent - For filter chips (options list + calendar)
+// SingleDatePickerContent - For filter chips (select dropdown + inline calendar)
 // ============================================================================
+
+/** Presets without "custom" option for the dropdown */
+const DATE_PRESET_OPTIONS = DATE_PRESET_ITEMS.filter(
+	(item) => item.value !== "custom"
+);
 
 /**
  * Content component for single date picker.
- * Renders as options list + calendar - used inside filter chip popover.
+ * Renders select dropdown (presets) + always-visible calendar.
+ * Used inside filter chip popover - matches Notion's filter UI pattern.
  */
 function SingleDatePickerContent({ value, onChange }: SingleDatePickerProps) {
-	const [showCustomCalendar, setShowCustomCalendar] = useState(false);
-	const [draft, setDraft] = useState<string | null>(null);
-	const [isValid, setIsValid] = useState(true);
-
 	const dateValue = parseValue(value);
-	const displayValue =
-		draft ?? (dateValue ? formatDateForDisplay(dateValue) : "");
 
-	const handlePresetSelect = (preset: DatePreset) => {
-		if (preset === "custom") {
-			setShowCustomCalendar(true);
-			setDraft("");
-		} else {
-			setShowCustomCalendar(false);
-			setDraft(null);
-			const date = getDateFromPreset(preset);
-			if (date) {
-				onChange(date.toISOString());
-			}
-		}
-	};
-
-	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const text = e.target.value;
-		setDraft(text);
-		setIsValid(true);
-	};
-
-	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-		if (e.key === "Enter") {
-			e.currentTarget.blur();
-		}
-	};
-
-	const handleBlur = () => {
-		if (!draft) {
+	const handlePresetChange = (preset: string | null) => {
+		if (!preset) {
 			return;
 		}
-
-		const parsed = parseDate(draft);
-		if (parsed) {
-			const formatted = formatDateForDisplay(parsed);
-			setDraft(formatted);
-			setIsValid(true);
-			onChange(parsed.toISOString());
-		} else {
-			setIsValid(false);
+		const date = getDateFromPreset(preset as DatePreset);
+		if (date) {
+			onChange(date.toISOString());
 		}
 	};
 
 	const handleCalendarSelect = (date: Date | undefined) => {
-		setDraft(null);
-		setIsValid(true);
 		onChange(date?.toISOString() ?? "");
 	};
 
-	const handleClear = () => {
-		setDraft(null);
-		setIsValid(true);
-		onChange("");
-	};
-
 	return (
-		<div className="flex flex-col">
-			{/* Options list */}
-			<div className="flex flex-col gap-0.5">
-				{DATE_PRESET_ITEMS.map((preset) => (
-					<Button
-						className="justify-start"
-						key={preset.value}
-						onClick={() => handlePresetSelect(preset.value)}
-						size="sm"
-						variant="ghost"
-					>
-						<span className="flex-1 text-left">{preset.label}</span>
-						{preset.value === "custom" && showCustomCalendar && (
-							<CheckIcon className="size-4" />
-						)}
-					</Button>
-				))}
-			</div>
+		<div className="flex flex-col gap-2">
+			{/* Select dropdown with presets */}
+			<Select onValueChange={handlePresetChange}>
+				<SelectTrigger>
+					<SelectValue>
+						{dateValue
+							? formatDateForDisplay(dateValue)
+							: "Select or type a date..."}
+					</SelectValue>
+				</SelectTrigger>
+				<SelectContent>
+					{DATE_PRESET_OPTIONS.map((item) => (
+						<SelectItem key={item.value} value={item.value}>
+							{item.label}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
 
-			{/* Custom date input + calendar */}
-			{showCustomCalendar && (
-				<div className="mt-2 flex flex-col items-center border-t pt-2">
-					{!isValid && (
-						<span className="mb-1 text-destructive text-sm">Invalid date</span>
-					)}
-					<InputGroup className={cn("mb-2", !isValid && "border-destructive")}>
-						<InputGroupInput
-							onBlur={handleBlur}
-							onChange={handleInputChange}
-							onKeyDown={handleKeyDown}
-							placeholder="Type a date..."
-							value={displayValue}
-						/>
-						<InputGroupAddon align="inline-end">
-							<InputGroupButton onClick={handleClear} size="icon-sm">
-								<XIcon className="size-3.5" />
-							</InputGroupButton>
-						</InputGroupAddon>
-					</InputGroup>
-					<Calendar
-						mode="single"
-						onSelect={handleCalendarSelect}
-						selected={dateValue}
-					/>
-				</div>
-			)}
+			{/* Calendar always visible */}
+			<Calendar
+				mode="single"
+				onSelect={handleCalendarSelect}
+				selected={dateValue}
+			/>
 		</div>
 	);
 }
