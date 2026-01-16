@@ -2,8 +2,10 @@
 plans/*
 docs/*
 tasks/*
+chats/*
 
 # Keep .gitkeep files
 !plans/.gitkeep
 !docs/.gitkeep
 !tasks/.gitkeep
+!chats/.gitkeep
