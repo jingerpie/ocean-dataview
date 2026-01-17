@@ -13,10 +13,12 @@ export const productRouter = router({
 	getMany: publicProcedure
 		.input(productSearchParamsSchema)
 		.query(async ({ input }) => {
-			const { cursor, limit, filter, sort } = input;
+			const { cursor, limit, filter, sort, search } = input;
 			const { after, before } = getCursorParams(cursor ?? undefined);
 
-			const advancedWhere = buildWhere(product, filter);
+			const searchWhere = buildWhere(product, search ?? null);
+			const filterWhere = buildWhere(product, filter ?? null);
+			const advancedWhere = and(searchWhere, filterWhere);
 
 			// Determine direction - cursor is just the ID string
 			const isBackward = !!before;

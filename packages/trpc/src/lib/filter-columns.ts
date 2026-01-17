@@ -1,7 +1,7 @@
 import {
-	type Filter,
-	type FilterCondition,
-	isCompoundFilter,
+	isWhereExpression,
+	type WhereCondition,
+	type WhereNode,
 } from "@ocean-dataview/shared/types";
 import {
 	addDays,
@@ -27,17 +27,16 @@ import {
 	eq,
 	gt,
 	gte,
-	ilike,
 	inArray,
 	isNotNull,
 	isNull,
 	lt,
 	lte,
 	ne,
-	not,
 	notInArray,
 	or,
 	type SQL,
+	sql,
 	type Table,
 } from "drizzle-orm";
 
@@ -77,14 +76,14 @@ import {
  */
 export function buildWhere<T extends Table>(
 	table: T,
-	filter: Filter | null | undefined
+	filter: WhereNode | null | undefined
 ): SQL | undefined {
 	if (!filter) {
 		return undefined;
 	}
 
 	// Handle compound filter (AND/OR)
-	if (isCompoundFilter(filter)) {
+	if (isWhereExpression(filter)) {
 		if (filter.and) {
 			const conditions = filter.and
 				.map((f) => buildWhere(table, f))
@@ -112,7 +111,7 @@ export function buildWhere<T extends Table>(
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex SQL condition building logic
 function buildCondition<T extends Table>(
 	table: T,
-	filter: FilterCondition
+	filter: WhereCondition
 ): SQL | undefined {
 	const { property, operator, value } = filter;
 	const column = getColumn(table, property as keyof T);
@@ -124,22 +123,27 @@ function buildCondition<T extends Table>(
 	switch (operator) {
 		// ============================================
 		// Text operators (handle wildcards internally)
+		// Uses CAST(column AS TEXT) for uniform search across all column types
 		// ============================================
 		case "iLike":
 			return typeof value === "string"
-				? ilike(column, `%${value}%`)
+				? sql`CAST(${column} AS TEXT) ILIKE ${`%${value}%`}`
 				: undefined;
 
 		case "notILike":
 			return typeof value === "string"
-				? not(ilike(column, `%${value}%`))
+				? sql`CAST(${column} AS TEXT) NOT ILIKE ${`%${value}%`}`
 				: undefined;
 
 		case "startsWith":
-			return typeof value === "string" ? ilike(column, `${value}%`) : undefined;
+			return typeof value === "string"
+				? sql`CAST(${column} AS TEXT) ILIKE ${`${value}%`}`
+				: undefined;
 
 		case "endsWith":
-			return typeof value === "string" ? ilike(column, `%${value}`) : undefined;
+			return typeof value === "string"
+				? sql`CAST(${column} AS TEXT) ILIKE ${`%${value}`}`
+				: undefined;
 
 		// ============================================
 		// Equality operators

@@ -2,7 +2,7 @@
 
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
-import type { Filter } from "@ocean-dataview/shared/types";
+import type { WhereNode } from "@ocean-dataview/shared/types";
 import { FilterIcon } from "lucide-react";
 import type { ReactElement } from "react";
 import { Button } from "../button";
@@ -13,9 +13,9 @@ interface FilterBuilderPopoverProps<T> {
 	/** Available properties to filter on */
 	properties: DataViewProperty<T>[];
 	/** Current filter */
-	filter: Filter | null;
+	filter: WhereNode | null;
 	/** Callback when filter changes */
-	onChange: (filter: Filter | null) => void;
+	onChange: (filter: WhereNode | null) => void;
 	/** Custom trigger element (must be a ReactElement for render prop) */
 	trigger?: ReactElement;
 	/** Whether the popover is open (controlled) */

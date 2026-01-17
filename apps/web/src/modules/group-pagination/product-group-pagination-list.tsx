@@ -9,8 +9,8 @@ import { useGroupPagePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
 import type {
 	Cursors,
-	Filter,
 	PropertySort,
+	WhereNode,
 } from "@ocean-dataview/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
@@ -23,8 +23,11 @@ const DEFAULT_EXPANDED: string[] = [];
 /**
  * Combines group filter with user filter using AND logic.
  */
-function combineFilters(groupKey: string, userFilter: Filter | null): Filter {
-	const groupFilter: Filter = {
+function combineFilters(
+	groupKey: string,
+	userFilter: WhereNode | null
+): WhereNode {
+	const groupFilter: WhereNode = {
 		property: "familyGroup",
 		operator: "eq",
 		value: groupKey,
@@ -44,7 +47,9 @@ interface Props {
 	expanded: string[] | null;
 	cursors: Cursors;
 	limit: number;
-	filter?: Filter | null;
+	filter?: WhereNode | null;
+	/** Search query (converted from URL ?search=xxx by server page) */
+	search?: WhereNode | null;
 	sort?: PropertySort<Product>[];
 }
 
@@ -58,6 +63,7 @@ export function ProductGroupPaginationList({
 	cursors,
 	limit,
 	filter = null,
+	search: searchQuery = null,
 	sort = [],
 }: Props) {
 	const trpc = useTRPC();
@@ -74,6 +80,7 @@ export function ProductGroupPaginationList({
 	const allGroupKeys = Object.keys(groupCounts);
 
 	// 4. Single hook call - creates queries internally using TRPC queryOptions
+	// search is now a Filter (converted from URL param by server)
 	const { data, pagination, handleAccordionChange } = useGroupPagePagination({
 		allGroupKeys,
 		expanded,
@@ -83,6 +90,7 @@ export function ProductGroupPaginationList({
 		createQueryOptions: (groupKey, cursor) =>
 			trpc.product.getMany.queryOptions({
 				filter: combineFilters(groupKey, filter),
+				search: searchQuery,
 				sort,
 				cursor,
 				limit,

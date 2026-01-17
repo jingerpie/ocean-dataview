@@ -7,7 +7,7 @@ import {
 } from "@ocean-dataview/dataview/components/views/gallery-view";
 import { useGroupInfinitePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
-import type { Filter, PropertySort } from "@ocean-dataview/shared/types";
+import type { PropertySort, WhereNode } from "@ocean-dataview/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
@@ -19,8 +19,11 @@ const DEFAULT_EXPANDED: string[] = [];
 /**
  * Combines group filter with user filter using AND logic.
  */
-function combineFilters(groupKey: string, userFilter: Filter | null): Filter {
-	const groupFilter: Filter = {
+function combineFilters(
+	groupKey: string,
+	userFilter: WhereNode | null
+): WhereNode {
+	const groupFilter: WhereNode = {
 		property: "familyGroup",
 		operator: "eq",
 		value: groupKey,
@@ -40,7 +43,9 @@ interface Props {
 	expanded: string[] | null;
 	cursors: unknown; // Not used for infinite pagination, but passed from page
 	limit: number;
-	filter?: Filter | null;
+	filter?: WhereNode | null;
+	/** Search filter (converted from URL ?search=xxx by server page) */
+	search?: WhereNode | null;
 	sort?: PropertySort<Product>[];
 }
 
@@ -55,6 +60,7 @@ export function ProductGroupPaginationGallery({
 	expanded: expandedProp,
 	limit,
 	filter = null,
+	search: searchQuery = null,
 	sort = [],
 }: Props) {
 	const trpc = useTRPC();
@@ -71,6 +77,7 @@ export function ProductGroupPaginationGallery({
 	const allGroupKeys = Object.keys(groupCounts);
 
 	// 4. Single hook call - creates queries internally using TRPC infiniteQueryOptions
+	// search is now a Filter (converted from URL param by server)
 	const { data, pagination, handleAccordionChange } =
 		useGroupInfinitePagination({
 			allGroupKeys,
@@ -81,6 +88,7 @@ export function ProductGroupPaginationGallery({
 				trpc.product.getMany.infiniteQueryOptions(
 					{
 						filter: combineFilters(groupKey, filter),
+						search: searchQuery,
 						sort,
 						limit,
 					},

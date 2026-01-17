@@ -7,9 +7,9 @@ import type {
 	SelectOption,
 } from "@ocean-dataview/dataview/types";
 import type {
-	FilterCondition,
 	FilterOperator,
 	FilterVariant,
+	WhereCondition,
 } from "@ocean-dataview/shared/types";
 import {
 	getDefaultFilterOperator,
@@ -32,7 +32,7 @@ import { RuleActionsMenu } from "./rule-actions-menu";
 
 interface FilterRuleProps<T> {
 	/** The filter condition */
-	condition: FilterCondition;
+	condition: WhereCondition;
 	/** Available properties to filter on */
 	properties: DataViewProperty<T>[];
 	/** Whether this is the first rule in the group (shows "Where") */
@@ -44,7 +44,7 @@ interface FilterRuleProps<T> {
 	/** Current nesting level */
 	level: 0 | 1 | 2;
 	/** Callback when condition changes */
-	onConditionChange: (condition: FilterCondition) => void;
+	onConditionChange: (condition: WhereCondition) => void;
 	/** Callback when group logic changes (affects all rules in group) */
 	onLogicChange: (logic: "and" | "or") => void;
 	/** Callback to remove this rule */
@@ -87,7 +87,7 @@ export function FilterRule<T>({
 		: "text";
 
 	// Update helper that maintains type safety
-	const updateCondition = (updates: Partial<FilterCondition>) => {
+	const updateCondition = (updates: Partial<WhereCondition>) => {
 		onConditionChange({ ...condition, ...updates });
 	};
 
@@ -166,7 +166,7 @@ export function FilterRule<T>({
 // ============================================================================
 
 interface FilterValueProps<T> {
-	condition: FilterCondition;
+	condition: WhereCondition;
 	property: DataViewProperty<T>;
 	variant: FilterVariant;
 	onValueChange: (value: unknown) => void;
@@ -196,7 +196,7 @@ export function FilterValue<T>({
 // ============================================================================
 
 interface ValueInputProps<T> {
-	condition: FilterCondition;
+	condition: WhereCondition;
 	property: DataViewProperty<T>;
 	variant: FilterVariant;
 	onValueChange: (value: unknown) => void;

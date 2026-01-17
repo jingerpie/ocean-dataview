@@ -26,8 +26,8 @@ import type {
 	SelectOption,
 } from "@ocean-dataview/dataview/types";
 import type {
-	FilterCondition,
 	FilterOperator,
+	WhereCondition,
 } from "@ocean-dataview/shared/types";
 import { getFilterVariantFromPropertyType } from "@ocean-dataview/shared/utils";
 import {
@@ -50,11 +50,11 @@ import { OperatorPicker } from "./operator-picker";
 
 interface FilterChipProps<T> {
 	/** The filter condition */
-	condition: FilterCondition;
+	condition: WhereCondition;
 	/** The property being filtered */
 	property: DataViewProperty<T>;
 	/** Callback when condition changes */
-	onConditionChange: (condition: FilterCondition) => void;
+	onConditionChange: (condition: WhereCondition) => void;
 	/** Callback to remove this filter */
 	onRemove: () => void;
 	/** Callback to add this filter to advanced filter */
@@ -160,7 +160,7 @@ export function FilterChip<T>({
 // ============================================================================
 
 interface FilterChipValueProps<T> {
-	condition: FilterCondition;
+	condition: WhereCondition;
 	property: DataViewProperty<T>;
 	variant: string;
 	onValueChange: (value: unknown) => void;

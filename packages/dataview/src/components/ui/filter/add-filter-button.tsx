@@ -15,7 +15,7 @@ import {
 	PopoverTrigger,
 } from "@ocean-dataview/dataview/components/ui/popover";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
-import type { FilterCondition } from "@ocean-dataview/shared/types";
+import type { WhereCondition } from "@ocean-dataview/shared/types";
 import {
 	createDefaultCondition,
 	getDefaultFilterOperator,
@@ -35,7 +35,7 @@ interface AddFilterButtonProps<T> {
 	/** Whether adding a group is allowed (false at max depth) */
 	canAddGroup: boolean;
 	/** Callback when a new rule is added */
-	onAddRule: (condition: FilterCondition) => void;
+	onAddRule: (condition: WhereCondition) => void;
 	/** Callback when a new group is added */
 	onAddGroup: () => void;
 	/** Additional class names */

@@ -2,7 +2,7 @@
 
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
-import type { CompoundFilter, Filter } from "@ocean-dataview/shared/types";
+import type { WhereExpression, WhereNode } from "@ocean-dataview/shared/types";
 import {
 	createDefaultCondition,
 	normalizeFilter,
@@ -17,9 +17,9 @@ interface FilterBuilderProps<T> {
 	/** Available properties to filter on */
 	properties: DataViewProperty<T>[];
 	/** Current filter (null if no filter) */
-	filter: Filter | null;
+	filter: WhereNode | null;
 	/** Callback when filter changes */
-	onChange: (filter: Filter | null) => void;
+	onChange: (filter: WhereNode | null) => void;
 	/** Callback when delete filter button is clicked (after onChange is called) */
 	onDelete?: () => void;
 	/** Additional class names */
@@ -56,7 +56,7 @@ export function FilterBuilder<T>({
 	};
 
 	// Handle filter changes from FilterGroup
-	const handleFilterChange = (newFilter: CompoundFilter) => {
+	const handleFilterChange = (newFilter: WhereExpression) => {
 		onChange(newFilter);
 	};
 

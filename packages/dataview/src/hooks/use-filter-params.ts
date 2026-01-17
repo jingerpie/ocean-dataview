@@ -1,12 +1,12 @@
 "use client";
 
 import { parseAsFilter } from "@ocean-dataview/shared/lib";
-import type { Filter } from "@ocean-dataview/shared/types";
+import type { WhereNode } from "@ocean-dataview/shared/types";
 import { useQueryState } from "nuqs";
 
 /**
  * Hook for managing filter state in URL
- * Uses the new recursive Filter schema (AND/OR conditions)
+ * Uses the new recursive WhereNode schema (AND/OR conditions)
  *
  * @example
  * ```ts
@@ -22,7 +22,7 @@ export function useFilterParams() {
 	);
 
 	// Set the entire filter object (replaces previous filter)
-	const setFilter = (newFilter: Filter | null) => {
+	const setFilter = (newFilter: WhereNode | null) => {
 		setFilterState(newFilter);
 	};
 

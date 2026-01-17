@@ -1,15 +1,15 @@
 "use client";
 
 import type {
-	CompoundFilter,
-	Filter,
-	FilterCondition,
+	WhereCondition,
+	WhereExpression,
+	WhereNode,
 } from "@ocean-dataview/shared/types";
 import { analyzeFilter } from "@ocean-dataview/shared/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export interface UseToolbarStateOptions {
-	filter: Filter | null;
+	filter: WhereNode | null;
 	sorts: unknown[];
 }
 
@@ -23,9 +23,9 @@ export interface UseToolbarStateReturn {
 	/** Toggle Row 2 visibility */
 	toggleRow2: () => void;
 	/** Simple filter conditions at root level (displayed as FilterChip) */
-	simpleFilterConditions: Array<{ condition: FilterCondition; index: number }>;
-	/** Advanced filter (CompoundFilter at root, displayed as AdvancedFilterChip) */
-	advancedFilter: CompoundFilter | null;
+	simpleFilterConditions: Array<{ condition: WhereCondition; index: number }>;
+	/** Advanced filter (WhereExpression at root, displayed as AdvancedFilterChip) */
+	advancedFilter: WhereExpression | null;
 	/** Index of advancedFilter in root array */
 	advancedFilterIndex: number | null;
 	/** Total number of rules in advanced filter */
@@ -40,8 +40,8 @@ export interface UseToolbarStateReturn {
  *
  * Filter structure:
  * - Root level is always { and: [...] }
- * - Simple filters (chips) = FilterCondition items at root
- * - Advanced filter = CompoundFilter item at root (first one found)
+ * - Simple filters (chips) = WhereCondition items at root
+ * - Advanced filter = WhereExpression item at root (first one found)
  * - Both can coexist, combined with AND logic
  */
 export function useToolbarState({

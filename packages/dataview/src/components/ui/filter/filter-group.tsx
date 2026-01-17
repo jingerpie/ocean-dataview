@@ -3,11 +3,11 @@
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type {
-	CompoundFilter,
-	Filter,
-	FilterCondition,
+	WhereCondition,
+	WhereExpression,
+	WhereNode,
 } from "@ocean-dataview/shared/types";
-import { isFilterCondition } from "@ocean-dataview/shared/types";
+import { isWhereCondition } from "@ocean-dataview/shared/types";
 import {
 	addCondition,
 	addGroup,
@@ -26,7 +26,7 @@ import { GroupConnector } from "./group-connector";
 
 interface FilterGroupProps<T> {
 	/** The compound filter (AND/OR group) */
-	filter: CompoundFilter;
+	filter: WhereExpression;
 	/** Available properties to filter on */
 	properties: DataViewProperty<T>[];
 	/** Current nesting level (0 = root, 1, 2) */
@@ -36,13 +36,13 @@ interface FilterGroupProps<T> {
 	/** Whether this is the second item in parent (for dropdown display) */
 	isSecond?: boolean;
 	/** Callback when filter changes */
-	onChange: (filter: CompoundFilter) => void;
+	onChange: (filter: WhereExpression) => void;
 	/** Callback to remove this group (not available at root) */
 	onRemove?: () => void;
 	/** Callback to duplicate this group (for nested groups) */
 	onDuplicate?: () => void;
 	/** Callback to unwrap this group - replace with its single item (for nested groups) */
-	onUnwrap?: (item: Filter) => void;
+	onUnwrap?: (item: WhereNode) => void;
 	/** Callback to wrap this group in another group (for nested groups) */
 	onWrapInGroup?: () => void;
 	/** Callback when this group's connector logic changes (for parent) */
@@ -87,7 +87,7 @@ export function FilterGroup<T>({
 	};
 
 	// Handle adding a new condition
-	const handleAddRule = (condition: FilterCondition) => {
+	const handleAddRule = (condition: WhereCondition) => {
 		onChange(addCondition(filter, [], condition));
 	};
 
@@ -99,7 +99,7 @@ export function FilterGroup<T>({
 	};
 
 	// Handle updating a condition at index
-	const handleUpdateCondition = (index: number, condition: FilterCondition) => {
+	const handleUpdateCondition = (index: number, condition: WhereCondition) => {
 		onChange(updateCondition(filter, [index], condition));
 	};
 
@@ -126,7 +126,10 @@ export function FilterGroup<T>({
 	};
 
 	// Handle nested group changes
-	const handleNestedGroupChange = (index: number, newGroup: CompoundFilter) => {
+	const handleNestedGroupChange = (
+		index: number,
+		newGroup: WhereExpression
+	) => {
 		// Update the nested group at this index
 		const newItems = [...items];
 		newItems[index] = newGroup;
@@ -160,7 +163,7 @@ export function FilterGroup<T>({
 					{/* Render items */}
 					<div className="space-y-1">
 						{items.map((item, index) => {
-							if (isFilterCondition(item)) {
+							if (isWhereCondition(item)) {
 								return (
 									<FilterRule
 										canWrapInGroup={level < 2}
@@ -246,7 +249,7 @@ export function FilterGroup<T>({
 			{/* Render items */}
 			<div className="space-y-1">
 				{items.map((item, index) => {
-					if (isFilterCondition(item)) {
+					if (isWhereCondition(item)) {
 						return (
 							<FilterRule
 								canWrapInGroup={level < 2}

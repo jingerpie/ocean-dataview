@@ -1,45 +1,45 @@
 import type {
-	CompoundFilter,
-	Filter,
-	FilterCondition,
+	WhereCondition,
+	WhereExpression,
+	WhereNode,
 } from "../types/data-table.type";
-import { isCompoundFilter, isFilterCondition } from "../types/data-table.type";
+import { isWhereCondition, isWhereExpression } from "../types/data-table.type";
 
 // ============================================================================
 // Basic Helpers
 // ============================================================================
 
 /**
- * Get the items array from a compound filter
+ * Get the items array from a where expression
  */
-export function getFilterItems(filter: CompoundFilter): Filter[] {
-	return filter.and ?? filter.or ?? [];
+export function getFilterItems(expr: WhereExpression): WhereNode[] {
+	return expr.and ?? expr.or ?? [];
 }
 
 /**
- * Get the logic type of a compound filter
+ * Get the logic type of a where expression
  */
-export function getFilterLogic(filter: CompoundFilter): "and" | "or" {
-	return filter.and ? "and" : "or";
+export function getFilterLogic(expr: WhereExpression): "and" | "or" {
+	return expr.and ? "and" : "or";
 }
 
 /**
- * Create a new compound filter with the given logic and items
+ * Create a new where expression with the given logic and items
  */
 export function createCompoundFilter(
 	logic: "and" | "or",
-	items: Filter[]
-): CompoundFilter {
+	items: WhereNode[]
+): WhereExpression {
 	return logic === "and" ? { and: items } : { or: items };
 }
 
 /**
- * Create a default filter condition
+ * Create a default where condition
  */
 export function createDefaultCondition(
 	property: string,
-	operator: FilterCondition["operator"] = "eq"
-): FilterCondition {
+	operator: WhereCondition["operator"] = "eq"
+): WhereCondition {
 	return { property, operator };
 }
 
@@ -48,16 +48,16 @@ export function createDefaultCondition(
 // ============================================================================
 
 /**
- * Normalize a filter to always be a compound filter (or null)
+ * Normalize a filter to always be a where expression (or null)
  * Wraps single conditions in an AND group
  */
 export function normalizeFilter(
-	filter: Filter | null | undefined
-): CompoundFilter | null {
+	filter: WhereNode | null | undefined
+): WhereExpression | null {
 	if (!filter) {
 		return null;
 	}
-	if (isFilterCondition(filter)) {
+	if (isWhereCondition(filter)) {
 		return { and: [filter] };
 	}
 	return filter;
@@ -69,9 +69,9 @@ export function normalizeFilter(
 
 export interface FilterAnalysis {
 	/** Simple conditions at root level (displayed as FilterChip) */
-	simpleConditions: Array<{ condition: FilterCondition; index: number }>;
-	/** First CompoundFilter at root level (displayed as AdvancedFilterChip) */
-	advancedFilter: CompoundFilter | null;
+	simpleConditions: Array<{ condition: WhereCondition; index: number }>;
+	/** First WhereExpression at root level (displayed as AdvancedFilterChip) */
+	advancedFilter: WhereExpression | null;
 	/** Index of advancedFilter in root array */
 	advancedFilterIndex: number | null;
 	/** Whether the filter structure needs normalization */
@@ -83,12 +83,12 @@ export interface FilterAnalysis {
 /**
  * Count total rules in a filter (recursive)
  */
-function countRules(filter: Filter): number {
-	if (isFilterCondition(filter)) {
+function countRules(node: WhereNode): number {
+	if (isWhereCondition(node)) {
 		return 1;
 	}
-	if (isCompoundFilter(filter)) {
-		const items = getFilterItems(filter);
+	if (isWhereExpression(node)) {
+		const items = getFilterItems(node);
 		return items.reduce((sum, item) => sum + countRules(item), 0);
 	}
 	return 0;
@@ -98,11 +98,11 @@ function countRules(filter: Filter): number {
  * Analyze a filter to separate simple conditions from advanced filter.
  *
  * Root level is always { and: [...] }
- * - Simple filters (chips) = FilterCondition items at root
- * - Advanced filter = CompoundFilter item at root (first one found)
+ * - Simple filters (chips) = WhereCondition items at root
+ * - Advanced filter = WhereExpression item at root (first one found)
  * - Both can coexist, combined with AND logic
  */
-export function analyzeFilter(filter: Filter | null): FilterAnalysis {
+export function analyzeFilter(filter: WhereNode | null): FilterAnalysis {
 	// Empty filter
 	if (!filter) {
 		return {
@@ -115,7 +115,7 @@ export function analyzeFilter(filter: Filter | null): FilterAnalysis {
 	}
 
 	// Single condition (legacy/simple case) - treat as simple
-	if (isFilterCondition(filter)) {
+	if (isWhereCondition(filter)) {
 		return {
 			simpleConditions: [{ condition: filter, index: 0 }],
 			advancedFilter: null,
@@ -138,16 +138,16 @@ export function analyzeFilter(filter: Filter | null): FilterAnalysis {
 
 	// Normal AND at root
 	const items = filter.and ?? [];
-	const simpleConditions: Array<{ condition: FilterCondition; index: number }> =
+	const simpleConditions: Array<{ condition: WhereCondition; index: number }> =
 		[];
-	let advancedFilter: CompoundFilter | null = null;
+	let advancedFilter: WhereExpression | null = null;
 	let advancedFilterIndex: number | null = null;
 	let compoundCount = 0;
 
 	for (const [index, item] of items.entries()) {
-		if (isFilterCondition(item)) {
+		if (isWhereCondition(item)) {
 			simpleConditions.push({ condition: item, index });
-		} else if (isCompoundFilter(item)) {
+		} else if (isWhereExpression(item)) {
 			compoundCount++;
 			if (!advancedFilter) {
 				advancedFilter = item;
@@ -170,14 +170,14 @@ export function analyzeFilter(filter: Filter | null): FilterAnalysis {
  * Called on save/modify to ensure consistent structure.
  */
 export function normalizeFilterStructure(
-	filter: Filter | null
-): CompoundFilter | null {
+	filter: WhereNode | null
+): WhereExpression | null {
 	if (!filter) {
 		return null;
 	}
 
 	// Single condition → wrap in { and: [...] }
-	if (isFilterCondition(filter)) {
+	if (isWhereCondition(filter)) {
 		return { and: [filter] };
 	}
 
@@ -186,23 +186,23 @@ export function normalizeFilterStructure(
 		return { and: [filter] };
 	}
 
-	// Multiple CompoundFilters at root → merge into first
+	// Multiple WhereExpressions at root → merge into first
 	const items = filter.and ?? [];
-	const compounds = items.filter(isCompoundFilter);
-	const conditions = items.filter(isFilterCondition);
+	const compounds = items.filter(isWhereExpression);
+	const conditions = items.filter(isWhereCondition);
 
 	if (compounds.length <= 1) {
-		return filter as CompoundFilter;
+		return filter as WhereExpression;
 	}
 
 	// Merge all compounds into one (preserve first's logic)
 	const firstCompound = compounds[0];
 	if (!firstCompound) {
-		return filter as CompoundFilter;
+		return filter as WhereExpression;
 	}
 	const firstLogic = "and" in firstCompound ? "and" : "or";
 	const mergedItems = compounds.flatMap((c) => c.and ?? c.or ?? []);
-	const mergedAdvanced: CompoundFilter =
+	const mergedAdvanced: WhereExpression =
 		firstLogic === "and" ? { and: mergedItems } : { or: mergedItems };
 
 	return { and: [mergedAdvanced, ...conditions] };
@@ -213,7 +213,7 @@ export function normalizeFilterStructure(
 // ============================================================================
 
 export interface FlattenedCondition {
-	condition: FilterCondition;
+	condition: WhereCondition;
 	path: number[];
 	parentLogic: "and" | "or";
 	depth: number;
@@ -223,7 +223,7 @@ export interface FlattenedCondition {
  * Flatten a filter tree to get all conditions with their paths
  */
 export function flattenFilter(
-	filter: Filter | null | undefined,
+	filter: WhereNode | null | undefined,
 	parentPath = [] as number[],
 	parentLogic = "and" as "and" | "or",
 	depth = 0
@@ -232,7 +232,7 @@ export function flattenFilter(
 		return [];
 	}
 
-	if (isFilterCondition(filter)) {
+	if (isWhereCondition(filter)) {
 		return [{ condition: filter, path: parentPath, parentLogic, depth }];
 	}
 
@@ -242,7 +242,7 @@ export function flattenFilter(
 
 	items.forEach((item, index) => {
 		const itemPath = [...parentPath, index];
-		if (isFilterCondition(item)) {
+		if (isWhereCondition(item)) {
 			result.push({
 				condition: item,
 				path: itemPath,
@@ -266,14 +266,14 @@ export function flattenFilter(
  * Get an item at a specific path in the filter tree
  */
 export function getItemAtPath(
-	filter: CompoundFilter,
+	expr: WhereExpression,
 	path: number[]
-): Filter | null {
+): WhereNode | null {
 	if (path.length === 0) {
-		return filter;
+		return expr;
 	}
 
-	const items = getFilterItems(filter);
+	const items = getFilterItems(expr);
 	const [index, ...rest] = path;
 
 	if (index === undefined || index >= items.length) {
@@ -289,7 +289,7 @@ export function getItemAtPath(
 		return item;
 	}
 
-	if (isCompoundFilter(item)) {
+	if (isWhereExpression(item)) {
 		return getItemAtPath(item, rest);
 	}
 
@@ -302,29 +302,29 @@ export function getItemAtPath(
  * This allows advanced filter chips to remain visible even when all rules are deleted
  */
 function updateItemAtPath(
-	filter: CompoundFilter,
+	expr: WhereExpression,
 	path: number[],
-	updater: (item: Filter) => Filter | null
-): CompoundFilter {
-	const logic = getFilterLogic(filter);
-	const items = [...getFilterItems(filter)];
+	updater: (item: WhereNode) => WhereNode | null
+): WhereExpression {
+	const logic = getFilterLogic(expr);
+	const items = [...getFilterItems(expr)];
 
 	if (path.length === 0) {
 		// Can't update root with this function
-		return filter;
+		return expr;
 	}
 
 	const [index, ...rest] = path;
 
 	if (index === undefined || index >= items.length) {
-		return filter;
+		return expr;
 	}
 
 	if (rest.length === 0) {
 		// Update this item
 		const current = items[index];
 		if (!current) {
-			return filter;
+			return expr;
 		}
 
 		const updated = updater(current);
@@ -337,8 +337,8 @@ function updateItemAtPath(
 	} else {
 		// Recurse into nested compound filter
 		const current = items[index];
-		if (!(current && isCompoundFilter(current))) {
-			return filter;
+		if (!(current && isWhereExpression(current))) {
+			return expr;
 		}
 
 		const updated = updateItemAtPath(current, rest, updater);
@@ -355,33 +355,33 @@ function updateItemAtPath(
 // ============================================================================
 
 /**
- * Add a condition to a compound filter at a specific path
+ * Add a condition to a where expression at a specific path
  * Path [] means add to root level
  */
 export function addCondition(
-	filter: CompoundFilter,
+	expr: WhereExpression,
 	path: number[],
-	condition: FilterCondition
-): CompoundFilter {
+	condition: WhereCondition
+): WhereExpression {
 	if (path.length === 0) {
 		// Add to root
-		const logic = getFilterLogic(filter);
-		const items = [...getFilterItems(filter), condition];
+		const logic = getFilterLogic(expr);
+		const items = [...getFilterItems(expr), condition];
 		return createCompoundFilter(logic, items);
 	}
 
 	// Find the group at path and add to it
-	const logic = getFilterLogic(filter);
-	const items = [...getFilterItems(filter)];
+	const logic = getFilterLogic(expr);
+	const items = [...getFilterItems(expr)];
 	const [index, ...rest] = path;
 
 	if (index === undefined || index >= items.length) {
-		return filter;
+		return expr;
 	}
 
 	const current = items[index];
-	if (!(current && isCompoundFilter(current))) {
-		return filter;
+	if (!(current && isWhereExpression(current))) {
+		return expr;
 	}
 
 	items[index] = addCondition(current, rest, condition);
@@ -393,33 +393,33 @@ export function addCondition(
  * The new group starts with one default condition
  */
 export function addGroup(
-	filter: CompoundFilter,
+	expr: WhereExpression,
 	path: number[],
 	groupLogic: "and" | "or" = "and",
 	defaultProperty?: string
-): CompoundFilter {
+): WhereExpression {
 	// Create new group with one placeholder condition
 	const defaultCondition = createDefaultCondition(defaultProperty ?? "", "eq");
 	const newGroup = createCompoundFilter(groupLogic, [defaultCondition]);
 
 	if (path.length === 0) {
 		// Add to root
-		const logic = getFilterLogic(filter);
-		const items = [...getFilterItems(filter), newGroup];
+		const logic = getFilterLogic(expr);
+		const items = [...getFilterItems(expr), newGroup];
 		return createCompoundFilter(logic, items);
 	}
 
-	const logic = getFilterLogic(filter);
-	const items = [...getFilterItems(filter)];
+	const logic = getFilterLogic(expr);
+	const items = [...getFilterItems(expr)];
 	const [index, ...rest] = path;
 
 	if (index === undefined || index >= items.length) {
-		return filter;
+		return expr;
 	}
 
 	const current = items[index];
-	if (!(current && isCompoundFilter(current))) {
-		return filter;
+	if (!(current && isWhereExpression(current))) {
+		return expr;
 	}
 
 	items[index] = addGroup(current, rest, groupLogic, defaultProperty);
@@ -430,11 +430,11 @@ export function addGroup(
  * Update a condition at a specific path
  */
 export function updateCondition(
-	filter: CompoundFilter,
+	expr: WhereExpression,
 	path: number[],
-	condition: FilterCondition
-): CompoundFilter {
-	return updateItemAtPath(filter, path, () => condition);
+	condition: WhereCondition
+): WhereExpression {
+	return updateItemAtPath(expr, path, () => condition);
 }
 
 /**
@@ -442,10 +442,10 @@ export function updateCondition(
  * Preserves empty compound filter structure (returns { and: [] } instead of null)
  */
 export function removeItem(
-	filter: CompoundFilter,
+	expr: WhereExpression,
 	path: number[]
-): CompoundFilter {
-	return updateItemAtPath(filter, path, () => null);
+): WhereExpression {
+	return updateItemAtPath(expr, path, () => null);
 }
 
 /**
@@ -453,26 +453,26 @@ export function removeItem(
  * The duplicate is inserted immediately after the original
  */
 export function duplicateItem(
-	filter: CompoundFilter,
+	expr: WhereExpression,
 	path: number[]
-): CompoundFilter {
+): WhereExpression {
 	if (path.length === 0) {
-		return filter;
+		return expr;
 	}
 
 	const parentPath = path.slice(0, -1);
 	const itemIndex = path.at(-1);
 
 	if (itemIndex === undefined) {
-		return filter;
+		return expr;
 	}
 
 	// Get the parent group
 	const parent =
-		parentPath.length === 0 ? filter : getItemAtPath(filter, parentPath);
+		parentPath.length === 0 ? expr : getItemAtPath(expr, parentPath);
 
-	if (!(parent && isCompoundFilter(parent))) {
-		return filter;
+	if (!(parent && isWhereExpression(parent))) {
+		return expr;
 	}
 
 	const parentLogic = getFilterLogic(parent);
@@ -480,11 +480,11 @@ export function duplicateItem(
 	const itemToDuplicate = parentItems[itemIndex];
 
 	if (!itemToDuplicate) {
-		return filter;
+		return expr;
 	}
 
 	// Deep clone the item
-	const clonedItem = JSON.parse(JSON.stringify(itemToDuplicate)) as Filter;
+	const clonedItem = JSON.parse(JSON.stringify(itemToDuplicate)) as WhereNode;
 
 	// Insert after the original
 	const newItems = [...parentItems];
@@ -498,45 +498,45 @@ export function duplicateItem(
 	}
 
 	// Otherwise, update the parent in the tree
-	return updateItemAtPath(filter, parentPath, () => newParent);
+	return updateItemAtPath(expr, parentPath, () => newParent);
 }
 
 /**
  * Wrap an item in a new group at a specific path
  */
 export function wrapInGroup(
-	filter: CompoundFilter,
+	expr: WhereExpression,
 	path: number[],
 	groupLogic: "and" | "or" = "and"
-): CompoundFilter {
-	const item = getItemAtPath(filter, path);
+): WhereExpression {
+	const item = getItemAtPath(expr, path);
 	if (!item) {
-		return filter;
+		return expr;
 	}
 
 	// Create a new group containing just this item
 	const newGroup = createCompoundFilter(groupLogic, [item]);
 
 	// Replace the item with the new group
-	return updateItemAtPath(filter, path, () => newGroup);
+	return updateItemAtPath(expr, path, () => newGroup);
 }
 
 /**
  * Change logic operator for the root or a group at path
  */
 export function changeLogic(
-	filter: CompoundFilter,
+	expr: WhereExpression,
 	path: number[],
 	logic: "and" | "or"
-): CompoundFilter {
+): WhereExpression {
 	if (path.length === 0) {
 		// Change root logic
-		const items = getFilterItems(filter);
+		const items = getFilterItems(expr);
 		return createCompoundFilter(logic, items);
 	}
 
-	return updateItemAtPath(filter, path, (item) => {
-		if (isCompoundFilter(item)) {
+	return updateItemAtPath(expr, path, (item) => {
+		if (isWhereExpression(item)) {
 			return createCompoundFilter(logic, getFilterItems(item));
 		}
 		return item;
@@ -551,12 +551,12 @@ export function changeLogic(
  * Calculate the nesting depth at a specific path
  * Returns how many group levels deep we are
  */
-export function getDepthAtPath(filter: CompoundFilter, path: number[]): number {
+export function getDepthAtPath(expr: WhereExpression, path: number[]): number {
 	let depth = 0;
-	let current: Filter = filter;
+	let current: WhereNode = expr;
 
 	for (const index of path) {
-		if (!isCompoundFilter(current)) {
+		if (!isWhereExpression(current)) {
 			break;
 		}
 		const items = getFilterItems(current);
@@ -565,7 +565,7 @@ export function getDepthAtPath(filter: CompoundFilter, path: number[]): number {
 			break;
 		}
 
-		if (isCompoundFilter(item)) {
+		if (isWhereExpression(item)) {
 			depth++;
 		}
 		current = item;
@@ -578,15 +578,15 @@ export function getDepthAtPath(filter: CompoundFilter, path: number[]): number {
  * Check if a group at path can have more nested groups (max depth = 2)
  */
 export function canAddGroupAtPath(
-	filter: CompoundFilter,
+	expr: WhereExpression,
 	path: number[]
 ): boolean {
 	// Count how many group levels we're already in
 	let groupDepth = 0;
-	let current: Filter = filter;
+	let current: WhereNode = expr;
 
 	for (const index of path) {
-		if (!isCompoundFilter(current)) {
+		if (!isWhereExpression(current)) {
 			break;
 		}
 		groupDepth++; // We're entering a group
@@ -612,10 +612,10 @@ export function canAddGroupAtPath(
 // ============================================================================
 
 /**
- * Get a human-readable summary of a filter condition
+ * Get a human-readable summary of a where condition
  */
 export function getConditionSummary(
-	condition: FilterCondition,
+	condition: WhereCondition,
 	propertyLabel?: string
 ): string {
 	const prop = propertyLabel ?? condition.property;

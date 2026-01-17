@@ -1,5 +1,9 @@
-import type { Filter, FilterCondition } from "../types/data-table.type";
-import { isCompoundFilter, isFilterCondition } from "../types/data-table.type";
+import {
+	isWhereCondition,
+	isWhereExpression,
+	type WhereCondition,
+	type WhereNode,
+} from "../types/data-table.type";
 import {
 	createCompoundFilter,
 	getFilterItems,
@@ -12,7 +16,7 @@ const VALUE_OPTIONAL_OPERATORS = new Set(["isEmpty", "isNotEmpty"]);
 /**
  * Check if a filter condition has a valid value
  */
-function isConditionValid(condition: FilterCondition): boolean {
+function isConditionValid(condition: WhereCondition): boolean {
 	// These operators don't need a value
 	if (VALUE_OPTIONAL_OPERATORS.has(condition.operator)) {
 		return true;
@@ -47,25 +51,25 @@ function isConditionValid(condition: FilterCondition): boolean {
  * // Output: same (isEmpty doesn't need a value)
  * ```
  */
-export function validateFilter(filter: Filter | null): Filter | null {
+export function validateFilter(filter: WhereNode | null): WhereNode | null {
 	if (!filter) {
 		return null;
 	}
 
 	// Single condition
-	if (isFilterCondition(filter)) {
+	if (isWhereCondition(filter)) {
 		return isConditionValid(filter) ? filter : null;
 	}
 
 	// Compound filter
-	if (isCompoundFilter(filter)) {
+	if (isWhereExpression(filter)) {
 		const logic = getFilterLogic(filter);
 		const items = getFilterItems(filter);
 
 		// Recursively validate each item
 		const validItems = items
 			.map((item) => validateFilter(item))
-			.filter((item): item is Filter => item !== null);
+			.filter((item): item is WhereNode => item !== null);
 
 		// If no valid items, return null
 		if (validItems.length === 0) {

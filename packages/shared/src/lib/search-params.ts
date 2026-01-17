@@ -6,9 +6,10 @@ import {
 } from "nuqs/server";
 import { z } from "zod";
 import {
-	type Filter,
-	filterSchema,
+	type FilterQuery,
+	filterQuerySchema,
 	type PropertySort,
+	searchQuerySchema,
 } from "../types/data-table.type";
 import {
 	type Cursors,
@@ -16,7 +17,6 @@ import {
 	cursorsSchema,
 	cursorValueSchema,
 } from "../types/pagination.type";
-import { validateFilter } from "../utils/filter-validation";
 
 // ============================================================================
 // Constants
@@ -28,8 +28,8 @@ const DEFAULT_LIMIT = 25;
 // Validators (for NUQS JSON parsing)
 // ============================================================================
 
-const filterValidator = (value: unknown): Filter | null => {
-	const result = filterSchema.safeParse(value);
+const filterQueryValidator = (value: unknown): FilterQuery | null => {
+	const result = filterQuerySchema.safeParse(value);
 	return result.success ? result.data : null;
 };
 
@@ -80,12 +80,6 @@ const expandedValidator = (value: unknown): string[] | null => {
 /**
  * Creates a Zod schema for TRPC input validation.
  * Schema-bound: validates propertyId against entity keys.
- *
- * @example
- * ```ts
- * const productSearchParamsSchema = createSearchParamsSchema(selectProductSchema);
- * // Use with TRPC: .input(productSearchParamsSchema)
- * ```
  */
 export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 	schema: z.ZodObject<T>
@@ -100,15 +94,10 @@ export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 	});
 
 	return z.object({
-		// Cursor: CursorValue object (page-based) or string (infinite queries)
-		// Using nullish() to accept null from NUQS parsers
 		cursor: z.union([cursorValueSchema, z.string()]).nullish(),
 		limit: z.number().int().min(1).max(200).default(DEFAULT_LIMIT),
-		// New filter structure: single object with recursive AND/OR
-		// Transform validates filter, removing empty conditions before tRPC processing
-		filter: filterSchema
-			.nullish()
-			.transform((f) => (f ? validateFilter(f) : null)),
+		search: searchQuerySchema.nullish(),
+		filter: filterQuerySchema.nullish(),
 		sort: z.array(sortSchema).default([]),
 	});
 };
@@ -117,10 +106,9 @@ export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 // 2. Server-side NUQS Parsers (for URL params in RSC)
 // ============================================================================
 
-// Shared parsers used by both flat and grouped pagination
 const sharedParsers = {
 	limit: parseAsInteger.withDefault(DEFAULT_LIMIT),
-	filter: parseAsJson(filterValidator), // Single filter object (recursive AND/OR)
+	filter: parseAsJson(filterQueryValidator),
 	sort: parseAsJson(sortValidator).withDefault([]),
 	search: createParser({
 		parse: (v) => (typeof v === "string" ? v : ""),
@@ -130,12 +118,6 @@ const sharedParsers = {
 
 /**
  * Flat pagination params for server-side URL parsing.
- * Uses single `cursor` param.
- *
- * @example
- * ```ts
- * const { cursor, limit, filter, sort } = paginationParams.parse(searchParams);
- * ```
  */
 export const paginationParams = createSearchParamsCache({
 	cursor: parseAsJson(cursorValidator),
@@ -144,12 +126,6 @@ export const paginationParams = createSearchParamsCache({
 
 /**
  * Grouped pagination params for server-side URL parsing.
- * Uses `cursors` object map and `expanded` array.
- *
- * @example
- * ```ts
- * const { cursors, expanded, limit, filter, sort } = groupPaginationParams.parse(searchParams);
- * ```
  */
 export const groupPaginationParams = createSearchParamsCache({
 	cursors: parseAsJson(cursorsValidator).withDefault({}),
@@ -161,7 +137,6 @@ export const groupPaginationParams = createSearchParamsCache({
 // 3. Client-side Parsers (for hooks with useQueryState)
 // ============================================================================
 
-/** Client-side parser for cursor (flat pagination) */
 export const parseAsCursor = createParser({
 	parse: (value: string): CursorValue | null => {
 		try {
@@ -174,7 +149,6 @@ export const parseAsCursor = createParser({
 	serialize: (value: CursorValue) => JSON.stringify(value),
 });
 
-/** Client-side parser for cursors object (grouped pagination) */
 export const parseAsCursors = createParser({
 	parse: (value: string): Cursors | null => {
 		try {
@@ -187,7 +161,6 @@ export const parseAsCursors = createParser({
 	serialize: (value: Cursors) => JSON.stringify(value),
 });
 
-/** Client-side parser for expanded groups array */
 export const parseAsExpanded = createParser({
 	parse: (value: string): string[] | null => {
 		try {
@@ -200,20 +173,18 @@ export const parseAsExpanded = createParser({
 	serialize: (value: string[]) => JSON.stringify(value),
 });
 
-/** Client-side parser for filter (recursive AND/OR structure) */
 export const parseAsFilter = createParser({
-	parse: (value: string): Filter | null => {
+	parse: (value: string): FilterQuery | null => {
 		try {
 			const parsed = JSON.parse(value);
-			return filterValidator(parsed);
+			return filterQueryValidator(parsed);
 		} catch {
 			return null;
 		}
 	},
-	serialize: (value: Filter) => JSON.stringify(value),
+	serialize: (value: FilterQuery) => JSON.stringify(value),
 });
 
-/** Client-side parser for sort array */
 export const parseAsSort = createParser({
 	parse: (value: string): PropertySort<unknown>[] | null => {
 		try {

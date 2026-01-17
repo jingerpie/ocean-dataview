@@ -1,6 +1,3 @@
-// Property Type System - Notion-style property definitions
-import type { Filter } from "@ocean-dataview/shared/types";
-
 export type PropertyType =
 	| "text"
 	| "number"
@@ -31,6 +28,13 @@ export interface BaseProperty<T> {
 	 * @returns Transformed value to be passed to property component
 	 */
 	value?: (item: T) => unknown;
+	/**
+	 * Override default search behavior for this property.
+	 * - `true`: Include in search (even if type would be excluded by default)
+	 * - `false`: Exclude from search (even if type would be included by default)
+	 * - `undefined`: Use type-based default (excluded: filesMedia, checkbox, formula)
+	 */
+	allowSearch?: boolean;
 }
 
 // Type-specific configurations
@@ -198,13 +202,54 @@ export type PropertyKeys<T extends readonly DataViewProperty<any>[]> =
 
 // Re-export filter types from shared package for unified system
 export type {
-	CompoundFilter,
-	Filter,
-	FilterCondition,
 	FilterOperator,
+	FilterQuery,
 	FilterVariant,
 	PropertySort,
+	SearchQuery,
+	WhereCondition,
+	WhereExpression,
+	WhereNode,
 } from "@ocean-dataview/shared/types";
+
+/** Property types excluded from search by default */
+const EXCLUDED_SEARCH_TYPES: PropertyType[] = [
+	"filesMedia",
+	"checkbox",
+	"formula",
+];
+
+/**
+ * Extract property IDs that should be included in search queries.
+ *
+ * Default behavior by type:
+ * - Included: text, url, email, phone, number, select, multiSelect, status, date
+ * - Excluded: filesMedia, checkbox, formula
+ *
+ * Override with `allowSearch: true/false` on individual properties.
+ *
+ * @example
+ * const searchableFields = getSearchableProperties(productProperties);
+ * // Returns: ["name", "tag", "type", ...] (all non-excluded types)
+ */
+export function getSearchableProperties<T>(
+	properties: DataViewProperty<T>[]
+): string[] {
+	return properties
+		.filter((p) => {
+			// Explicit false → exclude
+			if (p.allowSearch === false) {
+				return false;
+			}
+			// Explicit true → include
+			if (p.allowSearch === true) {
+				return true;
+			}
+			// Default: include unless type is in excluded list
+			return !EXCLUDED_SEARCH_TYPES.includes(p.type);
+		})
+		.map((p) => p.id);
+}
 
 // Sort configuration (simple client-side sorting)
 export interface SortConfig<T> {
@@ -219,7 +264,7 @@ export interface ViewConfig<
 > {
 	properties: TProperties;
 	propertyVisibility?: PropertyKeys<TProperties>[];
-	filter?: Filter | null;
+	filter?: WhereNode | null;
 	sort?: SortConfig<T>;
 	groupBy?: keyof T;
 	searchQuery?: string;

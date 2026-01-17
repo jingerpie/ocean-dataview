@@ -8,17 +8,17 @@ import {
 } from "@ocean-dataview/dataview/components/ui/popover";
 import { useAdvanceFilterBuilder } from "@ocean-dataview/dataview/hooks";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
-import type { CompoundFilter, Filter } from "@ocean-dataview/shared/types";
+import type { WhereExpression, WhereNode } from "@ocean-dataview/shared/types";
 import { ChevronDownIcon, ListFilterIcon } from "lucide-react";
 import { FilterBuilder } from "./filter-builder";
 
 interface AdvancedFilterChipProps<T> {
 	/** The compound filter */
-	filter: CompoundFilter;
+	filter: WhereExpression;
 	/** Available properties */
 	properties: DataViewProperty<T>[];
 	/** Callback when filter changes */
-	onFilterChange: (filter: Filter | null) => void;
+	onFilterChange: (filter: WhereNode | null) => void;
 	/** Total number of rules in the filter */
 	ruleCount: number;
 }

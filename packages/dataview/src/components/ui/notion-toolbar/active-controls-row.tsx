@@ -1,13 +1,9 @@
 "use client";
 
+import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
-import type {
-	CompoundFilter,
-	Filter,
-	FilterCondition,
-	PropertySort,
-} from "@ocean-dataview/shared/types";
+import type { PropertySort } from "@ocean-dataview/shared/types";
 import {
 	createDefaultCondition,
 	getDefaultFilterOperator,
@@ -30,17 +26,17 @@ interface ActiveControlsRowProps<T> {
 	/** Callback when sorts change */
 	onSortsChange: (sorts: PropertySort<T>[]) => void;
 	/** Current filter */
-	filter: Filter | null;
+	filter: WhereNode | null;
 	/** Callback when filter changes */
-	onFilterChange: (filter: Filter | null) => void;
+	onFilterChange: (filter: WhereNode | null) => void;
 	/** Available properties */
 	properties: DataViewProperty<T>[];
-	/** Advanced filter (CompoundFilter at root level) */
-	advancedFilter: CompoundFilter | null;
+	/** Advanced filter (WhereExpression at root level) */
+	advancedFilter: WhereExpression | null;
 	/** Index of advancedFilter in root array */
 	advancedFilterIndex: number | null;
-	/** Simple filter conditions (FilterConditions at root level) */
-	simpleFilterConditions: Array<{ condition: FilterCondition; index: number }>;
+	/** Simple filter conditions (WhereConditions at root level) */
+	simpleFilterConditions: Array<{ condition: WhereCondition; index: number }>;
 	/** Total rule count in advanced filter */
 	ruleCount: number;
 	/** Callback to open advanced filter builder */
@@ -105,7 +101,7 @@ export function ActiveControlsRow<T>({
 	// Handle updating a simple filter condition
 	const handleConditionChange = (
 		index: number,
-		newCondition: FilterCondition
+		newCondition: WhereCondition
 	) => {
 		if (!normalizedFilter) {
 			return;
@@ -123,7 +119,7 @@ export function ActiveControlsRow<T>({
 	};
 
 	// Handle adding a simple condition to advanced filter
-	const handleAddToAdvanced = (index: number, condition: FilterCondition) => {
+	const handleAddToAdvanced = (index: number, condition: WhereCondition) => {
 		if (!normalizedFilter) {
 			return;
 		}
@@ -150,7 +146,7 @@ export function ActiveControlsRow<T>({
 	};
 
 	// Handle advanced filter changes
-	const handleAdvancedFilterChange = (newAdvanced: Filter | null) => {
+	const handleAdvancedFilterChange = (newAdvanced: WhereNode | null) => {
 		if (!normalizedFilter || advancedFilterIndex === null) {
 			// No existing filter or advanced filter - set as new root
 			if (newAdvanced) {
@@ -238,6 +234,19 @@ export function ActiveControlsRow<T>({
 				properties={properties}
 				variant="add"
 			/>
+
+			{/* 5. Clear All Button */}
+			<Button
+				className="ml-auto text-muted-foreground hover:text-foreground"
+				onClick={() => {
+					onFilterChange(null);
+					onSortsChange([]);
+				}}
+				size="sm"
+				variant="ghost"
+			>
+				Clear all
+			</Button>
 		</div>
 	);
 }

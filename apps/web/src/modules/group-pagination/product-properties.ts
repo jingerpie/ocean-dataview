@@ -12,6 +12,7 @@ export const productProperties = [
 		id: "name",
 		label: "Name",
 		type: "text",
+		// text type is searchable by default, no need for allowSearch: true
 	},
 	{
 		id: "tag",

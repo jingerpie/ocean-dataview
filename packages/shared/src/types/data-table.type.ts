@@ -29,40 +29,49 @@ export interface PropertySort<TData> {
 }
 
 // ============================================================================
-// Filter - New Simplified Structure
+// Where Types - SQL-inspired naming
 // ============================================================================
 
 /**
- * Single filter condition.
- * Property type is inferred from schema, not stored in filter.
+ * Leaf node - single WHERE condition
  */
-export interface FilterCondition {
+export interface WhereCondition {
 	property: string;
 	operator: FilterOperator;
-	value?: unknown; // Optional for isEmpty/isNotEmpty
+	value?: unknown;
 }
 
 /**
- * Compound filter with AND/OR logic.
- * Supports nesting up to 2 levels.
+ * Branch node - AND/OR grouping
  */
-export interface CompoundFilter {
-	and?: Filter[];
-	or?: Filter[];
+export interface WhereExpression {
+	and?: WhereNode[];
+	or?: WhereNode[];
 }
 
 /**
- * Filter can be a single condition or compound (AND/OR).
+ * Any node in the WHERE tree
  */
-export type Filter = FilterCondition | CompoundFilter;
-
-// ============================================================================
-// Zod Schemas for Validation
-// ============================================================================
+export type WhereNode = WhereCondition | WhereExpression;
 
 /**
- * Valid operators from config
+ * Search parameter - always OR at root, flat (no nesting)
  */
+export interface SearchQuery {
+	or: WhereCondition[];
+}
+
+/**
+ * Filter parameter - always AND at root, can nest
+ */
+export interface FilterQuery {
+	and: WhereNode[];
+}
+
+// ============================================================================
+// Zod Schemas
+// ============================================================================
+
 const operatorValues = [
 	"iLike",
 	"notILike",
@@ -83,28 +92,27 @@ const operatorValues = [
 ] as const;
 
 /**
- * Schema for single filter condition.
+ * Schema for WhereCondition
  */
-export const filterConditionSchema = z.object({
+export const whereConditionSchema = z.object({
 	property: z.string(),
 	operator: z.enum(operatorValues),
 	value: z.unknown().optional(),
 });
 
 /**
- * Schema for compound filter (recursive).
+ * Schema for WhereExpression (recursive)
  */
-export const compoundFilterSchema: z.ZodType<CompoundFilter> = z.lazy(() =>
+export const whereExpressionSchema: z.ZodType<WhereExpression> = z.lazy(() =>
 	z
 		.object({
-			and: z.array(filterSchema).optional(),
-			or: z.array(filterSchema).optional(),
+			and: z.array(whereNodeSchema).optional(),
+			or: z.array(whereNodeSchema).optional(),
 		})
 		.refine(
 			(obj) => {
 				const hasAnd = obj.and !== undefined;
 				const hasOr = obj.or !== undefined;
-				// Must have exactly one of 'and' or 'or'
 				return (hasAnd && !hasOr) || (!hasAnd && hasOr);
 			},
 			{ message: "Exactly one of 'and' or 'or' required" }
@@ -112,33 +120,43 @@ export const compoundFilterSchema: z.ZodType<CompoundFilter> = z.lazy(() =>
 );
 
 /**
- * Schema for filter (condition or compound).
+ * Schema for WhereNode
  */
-export const filterSchema: z.ZodType<Filter> = z.union([
-	filterConditionSchema,
-	compoundFilterSchema,
+export const whereNodeSchema: z.ZodType<WhereNode> = z.union([
+	whereConditionSchema,
+	whereExpressionSchema,
 ]);
+
+/**
+ * Schema for SearchQuery - always { or: WhereCondition[] }
+ */
+export const searchQuerySchema: z.ZodType<SearchQuery> = z.object({
+	or: z.array(whereConditionSchema),
+});
+
+/**
+ * Schema for FilterQuery - always { and: WhereNode[] }
+ */
+export const filterQuerySchema: z.ZodType<FilterQuery> = z.object({
+	and: z.array(whereNodeSchema),
+});
 
 // ============================================================================
 // Type Guards
 // ============================================================================
 
-export function isCompoundFilter(filter: Filter): filter is CompoundFilter {
-	return "and" in filter || "or" in filter;
+export function isWhereExpression(node: WhereNode): node is WhereExpression {
+	return "and" in node || "or" in node;
 }
 
-export function isFilterCondition(filter: Filter): filter is FilterCondition {
-	return "property" in filter && "operator" in filter;
+export function isWhereCondition(node: WhereNode): node is WhereCondition {
+	return "property" in node && "operator" in node;
 }
 
 // ============================================================================
 // Filter Variant - Maps property types to UI input types
 // ============================================================================
 
-/**
- * Filter variant type for determining which operators and inputs to use.
- * Used by filter-rule.tsx to map property types to appropriate filter UI.
- */
 export type FilterVariant =
 	| "text"
 	| "number"

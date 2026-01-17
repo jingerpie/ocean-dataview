@@ -1,13 +1,19 @@
 "use client";
 
-import { DataViewOptions } from "@ocean-dataview/dataview/components/ui";
+import { NotionToolbar } from "@ocean-dataview/dataview/components/ui";
 import {
 	BoardSkeleton,
 	BoardView,
 } from "@ocean-dataview/dataview/components/views/board-view";
-import { useGroupInfinitePagination } from "@ocean-dataview/dataview/hooks";
+import {
+	useFilterParams,
+	useGroupInfinitePagination,
+	useSearchParams,
+	useSortParams,
+} from "@ocean-dataview/dataview/hooks";
+
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
-import type { Filter, PropertySort } from "@ocean-dataview/shared/types";
+import type { PropertySort, WhereNode } from "@ocean-dataview/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
@@ -19,15 +25,20 @@ import {
 
 interface Props {
 	limit: number;
-	filter?: Filter | null;
+	filter?: WhereNode | null;
+	/** Search filter (converted from URL ?search=xxx by server page) */
+	search?: WhereNode | null;
 	sort?: PropertySort<Product>[];
 }
 
 /**
  * Combines group filter with user filter using AND logic.
  */
-function combineFilters(groupKey: string, userFilter: Filter | null): Filter {
-	const groupFilter: Filter = {
+function combineFilters(
+	groupKey: string,
+	userFilter: WhereNode | null
+): WhereNode {
+	const groupFilter: WhereNode = {
 		property: "familyGroup",
 		operator: "eq",
 		value: groupKey,
@@ -52,6 +63,7 @@ function combineFilters(groupKey: string, userFilter: Filter | null): Filter {
 export function ProductGroupPaginationBoard({
 	limit,
 	filter = null,
+	search: searchQuery = null,
 	sort = [],
 }: Props) {
 	const trpc = useTRPC();
@@ -65,6 +77,7 @@ export function ProductGroupPaginationBoard({
 	const allGroupKeys = Object.keys(groupCounts);
 
 	// 3. Single hook call using TRPC infiniteQueryOptions - all groups "expanded" for board
+	// search is now a Filter (converted from URL param by server)
 	const { data, pagination } = useGroupInfinitePagination({
 		allGroupKeys,
 		expanded: allGroupKeys, // All columns visible
@@ -74,6 +87,7 @@ export function ProductGroupPaginationBoard({
 			trpc.product.getMany.infiniteQueryOptions(
 				{
 					filter: combineFilters(groupKey, filter),
+					search: searchQuery,
 					sort,
 					limit,
 				},
@@ -83,14 +97,11 @@ export function ProductGroupPaginationBoard({
 			),
 	});
 
-	// Empty state
-	if (pagination.groups.length === 0) {
-		return (
-			<div className="flex min-h-100 items-center justify-center">
-				<p className="text-muted-foreground">No products found</p>
-			</div>
-		);
-	}
+	// Hooks for UI state management
+	// Note: useSearchParams uses URL state for the search input display
+	const { setFilter } = useFilterParams();
+	const { search, setSearch } = useSearchParams();
+	const { setSort: setSorts } = useSortParams<Product>({ sort });
 
 	return (
 		<Suspense fallback={<BoardSkeleton columnCount={4} />}>
@@ -99,18 +110,35 @@ export function ProductGroupPaginationBoard({
 				pagination={pagination}
 				properties={productProperties}
 			>
-				<div className="flex items-center justify-between">
+				<NotionToolbar
+					enableFilter
+					enableProperties
+					enableSearch
+					enableSort
+					filter={filter}
+					onFilterChange={setFilter}
+					onSearchChange={setSearch}
+					onSortsChange={setSorts}
+					properties={productProperties}
+					search={search}
+					sorts={sort}
+				>
 					<GroupPaginationTabs />
-					<DataViewOptions />
-				</div>
+				</NotionToolbar>
 
-				<BoardView
-					counts={groupCounts}
-					pagination="loadMore"
-					view={{
-						group: { groupBy: "familyGroup", showAggregation: true },
-					}}
-				/>
+				{pagination.groups.length === 0 ? (
+					<div className="flex min-h-100 items-center justify-center">
+						<p className="text-muted-foreground">No products found</p>
+					</div>
+				) : (
+					<BoardView
+						counts={groupCounts}
+						pagination="loadMore"
+						view={{
+							group: { groupBy: "familyGroup", showAggregation: true },
+						}}
+					/>
+				)}
 			</DataViewProvider>
 		</Suspense>
 	);

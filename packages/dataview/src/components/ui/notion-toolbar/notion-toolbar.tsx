@@ -13,7 +13,7 @@ import {
 import { useAdvanceFilterBuilder } from "@ocean-dataview/dataview/hooks";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
-import type { Filter, PropertySort } from "@ocean-dataview/shared/types";
+import type { PropertySort } from "@ocean-dataview/shared/types";
 import {
 	createDefaultCondition,
 	normalizeFilter,
@@ -30,9 +30,9 @@ interface NotionToolbarProps<T> extends ComponentProps<"div"> {
 	/** Available properties */
 	properties: DataViewProperty<T>[];
 	/** Current filter */
-	filter: Filter | null;
+	filter: WhereNode | null;
 	/** Callback when filter changes */
-	onFilterChange: (filter: Filter | null) => void;
+	onFilterChange: (filter: WhereNode | null) => void;
 	/** Current sorts (multiple sorts supported) */
 	sorts: PropertySort<T>[];
 	/** Callback when sorts change */

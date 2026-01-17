@@ -8,16 +8,17 @@ import {
 import {
 	useFilterParams,
 	usePagePagination,
+	useSearchParams,
 	useSortParams,
 } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
 import type {
 	CursorValue,
-	Filter,
 	PropertySort,
+	WhereNode,
 } from "@ocean-dataview/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Suspense, useState } from "react";
+import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { PaginationTabs } from "./pagination-tabs";
 import { type Product, productProperties } from "./product-properties";
@@ -28,7 +29,9 @@ import { type Product, productProperties } from "./product-properties";
 interface PaginationProps {
 	cursor?: CursorValue | null;
 	limit: number;
-	filter?: Filter | null;
+	filter?: WhereNode | null;
+	/** Search filter (converted from URL ?search=xxx by server page) */
+	search?: WhereNode | null;
 	sorts?: PropertySort<Product>[];
 }
 
@@ -43,22 +46,29 @@ interface PaginationProps {
  * NOTE: No Suspense wrapper - matches turboitem pattern where void prefetch works
  */
 export function ProductPaginationTable(props: PaginationProps) {
-	const { cursor, limit, filter = null, sorts = [] } = props;
+	const {
+		cursor,
+		limit,
+		filter = null,
+		search: searchQuery = null,
+		sorts = [],
+	} = props;
 	const trpc = useTRPC();
 
-	// Local search state (client-side filtering)
-	const [search, setSearch] = useState("");
-
 	// Hooks for UI state management (used by toolbar for user interactions)
+	// Note: useSearchParams uses URL state for the search input display
 	const { setFilter } = useFilterParams();
+	const { search, setSearch } = useSearchParams();
 	const { setSort: setSorts } = useSortParams<Product>({ sort: sorts });
 
 	// Query with props directly - MUST match server prefetch for cache hit
+	// search is now a Filter (converted from URL param by server)
 	const { data } = useSuspenseQuery(
 		trpc.product.getMany.queryOptions({
 			cursor,
 			limit,
 			filter,
+			search: searchQuery, // Pass Filter for cache hit
 			sort: sorts,
 		})
 	);
