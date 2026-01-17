@@ -12,32 +12,12 @@ import type {
 	PropertySort,
 	WhereNode,
 } from "@ocean-dataview/shared/types";
+import { combineGroupFilter } from "@ocean-dataview/shared/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "./group-pagination-tabs";
 import { type Product, productProperties } from "./product-properties";
-
-/**
- * Combines group filter with user filter using AND logic.
- * Always returns FilterQuery format ({ and: [...] }) for tRPC validation.
- */
-function combineFilters(
-	groupKey: string,
-	userFilter: WhereNode | null
-): WhereNode {
-	const groupFilter: WhereNode = {
-		property: "familyGroup",
-		operator: "eq",
-		value: groupKey,
-	};
-
-	if (!userFilter) {
-		return { and: [groupFilter] };
-	}
-
-	return { and: [groupFilter, userFilter] };
-}
 
 /**
  * Props passed from server (parsed URL params)
@@ -84,7 +64,7 @@ export function ProductSubGroupPaginationBoard({
 		limit,
 		createQueryOptions: (groupKey, cursor) =>
 			trpc.product.getMany.queryOptions({
-				filter: combineFilters(groupKey, filter),
+				filter: combineGroupFilter("familyGroup", groupKey, filter),
 				search: searchQuery,
 				sort,
 				cursor,

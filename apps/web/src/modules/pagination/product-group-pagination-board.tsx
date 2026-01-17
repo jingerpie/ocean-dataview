@@ -8,6 +8,7 @@ import {
 import { useGroupInfinitePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
 import type { PropertySort, WhereNode } from "@ocean-dataview/shared/types";
+import { combineGroupFilter } from "@ocean-dataview/shared/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
@@ -23,29 +24,6 @@ interface Props {
 	/** Search filter (converted from URL ?search=xxx by server page) */
 	search?: WhereNode | null;
 	sort?: PropertySort<Product>[];
-}
-
-/**
- * Combines group filter with user filter using AND logic.
- */
-function combineFilters(
-	groupKey: string,
-	userFilter: WhereNode | null
-): WhereNode {
-	const groupFilter: WhereNode = {
-		property: "familyGroup",
-		operator: "eq",
-		value: groupKey,
-	};
-
-	if (!userFilter) {
-		return { and: [groupFilter] };
-	}
-
-	// Combine with AND logic
-	return {
-		and: [groupFilter, userFilter],
-	};
 }
 
 /**
@@ -79,7 +57,7 @@ export function ProductGroupPaginationBoard({
 		createQueryOptions: (groupKey) =>
 			trpc.product.getMany.infiniteQueryOptions(
 				{
-					filter: combineFilters(groupKey, filter),
+					filter: combineGroupFilter("familyGroup", groupKey, filter),
 					search: searchQuery,
 					sort,
 					limit,

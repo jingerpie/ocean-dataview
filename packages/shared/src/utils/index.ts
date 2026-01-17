@@ -37,4 +37,5 @@ export {
 } from "./filter-builder";
 export { validateFilter } from "./filter-validation";
 export { getFilterVariantFromPropertyType } from "./filter-variant";
+export { combineGroupFilter } from "./group-filter";
 export { buildSearchFilter } from "./search";
