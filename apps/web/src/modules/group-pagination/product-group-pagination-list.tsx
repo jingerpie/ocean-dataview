@@ -1,6 +1,6 @@
 "use client";
 
-import { DataViewOptions } from "@ocean-dataview/dataview/components/ui";
+import { NotionToolbar } from "@ocean-dataview/dataview/components/ui";
 import {
 	ListSkeleton,
 	ListView,
@@ -113,10 +113,9 @@ export function ProductGroupPaginationList({
 				pagination={pagination}
 				properties={productProperties}
 			>
-				<div className="flex items-center justify-between">
+				<NotionToolbar properties={productProperties}>
 					<GroupPaginationTabs />
-					<DataViewOptions />
-				</div>
+				</NotionToolbar>
 
 				<ListView
 					pagination="page"
