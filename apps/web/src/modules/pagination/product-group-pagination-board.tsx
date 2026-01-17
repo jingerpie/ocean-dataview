@@ -39,7 +39,7 @@ function combineFilters(
 	};
 
 	if (!userFilter) {
-		return groupFilter;
+		return { and: [groupFilter] };
 	}
 
 	// Combine with AND logic

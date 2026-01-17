@@ -18,6 +18,7 @@ const DEFAULT_EXPANDED: string[] = [];
 
 /**
  * Combines group filter with user filter using AND logic.
+ * Always returns FilterQuery format ({ and: [...] }) for tRPC validation.
  */
 function combineFilters(
 	groupKey: string,
@@ -30,7 +31,7 @@ function combineFilters(
 	};
 
 	if (!userFilter) {
-		return groupFilter;
+		return { and: [groupFilter] };
 	}
 
 	return { and: [groupFilter, userFilter] };
