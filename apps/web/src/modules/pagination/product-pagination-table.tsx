@@ -5,12 +5,7 @@ import {
 	TableSkeleton,
 	TableView,
 } from "@ocean-dataview/dataview/components/views/table-view";
-import {
-	useFilterParams,
-	usePagePagination,
-	useSearchParams,
-	useSortParams,
-} from "@ocean-dataview/dataview/hooks";
+import { usePagePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
 import type {
 	CursorValue,
@@ -41,9 +36,8 @@ interface PaginationProps {
  * Pattern: Server prefetch → Props → Client uses props for query
  * - Server parses URL, prefetches, passes props
  * - Client uses useSuspenseQuery with props (matches server prefetch = cache hit)
+ * - NotionToolbar manages filter/sort/search state via nuqs (uncontrolled mode)
  * - usePagePagination handles URL updates (shallow: false)
- *
- * NOTE: No Suspense wrapper - matches turboitem pattern where void prefetch works
  */
 export function ProductPaginationTable(props: PaginationProps) {
 	const {
@@ -55,20 +49,13 @@ export function ProductPaginationTable(props: PaginationProps) {
 	} = props;
 	const trpc = useTRPC();
 
-	// Hooks for UI state management (used by toolbar for user interactions)
-	// Note: useSearchParams uses URL state for the search input display
-	const { setFilter } = useFilterParams();
-	const { search, setSearch } = useSearchParams();
-	const { setSort: setSorts } = useSortParams<Product>({ sort: sorts });
-
 	// Query with props directly - MUST match server prefetch for cache hit
-	// search is now a Filter (converted from URL param by server)
 	const { data } = useSuspenseQuery(
 		trpc.product.getMany.queryOptions({
 			cursor,
 			limit,
 			filter,
-			search: searchQuery, // Pass Filter for cache hit
+			search: searchQuery,
 			sort: sorts,
 		})
 	);
@@ -81,15 +68,6 @@ export function ProductPaginationTable(props: PaginationProps) {
 		limitOptions: [10, 25, 50, 100],
 	});
 
-	// Empty state
-	// if (data.items.length === 0) {
-	// 	return (
-	// 		<div className="flex min-h-100 items-center justify-center">
-	// 			<p className="text-muted-foreground">No products found</p>
-	// 		</div>
-	// 	);
-	// }
-
 	return (
 		<Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
 			<DataViewProvider
@@ -97,19 +75,8 @@ export function ProductPaginationTable(props: PaginationProps) {
 				pagination={pagination}
 				properties={productProperties}
 			>
-				<NotionToolbar
-					enableFilter
-					enableProperties
-					enableSearch
-					enableSort
-					filter={filter}
-					onFilterChange={setFilter}
-					onSearchChange={setSearch}
-					onSortsChange={setSorts}
-					properties={productProperties}
-					search={search}
-					sorts={sorts}
-				>
+				{/* Uncontrolled mode: NotionToolbar manages state via nuqs */}
+				<NotionToolbar properties={productProperties}>
 					<PaginationTabs />
 				</NotionToolbar>
 				<TableView

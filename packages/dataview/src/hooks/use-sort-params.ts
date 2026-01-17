@@ -1,11 +1,18 @@
 "use client";
 
+import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { parseAsSort } from "@ocean-dataview/shared/lib";
 import type { PropertySort } from "@ocean-dataview/shared/types";
 import { useQueryState } from "nuqs";
 
 interface UseSortParamsOptions<T = unknown> {
-	sort?: PropertySort<T>[]; // Props from server
+	/** Initial sort from server props */
+	sort?: PropertySort<T>[];
+	/**
+	 * Properties array for type inference.
+	 * When provided, T is inferred from the properties type.
+	 */
+	properties?: DataViewProperty<T>[];
 }
 
 /**
@@ -14,8 +21,11 @@ interface UseSortParamsOptions<T = unknown> {
  *
  * @example
  * ```ts
- * // With server-parsed initial values
- * const { sort, setSort, addSort } = useSortParams({ sort: props.sort });
+ * // With type inference from properties (recommended)
+ * const { sort, setSort } = useSortParams({ properties: productProperties });
+ *
+ * // With explicit type
+ * const { sort, setSort } = useSortParams<Product>();
  *
  * // URL format: ?sort=[{"propertyId":"name","desc":false}]
  * ```

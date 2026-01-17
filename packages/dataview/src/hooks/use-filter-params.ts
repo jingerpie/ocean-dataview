@@ -1,7 +1,8 @@
 "use client";
 
 import { parseAsFilter } from "@ocean-dataview/shared/lib";
-import type { WhereNode } from "@ocean-dataview/shared/types";
+import type { FilterQuery, WhereNode } from "@ocean-dataview/shared/types";
+import { normalizeFilter } from "@ocean-dataview/shared/utils";
 import { useQueryState } from "nuqs";
 
 /**
@@ -16,14 +17,24 @@ import { useQueryState } from "nuqs";
  * ```
  */
 export function useFilterParams() {
-	const [filter, setFilterState] = useQueryState(
+	const [filterState, setFilterState] = useQueryState(
 		"filter",
 		parseAsFilter.withOptions({ shallow: false })
 	);
 
+	// Expose as WhereNode for consumers (FilterQuery is a WhereExpression which is a WhereNode)
+	const filter = filterState as WhereNode | null;
+
 	// Set the entire filter object (replaces previous filter)
+	// Normalizes WhereNode to FilterQuery format ({ and: [...] })
 	const setFilter = (newFilter: WhereNode | null) => {
-		setFilterState(newFilter);
+		if (newFilter === null) {
+			setFilterState(null);
+			return;
+		}
+		// Normalize to ensure it's always { and: [...] } format for URL
+		const normalized = normalizeFilter(newFilter);
+		setFilterState(normalized as FilterQuery | null);
 	};
 
 	const clearFilter = () => {

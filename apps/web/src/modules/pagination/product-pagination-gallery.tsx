@@ -5,13 +5,7 @@ import {
 	GallerySkeleton,
 	GalleryView,
 } from "@ocean-dataview/dataview/components/views/gallery-view";
-import {
-	useFilterParams,
-	useInfinitePagination,
-	useSearchParams,
-	useSortParams,
-} from "@ocean-dataview/dataview/hooks";
-
+import { useInfinitePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
 import type { PropertySort, WhereNode } from "@ocean-dataview/shared/types";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
@@ -67,12 +61,6 @@ export function ProductPaginationGallery({
 		limitOptions: [10, 25, 50, 100],
 	});
 
-	// Hooks for UI state management
-	// Note: useSearchParams uses URL state for the search input display
-	const { setFilter } = useFilterParams();
-	const { search, setSearch } = useSearchParams();
-	const { setSort: setSorts } = useSortParams<Product>({ sort });
-
 	return (
 		<Suspense fallback={<GallerySkeleton cardCount={6} />}>
 			<DataViewProvider
@@ -80,19 +68,8 @@ export function ProductPaginationGallery({
 				pagination={pagination}
 				properties={productProperties}
 			>
-				<NotionToolbar
-					enableFilter
-					enableProperties
-					enableSearch
-					enableSort
-					filter={filter}
-					onFilterChange={setFilter}
-					onSearchChange={setSearch}
-					onSortsChange={setSorts}
-					properties={productProperties}
-					search={search}
-					sorts={sort}
-				>
+				{/* Uncontrolled mode: NotionToolbar manages state via nuqs */}
+				<NotionToolbar properties={productProperties}>
 					<PaginationTabs />
 				</NotionToolbar>
 

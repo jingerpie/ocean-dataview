@@ -3,7 +3,12 @@
 import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
-import type { PropertySort } from "@ocean-dataview/shared/types";
+import type {
+	PropertySort,
+	WhereCondition,
+	WhereExpression,
+	WhereNode,
+} from "@ocean-dataview/shared/types";
 import {
 	createDefaultCondition,
 	getDefaultFilterOperator,

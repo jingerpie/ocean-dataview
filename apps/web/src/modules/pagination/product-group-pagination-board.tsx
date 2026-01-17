@@ -5,13 +5,7 @@ import {
 	BoardSkeleton,
 	BoardView,
 } from "@ocean-dataview/dataview/components/views/board-view";
-import {
-	useFilterParams,
-	useGroupInfinitePagination,
-	useSearchParams,
-	useSortParams,
-} from "@ocean-dataview/dataview/hooks";
-
+import { useGroupInfinitePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
 import type { PropertySort, WhereNode } from "@ocean-dataview/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -77,7 +71,6 @@ export function ProductGroupPaginationBoard({
 	const allGroupKeys = Object.keys(groupCounts);
 
 	// 3. Single hook call using TRPC infiniteQueryOptions - all groups "expanded" for board
-	// search is now a Filter (converted from URL param by server)
 	const { data, pagination } = useGroupInfinitePagination({
 		allGroupKeys,
 		expanded: allGroupKeys, // All columns visible
@@ -97,12 +90,6 @@ export function ProductGroupPaginationBoard({
 			),
 	});
 
-	// Hooks for UI state management
-	// Note: useSearchParams uses URL state for the search input display
-	const { setFilter } = useFilterParams();
-	const { search, setSearch } = useSearchParams();
-	const { setSort: setSorts } = useSortParams<Product>({ sort });
-
 	return (
 		<Suspense fallback={<BoardSkeleton columnCount={4} />}>
 			<DataViewProvider
@@ -110,19 +97,8 @@ export function ProductGroupPaginationBoard({
 				pagination={pagination}
 				properties={productProperties}
 			>
-				<NotionToolbar
-					enableFilter
-					enableProperties
-					enableSearch
-					enableSort
-					filter={filter}
-					onFilterChange={setFilter}
-					onSearchChange={setSearch}
-					onSortsChange={setSorts}
-					properties={productProperties}
-					search={search}
-					sorts={sort}
-				>
+				{/* Uncontrolled mode: NotionToolbar manages state via nuqs */}
+				<NotionToolbar properties={productProperties}>
 					<GroupPaginationTabs />
 				</NotionToolbar>
 

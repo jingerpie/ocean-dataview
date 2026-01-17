@@ -1,3 +1,5 @@
+import type { WhereNode } from "@ocean-dataview/shared/types";
+
 export type PropertyType =
 	| "text"
 	| "number"

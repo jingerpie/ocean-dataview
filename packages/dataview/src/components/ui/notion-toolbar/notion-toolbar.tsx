@@ -10,7 +10,12 @@ import {
 	ComboboxList,
 	ComboboxTrigger,
 } from "@ocean-dataview/dataview/components/ui/combobox";
-import { useAdvanceFilterBuilder } from "@ocean-dataview/dataview/hooks";
+import {
+	useAdvanceFilterBuilder,
+	useFilterParams,
+	useSearchParams,
+	useSortParams,
+} from "@ocean-dataview/dataview/hooks";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type { PropertySort } from "@ocean-dataview/shared/types";
@@ -27,20 +32,8 @@ import { DataViewOptions } from "../visibility";
 import { ActiveControlsRow } from "./active-controls-row";
 
 interface NotionToolbarProps<T> extends ComponentProps<"div"> {
-	/** Available properties */
+	/** Available properties for filtering/sorting */
 	properties: DataViewProperty<T>[];
-	/** Current filter */
-	filter: WhereNode | null;
-	/** Callback when filter changes */
-	onFilterChange: (filter: WhereNode | null) => void;
-	/** Current sorts (multiple sorts supported) */
-	sorts: PropertySort<T>[];
-	/** Callback when sorts change */
-	onSortsChange: (sorts: PropertySort<T>[]) => void;
-	/** Current search value */
-	search: string;
-	/** Callback when search changes */
-	onSearchChange: (search: string) => void;
 	/** Enable filter functionality */
 	enableFilter?: boolean;
 	/** Enable sort functionality */
@@ -56,17 +49,23 @@ interface NotionToolbarProps<T> extends ComponentProps<"div"> {
 /**
  * Notion-style toolbar with two-row layout.
  *
+ * State is managed internally via nuqs URL params:
+ * - ?filter={...} for filters
+ * - ?sort=[...] for sorting
+ * - ?search=... for search
+ *
  * Row 1: [children] -------- [Filter] [Sort] [Search] [Properties]
  * Row 2: [SortList] [Filter Chips...] [+ Filter] (conditional)
+ *
+ * @example
+ * ```tsx
+ * <NotionToolbar properties={productProperties}>
+ *   <MyTabs />
+ * </NotionToolbar>
+ * ```
  */
 export function NotionToolbar<T>({
 	properties,
-	filter,
-	onFilterChange,
-	sorts,
-	onSortsChange,
-	search,
-	onSearchChange,
 	enableFilter = true,
 	enableSort = true,
 	enableSearch = true,
@@ -75,6 +74,10 @@ export function NotionToolbar<T>({
 	className,
 	...props
 }: NotionToolbarProps<T>) {
+	// State managed via nuqs URL params
+	const { filter, setFilter: onFilterChange } = useFilterParams();
+	const { search, setSearch: onSearchChange } = useSearchParams();
+	const { sort: sorts, setSort: onSortsChange } = useSortParams<T>();
 	const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
 	const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
 
