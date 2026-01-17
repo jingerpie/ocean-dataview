@@ -17,6 +17,7 @@ import {
 	cursorsSchema,
 	cursorValueSchema,
 } from "../types/pagination.type";
+import { validateFilter } from "../utils/filter-validation";
 
 // ============================================================================
 // Constants
@@ -97,7 +98,9 @@ export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 		cursor: z.union([cursorValueSchema, z.string()]).nullish(),
 		limit: z.number().int().min(1).max(200).default(DEFAULT_LIMIT),
 		search: searchQuerySchema.nullish(),
-		filter: filterQuerySchema.nullish(),
+		filter: filterQuerySchema
+			.nullish()
+			.transform((f) => (f ? validateFilter(f) : null)),
 		sort: z.array(sortSchema).default([]),
 	});
 };
