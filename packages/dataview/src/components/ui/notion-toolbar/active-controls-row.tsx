@@ -237,7 +237,7 @@ export function ActiveControlsRow<T>({
 				onSelect={handleAddFilter}
 				open={addFilterOpen}
 				properties={properties}
-				variant="add"
+				variant="icon"
 			/>
 
 			{/* 5. Clear All Button */}

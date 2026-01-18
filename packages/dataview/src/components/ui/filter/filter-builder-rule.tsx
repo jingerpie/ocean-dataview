@@ -124,10 +124,11 @@ export function FilterRule<T>({
 
 			{/* Property Selector */}
 			<FilterPropertyPicker
+				advance
 				onSelect={handlePropertySelect}
 				properties={properties}
 				value={property}
-				variant="selector"
+				variant="rule"
 			/>
 
 			{/* Operator Picker */}

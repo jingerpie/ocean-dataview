@@ -192,6 +192,7 @@ export function NotionToolbar<T>({
 								onSelect={handleFilterPropertySelect}
 								open={filterDropdownOpen}
 								properties={properties}
+								variant="icon"
 							/>
 						))}
 

@@ -18,7 +18,7 @@ import { ListFilterIcon, PlusIcon } from "lucide-react";
 interface FilterPropertyPickerProps<T> {
 	/** Available properties to filter by */
 	properties: DataViewProperty<T>[];
-	/** Currently selected property (for selector variant) */
+	/** Currently selected property (for rule variant) */
 	value?: DataViewProperty<T>;
 	/** Controlled open state */
 	open?: boolean;
@@ -26,21 +26,36 @@ interface FilterPropertyPickerProps<T> {
 	onOpenChange?: (open: boolean) => void;
 	/** Callback when a property is selected */
 	onSelect: (property: DataViewProperty<T>) => void;
-	/** Callback when "Add advanced filter" is clicked (not shown for selector variant) */
+	/** Callback when "Add advanced filter" is clicked (only shown when advance=false) */
 	onAdvancedFilter?: () => void;
-	/** Trigger variant */
-	variant?: "default" | "add" | "selector";
-	/** Property IDs to exclude from the list (e.g., already used in simple filters) */
+	/**
+	 * Trigger variant:
+	 * - `default` - Filter icon with "Filter" label
+	 * - `icon` - Plus icon only (compact)
+	 * - `rule` - Shows selected property value (for changing property in existing rule)
+	 */
+	variant?: "default" | "icon" | "rule";
+	/**
+	 * Advanced mode (for use inside advanced filter builder):
+	 * - `true` - No "Add advanced filter" button, shows all properties
+	 * - `false` - Shows "Add advanced filter" button, can exclude properties
+	 */
+	advance?: boolean;
+	/** Property IDs to exclude from the list (only used when advance=false) */
 	excludePropertyIds?: string[];
 }
 
 /**
  * Filter property picker with Combobox.
  *
- * Variants:
- * - `default` - Filter icon with label (for toolbar when no filter exists)
- * - `add` - Plus icon with label (for adding another filter)
- * - `selector` - Shows selected value (for changing property in existing rule)
+ * Trigger Variants:
+ * - `default` - Filter icon with "Filter" label (for toolbar)
+ * - `icon` - Plus icon only (compact mode)
+ * - `rule` - Shows selected property value (for existing filter rules)
+ *
+ * Content Modes:
+ * - `advance=false` (default) - Shows "Add advanced filter" button, respects excludePropertyIds
+ * - `advance=true` - No "Add advanced filter" button, shows all properties
  */
 function FilterPropertyPicker<T>({
 	properties,
@@ -50,21 +65,23 @@ function FilterPropertyPicker<T>({
 	onSelect,
 	onAdvancedFilter,
 	variant = "default",
+	advance = false,
 	excludePropertyIds,
 }: FilterPropertyPickerProps<T>) {
-	// Filter out excluded properties
-	const availableProperties = excludePropertyIds
-		? properties.filter((p) => !excludePropertyIds.includes(String(p.id)))
-		: properties;
+	// Filter out excluded properties (only when not in advance mode)
+	const availableProperties =
+		!advance && excludePropertyIds
+			? properties.filter((p) => !excludePropertyIds.includes(String(p.id)))
+			: properties;
 
-	// Find matching property from items for selector variant
+	// Find matching property from items for rule variant
 	const selectedProperty = value
 		? properties.find((p) => p.id === value.id)
 		: undefined;
 
 	// Render trigger based on variant
 	const renderTrigger = () => {
-		if (variant === "selector") {
+		if (variant === "rule") {
 			return (
 				<ComboboxTrigger
 					className="min-w-28 justify-between"
@@ -79,19 +96,33 @@ function FilterPropertyPicker<T>({
 			);
 		}
 
-		const TriggerIcon = variant === "add" ? PlusIcon : ListFilterIcon;
+		if (variant === "icon") {
+			return (
+				<ComboboxTrigger
+					render={<Button size="icon-sm" variant="ghost" />}
+					showChevron={false}
+				>
+					<PlusIcon />
+				</ComboboxTrigger>
+			);
+		}
+
+		// default variant
 		return (
 			<ComboboxTrigger render={<Button size="sm" variant="ghost" />}>
-				<TriggerIcon />
+				<ListFilterIcon />
 				<span>Filter</span>
 			</ComboboxTrigger>
 		);
 	};
 
+	// Show "Add advanced filter" button only when not in advance mode
+	const showAdvancedFilterButton = !advance && onAdvancedFilter;
+
 	// Compute value - use null instead of undefined to keep component in controlled mode
 	// Type assertion needed because base-ui Combobox has complex generic inference with union types
 	const comboboxValue = (
-		variant === "selector" ? (selectedProperty ?? null) : null
+		variant === "rule" ? (selectedProperty ?? null) : null
 	) as never;
 
 	return (
@@ -117,7 +148,7 @@ function FilterPropertyPicker<T>({
 						</ComboboxItem>
 					)}
 				</ComboboxList>
-				{onAdvancedFilter && (
+				{showAdvancedFilterButton && (
 					<>
 						<ComboboxSeparator className="my-0" />
 						<Button

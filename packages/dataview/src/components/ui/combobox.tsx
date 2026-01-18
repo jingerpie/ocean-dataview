@@ -21,8 +21,12 @@ function ComboboxValue({ ...props }: ComboboxPrimitive.Value.Props) {
 function ComboboxTrigger({
 	className,
 	children,
+	showChevron = true,
 	...props
-}: ComboboxPrimitive.Trigger.Props) {
+}: ComboboxPrimitive.Trigger.Props & {
+	/** Show chevron icon (default: true) */
+	showChevron?: boolean;
+}) {
 	return (
 		<ComboboxPrimitive.Trigger
 			className={cn("[&_svg:not([class*='size-'])]:size-4", className)}
@@ -30,7 +34,9 @@ function ComboboxTrigger({
 			{...props}
 		>
 			{children}
-			<ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
+			{showChevron && (
+				<ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
+			)}
 		</ComboboxPrimitive.Trigger>
 	);
 }
