@@ -2,14 +2,6 @@
 
 import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import {
-	Command,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-	CommandList,
-} from "@ocean-dataview/dataview/components/ui/command";
-import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
@@ -21,12 +13,7 @@ import {
 	getDefaultFilterOperator,
 	getFilterVariantFromPropertyType,
 } from "@ocean-dataview/shared/utils";
-import {
-	ChevronDownIcon,
-	ChevronLeftIcon,
-	CopyPlus,
-	PlusIcon,
-} from "lucide-react";
+import { ChevronDownIcon, CopyPlusIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 
 interface AddFilterButtonProps<T> {
@@ -44,9 +31,10 @@ interface AddFilterButtonProps<T> {
 
 /**
  * Button to add a new filter rule or group.
- * Uses a single popover with different views:
- * - "menu": Shows options to add rule or group
- * - "properties": Shows property selector
+ *
+ * - "Add filter rule" immediately creates a rule with the first property
+ * - "Add filter group" creates a nested AND group
+ * - User can change property afterward using PropertySelect in FilterRule
  */
 export function AddFilterButton<T>({
 	properties,
@@ -56,39 +44,34 @@ export function AddFilterButton<T>({
 	className,
 }: AddFilterButtonProps<T>) {
 	const [open, setOpen] = useState(false);
-	const [view, setView] = useState<"menu" | "properties">("menu");
 
-	const handleSelectProperty = (propertyId: string) => {
-		// Find property to get its type for the correct default operator
-		const property = properties.find((p) => String(p.id) === propertyId);
-		const filterVariant = property
-			? getFilterVariantFromPropertyType(property.type)
-			: "text";
+	// Create condition with first property as default
+	const handleAddRule = () => {
+		const firstProperty = properties[0];
+		if (!firstProperty) {
+			return;
+		}
+
+		const filterVariant = getFilterVariantFromPropertyType(firstProperty.type);
 		const defaultOperator = getDefaultFilterOperator(filterVariant);
-		const condition = createDefaultCondition(propertyId, defaultOperator);
+		const condition = createDefaultCondition(
+			String(firstProperty.id),
+			defaultOperator
+		);
+
 		onAddRule(condition);
 		setOpen(false);
-		setView("menu");
 	};
 
 	const handleAddGroup = () => {
 		onAddGroup();
 		setOpen(false);
-		setView("menu");
 	};
 
-	const handleOpenChange = (newOpen: boolean) => {
-		setOpen(newOpen);
-		if (!newOpen) {
-			// Reset view when closing
-			setView("menu");
-		}
-	};
-
-	// If can add group, show menu with options
+	// When can add group, show popover with two options
 	if (canAddGroup) {
 		return (
-			<Popover onOpenChange={handleOpenChange} open={open}>
+			<Popover onOpenChange={setOpen} open={open}>
 				<PopoverTrigger
 					render={
 						<Button className={className} size="sm" variant="ghost">
@@ -98,107 +81,49 @@ export function AddFilterButton<T>({
 						</Button>
 					}
 				/>
-				<PopoverContent align="start" className="gap-1 p-2">
-					{view === "menu" ? (
-						<>
-							{/* Add Filter Rule */}
-							<Button
-								className="w-full justify-start"
-								onClick={() => setView("properties")}
-								size="sm"
-								variant="ghost"
-							>
-								<PlusIcon />
-								<span>Add filter rule</span>
-							</Button>
+				<PopoverContent align="start" className="w-auto gap-1 p-2">
+					{/* Add Filter Rule */}
+					<Button
+						className="w-full justify-start"
+						onClick={handleAddRule}
+						size="sm"
+						variant="ghost"
+					>
+						<PlusIcon />
+						<span>Add filter rule</span>
+					</Button>
 
-							{/* Add Filter Group */}
-							<Button
-								className="h-auto w-full flex-col items-start"
-								onClick={handleAddGroup}
-								size="sm"
-								variant="ghost"
-							>
-								<div className="flex items-center gap-2">
-									<CopyPlus />
-									<span>Add filter group</span>
-								</div>
-								<span className="ml-6 text-muted-foreground text-xs">
-									A group to nest more filters
-								</span>
-							</Button>
-						</>
-					) : (
-						<>
-							{/* Back button */}
-							<Button
-								className="w-full justify-start border-b text-muted-foreground text-xs"
-								onClick={() => setView("menu")}
-								size="sm"
-								variant="ghost"
-							>
-								<ChevronLeftIcon className="size-3" />
-								<span>Back</span>
-							</Button>
-							<Command loop>
-								<CommandInput placeholder="Search properties..." />
-								<CommandList>
-									<CommandEmpty>No properties found.</CommandEmpty>
-									<CommandGroup>
-										{properties.map((prop) => (
-											<CommandItem
-												key={String(prop.id)}
-												onSelect={() => handleSelectProperty(String(prop.id))}
-												value={String(prop.id)}
-											>
-												<span className="truncate">
-													{prop.label ?? String(prop.id)}
-												</span>
-											</CommandItem>
-										))}
-									</CommandGroup>
-								</CommandList>
-							</Command>
-						</>
-					)}
+					{/* Add Filter Group */}
+					<Button
+						className="h-auto w-full flex-col items-start"
+						onClick={handleAddGroup}
+						size="sm"
+						variant="ghost"
+					>
+						<div className="flex items-center gap-2">
+							<CopyPlusIcon />
+							<span>Add filter group</span>
+						</div>
+						<span className="ml-6 text-muted-foreground text-xs">
+							A group to nest more filters
+						</span>
+					</Button>
 				</PopoverContent>
 			</Popover>
 		);
 	}
 
-	// At max depth, show simple button with property selector
+	// At max depth, just a simple button (no dropdown needed)
 	return (
-		<Popover onOpenChange={handleOpenChange} open={open}>
-			<PopoverTrigger
-				render={
-					<Button className={className} size="sm" variant="ghost">
-						<PlusIcon className="size-3.5" />
-						<span>Add filter rule</span>
-					</Button>
-				}
-			/>
-			<PopoverContent align="start" className="p-0">
-				<Command loop>
-					<CommandInput placeholder="Search properties..." />
-					<CommandList>
-						<CommandEmpty>No properties found.</CommandEmpty>
-						<CommandGroup>
-							{properties.map((prop) => (
-								<CommandItem
-									key={String(prop.id)}
-									onSelect={() => handleSelectProperty(String(prop.id))}
-									value={String(prop.id)}
-								>
-									<span className="truncate">
-										{prop.label ?? String(prop.id)}
-									</span>
-								</CommandItem>
-							))}
-						</CommandGroup>
-					</CommandList>
-				</Command>
-			</PopoverContent>
-		</Popover>
+		<Button
+			className={className}
+			onClick={handleAddRule}
+			size="sm"
+			variant="ghost"
+		>
+			<PlusIcon />
+			<span>Add filter rule</span>
+		</Button>
 	);
 }
 
