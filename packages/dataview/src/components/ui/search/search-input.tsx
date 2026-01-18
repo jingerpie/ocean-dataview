@@ -17,6 +17,12 @@ interface SearchInputProps {
 	debounceMs?: number;
 	/** Additional class names */
 	className?: string;
+	/**
+	 * Trigger variant (for collapsed state):
+	 * - `default` - Icon + text, outline button
+	 * - `icon` - Icon only, ghost button
+	 */
+	variant?: "default" | "icon";
 }
 
 /**
@@ -30,6 +36,7 @@ export function SearchInput({
 	placeholder = "Type to search...",
 	debounceMs = 300,
 	className,
+	variant = "default",
 }: SearchInputProps) {
 	const [expanded, setExpanded] = useState(false);
 	const [localValue, setLocalValue] = useState(value);
@@ -93,9 +100,9 @@ export function SearchInput({
 		}
 	};
 
-	// Collapsed state - just icon button
+	// Collapsed state - trigger button
 	if (!expanded) {
-		return (
+		return variant === "icon" ? (
 			<Button
 				aria-label="Open search"
 				className={className}
@@ -104,6 +111,17 @@ export function SearchInput({
 				variant="ghost"
 			>
 				<SearchIcon className="size-4" />
+			</Button>
+		) : (
+			<Button
+				aria-label="Open search"
+				className={className}
+				onClick={handleExpand}
+				size="sm"
+				variant="outline"
+			>
+				<SearchIcon className="size-4" />
+				<span>Search</span>
 			</Button>
 		);
 	}

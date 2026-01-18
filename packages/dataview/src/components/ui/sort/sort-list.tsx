@@ -19,13 +19,15 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import {
-	Command,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-	CommandList,
-} from "@ocean-dataview/dataview/components/ui/command";
+	Combobox,
+	ComboboxContent,
+	ComboboxEmpty,
+	ComboboxInput,
+	ComboboxItem,
+	ComboboxList,
+	ComboboxTrigger,
+	ComboboxValue,
+} from "@ocean-dataview/dataview/components/ui/combobox";
 import {
 	Popover,
 	PopoverContent,
@@ -41,7 +43,7 @@ import {
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type { PropertySort } from "@ocean-dataview/shared/types";
-import { Check, GripVertical, Plus, SortAsc, Trash2 } from "lucide-react";
+import { GripVertical, Plus, SortAsc, Trash2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 interface SortListProps<T> {
@@ -49,6 +51,12 @@ interface SortListProps<T> {
 	sorts: PropertySort<T>[];
 	onSortsChange: (sorts: PropertySort<T>[]) => void;
 	align?: "start" | "center" | "end";
+	/**
+	 * Trigger variant:
+	 * - `default` - Icon + text, outline button
+	 * - `icon` - Icon only, ghost button
+	 */
+	variant?: "default" | "icon";
 }
 
 /**
@@ -64,6 +72,7 @@ export function SortList<T>({
 	sorts,
 	onSortsChange,
 	align = "end",
+	variant = "default",
 }: SortListProps<T>) {
 	const [open, setOpen] = useState(false);
 
@@ -125,8 +134,28 @@ export function SortList<T>({
 		(prop) => !sorts.some((sort) => sort.propertyId === prop.id)
 	);
 
-	return (
-		<Popover onOpenChange={setOpen} open={open}>
+	// Render trigger based on variant
+	const renderTrigger = () => {
+		if (variant === "icon") {
+			return (
+				<PopoverTrigger
+					render={
+						<Button
+							aria-expanded={open}
+							aria-label="Show sort menu"
+							role="combobox"
+							size="icon-sm"
+							variant="ghost"
+						/>
+					}
+				>
+					<SortAsc className="h-4 w-4" />
+				</PopoverTrigger>
+			);
+		}
+
+		// default variant
+		return (
 			<PopoverTrigger
 				render={
 					<Button
@@ -147,6 +176,12 @@ export function SortList<T>({
 					<span>Sort</span>
 				)}
 			</PopoverTrigger>
+		);
+	};
+
+	return (
+		<Popover onOpenChange={setOpen} open={open}>
+			{renderTrigger()}
 			<PopoverContent align={align} className="w-80 p-0">
 				<div className="flex flex-col gap-2 p-3">
 					{/* Sort Items with DnD */}
@@ -272,56 +307,49 @@ function SortItemContent<T>({
 	onUpdate,
 	onRemove,
 }: SortItemProps<T>) {
-	const [showFieldSelector, setShowFieldSelector] = useState(false);
+	const [open, setOpen] = useState(false);
 
 	return (
 		<>
 			{/* Field Selector */}
-			<Popover onOpenChange={setShowFieldSelector} open={showFieldSelector}>
-				<PopoverTrigger
-					render={
-						<Button
-							className="h-7 flex-1 justify-start px-2 font-normal"
-							size="sm"
-							variant="ghost"
-						/>
+			<Combobox
+				items={properties}
+				onOpenChange={setOpen}
+				onValueChange={(newProperty) => {
+					if (newProperty) {
+						onUpdate({
+							propertyId: (newProperty as DataViewProperty<T>)
+								.id as PropertySort<T>["propertyId"],
+						});
 					}
+				}}
+				open={open}
+				value={property as never}
+			>
+				<ComboboxTrigger
+					className="h-7 flex-1 justify-start px-2"
+					render={<Button size="sm" variant="ghost" />}
 				>
-					<span className="truncate">{property.label ?? property.id}</span>
-				</PopoverTrigger>
-				<PopoverContent align="start" className="w-48 p-0">
-					<Command loop>
-						<CommandInput placeholder="Search fields..." />
-						<CommandList>
-							<CommandEmpty>No fields found.</CommandEmpty>
-							<CommandGroup>
-								{properties.map((prop) => (
-									<CommandItem
-										key={prop.id}
-										onSelect={() => {
-											onUpdate({
-												propertyId: prop.id as PropertySort<T>["propertyId"],
-											});
-											setShowFieldSelector(false);
-										}}
-										value={prop.id}
-									>
-										<span className="truncate">{prop.label ?? prop.id}</span>
-										<Check
-											className={cn(
-												"ml-auto h-4 w-4",
-												prop.id === sort.propertyId
-													? "opacity-100"
-													: "opacity-0"
-											)}
-										/>
-									</CommandItem>
-								))}
-							</CommandGroup>
-						</CommandList>
-					</Command>
-				</PopoverContent>
-			</Popover>
+					<ComboboxValue>
+						<span className="truncate">{property.label ?? property.id}</span>
+					</ComboboxValue>
+				</ComboboxTrigger>
+				<ComboboxContent align="start" className="w-48">
+					<ComboboxInput placeholder="Search fields..." showTrigger={false} />
+					<ComboboxEmpty>No fields found.</ComboboxEmpty>
+					<ComboboxList>
+						{(prop) => (
+							<ComboboxItem
+								data-checked={prop.id === sort.propertyId}
+								key={String(prop.id)}
+								value={prop}
+							>
+								<span className="truncate">{prop.label ?? prop.id}</span>
+							</ComboboxItem>
+						)}
+					</ComboboxList>
+				</ComboboxContent>
+			</Combobox>
 
 			{/* Direction Dropdown */}
 			<Select
@@ -360,40 +388,38 @@ function AddSortButton<T>({ properties, onSelect }: AddSortButtonProps<T>) {
 	const [open, setOpen] = useState(false);
 
 	return (
-		<Popover onOpenChange={setOpen} open={open}>
-			<PopoverTrigger
-				render={
-					<Button className="w-full justify-start" size="sm" variant="ghost" />
+		<Combobox
+			items={properties}
+			onOpenChange={setOpen}
+			onValueChange={(property) => {
+				if (property) {
+					onSelect(String((property as DataViewProperty<T>).id));
+					setOpen(false);
 				}
+			}}
+			open={open}
+			value={null as never}
+		>
+			<ComboboxTrigger
+				className="w-full justify-start"
+				render={<Button size="sm" variant="ghost" />}
+				showChevron={false}
 			>
 				<Plus className="mr-2 h-4 w-4" />
 				Add sort
-			</PopoverTrigger>
-			<PopoverContent align="start" className="w-48 p-0">
-				<Command loop>
-					<CommandInput placeholder="Search fields..." />
-					<CommandList>
-						<CommandEmpty>No fields found.</CommandEmpty>
-						<CommandGroup>
-							{properties.map((property) => (
-								<CommandItem
-									key={property.id}
-									onSelect={() => {
-										onSelect(property.id);
-										setOpen(false);
-									}}
-									value={property.id}
-								>
-									<span className="truncate">
-										{property.label ?? property.id}
-									</span>
-								</CommandItem>
-							))}
-						</CommandGroup>
-					</CommandList>
-				</Command>
-			</PopoverContent>
-		</Popover>
+			</ComboboxTrigger>
+			<ComboboxContent align="start" className="w-48">
+				<ComboboxInput placeholder="Search fields..." showTrigger={false} />
+				<ComboboxEmpty>No fields found.</ComboboxEmpty>
+				<ComboboxList>
+					{(property) => (
+						<ComboboxItem key={String(property.id)} value={property}>
+							<span className="truncate">{property.label ?? property.id}</span>
+						</ComboboxItem>
+					)}
+				</ComboboxList>
+			</ComboboxContent>
+		</Combobox>
 	);
 }
 

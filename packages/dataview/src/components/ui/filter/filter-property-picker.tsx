@@ -30,8 +30,8 @@ interface FilterPropertyPickerProps<T> {
 	onAdvancedFilter?: () => void;
 	/**
 	 * Trigger variant:
-	 * - `default` - Filter icon with "Filter" label
-	 * - `icon` - Plus icon only (compact)
+	 * - `default` - Filter icon with "Filter" label, outline button
+	 * - `icon` - Filter icon only, ghost button
 	 * - `rule` - Shows selected property value (for changing property in existing rule)
 	 */
 	variant?: "default" | "icon" | "rule";
@@ -49,8 +49,8 @@ interface FilterPropertyPickerProps<T> {
  * Filter property picker with Combobox.
  *
  * Trigger Variants:
- * - `default` - Filter icon with "Filter" label (for toolbar)
- * - `icon` - Plus icon only (compact mode)
+ * - `default` - Filter icon with "Filter" label, outline button
+ * - `icon` - Filter icon only, ghost button
  * - `rule` - Shows selected property value (for existing filter rules)
  *
  * Content Modes:
@@ -102,14 +102,14 @@ function FilterPropertyPicker<T>({
 					render={<Button size="icon-sm" variant="ghost" />}
 					showChevron={false}
 				>
-					<PlusIcon />
+					<ListFilterIcon />
 				</ComboboxTrigger>
 			);
 		}
 
 		// default variant
 		return (
-			<ComboboxTrigger render={<Button size="sm" variant="ghost" />}>
+			<ComboboxTrigger render={<Button size="sm" variant="outline" />}>
 				<ListFilterIcon />
 				<span>Filter</span>
 			</ComboboxTrigger>

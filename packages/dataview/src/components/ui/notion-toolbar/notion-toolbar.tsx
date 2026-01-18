@@ -218,9 +218,11 @@ export function NotionToolbar<T>({
 								}}
 								open={sortDropdownOpen}
 							>
-								<ComboboxTrigger render={<Button size="sm" variant="ghost" />}>
+								<ComboboxTrigger
+									render={<Button size="icon-sm" variant="ghost" />}
+									showChevron={false}
+								>
 									<SortAscIcon className="size-4" />
-									<span>Sort</span>
 								</ComboboxTrigger>
 								<ComboboxContent align="start" className="w-56">
 									<ComboboxInput placeholder="Sort by..." showTrigger={false} />
@@ -242,6 +244,7 @@ export function NotionToolbar<T>({
 							onChange={onSearchChange}
 							placeholder="Type to search..."
 							value={search}
+							variant="icon"
 						/>
 					)}
 

@@ -2,19 +2,15 @@
 
 import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import {
-	Command,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-	CommandList,
-} from "@ocean-dataview/dataview/components/ui/command";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@ocean-dataview/dataview/components/ui/popover";
-import { ChevronsUpDown, Settings2 } from "lucide-react";
+	Combobox,
+	ComboboxContent,
+	ComboboxEmpty,
+	ComboboxInput,
+	ComboboxItem,
+	ComboboxList,
+	ComboboxTrigger,
+} from "@ocean-dataview/dataview/components/ui/combobox";
+import { Settings2 } from "lucide-react";
 import { useMemo } from "react";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 
@@ -23,10 +19,28 @@ interface PropertyLike {
 	label?: string;
 }
 
+interface ColumnItem {
+	id: string;
+	label: string;
+	isVisible: boolean;
+}
+
 export interface DataViewOptionsProps {
+	/**
+	 * Trigger variant:
+	 * - `default` - Icon + text, outline button
+	 * - `icon` - Icon only, ghost button
+	 */
 	variant?: "default" | "icon";
 }
 
+/**
+ * Property visibility picker with Combobox.
+ *
+ * Trigger Variants:
+ * - `default` - Settings icon with "Properties" label, outline button
+ * - `icon` - Settings icon only, ghost button
+ */
 export function DataViewOptions({
 	variant = "default",
 }: DataViewOptionsProps = {}) {
@@ -36,6 +50,7 @@ export function DataViewOptions({
 		excludedPropertyIds,
 		toggleProperty,
 	} = useDataViewContext();
+
 	const columns = useMemo(
 		() =>
 			(properties as readonly PropertyLike[])
@@ -50,68 +65,59 @@ export function DataViewOptions({
 		[properties, propertyVisibility, excludedPropertyIds]
 	);
 
-	return (
-		<Popover>
-			{variant === "icon" ? (
-				<PopoverTrigger
-					render={
-						<Button
-							aria-label="Toggle columns"
-							className="h-8 w-8 p-0"
-							role="combobox"
-							size="sm"
-							variant="outline"
-						/>
-					}
-				>
-					<Settings2 className="h-4 w-4" />
-				</PopoverTrigger>
-			) : (
-				<PopoverTrigger
-					render={
-						<Button
-							aria-label="Toggle columns"
-							className="hidden h-8 lg:flex"
-							role="combobox"
-							size="sm"
-							variant="outline"
-						/>
-					}
+	// Render trigger based on variant
+	const renderTrigger = () => {
+		if (variant === "icon") {
+			return (
+				<ComboboxTrigger
+					render={<Button size="icon-sm" variant="ghost" />}
+					showChevron={false}
 				>
 					<Settings2 />
-					Property
-					<ChevronsUpDown className="ml-auto opacity-50" />
-				</PopoverTrigger>
-			)}
-			<PopoverContent align="end" className="w-44 p-0">
-				<Command>
-					<CommandInput placeholder="Search columns..." />
-					<CommandList>
-						<CommandEmpty>No columns found.</CommandEmpty>
-						<CommandGroup>
-							{columns.map((column) => {
-								const propertyId = (properties as readonly PropertyLike[]).find(
-									(p) => String(p.id) === column.id
-								)?.id;
-								return (
-									<CommandItem
-										data-checked={column.isVisible}
-										key={column.id}
-										onSelect={() => {
-											if (propertyId !== undefined) {
-												toggleProperty(propertyId as string);
-											}
-										}}
-										value={column.id}
-									>
-										{column.label}
-									</CommandItem>
-								);
-							})}
-						</CommandGroup>
-					</CommandList>
-				</Command>
-			</PopoverContent>
-		</Popover>
+				</ComboboxTrigger>
+			);
+		}
+
+		// default variant
+		return (
+			<ComboboxTrigger render={<Button size="sm" variant="outline" />}>
+				<Settings2 />
+				<span>Properties</span>
+			</ComboboxTrigger>
+		);
+	};
+
+	return (
+		<Combobox
+			items={columns}
+			onValueChange={(column) => {
+				if (column) {
+					const propertyId = (properties as readonly PropertyLike[]).find(
+						(p) => String(p.id) === (column as ColumnItem).id
+					)?.id;
+					if (propertyId !== undefined) {
+						toggleProperty(propertyId as string);
+					}
+				}
+			}}
+			value={null as never}
+		>
+			{renderTrigger()}
+			<ComboboxContent align="end" className="w-44">
+				<ComboboxInput placeholder="Search columns..." showTrigger={false} />
+				<ComboboxEmpty>No columns found.</ComboboxEmpty>
+				<ComboboxList>
+					{(column) => (
+						<ComboboxItem
+							data-checked={column.isVisible}
+							key={column.id}
+							value={column}
+						>
+							{column.label}
+						</ComboboxItem>
+					)}
+				</ComboboxList>
+			</ComboboxContent>
+		</Combobox>
 	);
 }
