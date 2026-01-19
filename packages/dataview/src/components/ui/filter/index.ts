@@ -1,35 +1,29 @@
 // Filter components - Simple and Advanced filter UI
 
+// Advanced filter (grouped filters with AND/OR)
 // biome-ignore lint/performance/noBarrelFile: Intentional public API barrel file
 export {
 	AddFilterButton,
 	type AddFilterButtonProps,
-} from "./add-filter-button";
-export {
 	AdvancedFilterChip,
 	type AdvancedFilterChipProps,
-} from "./advanced-filter-chip";
-// Advanced filter (builder UI)
-export { FilterBuilder, type FilterBuilderProps } from "./filter-builder";
-export {
-	FilterBuilderPopover,
-	type FilterBuilderPopoverProps,
-} from "./filter-builder-popover";
-export {
+	FilterBuilder,
+	type FilterBuilderProps,
+	FilterGroup,
+	type FilterGroupProps,
 	FilterRule,
 	type FilterRuleProps,
 	FilterValue,
-} from "./filter-builder-rule";
-// Simple filter (inline editing)
-export { FilterChip, type FilterChipProps } from "./filter-chip";
-export { FilterGroup, type FilterGroupProps } from "./filter-group";
+	GroupActionsMenu,
+	GroupConnector,
+	LogicConnector,
+	RuleActionsMenu,
+} from "./advanced";
+// Common components (shared)
 export {
 	FilterPropertyPicker,
 	type FilterPropertyPickerProps,
 } from "./filter-property-picker";
-export { GroupActionsMenu } from "./group-actions-menu";
-export { GroupConnector } from "./group-connector";
-// Internal components (exported for advanced usage)
-export { LogicConnector } from "./logic-connector";
 export { OperatorPicker, type OperatorPickerProps } from "./operator-picker";
-export { RuleActionsMenu } from "./rule-actions-menu";
+// Simple filter (single condition, no groups)
+export { FilterChip, type FilterChipProps } from "./simple";

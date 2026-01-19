@@ -8,8 +8,8 @@ import {
 	normalizeFilter,
 } from "@ocean-dataview/shared/utils";
 import { TrashIcon } from "lucide-react";
-import { Button } from "../button";
-import { Separator } from "../separator";
+import { Button } from "../../button";
+import { Separator } from "../../separator";
 import { AddFilterButton } from "./add-filter-button";
 import { FilterGroup } from "./filter-group";
 

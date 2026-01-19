@@ -37,16 +37,16 @@ import {
 	TrashIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
-import { CheckboxPickerContent } from "../properties/checkbox-picker";
+import { getBadgeVariant } from "../../../../lib/utils/get-badge-variant";
+import { CheckboxPickerContent } from "../../properties/checkbox-picker";
 import {
 	type DateRangeValue,
 	RangeDatePickerContent,
 	RelativeDatePickerContent,
 	type RelativeToTodayValue,
 	SingleDateCalendar,
-} from "../properties/date-picker";
-import { OperatorPicker } from "./operator-picker";
+} from "../../properties/date-picker";
+import { OperatorPicker } from "../operator-picker";
 
 interface FilterChipProps<T> {
 	/** The filter condition */

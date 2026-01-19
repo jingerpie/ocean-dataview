@@ -16,18 +16,18 @@ import {
 	getFilterVariantFromPropertyType,
 } from "@ocean-dataview/shared/utils";
 import { useState } from "react";
-import { CheckboxPicker } from "../properties/checkbox-picker";
+import { CheckboxPicker } from "../../properties/checkbox-picker";
 import {
 	type DateRangeValue,
 	RangeDatePicker,
 	RelativeDatePicker,
 	type RelativeToTodayValue,
 	SingleDatePicker,
-} from "../properties/date-picker";
-import { SelectPicker } from "../properties/select-picker";
-import { FilterPropertyPicker } from "./filter-property-picker";
+} from "../../properties/date-picker";
+import { SelectPicker } from "../../properties/select-picker";
+import { FilterPropertyPicker } from "../filter-property-picker";
+import { OperatorPicker } from "../operator-picker";
 import { LogicConnector } from "./logic-connector";
-import { OperatorPicker } from "./operator-picker";
 import { RuleActionsMenu } from "./rule-actions-menu";
 
 interface FilterRuleProps<T> {

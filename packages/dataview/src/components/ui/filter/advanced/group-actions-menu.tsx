@@ -7,14 +7,14 @@ import {
 	TrashIcon,
 	Undo2Icon,
 } from "lucide-react";
-import { Button } from "../button";
+import { Button } from "../../button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from "../dropdown-menu";
+} from "../../dropdown-menu";
 
 interface GroupActionsMenuProps {
 	/** Number of items in this group */

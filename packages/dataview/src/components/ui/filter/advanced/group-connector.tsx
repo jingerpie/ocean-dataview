@@ -8,7 +8,7 @@ import {
 	DropdownMenuRadioGroup,
 	DropdownMenuRadioItem,
 	DropdownMenuTrigger,
-} from "../dropdown-menu";
+} from "../../dropdown-menu";
 
 interface GroupConnectorProps {
 	/** Current logic operator connecting this group to siblings */

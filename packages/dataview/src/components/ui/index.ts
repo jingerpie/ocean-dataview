@@ -6,8 +6,6 @@ export {
 	AdvancedFilterChip,
 	type AdvancedFilterChipProps,
 	FilterBuilder,
-	FilterBuilderPopover,
-	type FilterBuilderPopoverProps,
 	type FilterBuilderProps,
 	FilterChip,
 	type FilterChipProps,
