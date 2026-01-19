@@ -17,6 +17,5 @@ export {
 } from "./filter-builder-rule";
 export { FilterGroup, type FilterGroupProps } from "./filter-group";
 export { GroupActionsMenu } from "./group-actions-menu";
-export { GroupConnector } from "./group-connector";
 export { LogicConnector } from "./logic-connector";
 export { RuleActionsMenu } from "./rule-actions-menu";

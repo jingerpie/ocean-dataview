@@ -81,7 +81,6 @@ export function FilterBuilder<T>({
 			) : (
 				<AddFilterButton
 					canAddGroup={true}
-					className="justify-start"
 					onAddGroup={handleAddFirstGroup}
 					onAddRule={handleAddFirstRule}
 					properties={properties}

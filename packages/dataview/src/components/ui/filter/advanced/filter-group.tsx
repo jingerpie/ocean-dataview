@@ -22,7 +22,7 @@ import {
 import { AddFilterButton } from "./add-filter-button";
 import { FilterRule } from "./filter-builder-rule";
 import { GroupActionsMenu } from "./group-actions-menu";
-import { GroupConnector } from "./group-connector";
+import { LogicConnector } from "./logic-connector";
 
 interface FilterGroupProps<T> {
 	/** The compound filter (AND/OR group) */
@@ -138,9 +138,9 @@ export function FilterGroup<T>({
 
 	// Container styles based on level
 	const containerStyles = cn(
-		"flex-1",
-		level === 1 && "rounded-lg border border-border/50 bg-muted/30 p-3",
-		level === 2 && "rounded-md border border-border/40 bg-muted/20 p-2"
+		"flex flex-1 flex-col gap-1",
+		level === 1 && "rounded-lg border border-border/90 bg-muted/30 p-2",
+		level === 2 && "rounded-md border border-border/80 bg-muted/20 p-2"
 	);
 
 	// Is this a nested group?
@@ -151,7 +151,7 @@ export function FilterGroup<T>({
 		return (
 			<div className={cn("flex items-start gap-1.5", className)}>
 				{/* Group connector */}
-				<GroupConnector
+				<LogicConnector
 					isFirst={isFirst}
 					isSecond={isSecond}
 					logic={connectorLogic}
@@ -161,7 +161,7 @@ export function FilterGroup<T>({
 				{/* Group container */}
 				<div className={containerStyles}>
 					{/* Render items */}
-					<div className="space-y-1">
+					<div className="flex flex-col gap-2">
 						{items.map((item, index) => {
 							if (isWhereCondition(item)) {
 								return (
@@ -218,14 +218,13 @@ export function FilterGroup<T>({
 					</div>
 
 					{/* Add filter button */}
-					<div className="mt-2">
-						<AddFilterButton
-							canAddGroup={canAddGroup}
-							onAddGroup={handleAddGroup}
-							onAddRule={handleAddRule}
-							properties={properties}
-						/>
-					</div>
+					<AddFilterButton
+						canAddGroup={canAddGroup}
+						className="justify-start"
+						onAddGroup={handleAddGroup}
+						onAddRule={handleAddRule}
+						properties={properties}
+					/>
 				</div>
 
 				{/* Group actions menu (next to the group) */}
@@ -247,7 +246,7 @@ export function FilterGroup<T>({
 	return (
 		<div className={cn(containerStyles, className)}>
 			{/* Render items */}
-			<div className="space-y-1">
+			<div className="flex flex-col gap-2">
 				{items.map((item, index) => {
 					if (isWhereCondition(item)) {
 						return (
@@ -307,7 +306,7 @@ export function FilterGroup<T>({
 			{/* Add filter button */}
 			<AddFilterButton
 				canAddGroup={canAddGroup}
-				className="w-full justify-start"
+				className="justify-start"
 				onAddGroup={handleAddGroup}
 				onAddRule={handleAddRule}
 				properties={properties}

@@ -15,6 +15,7 @@ import {
 } from "@ocean-dataview/shared/utils";
 import { ChevronDownIcon, CopyPlusIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
+import { cn } from "../../../../lib/utils";
 
 interface AddFilterButtonProps<T> {
 	/** Available properties to filter on */
@@ -74,10 +75,14 @@ export function AddFilterButton<T>({
 			<Popover onOpenChange={setOpen} open={open}>
 				<PopoverTrigger
 					render={
-						<Button className={className} size="sm" variant="ghost">
+						<Button
+							className={cn(className, "text-muted-foreground!")}
+							size="sm"
+							variant="ghost"
+						>
 							<PlusIcon />
 							<span>Add filter rule</span>
-							<ChevronDownIcon className="size-3 opacity-50" />
+							<ChevronDownIcon />
 						</Button>
 					}
 				/>
@@ -116,7 +121,7 @@ export function AddFilterButton<T>({
 	// At max depth, just a simple button (no dropdown needed)
 	return (
 		<Button
-			className={className}
+			className={cn(className, "text-muted-foreground!")}
 			onClick={handleAddRule}
 			size="sm"
 			variant="ghost"

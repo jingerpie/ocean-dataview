@@ -55,7 +55,7 @@ export function RuleActionsMenu({
 				<MoreHorizontalIcon className="size-4" />
 				<span className="sr-only">Filter actions</span>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-48">
+			<DropdownMenuContent align="end" className="w-auto">
 				<DropdownMenuItem onClick={onRemove}>
 					<TrashIcon className="size-4" />
 					<span>Remove</span>

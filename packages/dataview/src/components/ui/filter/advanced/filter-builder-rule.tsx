@@ -113,7 +113,7 @@ export function FilterRule<T>({
 	};
 
 	return (
-		<div className={cn("flex items-center gap-1.5 py-1", className)}>
+		<div className={cn("flex items-center gap-1.5", className)}>
 			{/* Logic Connector */}
 			<LogicConnector
 				isFirst={isFirst}
@@ -225,6 +225,7 @@ function ValueInput<T>({
 		case "range":
 			return (
 				<Input
+					className="h-8"
 					inputMode={variant === "text" ? undefined : "numeric"}
 					onChange={(e) => onValueChange(e.target.value)}
 					placeholder="Enter value..."
