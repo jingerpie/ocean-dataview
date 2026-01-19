@@ -9,6 +9,10 @@ export {
 	AdvancedFilterChip,
 	type AdvancedFilterChipProps,
 } from "./advanced-filter-chip";
+export {
+	FilterActionsMenu,
+	type FilterActionsMenuProps,
+} from "./filter-actions-menu";
 export { FilterBuilder, type FilterBuilderProps } from "./filter-builder";
 export {
 	FilterRule,
@@ -16,6 +20,4 @@ export {
 	FilterValue,
 } from "./filter-builder-rule";
 export { FilterGroup, type FilterGroupProps } from "./filter-group";
-export { GroupActionsMenu } from "./group-actions-menu";
 export { LogicConnector } from "./logic-connector";
-export { RuleActionsMenu } from "./rule-actions-menu";

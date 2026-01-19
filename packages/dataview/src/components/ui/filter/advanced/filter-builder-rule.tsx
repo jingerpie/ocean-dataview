@@ -27,8 +27,8 @@ import {
 import { SelectPicker } from "../../properties/select-picker";
 import { FilterPropertyPicker } from "../filter-property-picker";
 import { OperatorPicker } from "../operator-picker";
+import { FilterActionsMenu } from "./filter-actions-menu";
 import { LogicConnector } from "./logic-connector";
-import { RuleActionsMenu } from "./rule-actions-menu";
 
 interface FilterRuleProps<T> {
 	/** The filter condition */
@@ -41,8 +41,6 @@ interface FilterRuleProps<T> {
 	isSecond: boolean;
 	/** Current group logic operator */
 	logic: "and" | "or";
-	/** Current nesting level */
-	level: 0 | 1 | 2;
 	/** Callback when condition changes */
 	onConditionChange: (condition: WhereCondition) => void;
 	/** Callback when group logic changes (affects all rules in group) */
@@ -69,7 +67,6 @@ export function FilterRule<T>({
 	isFirst,
 	isSecond,
 	logic,
-	level,
 	onConditionChange,
 	onLogicChange,
 	onRemove,
@@ -151,12 +148,11 @@ export function FilterRule<T>({
 			)}
 
 			{/* Actions Menu */}
-			<RuleActionsMenu
-				canWrapInGroup={canWrapInGroup}
-				level={level}
+			<FilterActionsMenu
 				onDuplicate={onDuplicate}
 				onRemove={onRemove}
-				onWrapInGroup={onWrapInGroup}
+				onWrapInGroup={canWrapInGroup ? onWrapInGroup : undefined}
+				wrapLabel="Turn into group"
 			/>
 		</div>
 	);

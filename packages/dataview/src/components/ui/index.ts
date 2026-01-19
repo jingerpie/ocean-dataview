@@ -5,6 +5,8 @@ export {
 	type AddFilterButtonProps,
 	AdvancedFilterChip,
 	type AdvancedFilterChipProps,
+	FilterActionsMenu,
+	type FilterActionsMenuProps,
 	FilterBuilder,
 	type FilterBuilderProps,
 	FilterChip,
@@ -15,9 +17,7 @@ export {
 	type FilterPropertyPickerProps,
 	FilterRule,
 	type FilterRuleProps,
-	GroupActionsMenu,
 	LogicConnector,
-	RuleActionsMenu,
 } from "./filter";
 // Notion Toolbar
 export {

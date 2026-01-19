@@ -7,6 +7,8 @@ export {
 	type AddFilterButtonProps,
 	AdvancedFilterChip,
 	type AdvancedFilterChipProps,
+	FilterActionsMenu,
+	type FilterActionsMenuProps,
 	FilterBuilder,
 	type FilterBuilderProps,
 	FilterGroup,
@@ -14,9 +16,7 @@ export {
 	FilterRule,
 	type FilterRuleProps,
 	FilterValue,
-	GroupActionsMenu,
 	LogicConnector,
-	RuleActionsMenu,
 } from "./advanced";
 // Common components (shared)
 export {

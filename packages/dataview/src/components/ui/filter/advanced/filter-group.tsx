@@ -20,8 +20,8 @@ import {
 	wrapInGroup,
 } from "@ocean-dataview/shared/utils";
 import { AddFilterButton } from "./add-filter-button";
+import { FilterActionsMenu } from "./filter-actions-menu";
 import { FilterRule } from "./filter-builder-rule";
-import { GroupActionsMenu } from "./group-actions-menu";
 import { LogicConnector } from "./logic-connector";
 
 interface FilterGroupProps<T> {
@@ -146,6 +146,17 @@ export function FilterGroup<T>({
 	// Is this a nested group?
 	const isNestedGroup = level > 0;
 
+	// Determine unwrap availability and label
+	const singleItem = items.length === 1 ? items[0] : null;
+	const isSingleFilter = singleItem && isWhereCondition(singleItem);
+	const canUnwrap = singleItem !== null;
+	const unwrapLabel = isSingleFilter ? "Turn into filter" : "Unwrap group";
+
+	// Check if wrapping would exceed max level (wrapping shifts all content down 1 level)
+	// Only allow wrap if no nested groups exist (otherwise they'd exceed level 2)
+	const hasNestedGroups = items.some((item) => !isWhereCondition(item));
+	const canWrapThisGroup = level < 2 && !hasNestedGroups;
+
 	// Wrapper for nested groups (includes connector + container + actions button)
 	if (isNestedGroup) {
 		return (
@@ -171,7 +182,6 @@ export function FilterGroup<T>({
 										isFirst={index === 0}
 										isSecond={index === 1}
 										key={index}
-										level={level}
 										logic={logic}
 										onConditionChange={(condition) =>
 											handleUpdateCondition(index, condition)
@@ -229,13 +239,17 @@ export function FilterGroup<T>({
 
 				{/* Group actions menu (next to the group) */}
 				{onRemove && (
-					<GroupActionsMenu
-						canWrapInGroup={level < 2}
-						itemCount={items.length}
+					<FilterActionsMenu
 						onDuplicate={onDuplicate ?? (() => undefined)}
 						onRemove={onRemove}
-						onUnwrap={handleUnwrap}
-						onWrapInGroup={onWrapInGroup ?? (() => undefined)}
+						onUnwrap={canUnwrap ? handleUnwrap : undefined}
+						onWrapInGroup={
+							canWrapThisGroup
+								? (onWrapInGroup ?? (() => undefined))
+								: undefined
+						}
+						unwrapLabel={unwrapLabel}
+						wrapLabel="Wrap in group"
 					/>
 				)}
 			</div>
@@ -256,7 +270,6 @@ export function FilterGroup<T>({
 								isFirst={index === 0}
 								isSecond={index === 1}
 								key={index}
-								level={level}
 								logic={logic}
 								onConditionChange={(condition) =>
 									handleUpdateCondition(index, condition)
