@@ -16,7 +16,6 @@ export {
 	FilterRule,
 	type FilterRuleProps,
 	GroupActionsMenu,
-	GroupConnector,
 	LogicConnector,
 	RuleActionsMenu,
 } from "./filter";
