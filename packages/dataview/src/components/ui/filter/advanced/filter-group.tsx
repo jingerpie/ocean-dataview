@@ -259,62 +259,66 @@ export function FilterGroup<T>({
 	// Root level group (no wrapper needed)
 	return (
 		<div className={cn(containerStyles, className)}>
-			{/* Render items */}
-			<div className="flex flex-col gap-2">
-				{items.map((item, index) => {
-					if (isWhereCondition(item)) {
+			{/* Render items - only when there are items */}
+			{items.length > 0 && (
+				<div className="flex flex-col gap-2 pt-2">
+					{items.map((item, index) => {
+						if (isWhereCondition(item)) {
+							return (
+								<FilterRule
+									canWrapInGroup={level < 2}
+									condition={item}
+									isFirst={index === 0}
+									isSecond={index === 1}
+									key={index}
+									logic={logic}
+									onConditionChange={(condition) =>
+										handleUpdateCondition(index, condition)
+									}
+									onDuplicate={() => handleDuplicateItem(index)}
+									onLogicChange={handleLogicChange}
+									onRemove={() => handleRemoveItem(index)}
+									onWrapInGroup={() => handleWrapInGroup(index)}
+									properties={properties}
+								/>
+							);
+						}
+
+						// Nested group
+						const nextLevel = Math.min(level + 1, 2) as 0 | 1 | 2;
 						return (
-							<FilterRule
-								canWrapInGroup={level < 2}
-								condition={item}
+							<FilterGroup
+								connectorLogic={logic}
+								filter={item}
 								isFirst={index === 0}
 								isSecond={index === 1}
 								key={index}
-								logic={logic}
-								onConditionChange={(condition) =>
-									handleUpdateCondition(index, condition)
+								level={nextLevel}
+								onChange={(newGroup) =>
+									handleNestedGroupChange(index, newGroup)
 								}
+								onConnectorLogicChange={(newLogic) => {
+									// This changes how THIS group connects to siblings
+									// which means changing the parent's logic
+									handleLogicChange(newLogic);
+								}}
 								onDuplicate={() => handleDuplicateItem(index)}
-								onLogicChange={handleLogicChange}
 								onRemove={() => handleRemoveItem(index)}
+								onUnwrap={(unwrappedItem) => {
+									// Replace the group with its single item
+									const newItems = [...items];
+									newItems[index] = unwrappedItem;
+									onChange(
+										logic === "and" ? { and: newItems } : { or: newItems }
+									);
+								}}
 								onWrapInGroup={() => handleWrapInGroup(index)}
 								properties={properties}
 							/>
 						);
-					}
-
-					// Nested group
-					const nextLevel = Math.min(level + 1, 2) as 0 | 1 | 2;
-					return (
-						<FilterGroup
-							connectorLogic={logic}
-							filter={item}
-							isFirst={index === 0}
-							isSecond={index === 1}
-							key={index}
-							level={nextLevel}
-							onChange={(newGroup) => handleNestedGroupChange(index, newGroup)}
-							onConnectorLogicChange={(newLogic) => {
-								// This changes how THIS group connects to siblings
-								// which means changing the parent's logic
-								handleLogicChange(newLogic);
-							}}
-							onDuplicate={() => handleDuplicateItem(index)}
-							onRemove={() => handleRemoveItem(index)}
-							onUnwrap={(unwrappedItem) => {
-								// Replace the group with its single item
-								const newItems = [...items];
-								newItems[index] = unwrappedItem;
-								onChange(
-									logic === "and" ? { and: newItems } : { or: newItems }
-								);
-							}}
-							onWrapInGroup={() => handleWrapInGroup(index)}
-							properties={properties}
-						/>
-					);
-				})}
-			</div>
+					})}
+				</div>
+			)}
 
 			{/* Add filter button */}
 			<AddFilterButton

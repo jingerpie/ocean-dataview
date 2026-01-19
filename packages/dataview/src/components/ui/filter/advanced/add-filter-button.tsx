@@ -2,10 +2,11 @@
 
 import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@ocean-dataview/dataview/components/ui/popover";
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@ocean-dataview/dataview/components/ui/dropdown-menu";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type { WhereCondition } from "@ocean-dataview/shared/types";
 import {
@@ -14,7 +15,6 @@ import {
 	getFilterVariantFromPropertyType,
 } from "@ocean-dataview/shared/utils";
 import { ChevronDownIcon, CopyPlusIcon, PlusIcon } from "lucide-react";
-import { useState } from "react";
 import { cn } from "../../../../lib/utils";
 
 interface AddFilterButtonProps<T> {
@@ -44,8 +44,6 @@ export function AddFilterButton<T>({
 	onAddGroup,
 	className,
 }: AddFilterButtonProps<T>) {
-	const [open, setOpen] = useState(false);
-
 	// Create condition with first property as default
 	const handleAddRule = () => {
 		const firstProperty = properties[0];
@@ -61,19 +59,13 @@ export function AddFilterButton<T>({
 		);
 
 		onAddRule(condition);
-		setOpen(false);
 	};
 
-	const handleAddGroup = () => {
-		onAddGroup();
-		setOpen(false);
-	};
-
-	// When can add group, show popover with two options
+	// When can add group, show dropdown with two options
 	if (canAddGroup) {
 		return (
-			<Popover onOpenChange={setOpen} open={open}>
-				<PopoverTrigger
+			<DropdownMenu>
+				<DropdownMenuTrigger
 					render={
 						<Button
 							className={cn(className, "text-muted-foreground!")}
@@ -86,35 +78,23 @@ export function AddFilterButton<T>({
 						</Button>
 					}
 				/>
-				<PopoverContent align="start" className="w-auto gap-1 p-2">
-					{/* Add Filter Rule */}
-					<Button
-						className="w-full justify-start"
-						onClick={handleAddRule}
-						size="sm"
-						variant="ghost"
-					>
-						<PlusIcon />
+				<DropdownMenuContent align="start" className="w-auto">
+					<DropdownMenuItem onClick={handleAddRule}>
+						<PlusIcon className="size-4" />
 						<span>Add filter rule</span>
-					</Button>
+					</DropdownMenuItem>
 
-					{/* Add Filter Group */}
-					<Button
-						className="h-auto w-full flex-col items-start"
-						onClick={handleAddGroup}
-						size="sm"
-						variant="ghost"
-					>
-						<div className="flex items-center gap-2">
-							<CopyPlusIcon />
+					<DropdownMenuItem onClick={onAddGroup}>
+						<CopyPlusIcon className="size-4" />
+						<div className="flex flex-col">
 							<span>Add filter group</span>
+							<span className="text-muted-foreground text-xs">
+								A group to nest more filters
+							</span>
 						</div>
-						<span className="ml-6 text-muted-foreground text-xs">
-							A group to nest more filters
-						</span>
-					</Button>
-				</PopoverContent>
-			</Popover>
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
 		);
 	}
 

@@ -2,10 +2,10 @@
 
 import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@ocean-dataview/dataview/components/ui/popover";
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+} from "@ocean-dataview/dataview/components/ui/dropdown-menu";
 import { useAdvanceFilterBuilder } from "@ocean-dataview/dataview/hooks";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type { WhereExpression, WhereNode } from "@ocean-dataview/shared/types";
@@ -27,7 +27,7 @@ interface AdvancedFilterChipProps<T> {
  * Advanced filter chip that opens the full filter builder.
  * Appearance: [≡ N rules ▾]
  *
- * Uses global Zustand store for popover state coordination with toolbar buttons.
+ * Uses global Zustand store for dropdown state coordination with toolbar buttons.
  */
 export function AdvancedFilterChip<T>({
 	filter,
@@ -40,21 +40,21 @@ export function AdvancedFilterChip<T>({
 	const ruleText = ruleCount === 1 ? "1 rule" : `${ruleCount} rules`;
 
 	return (
-		<Popover onOpenChange={setOpen} open={isOpen}>
-			<PopoverTrigger render={<Button size="sm" variant="secondary" />}>
+		<DropdownMenu onOpenChange={setOpen} open={isOpen}>
+			<DropdownMenuTrigger render={<Button size="sm" variant="secondary" />}>
 				<ListFilterIcon className="size-3" />
 				<span>{ruleText}</span>
 				<ChevronDownIcon className="size-3 opacity-50" />
-			</PopoverTrigger>
-			<PopoverContent align="start" className="w-auto min-w-80 p-3">
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="start" className="w-auto min-w-64">
 				<FilterBuilder
 					filter={filter}
 					onChange={onFilterChange}
 					onDelete={() => setOpen(false)}
 					properties={properties}
 				/>
-			</PopoverContent>
-		</Popover>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 }
 
