@@ -11,18 +11,11 @@ import {
 	ComboboxTrigger,
 } from "@ocean-dataview/dataview/components/ui/combobox";
 import { Settings2 } from "lucide-react";
-import { useMemo } from "react";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 
 interface PropertyLike {
 	id: string | number;
 	label?: string;
-}
-
-interface ColumnItem {
-	id: string;
-	label: string;
-	isVisible: boolean;
 }
 
 export interface DataViewOptionsProps {
@@ -48,21 +41,16 @@ export function DataViewOptions({
 		properties,
 		propertyVisibility,
 		excludedPropertyIds,
-		toggleProperty,
+		setPropertyVisibility,
 	} = useDataViewContext();
 
-	const columns = useMemo(
-		() =>
-			(properties as readonly PropertyLike[])
-				.filter(
-					(property) => !excludedPropertyIds.some((id) => id === property.id)
-				)
-				.map((property) => ({
-					id: String(property.id),
-					label: property.label ?? String(property.id),
-					isVisible: propertyVisibility.some((id) => id === property.id),
-				})),
-		[properties, propertyVisibility, excludedPropertyIds]
+	// Direct computation - no useMemo needed for small arrays
+	const availableProperties = (properties as readonly PropertyLike[]).filter(
+		(property) => !excludedPropertyIds.some((id) => id === property.id)
+	);
+
+	const selectedProperties = availableProperties.filter((property) =>
+		propertyVisibility.some((id) => id === property.id)
 	);
 
 	// Render trigger based on variant
@@ -89,31 +77,22 @@ export function DataViewOptions({
 
 	return (
 		<Combobox
-			items={columns}
-			onValueChange={(column) => {
-				if (column) {
-					const propertyId = (properties as readonly PropertyLike[]).find(
-						(p) => String(p.id) === (column as ColumnItem).id
-					)?.id;
-					if (propertyId !== undefined) {
-						toggleProperty(propertyId as string);
-					}
-				}
+			items={availableProperties}
+			multiple
+			onValueChange={(newSelection) => {
+				const newArray = (newSelection ?? []) as PropertyLike[];
+				setPropertyVisibility(newArray.map((p) => String(p.id)));
 			}}
-			value={null as never}
+			value={selectedProperties}
 		>
 			{renderTrigger()}
 			<ComboboxContent align="end" className="w-44">
 				<ComboboxInput placeholder="Search columns..." showTrigger={false} />
 				<ComboboxEmpty>No columns found.</ComboboxEmpty>
 				<ComboboxList>
-					{(column) => (
-						<ComboboxItem
-							data-checked={column.isVisible}
-							key={column.id}
-							value={column}
-						>
-							{column.label}
+					{(property) => (
+						<ComboboxItem key={String(property.id)} value={property}>
+							{property.label ?? String(property.id)}
 						</ComboboxItem>
 					)}
 				</ComboboxList>
