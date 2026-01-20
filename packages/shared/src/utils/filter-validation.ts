@@ -1,8 +1,8 @@
 import {
-	isWhereCondition,
 	isWhereExpression,
-	type WhereCondition,
+	isWhereRule,
 	type WhereNode,
+	type WhereRule,
 } from "../types/data-table.type";
 import {
 	createCompoundFilter,
@@ -10,19 +10,19 @@ import {
 	getFilterLogic,
 } from "./filter-builder";
 
-// Operators that don't require a value
-const VALUE_OPTIONAL_OPERATORS = new Set(["isEmpty", "isNotEmpty"]);
+// Conditions that don't require a value
+const VALUE_OPTIONAL_CONDITIONS = new Set(["isEmpty", "isNotEmpty"]);
 
 /**
- * Check if a filter condition has a valid value
+ * Check if a filter rule has a valid value
  */
-function isConditionValid(condition: WhereCondition): boolean {
-	// These operators don't need a value
-	if (VALUE_OPTIONAL_OPERATORS.has(condition.operator)) {
+function isRuleValid(rule: WhereRule): boolean {
+	// These conditions don't need a value
+	if (VALUE_OPTIONAL_CONDITIONS.has(rule.condition)) {
 		return true;
 	}
 
-	const value = condition.value;
+	const value = rule.value;
 
 	// Check for empty values
 	if (value === undefined || value === null) {
@@ -44,10 +44,10 @@ function isConditionValid(condition: WhereCondition): boolean {
  *
  * @example
  * ```ts
- * // Input: { and: [{ property: "name", operator: "eq", value: "" }] }
+ * // Input: { and: [{ property: "name", condition: "eq", value: "" }] }
  * // Output: null (empty string is invalid)
  *
- * // Input: { and: [{ property: "status", operator: "isEmpty" }] }
+ * // Input: { and: [{ property: "status", condition: "isEmpty" }] }
  * // Output: same (isEmpty doesn't need a value)
  * ```
  */
@@ -56,9 +56,9 @@ export function validateFilter(filter: WhereNode | null): WhereNode | null {
 		return null;
 	}
 
-	// Single condition
-	if (isWhereCondition(filter)) {
-		return isConditionValid(filter) ? filter : null;
+	// Single rule
+	if (isWhereRule(filter)) {
+		return isRuleValid(filter) ? filter : null;
 	}
 
 	// Compound filter

@@ -25,10 +25,7 @@ import type {
 	DataViewProperty,
 	SelectOption,
 } from "@ocean-dataview/dataview/types";
-import type {
-	FilterOperator,
-	WhereCondition,
-} from "@ocean-dataview/shared/types";
+import type { FilterCondition, WhereRule } from "@ocean-dataview/shared/types";
 import { getFilterVariantFromPropertyType } from "@ocean-dataview/shared/utils";
 import {
 	ChevronDownIcon,
@@ -46,15 +43,15 @@ import {
 	type RelativeToTodayValue,
 	SingleDateCalendar,
 } from "../../properties/date-picker";
-import { OperatorPicker } from "../operator-picker";
+import { ConditionPicker } from "../condition-picker";
 
 interface FilterChipProps<T> {
-	/** The filter condition */
-	condition: WhereCondition;
+	/** The filter rule */
+	rule: WhereRule;
 	/** The property being filtered */
 	property: DataViewProperty<T>;
-	/** Callback when condition changes */
-	onConditionChange: (condition: WhereCondition) => void;
+	/** Callback when rule changes */
+	onRuleChange: (rule: WhereRule) => void;
 	/** Callback to remove this filter */
 	onRemove: () => void;
 	/** Callback to add this filter to advanced filter */
@@ -66,9 +63,9 @@ interface FilterChipProps<T> {
  * Appearance: [◉ Property ▾]
  */
 export function FilterChip<T>({
-	condition,
+	rule,
 	property,
-	onConditionChange,
+	onRuleChange,
 	onRemove,
 	onAddToAdvanced,
 }: FilterChipProps<T>) {
@@ -77,20 +74,20 @@ export function FilterChip<T>({
 	const variant = getFilterVariantFromPropertyType(property.type);
 	const label = property.label ?? String(property.id);
 
-	const handleOperatorChange = (operator: FilterOperator) => {
-		onConditionChange({
-			...condition,
-			operator,
+	const handleConditionChange = (condition: FilterCondition) => {
+		onRuleChange({
+			...rule,
+			condition,
 			value:
-				operator === "isEmpty" || operator === "isNotEmpty"
+				condition === "isEmpty" || condition === "isNotEmpty"
 					? undefined
-					: condition.value,
+					: rule.value,
 		});
 	};
 
 	const handleValueChange = (value: unknown) => {
-		onConditionChange({
-			...condition,
+		onRuleChange({
+			...rule,
 			value,
 		});
 	};
@@ -102,14 +99,14 @@ export function FilterChip<T>({
 				<ChevronDownIcon className="size-3 opacity-50" />
 			</PopoverTrigger>
 			<PopoverContent align="start" className="w-80">
-				{/* Header: Property + Operator + Menu */}
+				{/* Header: Property + Condition + Menu */}
 				<div className="flex items-center justify-between">
 					<div className="flex items-center">
 						<span className="font-medium text-sm">{label}</span>
-						<OperatorPicker
+						<ConditionPicker
+							condition={rule.condition}
 							inline
-							onChange={handleOperatorChange}
-							value={condition.operator}
+							onConditionChange={handleConditionChange}
 							variant={variant}
 						/>
 					</div>
@@ -145,9 +142,9 @@ export function FilterChip<T>({
 
 				{/* Value Input */}
 				<FilterChipValue
-					condition={condition}
 					onValueChange={handleValueChange}
 					property={property}
+					rule={rule}
 					variant={variant}
 				/>
 			</PopoverContent>
@@ -160,20 +157,20 @@ export function FilterChip<T>({
 // ============================================================================
 
 interface FilterChipValueProps<T> {
-	condition: WhereCondition;
+	rule: WhereRule;
 	property: DataViewProperty<T>;
 	variant: string;
 	onValueChange: (value: unknown) => void;
 }
 
 function FilterChipValue<T>({
-	condition,
+	rule,
 	property,
 	variant,
 	onValueChange,
 }: FilterChipValueProps<T>) {
-	// Empty/Not Empty operators don't need value input
-	if (condition.operator === "isEmpty" || condition.operator === "isNotEmpty") {
+	// Empty/Not Empty conditions don't need value input
+	if (rule.condition === "isEmpty" || rule.condition === "isNotEmpty") {
 		return null;
 	}
 
@@ -187,7 +184,7 @@ function FilterChipValue<T>({
 					onChange={(e) => onValueChange(e.target.value)}
 					placeholder="Enter value..."
 					type={variant === "text" ? "text" : "number"}
-					value={condition.value != null ? String(condition.value) : ""}
+					value={rule.value != null ? String(rule.value) : ""}
 				/>
 			);
 
@@ -195,7 +192,7 @@ function FilterChipValue<T>({
 			return (
 				<CheckboxPickerContent
 					onChange={onValueChange}
-					value={condition.value as boolean | undefined}
+					value={rule.value as boolean | undefined}
 				/>
 			);
 
@@ -210,10 +207,10 @@ function FilterChipValue<T>({
 					: [];
 
 			let selectedValues: string[];
-			if (Array.isArray(condition.value)) {
-				selectedValues = condition.value as string[];
-			} else if (condition.value) {
-				selectedValues = [condition.value as string];
+			if (Array.isArray(rule.value)) {
+				selectedValues = rule.value as string[];
+			} else if (rule.value) {
+				selectedValues = [rule.value as string];
 			} else {
 				selectedValues = [];
 			}
@@ -254,26 +251,26 @@ function FilterChipValue<T>({
 
 		case "date":
 		case "dateRange":
-			if (condition.operator === "isBetween") {
+			if (rule.condition === "isBetween") {
 				return (
 					<RangeDatePickerContent
 						onChange={onValueChange}
-						value={condition.value as DateRangeValue | undefined}
+						value={rule.value as DateRangeValue | undefined}
 					/>
 				);
 			}
-			if (condition.operator === "isRelativeToToday") {
+			if (rule.condition === "isRelativeToToday") {
 				return (
 					<RelativeDatePickerContent
 						onChange={onValueChange}
-						value={condition.value as RelativeToTodayValue | undefined}
+						value={rule.value as RelativeToTodayValue | undefined}
 					/>
 				);
 			}
 			return (
 				<SingleDateCalendar
 					onChange={onValueChange}
-					value={condition.value as string | undefined}
+					value={rule.value as string | undefined}
 				/>
 			);
 

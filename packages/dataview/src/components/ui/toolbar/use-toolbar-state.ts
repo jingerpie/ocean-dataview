@@ -1,9 +1,9 @@
 "use client";
 
 import type {
-	WhereCondition,
 	WhereExpression,
 	WhereNode,
+	WhereRule,
 } from "@ocean-dataview/shared/types";
 import { analyzeFilter } from "@ocean-dataview/shared/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -23,7 +23,7 @@ export interface UseToolbarStateReturn {
 	/** Toggle Row 2 visibility */
 	toggleRow2: () => void;
 	/** Simple filter conditions at root level (displayed as FilterChip) */
-	simpleFilterConditions: Array<{ condition: WhereCondition; index: number }>;
+	simpleFilterConditions: Array<{ condition: WhereRule; index: number }>;
 	/** Advanced filter (WhereExpression at root, displayed as AdvancedFilterChip) */
 	advancedFilter: WhereExpression | null;
 	/** Index of advancedFilter in root array */

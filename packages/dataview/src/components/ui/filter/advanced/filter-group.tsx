@@ -3,11 +3,11 @@
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type {
-	WhereCondition,
 	WhereExpression,
 	WhereNode,
+	WhereRule,
 } from "@ocean-dataview/shared/types";
-import { isWhereCondition } from "@ocean-dataview/shared/types";
+import { isWhereRule } from "@ocean-dataview/shared/types";
 import {
 	addCondition,
 	addGroup,
@@ -22,7 +22,7 @@ import {
 import { AddFilterButton } from "./add-filter-button";
 import { FilterActionsMenu } from "./filter-actions-menu";
 import { FilterRule } from "./filter-rule";
-import { LogicalOperator } from "./logical-operator";
+import { LogicPicker } from "./logic-picker";
 
 interface FilterGroupProps<T> {
 	/** The compound filter (AND/OR group) */
@@ -86,9 +86,9 @@ export function FilterGroup<T>({
 		}
 	};
 
-	// Handle adding a new condition
-	const handleAddRule = (condition: WhereCondition) => {
-		onChange(addCondition(filter, [], condition));
+	// Handle adding a new rule
+	const handleAddRule = (rule: WhereRule) => {
+		onChange(addCondition(filter, [], rule));
 	};
 
 	// Handle adding a new group
@@ -98,9 +98,9 @@ export function FilterGroup<T>({
 		onChange(addGroup(filter, [], "and", defaultProperty));
 	};
 
-	// Handle updating a condition at index
-	const handleUpdateCondition = (index: number, condition: WhereCondition) => {
-		onChange(updateCondition(filter, [index], condition));
+	// Handle updating a rule at index
+	const handleUpdateRule = (index: number, rule: WhereRule) => {
+		onChange(updateCondition(filter, [index], rule));
 	};
 
 	// Handle removing an item at index
@@ -151,15 +151,15 @@ export function FilterGroup<T>({
 
 	// Check if wrapping would exceed max level (wrapping shifts all content down 1 level)
 	// Only allow wrap if no nested groups exist (otherwise they'd exceed level 2)
-	const hasNestedGroups = items.some((item) => !isWhereCondition(item));
+	const hasNestedGroups = items.some((item) => !isWhereRule(item));
 	const canWrapThisGroup = level < 2 && !hasNestedGroups;
 
 	// Wrapper for nested groups (includes connector + container + actions button)
 	if (isNestedGroup) {
 		return (
 			<div className={cn("flex items-start gap-1.5", className)}>
-				{/* Group logical operator */}
-				<LogicalOperator
+				{/* Logic Picker */}
+				<LogicPicker
 					isFirst={isFirst}
 					isSecond={isSecond}
 					logic={connectorLogic}
@@ -171,23 +171,21 @@ export function FilterGroup<T>({
 					{/* Render items */}
 					<div className="flex flex-col gap-2">
 						{items.map((item, index) => {
-							if (isWhereCondition(item)) {
+							if (isWhereRule(item)) {
 								return (
 									<FilterRule
 										canWrapInGroup={level < 2}
-										condition={item}
 										isFirst={index === 0}
 										isSecond={index === 1}
 										key={index}
 										logic={logic}
-										onConditionChange={(condition) =>
-											handleUpdateCondition(index, condition)
-										}
 										onDuplicate={() => handleDuplicateItem(index)}
 										onLogicChange={handleLogicChange}
 										onRemove={() => handleRemoveItem(index)}
+										onRuleChange={(rule) => handleUpdateRule(index, rule)}
 										onWrapInGroup={() => handleWrapInGroup(index)}
 										properties={properties}
+										rule={item}
 									/>
 								);
 							}
@@ -258,23 +256,21 @@ export function FilterGroup<T>({
 			{items.length > 0 && (
 				<div className="flex flex-col gap-2 pt-2 pl-2">
 					{items.map((item, index) => {
-						if (isWhereCondition(item)) {
+						if (isWhereRule(item)) {
 							return (
 								<FilterRule
 									canWrapInGroup={level < 2}
-									condition={item}
 									isFirst={index === 0}
 									isSecond={index === 1}
 									key={index}
 									logic={logic}
-									onConditionChange={(condition) =>
-										handleUpdateCondition(index, condition)
-									}
 									onDuplicate={() => handleDuplicateItem(index)}
 									onLogicChange={handleLogicChange}
 									onRemove={() => handleRemoveItem(index)}
+									onRuleChange={(rule) => handleUpdateRule(index, rule)}
 									onWrapInGroup={() => handleWrapInGroup(index)}
 									properties={properties}
+									rule={item}
 								/>
 							);
 						}

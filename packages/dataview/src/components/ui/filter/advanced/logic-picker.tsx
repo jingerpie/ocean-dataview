@@ -20,12 +20,12 @@ const LOGIC_OPTIONS = [
 	{ value: "or", label: "Or", description: "At least one filter must match" },
 ] as const;
 
-interface LogicalOperatorProps {
+interface LogicPickerProps {
 	/** Whether this is the first rule (shows "Where" label) */
 	isFirst: boolean;
 	/** Whether this is the second rule (shows dropdown, can change logic) */
 	isSecond: boolean;
-	/** Current logic operator */
+	/** Current logic */
 	logic: "and" | "or";
 	/** Callback when logic changes */
 	onLogicChange: (logic: "and" | "or") => void;
@@ -34,18 +34,18 @@ interface LogicalOperatorProps {
 }
 
 /**
- * Logical operator for filter rules.
+ * Logic picker for filter rules.
  * - First rule shows static "Where" label
  * - Second rule shows "And" / "Or" dropdown (can change logic for entire group)
  * - Third+ rules show static "And" / "Or" label
  */
-export function LogicalOperator({
+export function LogicPicker({
 	isFirst,
 	isSecond,
 	logic,
 	onLogicChange,
 	className,
-}: LogicalOperatorProps) {
+}: LogicPickerProps) {
 	// First item shows "Where"
 	if (isFirst) {
 		return (

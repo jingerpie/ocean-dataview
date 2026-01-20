@@ -7,12 +7,12 @@ import type {
 	SelectOption,
 } from "@ocean-dataview/dataview/types";
 import type {
-	FilterOperator,
+	FilterCondition,
 	FilterVariant,
-	WhereCondition,
+	WhereRule,
 } from "@ocean-dataview/shared/types";
 import {
-	getDefaultFilterOperator,
+	getDefaultFilterCondition,
 	getFilterVariantFromPropertyType,
 } from "@ocean-dataview/shared/utils";
 import { useState } from "react";
@@ -25,24 +25,24 @@ import {
 	SingleDatePicker,
 } from "../../properties/date-picker";
 import { SelectPicker } from "../../properties/select-picker";
+import { ConditionPicker } from "../condition-picker";
 import { FilterPropertyPicker } from "../filter-property-picker";
-import { OperatorPicker } from "../operator-picker";
 import { FilterActionsMenu } from "./filter-actions-menu";
-import { LogicalOperator } from "./logical-operator";
+import { LogicPicker } from "./logic-picker";
 
 interface FilterRuleProps<T> {
-	/** The filter condition */
-	condition: WhereCondition;
+	/** The filter rule */
+	rule: WhereRule;
 	/** Available properties to filter on */
 	properties: DataViewProperty<T>[];
 	/** Whether this is the first rule in the group (shows "Where") */
 	isFirst: boolean;
 	/** Whether this is the second rule in the group (shows dropdown) */
 	isSecond: boolean;
-	/** Current group logic operator */
+	/** Current group logic */
 	logic: "and" | "or";
-	/** Callback when condition changes */
-	onConditionChange: (condition: WhereCondition) => void;
+	/** Callback when rule changes */
+	onRuleChange: (rule: WhereRule) => void;
 	/** Callback when group logic changes (affects all rules in group) */
 	onLogicChange: (logic: "and" | "or") => void;
 	/** Callback to remove this rule */
@@ -59,15 +59,15 @@ interface FilterRuleProps<T> {
 
 /**
  * Single filter rule row in the filter builder.
- * Contains: LogicalOperator, PropertySelector, OperatorSelector, ValueInput, ActionsMenu
+ * Contains: LogicPicker, PropertySelector, ConditionPicker, ValueInput, ActionsMenu
  */
 export function FilterRule<T>({
-	condition,
+	rule,
 	properties,
 	isFirst,
 	isSecond,
 	logic,
-	onConditionChange,
+	onRuleChange,
 	onLogicChange,
 	onRemove,
 	onDuplicate,
@@ -77,42 +77,42 @@ export function FilterRule<T>({
 }: FilterRuleProps<T>) {
 	const [showValueSelector, setShowValueSelector] = useState(false);
 
-	// Find the property for this condition
-	const property = properties.find((p) => String(p.id) === condition.property);
+	// Find the property for this rule
+	const property = properties.find((p) => String(p.id) === rule.property);
 	const variant = property
 		? getFilterVariantFromPropertyType(property.type)
 		: "text";
 
 	// Update helper that maintains type safety
-	const updateCondition = (updates: Partial<WhereCondition>) => {
-		onConditionChange({ ...condition, ...updates });
+	const updateRule = (updates: Partial<WhereRule>) => {
+		onRuleChange({ ...rule, ...updates });
 	};
 
 	// Handle property selection
 	const handlePropertySelect = (newProperty: DataViewProperty<T>) => {
 		const propVariant = getFilterVariantFromPropertyType(newProperty.type);
-		updateCondition({
+		updateRule({
 			property: String(newProperty.id),
-			operator: getDefaultFilterOperator(propVariant),
+			condition: getDefaultFilterCondition(propVariant),
 			value: undefined,
 		});
 	};
 
-	// Handle operator change
-	const handleOperatorChange = (operator: FilterOperator) => {
-		updateCondition({
-			operator,
+	// Handle condition change
+	const handleConditionChange = (newCondition: FilterCondition) => {
+		updateRule({
+			condition: newCondition,
 			value:
-				operator === "isEmpty" || operator === "isNotEmpty"
+				newCondition === "isEmpty" || newCondition === "isNotEmpty"
 					? undefined
-					: condition.value,
+					: rule.value,
 		});
 	};
 
 	return (
 		<div className={cn("flex items-center gap-1.5", className)}>
-			{/* Logical Operator */}
-			<LogicalOperator
+			{/* Logic Picker */}
+			<LogicPicker
 				isFirst={isFirst}
 				isSecond={isSecond}
 				logic={logic}
@@ -128,20 +128,20 @@ export function FilterRule<T>({
 				variant="rule"
 			/>
 
-			{/* Operator Picker */}
-			<OperatorPicker
-				onChange={handleOperatorChange}
-				value={condition.operator}
+			{/* Condition Picker */}
+			<ConditionPicker
+				condition={rule.condition}
+				onConditionChange={handleConditionChange}
 				variant={variant}
 			/>
 
 			{/* Value Input */}
 			{property && (
 				<ValueInput
-					condition={condition}
 					onShowSelectorChange={setShowValueSelector}
-					onValueChange={(value) => updateCondition({ value })}
+					onValueChange={(value) => updateRule({ value })}
 					property={property}
+					rule={rule}
 					showSelector={showValueSelector}
 					variant={variant}
 				/>
@@ -162,14 +162,14 @@ export function FilterRule<T>({
 // ============================================================================
 
 interface FilterValueProps<T> {
-	condition: WhereCondition;
+	rule: WhereRule;
 	property: DataViewProperty<T>;
 	variant: FilterVariant;
 	onValueChange: (value: unknown) => void;
 }
 
 export function FilterValue<T>({
-	condition,
+	rule,
 	property,
 	variant,
 	onValueChange,
@@ -177,10 +177,10 @@ export function FilterValue<T>({
 	const [showSelector, setShowSelector] = useState(false);
 	return (
 		<ValueInput
-			condition={condition}
 			onShowSelectorChange={setShowSelector}
 			onValueChange={onValueChange}
 			property={property}
+			rule={rule}
 			showSelector={showSelector}
 			variant={variant}
 		/>
@@ -192,7 +192,7 @@ export function FilterValue<T>({
 // ============================================================================
 
 interface ValueInputProps<T> {
-	condition: WhereCondition;
+	rule: WhereRule;
 	property: DataViewProperty<T>;
 	variant: FilterVariant;
 	onValueChange: (value: unknown) => void;
@@ -202,15 +202,15 @@ interface ValueInputProps<T> {
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Switch statement handling different filter variant types
 function ValueInput<T>({
-	condition,
+	rule,
 	property,
 	variant,
 	onValueChange,
 	showSelector,
 	onShowSelectorChange,
 }: ValueInputProps<T>) {
-	// Empty/Not Empty operators don't need value input
-	if (condition.operator === "isEmpty" || condition.operator === "isNotEmpty") {
+	// Empty/Not Empty conditions don't need value input
+	if (rule.condition === "isEmpty" || rule.condition === "isNotEmpty") {
 		return null;
 	}
 
@@ -225,7 +225,7 @@ function ValueInput<T>({
 					onChange={(e) => onValueChange(e.target.value)}
 					placeholder="Enter value..."
 					type={variant === "text" ? "text" : "number"}
-					value={condition.value != null ? String(condition.value) : ""}
+					value={rule.value != null ? String(rule.value) : ""}
 				/>
 			);
 
@@ -233,7 +233,7 @@ function ValueInput<T>({
 			return (
 				<CheckboxPicker
 					onChange={onValueChange}
-					value={condition.value as boolean | undefined}
+					value={rule.value as boolean | undefined}
 				/>
 			);
 
@@ -245,10 +245,10 @@ function ValueInput<T>({
 					: [];
 
 			let selectedValues: string[];
-			if (Array.isArray(condition.value)) {
-				selectedValues = condition.value as string[];
-			} else if (condition.value) {
-				selectedValues = [condition.value as string];
+			if (Array.isArray(rule.value)) {
+				selectedValues = rule.value as string[];
+			} else if (rule.value) {
+				selectedValues = [rule.value as string];
 			} else {
 				selectedValues = [];
 			}
@@ -272,10 +272,10 @@ function ValueInput<T>({
 					: [];
 
 			let selectedValues: string[];
-			if (Array.isArray(condition.value)) {
-				selectedValues = condition.value as string[];
-			} else if (condition.value) {
-				selectedValues = [condition.value as string];
+			if (Array.isArray(rule.value)) {
+				selectedValues = rule.value as string[];
+			} else if (rule.value) {
+				selectedValues = [rule.value as string];
 			} else {
 				selectedValues = [];
 			}
@@ -294,26 +294,26 @@ function ValueInput<T>({
 
 		case "date":
 		case "dateRange":
-			if (condition.operator === "isBetween") {
+			if (rule.condition === "isBetween") {
 				return (
 					<RangeDatePicker
 						onChange={onValueChange}
-						value={condition.value as DateRangeValue | undefined}
+						value={rule.value as DateRangeValue | undefined}
 					/>
 				);
 			}
-			if (condition.operator === "isRelativeToToday") {
+			if (rule.condition === "isRelativeToToday") {
 				return (
 					<RelativeDatePicker
 						onChange={onValueChange}
-						value={condition.value as RelativeToTodayValue | undefined}
+						value={rule.value as RelativeToTodayValue | undefined}
 					/>
 				);
 			}
 			return (
 				<SingleDatePicker
 					onChange={(value) => onValueChange(value)}
-					value={condition.value as string | undefined}
+					value={rule.value as string | undefined}
 				/>
 			);
 

@@ -5,13 +5,13 @@ import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type {
 	PropertySort,
-	WhereCondition,
 	WhereExpression,
 	WhereNode,
+	WhereRule,
 } from "@ocean-dataview/shared/types";
 import {
 	createDefaultCondition,
-	getDefaultFilterOperator,
+	getDefaultFilterCondition,
 	getFilterVariantFromPropertyType,
 	normalizeFilter,
 	removeItem,
@@ -40,8 +40,8 @@ interface ActiveControlsRowProps<T> {
 	advancedFilter: WhereExpression | null;
 	/** Index of advancedFilter in root array */
 	advancedFilterIndex: number | null;
-	/** Simple filter conditions (WhereConditions at root level) */
-	simpleFilterConditions: Array<{ condition: WhereCondition; index: number }>;
+	/** Simple filter rules (WhereRules at root level) */
+	simpleFilterConditions: Array<{ condition: WhereRule; index: number }>;
 	/** Total rule count in advanced filter */
 	ruleCount: number;
 	/** Callback to open advanced filter builder */
@@ -82,40 +82,34 @@ export function ActiveControlsRow<T>({
 		(f) => f.condition.property
 	);
 
-	// Handle adding a new simple filter (adds FilterCondition to root)
+	// Handle adding a new simple filter (adds WhereRule to root)
 	const handleAddFilter = (property: DataViewProperty<T>) => {
-		// Get the correct default operator based on property type
+		// Get the correct default condition based on property type
 		const filterVariant = getFilterVariantFromPropertyType(property.type);
-		const defaultOperator = getDefaultFilterOperator(filterVariant);
-		const condition = createDefaultCondition(
-			String(property.id),
-			defaultOperator
-		);
+		const defaultCondition = getDefaultFilterCondition(filterVariant);
+		const rule = createDefaultCondition(String(property.id), defaultCondition);
 
 		if (normalizedFilter) {
 			// Add to root level (alongside any existing advanced filter)
 			const items = normalizedFilter.and ?? [];
-			onFilterChange({ and: [...items, condition] });
+			onFilterChange({ and: [...items, rule] });
 		} else {
 			// Create new filter with AND logic
-			onFilterChange({ and: [condition] });
+			onFilterChange({ and: [rule] });
 		}
 		setAddFilterOpen(false);
 	};
 
-	// Handle updating a simple filter condition
-	const handleConditionChange = (
-		index: number,
-		newCondition: WhereCondition
-	) => {
+	// Handle updating a simple filter rule
+	const handleRuleChange = (index: number, newRule: WhereRule) => {
 		if (!normalizedFilter) {
 			return;
 		}
-		onFilterChange(updateCondition(normalizedFilter, [index], newCondition));
+		onFilterChange(updateCondition(normalizedFilter, [index], newRule));
 	};
 
-	// Handle removing a simple filter condition
-	const handleConditionRemove = (index: number) => {
+	// Handle removing a simple filter rule
+	const handleRuleRemove = (index: number) => {
 		if (!normalizedFilter) {
 			return;
 		}
@@ -123,27 +117,27 @@ export function ActiveControlsRow<T>({
 		onFilterChange(result);
 	};
 
-	// Handle adding a simple condition to advanced filter
-	const handleAddToAdvanced = (index: number, condition: WhereCondition) => {
+	// Handle adding a simple rule to advanced filter
+	const handleAddToAdvanced = (index: number, rule: WhereRule) => {
 		if (!normalizedFilter) {
 			return;
 		}
 
 		const items = [...(normalizedFilter.and ?? [])];
 
-		// Remove the condition from root level
+		// Remove the rule from root level
 		items.splice(index, 1);
 
 		if (advancedFilter && advancedFilterIndex !== null) {
 			// Add to existing advanced filter
 			const advancedItems = advancedFilter.and ?? advancedFilter.or ?? [];
 			const newAdvanced = advancedFilter.and
-				? { and: [...advancedItems, condition] }
-				: { or: [...advancedItems, condition] };
+				? { and: [...advancedItems, rule] }
+				: { or: [...advancedItems, rule] };
 			items[advancedFilterIndex] = newAdvanced;
 		} else {
 			// Create new advanced filter with wrapped structure
-			const newAdvanced = { and: [condition] };
+			const newAdvanced = { and: [rule] };
 			items.unshift(newAdvanced); // Add at beginning
 		}
 
@@ -217,14 +211,12 @@ export function ActiveControlsRow<T>({
 
 				return (
 					<FilterChip
-						condition={condition}
 						key={`filter-${condition.property}-${index}`}
 						onAddToAdvanced={() => handleAddToAdvanced(index, condition)}
-						onConditionChange={(newCondition) =>
-							handleConditionChange(index, newCondition)
-						}
-						onRemove={() => handleConditionRemove(index)}
+						onRemove={() => handleRuleRemove(index)}
+						onRuleChange={(newRule) => handleRuleChange(index, newRule)}
 						property={property}
+						rule={condition}
 					/>
 				);
 			})}

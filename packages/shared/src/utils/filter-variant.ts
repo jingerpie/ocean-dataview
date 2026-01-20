@@ -21,7 +21,7 @@ type PropertyTypeValue =
 
 /**
  * Maps property type to the appropriate filter variant.
- * Used by filter UI components to determine which operators and inputs to show.
+ * Used by filter UI components to determine which conditions and inputs to show.
  *
  * @param type - The property type (from DataViewProperty)
  * @returns The corresponding FilterVariant for filter UI

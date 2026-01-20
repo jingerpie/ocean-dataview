@@ -1,9 +1,9 @@
 import type {
-	WhereCondition,
 	WhereExpression,
 	WhereNode,
+	WhereRule,
 } from "../types/data-table.type";
-import { isWhereCondition, isWhereExpression } from "../types/data-table.type";
+import { isWhereExpression, isWhereRule } from "../types/data-table.type";
 
 // ============================================================================
 // Basic Helpers
@@ -34,13 +34,13 @@ export function createCompoundFilter(
 }
 
 /**
- * Create a default where condition
+ * Create a default where rule
  */
 export function createDefaultCondition(
 	property: string,
-	operator: WhereCondition["operator"] = "eq"
-): WhereCondition {
-	return { property, operator };
+	condition: WhereRule["condition"] = "eq"
+): WhereRule {
+	return { property, condition };
 }
 
 // ============================================================================
@@ -57,7 +57,7 @@ export function normalizeFilter(
 	if (!filter) {
 		return null;
 	}
-	if (isWhereCondition(filter)) {
+	if (isWhereRule(filter)) {
 		return { and: [filter] };
 	}
 	return filter;
@@ -69,7 +69,7 @@ export function normalizeFilter(
 
 export interface FilterAnalysis {
 	/** Simple conditions at root level (displayed as FilterChip) */
-	simpleConditions: Array<{ condition: WhereCondition; index: number }>;
+	simpleConditions: Array<{ condition: WhereRule; index: number }>;
 	/** First WhereExpression at root level (displayed as AdvancedFilterChip) */
 	advancedFilter: WhereExpression | null;
 	/** Index of advancedFilter in root array */
@@ -84,7 +84,7 @@ export interface FilterAnalysis {
  * Count total rules in a filter (recursive)
  */
 function countRules(node: WhereNode): number {
-	if (isWhereCondition(node)) {
+	if (isWhereRule(node)) {
 		return 1;
 	}
 	if (isWhereExpression(node)) {
@@ -98,7 +98,7 @@ function countRules(node: WhereNode): number {
  * Analyze a filter to separate simple conditions from advanced filter.
  *
  * Root level is always { and: [...] }
- * - Simple filters (chips) = WhereCondition items at root
+ * - Simple filters (chips) = WhereRule items at root
  * - Advanced filter = WhereExpression item at root (first one found)
  * - Both can coexist, combined with AND logic
  */
@@ -115,7 +115,7 @@ export function analyzeFilter(filter: WhereNode | null): FilterAnalysis {
 	}
 
 	// Single condition (legacy/simple case) - treat as simple
-	if (isWhereCondition(filter)) {
+	if (isWhereRule(filter)) {
 		return {
 			simpleConditions: [{ condition: filter, index: 0 }],
 			advancedFilter: null,
@@ -138,14 +138,13 @@ export function analyzeFilter(filter: WhereNode | null): FilterAnalysis {
 
 	// Normal AND at root
 	const items = filter.and ?? [];
-	const simpleConditions: Array<{ condition: WhereCondition; index: number }> =
-		[];
+	const simpleConditions: Array<{ condition: WhereRule; index: number }> = [];
 	let advancedFilter: WhereExpression | null = null;
 	let advancedFilterIndex: number | null = null;
 	let compoundCount = 0;
 
 	for (const [index, item] of items.entries()) {
-		if (isWhereCondition(item)) {
+		if (isWhereRule(item)) {
 			simpleConditions.push({ condition: item, index });
 		} else if (isWhereExpression(item)) {
 			compoundCount++;
@@ -177,7 +176,7 @@ export function normalizeFilterStructure(
 	}
 
 	// Single condition → wrap in { and: [...] }
-	if (isWhereCondition(filter)) {
+	if (isWhereRule(filter)) {
 		return { and: [filter] };
 	}
 
@@ -189,7 +188,7 @@ export function normalizeFilterStructure(
 	// Multiple WhereExpressions at root → merge into first
 	const items = filter.and ?? [];
 	const compounds = items.filter(isWhereExpression);
-	const conditions = items.filter(isWhereCondition);
+	const conditions = items.filter(isWhereRule);
 
 	if (compounds.length <= 1) {
 		return filter as WhereExpression;
@@ -213,7 +212,7 @@ export function normalizeFilterStructure(
 // ============================================================================
 
 export interface FlattenedCondition {
-	condition: WhereCondition;
+	condition: WhereRule;
 	path: number[];
 	parentLogic: "and" | "or";
 	depth: number;
@@ -232,7 +231,7 @@ export function flattenFilter(
 		return [];
 	}
 
-	if (isWhereCondition(filter)) {
+	if (isWhereRule(filter)) {
 		return [{ condition: filter, path: parentPath, parentLogic, depth }];
 	}
 
@@ -242,7 +241,7 @@ export function flattenFilter(
 
 	items.forEach((item, index) => {
 		const itemPath = [...parentPath, index];
-		if (isWhereCondition(item)) {
+		if (isWhereRule(item)) {
 			result.push({
 				condition: item,
 				path: itemPath,
@@ -361,7 +360,7 @@ function updateItemAtPath(
 export function addCondition(
 	expr: WhereExpression,
 	path: number[],
-	condition: WhereCondition
+	condition: WhereRule
 ): WhereExpression {
 	if (path.length === 0) {
 		// Add to root
@@ -432,7 +431,7 @@ export function addGroup(
 export function updateCondition(
 	expr: WhereExpression,
 	path: number[],
-	condition: WhereCondition
+	condition: WhereRule
 ): WhereExpression {
 	return updateItemAtPath(expr, path, () => condition);
 }
@@ -522,7 +521,7 @@ export function wrapInGroup(
 }
 
 /**
- * Change logic operator for the root or a group at path
+ * Change group logic for the root or a group at path
  */
 export function changeLogic(
 	expr: WhereExpression,
@@ -612,16 +611,16 @@ export function canAddGroupAtPath(
 // ============================================================================
 
 /**
- * Get a human-readable summary of a where condition
+ * Get a human-readable summary of a where rule
  */
 export function getConditionSummary(
-	condition: WhereCondition,
+	rule: WhereRule,
 	propertyLabel?: string
 ): string {
-	const prop = propertyLabel ?? condition.property;
-	const op = condition.operator;
+	const prop = propertyLabel ?? rule.property;
+	const op = rule.condition;
 
-	// Handle operators without values
+	// Handle conditions without values
 	if (op === "isEmpty") {
 		return `${prop} is empty`;
 	}
@@ -630,7 +629,7 @@ export function getConditionSummary(
 	}
 
 	// Format value
-	const value = condition.value;
+	const value = rule.value;
 	const valueStr = (() => {
 		if (value === undefined) {
 			return "";
@@ -641,7 +640,7 @@ export function getConditionSummary(
 		return String(value);
 	})();
 
-	// Operator labels
+	// Condition labels
 	const opLabels: Record<string, string> = {
 		eq: "is",
 		ne: "is not",

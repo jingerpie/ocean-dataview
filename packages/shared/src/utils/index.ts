@@ -1,8 +1,8 @@
 // biome-ignore lint/performance/noBarrelFile: Shared utils public API
 export {
-	getDefaultFilterOperator,
-	getFilterOperators,
-	isValidOperatorForVariant,
+	getDefaultFilterCondition,
+	getFilterConditions,
+	isValidConditionForVariant,
 } from "./filter";
 export {
 	// Mutations

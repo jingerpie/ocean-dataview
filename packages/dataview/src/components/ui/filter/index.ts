@@ -14,13 +14,13 @@ export {
 	FilterRule,
 	type FilterRuleProps,
 	FilterValue,
-	LogicalOperator,
+	LogicPicker,
 } from "./advanced";
+export { ConditionPicker, type ConditionPickerProps } from "./condition-picker";
 // Common components (shared)
 export {
 	FilterPropertyPicker,
 	type FilterPropertyPickerProps,
 } from "./filter-property-picker";
-export { OperatorPicker, type OperatorPickerProps } from "./operator-picker";
 // Simple filter (single condition, no groups)
 export { FilterChip, type FilterChipProps } from "./simple";

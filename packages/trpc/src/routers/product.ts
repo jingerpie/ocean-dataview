@@ -38,7 +38,7 @@ export const productRouter = router({
 						];
 
 			// Build cursor condition: compare (col1, col2, ..., id) tuples
-			let cursorCondition: ReturnType<typeof sql> | undefined;
+			let cursorRule: ReturnType<typeof sql> | undefined;
 			if (cursorId) {
 				// Current row's sort column values
 				const rowValues = sortColumns.map((col) => product[col.propertyId]);
@@ -52,12 +52,12 @@ export const productRouter = router({
 
 				// When direction matches sort order, use ">"; otherwise "<"
 				const isDesc = sortColumns[0]?.desc ?? true;
-				const operator = isBackward === isDesc ? sql.raw(">") : sql.raw("<");
+				const condition = isBackward === isDesc ? sql.raw(">") : sql.raw("<");
 
-				cursorCondition = sql`(${sql.join(rowValues, sql`, `)}) ${operator} (${sql.join(cursorValues, sql`, `)})`;
+				cursorRule = sql`(${sql.join(rowValues, sql`, `)}) ${condition} (${sql.join(cursorValues, sql`, `)})`;
 			}
 
-			const where = and(advancedWhere, cursorCondition);
+			const where = and(advancedWhere, cursorRule);
 
 			// Build ORDER BY clause from sort columns
 			let orderBy = sortColumns.map((col) =>

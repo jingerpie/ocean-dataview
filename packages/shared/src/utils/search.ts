@@ -1,9 +1,9 @@
-import type { SearchQuery, WhereCondition } from "../types";
+import type { SearchQuery, WhereRule } from "../types";
 
 /**
  * Builds a SearchQuery from a search string and searchable fields.
  *
- * - Creates `iLike` conditions for each searchable field
+ * - Creates `iLike` rules for each searchable field
  * - Always returns { or: [...] } format
  * - Returns null if search is empty or no fields provided
  *
@@ -13,8 +13,8 @@ import type { SearchQuery, WhereCondition } from "../types";
  * // Result:
  * // {
  * //   or: [
- * //     { property: "name", operator: "iLike", value: "laptop" },
- * //     { property: "description", operator: "iLike", value: "laptop" },
+ * //     { property: "name", condition: "iLike", value: "laptop" },
+ * //     { property: "description", condition: "iLike", value: "laptop" },
  * //   ]
  * // }
  * ```
@@ -29,11 +29,11 @@ export function buildSearchFilter(
 		return null;
 	}
 
-	const conditions: WhereCondition[] = searchFields.map((field) => ({
+	const rules: WhereRule[] = searchFields.map((field) => ({
 		property: field,
-		operator: "iLike",
+		condition: "iLike",
 		value: trimmed,
 	}));
 
-	return { or: conditions };
+	return { or: rules };
 }

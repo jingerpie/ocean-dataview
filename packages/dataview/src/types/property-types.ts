@@ -204,14 +204,14 @@ export type PropertyKeys<T extends readonly DataViewProperty<any>[]> =
 
 // Re-export filter types from shared package for unified system
 export type {
-	FilterOperator,
+	FilterCondition,
 	FilterQuery,
 	FilterVariant,
 	PropertySort,
 	SearchQuery,
-	WhereCondition,
 	WhereExpression,
 	WhereNode,
+	WhereRule,
 } from "@ocean-dataview/shared/types";
 
 /** Property types excluded from search by default */

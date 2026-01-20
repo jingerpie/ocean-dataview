@@ -136,7 +136,7 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
  *     limit,
  *     createQueryOptions: (groupKey, cursor) =>
  *       trpc.product.getMany.queryOptions({
- *         filters: [{ propertyId: "familyGroup", operator: "eq", value: groupKey }],
+ *         filters: [{ propertyId: "familyGroup", condition: "eq", value: groupKey }],
  *         cursor,
  *         limit,
  *       }),

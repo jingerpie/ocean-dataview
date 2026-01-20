@@ -1,30 +1,30 @@
 import { dataTableConfig } from "../config/data-table";
-import type { FilterOperator, FilterVariant } from "../types/data-table.type";
+import type { FilterCondition, FilterVariant } from "../types/data-table.type";
 
-export function getFilterOperators(filterVariant: FilterVariant) {
-	const operatorMap: Record<
+export function getFilterConditions(filterVariant: FilterVariant) {
+	const conditionMap: Record<
 		FilterVariant,
-		{ label: string; value: FilterOperator }[]
+		{ label: string; value: FilterCondition }[]
 	> = {
-		text: dataTableConfig.textOperators,
-		number: dataTableConfig.numericOperators,
-		range: dataTableConfig.numericOperators,
-		date: dataTableConfig.dateOperators,
-		dateRange: dataTableConfig.dateOperators,
-		boolean: dataTableConfig.booleanOperators,
-		select: dataTableConfig.selectOperators,
-		multiSelect: dataTableConfig.multiSelectOperators,
-		files: dataTableConfig.filesOperators,
+		text: dataTableConfig.textConditions,
+		number: dataTableConfig.numericConditions,
+		range: dataTableConfig.numericConditions,
+		date: dataTableConfig.dateConditions,
+		dateRange: dataTableConfig.dateConditions,
+		boolean: dataTableConfig.booleanConditions,
+		select: dataTableConfig.selectConditions,
+		multiSelect: dataTableConfig.multiSelectConditions,
+		files: dataTableConfig.filesConditions,
 	};
 
-	return operatorMap[filterVariant] ?? dataTableConfig.textOperators;
+	return conditionMap[filterVariant] ?? dataTableConfig.textConditions;
 }
 
-export function getDefaultFilterOperator(
+export function getDefaultFilterCondition(
 	filterVariant: FilterVariant
-): FilterOperator {
-	// Explicit defaults that differ from first operator in list
-	const explicitDefaults: Partial<Record<FilterVariant, FilterOperator>> = {
+): FilterCondition {
+	// Explicit defaults that differ from first condition in list
+	const explicitDefaults: Partial<Record<FilterVariant, FilterCondition>> = {
 		text: "iLike", // Contains (3rd in list)
 		date: "isRelativeToToday", // Is relative to today (7th in list)
 		dateRange: "isRelativeToToday",
@@ -35,18 +35,18 @@ export function getDefaultFilterOperator(
 		return explicit;
 	}
 
-	// Otherwise use first operator
-	const operators = getFilterOperators(filterVariant);
-	return operators[0]?.value ?? "eq";
+	// Otherwise use first condition
+	const conditions = getFilterConditions(filterVariant);
+	return conditions[0]?.value ?? "eq";
 }
 
 /**
- * Validates that an operator is valid for the given filter variant
+ * Validates that a condition is valid for the given filter variant
  */
-export function isValidOperatorForVariant(
-	operator: FilterOperator,
+export function isValidConditionForVariant(
+	condition: FilterCondition,
 	variant: FilterVariant
 ): boolean {
-	const validOperators = getFilterOperators(variant);
-	return validOperators.some((op) => op.value === operator);
+	const validConditions = getFilterConditions(variant);
+	return validConditions.some((c) => c.value === condition);
 }

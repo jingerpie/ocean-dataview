@@ -9,38 +9,38 @@ import {
 } from "@ocean-dataview/dataview/components/ui/select";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type {
-	FilterOperator,
+	FilterCondition,
 	FilterVariant,
 } from "@ocean-dataview/shared/types";
-import { getFilterOperators } from "@ocean-dataview/shared/utils";
+import { getFilterConditions } from "@ocean-dataview/shared/utils";
 
-interface OperatorPickerProps {
-	value: FilterOperator;
-	onChange: (operator: FilterOperator) => void;
+interface ConditionPickerProps {
+	condition: FilterCondition;
+	onConditionChange: (condition: FilterCondition) => void;
 	variant: FilterVariant;
 	/** Inline style (no border, transparent) for filter chips */
 	inline?: boolean;
 	className?: string;
 }
 
-export function OperatorPicker({
-	value,
-	onChange,
+export function ConditionPicker({
+	condition,
+	onConditionChange,
 	variant,
 	inline,
 	className,
-}: OperatorPickerProps) {
-	const items = getFilterOperators(variant);
+}: ConditionPickerProps) {
+	const items = getFilterConditions(variant);
 
 	return (
 		<Select
 			items={items}
 			onValueChange={(val) => {
 				if (val) {
-					onChange(val as FilterOperator);
+					onConditionChange(val as FilterCondition);
 				}
 			}}
-			value={value}
+			value={condition}
 		>
 			<SelectTrigger
 				className={cn(
@@ -62,4 +62,4 @@ export function OperatorPicker({
 	);
 }
 
-export type { OperatorPickerProps };
+export type { ConditionPickerProps };

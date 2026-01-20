@@ -216,7 +216,7 @@ function useGroupInfiniteQueries(
  *     createQueryOptions: (groupKey) =>
  *       trpc.product.getMany.infiniteQueryOptions(
  *         {
- *           filters: [{ propertyId: "familyGroup", operator: "eq", value: groupKey }],
+ *           filters: [{ propertyId: "familyGroup", condition: "eq", value: groupKey }],
  *           limit,
  *         },
  *         { getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined },

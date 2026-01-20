@@ -8,10 +8,10 @@ import {
 	DropdownMenuTrigger,
 } from "@ocean-dataview/dataview/components/ui/dropdown-menu";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
-import type { WhereCondition } from "@ocean-dataview/shared/types";
+import type { WhereRule } from "@ocean-dataview/shared/types";
 import {
 	createDefaultCondition,
-	getDefaultFilterOperator,
+	getDefaultFilterCondition,
 	getFilterVariantFromPropertyType,
 } from "@ocean-dataview/shared/utils";
 import { ChevronDownIcon, CopyPlusIcon, PlusIcon } from "lucide-react";
@@ -23,7 +23,7 @@ interface AddFilterButtonProps<T> {
 	/** Whether adding a group is allowed (false at max depth) */
 	canAddGroup: boolean;
 	/** Callback when a new rule is added */
-	onAddRule: (condition: WhereCondition) => void;
+	onAddRule: (rule: WhereRule) => void;
 	/** Callback when a new group is added */
 	onAddGroup: () => void;
 	/** Additional class names */
@@ -44,7 +44,7 @@ export function AddFilterButton<T>({
 	onAddGroup,
 	className,
 }: AddFilterButtonProps<T>) {
-	// Create condition with first property as default
+	// Create rule with first property as default
 	const handleAddRule = () => {
 		const firstProperty = properties[0];
 		if (!firstProperty) {
@@ -52,13 +52,13 @@ export function AddFilterButton<T>({
 		}
 
 		const filterVariant = getFilterVariantFromPropertyType(firstProperty.type);
-		const defaultOperator = getDefaultFilterOperator(filterVariant);
-		const condition = createDefaultCondition(
+		const defaultCondition = getDefaultFilterCondition(filterVariant);
+		const rule = createDefaultCondition(
 			String(firstProperty.id),
-			defaultOperator
+			defaultCondition
 		);
 
-		onAddRule(condition);
+		onAddRule(rule);
 	};
 
 	// When can add group, show dropdown with two options

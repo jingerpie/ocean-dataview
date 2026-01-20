@@ -1,7 +1,7 @@
 export type DataTableConfig = typeof dataTableConfig;
 
 export const dataTableConfig = {
-	textOperators: [
+	textConditions: [
 		{ label: "Is", value: "eq" as const },
 		{ label: "Is not", value: "ne" as const },
 		{ label: "Contains", value: "iLike" as const },
@@ -11,7 +11,7 @@ export const dataTableConfig = {
 		{ label: "Is empty", value: "isEmpty" as const },
 		{ label: "Is not empty", value: "isNotEmpty" as const },
 	],
-	numericOperators: [
+	numericConditions: [
 		{ label: "=", value: "eq" as const },
 		{ label: "≠", value: "ne" as const },
 		{ label: ">", value: "gt" as const },
@@ -21,7 +21,7 @@ export const dataTableConfig = {
 		{ label: "Is empty", value: "isEmpty" as const },
 		{ label: "Is not empty", value: "isNotEmpty" as const },
 	],
-	dateOperators: [
+	dateConditions: [
 		{ label: "Is", value: "eq" as const },
 		{ label: "Is before", value: "lt" as const },
 		{ label: "Is after", value: "gt" as const },
@@ -32,23 +32,23 @@ export const dataTableConfig = {
 		{ label: "Is empty", value: "isEmpty" as const },
 		{ label: "Is not empty", value: "isNotEmpty" as const },
 	],
-	selectOperators: [
+	selectConditions: [
 		{ label: "Is", value: "eq" as const },
 		{ label: "Is not", value: "ne" as const },
 		{ label: "Is empty", value: "isEmpty" as const },
 		{ label: "Is not empty", value: "isNotEmpty" as const },
 	],
-	multiSelectOperators: [
+	multiSelectConditions: [
 		{ label: "Contains", value: "inArray" as const },
 		{ label: "Does not contain", value: "notInArray" as const },
 		{ label: "Is empty", value: "isEmpty" as const },
 		{ label: "Is not empty", value: "isNotEmpty" as const },
 	],
-	booleanOperators: [
+	booleanConditions: [
 		{ label: "Is", value: "eq" as const },
 		{ label: "Is not", value: "ne" as const },
 	],
-	filesOperators: [
+	filesConditions: [
 		{ label: "Is not empty", value: "isNotEmpty" as const },
 		{ label: "Is empty", value: "isEmpty" as const },
 	],
@@ -67,7 +67,7 @@ export const dataTableConfig = {
 		"multiSelect",
 		"files",
 	] as const,
-	operators: [
+	conditionalOperators: [
 		"iLike",
 		"notILike",
 		"eq",
@@ -85,5 +85,5 @@ export const dataTableConfig = {
 		"startsWith",
 		"endsWith",
 	] as const,
-	joinOperators: ["and", "or"] as const,
+	logicalOperators: ["and", "or"] as const,
 };

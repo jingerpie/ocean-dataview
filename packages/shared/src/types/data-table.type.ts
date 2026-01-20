@@ -14,10 +14,10 @@ export interface Option {
 }
 
 // ============================================================================
-// Operators (from config)
+// Condition Types (from config)
 // ============================================================================
 
-export type FilterOperator = DataTableConfig["operators"][number];
+export type FilterCondition = DataTableConfig["conditionalOperators"][number];
 
 // ============================================================================
 // Sort
@@ -33,11 +33,11 @@ export interface PropertySort<TData> {
 // ============================================================================
 
 /**
- * Leaf node - single WHERE condition
+ * Leaf node - single WHERE rule
  */
-export interface WhereCondition {
+export interface WhereRule {
 	property: string;
-	operator: FilterOperator;
+	condition: FilterCondition;
 	value?: unknown;
 }
 
@@ -52,13 +52,13 @@ export interface WhereExpression {
 /**
  * Any node in the WHERE tree
  */
-export type WhereNode = WhereCondition | WhereExpression;
+export type WhereNode = WhereRule | WhereExpression;
 
 /**
  * Search parameter - always OR at root, flat (no nesting)
  */
 export interface SearchQuery {
-	or: WhereCondition[];
+	or: WhereRule[];
 }
 
 /**
@@ -72,7 +72,7 @@ export interface FilterQuery {
 // Zod Schemas
 // ============================================================================
 
-const operatorValues = [
+const conditionValues = [
 	"iLike",
 	"notILike",
 	"eq",
@@ -92,11 +92,11 @@ const operatorValues = [
 ] as const;
 
 /**
- * Schema for WhereCondition
+ * Schema for WhereRule
  */
-export const whereConditionSchema = z.object({
+export const whereRuleSchema = z.object({
 	property: z.string(),
-	operator: z.enum(operatorValues),
+	condition: z.enum(conditionValues),
 	value: z.unknown().optional(),
 });
 
@@ -123,15 +123,15 @@ export const whereExpressionSchema: z.ZodType<WhereExpression> = z.lazy(() =>
  * Schema for WhereNode
  */
 export const whereNodeSchema: z.ZodType<WhereNode> = z.union([
-	whereConditionSchema,
+	whereRuleSchema,
 	whereExpressionSchema,
 ]);
 
 /**
- * Schema for SearchQuery - always { or: WhereCondition[] }
+ * Schema for SearchQuery - always { or: WhereRule[] }
  */
 export const searchQuerySchema: z.ZodType<SearchQuery> = z.object({
-	or: z.array(whereConditionSchema),
+	or: z.array(whereRuleSchema),
 });
 
 /**
@@ -149,8 +149,8 @@ export function isWhereExpression(node: WhereNode): node is WhereExpression {
 	return "and" in node || "or" in node;
 }
 
-export function isWhereCondition(node: WhereNode): node is WhereCondition {
-	return "property" in node && "operator" in node;
+export function isWhereRule(node: WhereNode): node is WhereRule {
+	return "property" in node && "condition" in node;
 }
 
 // ============================================================================

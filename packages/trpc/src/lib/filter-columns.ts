@@ -1,7 +1,7 @@
 import {
 	isWhereExpression,
-	type WhereCondition,
 	type WhereNode,
+	type WhereRule,
 } from "@ocean-dataview/shared/types";
 import {
 	addDays,
@@ -53,23 +53,23 @@ import {
  * // Single condition
  * const where = buildWhere(listing, {
  *   property: "title",
- *   operator: "iLike",
+ *   condition: "iLike",
  *   value: "phone"
  * });
  *
  * // Compound filter (AND)
  * const where = buildWhere(listing, {
  *   and: [
- *     { property: "price", operator: "gt", value: 100 },
- *     { property: "status", operator: "eq", value: "active" }
+ *     { property: "price", condition: "gt", value: 100 },
+ *     { property: "status", condition: "eq", value: "active" }
  *   ]
  * });
  *
  * // Nested (OR containing ANDs)
  * const where = buildWhere(listing, {
  *   or: [
- *     { and: [{ property: "price", operator: "gt", value: 100 }, { property: "status", operator: "eq", value: "active" }] },
- *     { and: [{ property: "featured", operator: "eq", value: true }] }
+ *     { and: [{ property: "price", condition: "gt", value: 100 }, { property: "status", condition: "eq", value: "active" }] },
+ *     { and: [{ property: "featured", condition: "eq", value: true }] }
  *   ]
  * });
  * ```
@@ -101,28 +101,28 @@ export function buildWhere<T extends Table>(
 		return undefined;
 	}
 
-	// Handle single condition
+	// Handle single rule
 	return buildCondition(table, filter);
 }
 
 /**
- * Builds SQL condition for a single filter condition.
+ * Builds SQL condition for a single filter rule.
  */
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex SQL condition building logic
 function buildCondition<T extends Table>(
 	table: T,
-	filter: WhereCondition
+	filter: WhereRule
 ): SQL | undefined {
-	const { property, operator, value } = filter;
+	const { property, condition, value } = filter;
 	const column = getColumn(table, property as keyof T);
 
 	if (!column) {
 		return undefined;
 	}
 
-	switch (operator) {
+	switch (condition) {
 		// ============================================
-		// Text operators (handle wildcards internally)
+		// Text conditions (handle wildcards internally)
 		// Uses CAST(column AS TEXT) for uniform search across all column types
 		// ============================================
 		case "iLike":
@@ -146,7 +146,7 @@ function buildCondition<T extends Table>(
 				: undefined;
 
 		// ============================================
-		// Equality operators
+		// Equality conditions
 		// ============================================
 		case "eq":
 			return eq(column, value);
@@ -155,7 +155,7 @@ function buildCondition<T extends Table>(
 			return ne(column, value);
 
 		// ============================================
-		// Comparison operators
+		// Comparison conditions
 		// ============================================
 		case "lt":
 			return lt(column, value);
@@ -170,7 +170,7 @@ function buildCondition<T extends Table>(
 			return gte(column, value);
 
 		// ============================================
-		// Array operators
+		// Array conditions
 		// ============================================
 		case "inArray":
 			return Array.isArray(value) ? inArray(column, value) : undefined;
@@ -179,7 +179,7 @@ function buildCondition<T extends Table>(
 			return Array.isArray(value) ? notInArray(column, value) : undefined;
 
 		// ============================================
-		// Range operator
+		// Range condition
 		// ============================================
 		case "isBetween":
 			if (Array.isArray(value) && value.length === 2) {
@@ -196,7 +196,7 @@ function buildCondition<T extends Table>(
 			return undefined;
 
 		// ============================================
-		// Date relative operator
+		// Date relative condition
 		// ============================================
 		case "isRelativeToToday": {
 			if (
@@ -227,7 +227,7 @@ function buildCondition<T extends Table>(
 		}
 
 		// ============================================
-		// Empty operators
+		// Empty conditions
 		// ============================================
 		case "isEmpty":
 			// For text columns, empty string '' is also considered empty
@@ -244,7 +244,7 @@ function buildCondition<T extends Table>(
 			return isNotNull(column);
 
 		default:
-			// Unknown operator - skip silently
+			// Unknown condition - skip silently
 			return undefined;
 	}
 }

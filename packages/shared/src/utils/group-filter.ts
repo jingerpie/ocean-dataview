@@ -1,4 +1,4 @@
-import type { WhereCondition, WhereNode } from "../types";
+import type { WhereNode, WhereRule } from "../types";
 
 /**
  * Combines a group filter with an optional user filter.
@@ -9,15 +9,15 @@ export function combineGroupFilter(
 	groupKey: string,
 	userFilter: WhereNode | null
 ): WhereNode {
-	const groupCondition: WhereCondition = {
+	const groupRule: WhereRule = {
 		property: groupProperty,
-		operator: "eq",
+		condition: "eq",
 		value: groupKey,
 	};
 
 	if (!userFilter) {
-		return { and: [groupCondition] };
+		return { and: [groupRule] };
 	}
 
-	return { and: [groupCondition, userFilter] };
+	return { and: [groupRule, userFilter] };
 }
