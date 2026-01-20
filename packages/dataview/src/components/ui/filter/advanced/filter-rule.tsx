@@ -28,7 +28,7 @@ import { SelectPicker } from "../../properties/select-picker";
 import { FilterPropertyPicker } from "../filter-property-picker";
 import { OperatorPicker } from "../operator-picker";
 import { FilterActionsMenu } from "./filter-actions-menu";
-import { LogicConnector } from "./logic-connector";
+import { LogicalOperator } from "./logical-operator";
 
 interface FilterRuleProps<T> {
 	/** The filter condition */
@@ -59,7 +59,7 @@ interface FilterRuleProps<T> {
 
 /**
  * Single filter rule row in the filter builder.
- * Contains: LogicConnector, PropertySelector, OperatorSelector, ValueInput, ActionsMenu
+ * Contains: LogicalOperator, PropertySelector, OperatorSelector, ValueInput, ActionsMenu
  */
 export function FilterRule<T>({
 	condition,
@@ -111,8 +111,8 @@ export function FilterRule<T>({
 
 	return (
 		<div className={cn("flex items-center gap-1.5", className)}>
-			{/* Logic Connector */}
-			<LogicConnector
+			{/* Logical Operator */}
+			<LogicalOperator
 				isFirst={isFirst}
 				isSecond={isSecond}
 				logic={logic}

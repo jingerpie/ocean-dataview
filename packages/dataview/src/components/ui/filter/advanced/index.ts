@@ -19,4 +19,4 @@ export {
 	type FilterRuleProps,
 	FilterValue,
 } from "./filter-rule";
-export { LogicConnector } from "./logic-connector";
+export { LogicalOperator } from "./logical-operator";

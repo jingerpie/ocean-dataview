@@ -22,7 +22,7 @@ import {
 import { AddFilterButton } from "./add-filter-button";
 import { FilterActionsMenu } from "./filter-actions-menu";
 import { FilterRule } from "./filter-rule";
-import { LogicConnector } from "./logic-connector";
+import { LogicalOperator } from "./logical-operator";
 
 interface FilterGroupProps<T> {
 	/** The compound filter (AND/OR group) */
@@ -161,8 +161,8 @@ export function FilterGroup<T>({
 	if (isNestedGroup) {
 		return (
 			<div className={cn("flex items-start gap-1.5", className)}>
-				{/* Group connector */}
-				<LogicConnector
+				{/* Group logical operator */}
+				<LogicalOperator
 					isFirst={isFirst}
 					isSecond={isSecond}
 					logic={connectorLogic}

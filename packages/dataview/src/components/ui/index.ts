@@ -15,7 +15,7 @@ export {
 	type FilterPropertyPickerProps,
 	FilterRule,
 	type FilterRuleProps,
-	LogicConnector,
+	LogicalOperator,
 } from "./filter";
 // Notion Toolbar
 export {

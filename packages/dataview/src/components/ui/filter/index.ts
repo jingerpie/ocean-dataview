@@ -14,7 +14,7 @@ export {
 	FilterRule,
 	type FilterRuleProps,
 	FilterValue,
-	LogicConnector,
+	LogicalOperator,
 } from "./advanced";
 // Common components (shared)
 export {

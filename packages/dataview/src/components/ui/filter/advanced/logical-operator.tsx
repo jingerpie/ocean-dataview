@@ -20,7 +20,7 @@ const LOGIC_OPTIONS = [
 	{ value: "or", label: "Or", description: "At least one filter must match" },
 ] as const;
 
-interface LogicConnectorProps {
+interface LogicalOperatorProps {
 	/** Whether this is the first rule (shows "Where" label) */
 	isFirst: boolean;
 	/** Whether this is the second rule (shows dropdown, can change logic) */
@@ -34,18 +34,18 @@ interface LogicConnectorProps {
 }
 
 /**
- * Logic connector for filter rules.
+ * Logical operator for filter rules.
  * - First rule shows static "Where" label
  * - Second rule shows "And" / "Or" dropdown (can change logic for entire group)
  * - Third+ rules show static "And" / "Or" label
  */
-export function LogicConnector({
+export function LogicalOperator({
 	isFirst,
 	isSecond,
 	logic,
 	onLogicChange,
 	className,
-}: LogicConnectorProps) {
+}: LogicalOperatorProps) {
 	// First item shows "Where"
 	if (isFirst) {
 		return (
