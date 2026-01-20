@@ -21,7 +21,7 @@ import {
 } from "@ocean-dataview/shared/utils";
 import { AddFilterButton } from "./add-filter-button";
 import { FilterActionsMenu } from "./filter-actions-menu";
-import { FilterRule } from "./filter-builder-rule";
+import { FilterRule } from "./filter-rule";
 import { LogicConnector } from "./logic-connector";
 
 interface FilterGroupProps<T> {

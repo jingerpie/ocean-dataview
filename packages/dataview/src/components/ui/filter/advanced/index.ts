@@ -13,10 +13,10 @@ export {
 	FilterActionsMenu,
 	type FilterActionsMenuProps,
 } from "./filter-actions-menu";
+export { FilterGroup, type FilterGroupProps } from "./filter-group";
 export {
 	FilterRule,
 	type FilterRuleProps,
 	FilterValue,
-} from "./filter-builder-rule";
-export { FilterGroup, type FilterGroupProps } from "./filter-group";
+} from "./filter-rule";
 export { LogicConnector } from "./logic-connector";
