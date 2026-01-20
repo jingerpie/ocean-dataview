@@ -146,11 +146,8 @@ export function FilterGroup<T>({
 	// Is this a nested group?
 	const isNestedGroup = level > 0;
 
-	// Determine unwrap availability and label
-	const singleItem = items.length === 1 ? items[0] : null;
-	const isSingleFilter = singleItem && isWhereCondition(singleItem);
-	const canUnwrap = singleItem !== null;
-	const unwrapLabel = isSingleFilter ? "Turn into filter" : "Unwrap group";
+	// Determine unwrap availability (can unwrap if group has exactly 1 item)
+	const canUnwrap = items.length === 1;
 
 	// Check if wrapping would exceed max level (wrapping shifts all content down 1 level)
 	// Only allow wrap if no nested groups exist (otherwise they'd exceed level 2)
@@ -248,8 +245,6 @@ export function FilterGroup<T>({
 								? (onWrapInGroup ?? (() => undefined))
 								: undefined
 						}
-						unwrapLabel={unwrapLabel}
-						wrapLabel="Wrap in group"
 					/>
 				)}
 			</div>

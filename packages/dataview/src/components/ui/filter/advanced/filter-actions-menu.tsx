@@ -1,12 +1,6 @@
 "use client";
 
-import {
-	CopyIcon,
-	MoreHorizontalIcon,
-	SquareStackIcon,
-	TrashIcon,
-	Undo2Icon,
-} from "lucide-react";
+import { CopyIcon, MoreHorizontalIcon, Repeat2, TrashIcon } from "lucide-react";
 import { Button } from "../../button";
 import {
 	DropdownMenu,
@@ -20,14 +14,10 @@ interface FilterActionsMenuProps {
 	onRemove: () => void;
 	/** Callback to duplicate this item */
 	onDuplicate: () => void;
-	/** Callback to wrap this item in a group (shows action if provided) */
+	/** Callback to wrap this item in a group (shows "Wrap in group" if provided) */
 	onWrapInGroup?: () => void;
-	/** Label for wrap action (defaults to "Wrap in group") */
-	wrapLabel?: string;
-	/** Callback to unwrap/turn into filter (shows action if provided) */
+	/** Callback to unwrap this group (shows "Unwrap group" if provided) */
 	onUnwrap?: () => void;
-	/** Label for unwrap action (defaults to "Turn into filter") */
-	unwrapLabel?: string;
 	/** Additional class names */
 	className?: string;
 }
@@ -40,9 +30,7 @@ export function FilterActionsMenu({
 	onRemove,
 	onDuplicate,
 	onWrapInGroup,
-	wrapLabel = "Wrap in group",
 	onUnwrap,
-	unwrapLabel = "Turn into filter",
 	className,
 }: FilterActionsMenuProps) {
 	return (
@@ -65,24 +53,20 @@ export function FilterActionsMenu({
 
 				{onUnwrap && (
 					<DropdownMenuItem onClick={onUnwrap}>
-						<Undo2Icon className="size-4" />
-						<span>{unwrapLabel}</span>
+						<Repeat2 className="size-4" />
+						<span>Unwrap group</span>
 					</DropdownMenuItem>
 				)}
 
 				{onWrapInGroup && (
 					<DropdownMenuItem onClick={onWrapInGroup}>
-						<SquareStackIcon className="size-4" />
-						{wrapLabel === "Wrap in group" ? (
-							<div className="flex flex-col">
-								<span>{wrapLabel}</span>
-								<span className="text-muted-foreground text-xs">
-									Create a filter group around this
-								</span>
-							</div>
-						) : (
-							<span>{wrapLabel}</span>
-						)}
+						<Repeat2 className="size-4" />
+						<div className="flex flex-col">
+							<span>Wrap in group</span>
+							<span className="text-muted-foreground text-xs">
+								Create a filter group around this
+							</span>
+						</div>
 					</DropdownMenuItem>
 				)}
 			</DropdownMenuContent>

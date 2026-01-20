@@ -152,7 +152,6 @@ export function FilterRule<T>({
 				onDuplicate={onDuplicate}
 				onRemove={onRemove}
 				onWrapInGroup={canWrapInGroup ? onWrapInGroup : undefined}
-				wrapLabel="Turn into group"
 			/>
 		</div>
 	);
