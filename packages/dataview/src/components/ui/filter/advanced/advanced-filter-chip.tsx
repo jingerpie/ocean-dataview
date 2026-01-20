@@ -44,7 +44,7 @@ export function AdvancedFilterChip<T>({
 			<DropdownMenuTrigger render={<Button size="sm" variant="secondary" />}>
 				<ListFilterIcon className="size-3" />
 				<span>{ruleText}</span>
-				<ChevronDownIcon className="size-3 opacity-50" />
+				<ChevronDownIcon className="size-3" />
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start" className="w-auto min-w-64">
 				<FilterBuilder

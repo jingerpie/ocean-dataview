@@ -67,7 +67,7 @@ export function FilterBuilder<T>({
 	};
 
 	return (
-		<div className={cn("flex flex-col gap-2", className)}>
+		<div className={cn("flex flex-col gap-1", className)}>
 			{/* Filter Content */}
 			{normalizedFilter ? (
 				<FilterGroup
@@ -92,10 +92,10 @@ export function FilterBuilder<T>({
 			{/* Delete Filter Button - Always visible */}
 			<div>
 				<Button
-					className="w-full justify-start"
+					className="w-full justify-start hover:text-destructive"
 					onClick={handleDeleteFilter}
 					size="sm"
-					variant="destructive"
+					variant="ghost"
 				>
 					<TrashIcon />
 					<span>Delete filter</span>
