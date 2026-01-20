@@ -13,7 +13,6 @@ export {
 	FilterActionsMenu,
 	type FilterActionsMenuProps,
 } from "./filter-actions-menu";
-export { FilterBuilder, type FilterBuilderProps } from "./filter-builder";
 export {
 	FilterRule,
 	type FilterRuleProps,

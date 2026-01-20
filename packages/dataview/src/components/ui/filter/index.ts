@@ -9,8 +9,6 @@ export {
 	type AdvancedFilterChipProps,
 	FilterActionsMenu,
 	type FilterActionsMenuProps,
-	FilterBuilder,
-	type FilterBuilderProps,
 	FilterGroup,
 	type FilterGroupProps,
 	FilterRule,

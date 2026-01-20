@@ -7,8 +7,6 @@ export {
 	type AdvancedFilterChipProps,
 	FilterActionsMenu,
 	type FilterActionsMenuProps,
-	FilterBuilder,
-	type FilterBuilderProps,
 	FilterChip,
 	type FilterChipProps,
 	FilterGroup,
