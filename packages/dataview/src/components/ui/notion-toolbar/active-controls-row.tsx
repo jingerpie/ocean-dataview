@@ -82,7 +82,9 @@ export function ActiveControlsRow<T>({
 			return;
 		}
 		const result = removeItem(normalizedFilter, [index]);
-		onFilterChange(result);
+		// Clean up empty filter - if no items left, set to null
+		const cleanResult = result.and?.length === 0 ? null : result;
+		onFilterChange(cleanResult);
 	};
 
 	// Handle adding a simple rule to advanced filter
