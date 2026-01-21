@@ -124,7 +124,7 @@ export function SortChip<T>({
 				<span>{sortText}</span>
 				<ChevronDownIcon />
 			</PopoverTrigger>
-			<PopoverContent align="start" className="w-80 p-1">
+			<PopoverContent align="start" className="w-auto p-1">
 				<div className="flex flex-col gap-1">
 					{/* Sort Rules with DnD */}
 					{sorts.length > 0 && (

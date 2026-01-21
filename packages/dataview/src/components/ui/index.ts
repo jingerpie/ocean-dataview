@@ -25,6 +25,9 @@ export {
 	type NotionToolbarProps,
 } from "./notion-toolbar";
 
+// Property Icon
+export { PropertyIcon, type PropertyIconProps } from "./property-icon";
+
 // Search
 export { SearchBar, SearchInput, type SearchInputProps } from "./search";
 // Sort

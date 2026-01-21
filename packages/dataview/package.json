@@ -6,6 +6,7 @@
     "./postcss.config": "./postcss.config.mjs",
     "./lib/utils": "./src/lib/utils/index.ts",
     "./lib/providers": "./src/lib/providers/index.ts",
+    "./lib/property-icons": "./src/lib/property-icons.ts",
     "./components/*": "./src/components/*.tsx",
     "./components/views/*": "./src/components/views/*/index.tsx",
     "./components/ui": "./src/components/ui/index.ts",

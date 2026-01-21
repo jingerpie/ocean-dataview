@@ -12,6 +12,7 @@ import {
 	ComboboxTrigger,
 	ComboboxValue,
 } from "@ocean-dataview/dataview/components/ui/combobox";
+import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-icon";
 import {
 	useAdvanceFilterBuilder,
 	useFilterParams,
@@ -178,14 +179,18 @@ function FilterPropertyPicker<T>({
 	const renderTrigger = () => {
 		if (variant === "rule") {
 			return (
-				<ComboboxTrigger
-					className="min-w-28 justify-between"
-					render={<Button size="sm" variant="outline" />}
-				>
+				<ComboboxTrigger render={<Button size="sm" variant="outline" />}>
 					<ComboboxValue>
-						{selectedProperty
-							? (selectedProperty.label ?? String(selectedProperty.id))
-							: "Select property..."}
+						{selectedProperty ? (
+							<>
+								<PropertyIcon type={selectedProperty.type} />
+								<span>
+									{selectedProperty.label ?? String(selectedProperty.id)}
+								</span>
+							</>
+						) : (
+							"Select property..."
+						)}
 					</ComboboxValue>
 				</ComboboxTrigger>
 			);
@@ -255,7 +260,10 @@ function FilterPropertyPicker<T>({
 				<ComboboxList>
 					{(property) => (
 						<ComboboxItem key={String(property.id)} value={property}>
-							{property.label ?? String(property.id)}
+							<PropertyIcon type={property.type} />
+							<span className="truncate">
+								{property.label ?? String(property.id)}
+							</span>
 						</ComboboxItem>
 					)}
 				</ComboboxList>

@@ -10,6 +10,7 @@ import {
 	ComboboxList,
 	ComboboxTrigger,
 } from "@ocean-dataview/dataview/components/ui/combobox";
+import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-icon";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { PlusIcon } from "lucide-react";
@@ -63,6 +64,7 @@ function AddSortButton<T>({
 				<ComboboxList>
 					{(property) => (
 						<ComboboxItem key={String(property.id)} value={property}>
+							<PropertyIcon type={property.type} />
 							<span className="truncate">{property.label ?? property.id}</span>
 						</ComboboxItem>
 					)}

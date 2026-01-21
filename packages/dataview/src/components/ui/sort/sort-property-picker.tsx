@@ -10,6 +10,7 @@ import {
 	ComboboxList,
 	ComboboxTrigger,
 } from "@ocean-dataview/dataview/components/ui/combobox";
+import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-icon";
 import { useSortParams } from "@ocean-dataview/dataview/hooks";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type { PropertySort } from "@ocean-dataview/shared/types";
@@ -124,7 +125,10 @@ function SortPropertyPicker<T>({
 				<ComboboxList>
 					{(property) => (
 						<ComboboxItem key={String(property.id)} value={property}>
-							{property.label ?? String(property.id)}
+							<PropertyIcon type={property.type} />
+							<span className="truncate">
+								{property.label ?? String(property.id)}
+							</span>
 						</ComboboxItem>
 					)}
 				</ComboboxList>

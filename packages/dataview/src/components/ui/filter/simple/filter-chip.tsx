@@ -15,6 +15,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@ocean-dataview/dataview/components/ui/popover";
+import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-icon";
 import { useSimpleFilterChip } from "@ocean-dataview/dataview/hooks";
 import type {
 	DataViewProperty,
@@ -92,7 +93,8 @@ export function FilterChip<T>({
 	return (
 		<Popover onOpenChange={handleOpenChange} open={isOpen}>
 			<PopoverTrigger render={<Button size="sm" variant="secondary" />}>
-				<span className="max-w-24 truncate">{label}</span>
+				<PropertyIcon type={property.type} />
+				<span>{label}</span>
 				<ChevronDownIcon className="size-3 opacity-50" />
 			</PopoverTrigger>
 			<PopoverContent align="start" className="w-80 gap-1 p-2">

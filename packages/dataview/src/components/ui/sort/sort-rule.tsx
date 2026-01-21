@@ -13,6 +13,7 @@ import {
 	ComboboxTrigger,
 	ComboboxValue,
 } from "@ocean-dataview/dataview/components/ui/combobox";
+import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-icon";
 import { DirectionPicker } from "@ocean-dataview/dataview/components/ui/sort/direction-picker";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
@@ -113,6 +114,7 @@ function SortRule<T>({
 				>
 					<ComboboxTrigger render={<Button size="sm" variant="outline" />}>
 						<ComboboxValue>
+							<PropertyIcon type={property.type} />
 							<span className="truncate">{property.label ?? property.id}</span>
 						</ComboboxValue>
 					</ComboboxTrigger>
@@ -126,6 +128,7 @@ function SortRule<T>({
 									key={String(prop.id)}
 									value={prop}
 								>
+									<PropertyIcon type={prop.type} />
 									<span className="truncate">{prop.label ?? prop.id}</span>
 								</ComboboxItem>
 							)}
