@@ -48,7 +48,7 @@ export function useToolbarState({
 	filter,
 	sorts,
 }: UseToolbarStateOptions): UseToolbarStateReturn {
-	const [row2Visible, setRow2Visible] = useState(true);
+	const [row2Visible, setRow2Visible] = useState(false);
 
 	// Analyze filter structure using shared utility
 	const filterAnalysis = useMemo(() => analyzeFilter(filter), [filter]);
