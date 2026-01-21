@@ -2,11 +2,10 @@
 
 import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@ocean-dataview/dataview/components/ui/dropdown-menu";
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@ocean-dataview/dataview/components/ui/popover";
 import { useAdvanceFilterBuilder } from "@ocean-dataview/dataview/hooks";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type { WhereExpression, WhereNode } from "@ocean-dataview/shared/types";
@@ -34,7 +33,7 @@ interface AdvancedFilterChipProps<T> {
  * Advanced filter chip that opens the full filter builder.
  * Appearance: [≡ N rules ▾]
  *
- * Uses global Zustand store for dropdown state coordination with toolbar buttons.
+ * Uses global Zustand store for popover state coordination with toolbar buttons.
  */
 export function AdvancedFilterChip<T>({
 	filter,
@@ -75,13 +74,13 @@ export function AdvancedFilterChip<T>({
 	};
 
 	return (
-		<DropdownMenu onOpenChange={setOpen} open={isOpen}>
-			<DropdownMenuTrigger render={<Button size="sm" variant="secondary" />}>
+		<Popover onOpenChange={setOpen} open={isOpen}>
+			<PopoverTrigger render={<Button size="sm" variant="secondary" />}>
 				<ListFilterIcon className="size-3" />
 				<span>{ruleText}</span>
 				<ChevronDownIcon className="size-3" />
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align="start" className="w-auto min-w-64">
+			</PopoverTrigger>
+			<PopoverContent align="start" className="w-auto min-w-64 p-1">
 				<div className="flex flex-col gap-1">
 					{/* Filter Content */}
 					{normalizedFilter ? (
@@ -105,13 +104,18 @@ export function AdvancedFilterChip<T>({
 					<Separator />
 
 					{/* Delete Filter */}
-					<DropdownMenuItem onClick={handleDeleteFilter} variant="destructive">
+					<Button
+						className="justify-start"
+						onClick={handleDeleteFilter}
+						size="sm"
+						variant="ghost-destructive"
+					>
 						<TrashIcon />
-						Delete filter
-					</DropdownMenuItem>
+						<span>Delete filter</span>
+					</Button>
 				</div>
-			</DropdownMenuContent>
-		</DropdownMenu>
+			</PopoverContent>
+		</Popover>
 	);
 }
 
