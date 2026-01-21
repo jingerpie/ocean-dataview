@@ -6,13 +6,13 @@ export {
 	type AddFilterButtonProps,
 } from "./add-filter-button";
 export {
+	FilterActions,
+	type FilterActionsProps,
+} from "./filter-actions";
+export {
 	AdvancedFilterChip,
 	type AdvancedFilterChipProps,
-} from "./advanced-filter-chip";
-export {
-	FilterActionsMenu,
-	type FilterActionsMenuProps,
-} from "./filter-actions-menu";
+} from "./filter-chip";
 export { FilterGroup, type FilterGroupProps } from "./filter-group";
 export {
 	FilterRule,

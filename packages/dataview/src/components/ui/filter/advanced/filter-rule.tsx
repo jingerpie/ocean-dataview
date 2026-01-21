@@ -27,7 +27,7 @@ import {
 import { SelectPicker } from "../../properties/select-picker";
 import { ConditionPicker } from "../condition-picker";
 import { FilterPropertyPicker } from "../filter-property-picker";
-import { FilterActionsMenu } from "./filter-actions-menu";
+import { FilterActions } from "./filter-actions";
 import { LogicPicker } from "./logic-picker";
 
 interface FilterRuleProps<T> {
@@ -148,7 +148,7 @@ export function FilterRule<T>({
 			)}
 
 			{/* Actions Menu */}
-			<FilterActionsMenu
+			<FilterActions
 				onDuplicate={onDuplicate}
 				onRemove={onRemove}
 				onWrapInGroup={canWrapInGroup ? onWrapInGroup : undefined}

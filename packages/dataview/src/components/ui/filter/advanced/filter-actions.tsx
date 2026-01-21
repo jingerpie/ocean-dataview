@@ -9,7 +9,7 @@ import {
 	DropdownMenuTrigger,
 } from "../../dropdown-menu";
 
-interface FilterActionsMenuProps {
+interface FilterActionsProps {
 	/** Callback to remove this item */
 	onRemove: () => void;
 	/** Callback to duplicate this item */
@@ -26,13 +26,13 @@ interface FilterActionsMenuProps {
  * Unified actions menu for filter rules and groups.
  * Shows Remove, Duplicate, and optionally Wrap/Unwrap actions.
  */
-export function FilterActionsMenu({
+export function FilterActions({
 	onRemove,
 	onDuplicate,
 	onWrapInGroup,
 	onUnwrap,
 	className,
-}: FilterActionsMenuProps) {
+}: FilterActionsProps) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
@@ -74,4 +74,4 @@ export function FilterActionsMenu({
 	);
 }
 
-export type { FilterActionsMenuProps };
+export type { FilterActionsProps };

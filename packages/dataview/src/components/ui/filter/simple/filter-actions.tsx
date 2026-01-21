@@ -10,7 +10,7 @@ import {
 	DropdownMenuTrigger,
 } from "../../dropdown-menu";
 
-interface FilterChipActionsProps {
+interface FilterActionsProps {
 	/** Callback to remove this filter */
 	onRemove: () => void;
 	/** Callback to add this filter to advanced filter */
@@ -23,11 +23,11 @@ interface FilterChipActionsProps {
  * Actions menu for simple filter chips.
  * Shows Delete and optionally Add to advanced filter.
  */
-export function FilterChipActions({
+export function FilterActions({
 	onRemove,
 	onAddToAdvanced,
 	className,
-}: FilterChipActionsProps) {
+}: FilterActionsProps) {
 	const openAdvanceFilterBuilder = useAdvanceFilterBuilder((s) => s.open);
 
 	const handleAddToAdvanced = () => {
@@ -59,4 +59,4 @@ export function FilterChipActions({
 	);
 }
 
-export type { FilterChipActionsProps };
+export type { FilterActionsProps };

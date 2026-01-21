@@ -33,7 +33,7 @@ import {
 	SingleDateCalendar,
 } from "../../properties/date-picker";
 import { ConditionPicker } from "../condition-picker";
-import { FilterChipActions } from "./filter-chip-actions";
+import { FilterActions } from "./filter-actions";
 
 interface FilterChipProps<T> {
 	/** The filter rule */
@@ -109,7 +109,7 @@ export function FilterChip<T>({
 							variant={variant}
 						/>
 					</div>
-					<FilterChipActions
+					<FilterActions
 						onAddToAdvanced={
 							onAddToAdvanced
 								? () => {

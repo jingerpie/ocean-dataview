@@ -20,7 +20,7 @@ import {
 	wrapInGroup,
 } from "@ocean-dataview/shared/utils";
 import { AddFilterButton } from "./add-filter-button";
-import { FilterActionsMenu } from "./filter-actions-menu";
+import { FilterActions } from "./filter-actions";
 import { FilterRule } from "./filter-rule";
 import { LogicPicker } from "./logic-picker";
 
@@ -234,7 +234,7 @@ export function FilterGroup<T>({
 
 				{/* Group actions menu (next to the group) */}
 				{onRemove && (
-					<FilterActionsMenu
+					<FilterActions
 						onDuplicate={onDuplicate ?? (() => undefined)}
 						onRemove={onRemove}
 						onUnwrap={canUnwrap ? handleUnwrap : undefined}
