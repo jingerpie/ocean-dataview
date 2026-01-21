@@ -1,5 +1,6 @@
 "use client";
 
+import { useAdvanceFilterBuilder } from "@ocean-dataview/dataview/hooks/use-advance-filter-builder";
 import { ListFilterIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
 import { Button } from "../../button";
 import {
@@ -27,6 +28,13 @@ export function FilterChipActions({
 	onAddToAdvanced,
 	className,
 }: FilterChipActionsProps) {
+	const openAdvanceFilterBuilder = useAdvanceFilterBuilder((s) => s.open);
+
+	const handleAddToAdvanced = () => {
+		onAddToAdvanced?.();
+		openAdvanceFilterBuilder();
+	};
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
@@ -41,7 +49,7 @@ export function FilterChipActions({
 					Delete filter
 				</DropdownMenuItem>
 				{onAddToAdvanced && (
-					<DropdownMenuItem onClick={onAddToAdvanced}>
+					<DropdownMenuItem onClick={handleAddToAdvanced}>
 						<ListFilterIcon />
 						Add to advanced filter
 					</DropdownMenuItem>
