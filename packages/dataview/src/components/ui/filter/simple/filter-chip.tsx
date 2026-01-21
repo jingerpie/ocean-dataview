@@ -95,11 +95,13 @@ export function FilterChip<T>({
 				<span className="max-w-24 truncate">{label}</span>
 				<ChevronDownIcon className="size-3 opacity-50" />
 			</PopoverTrigger>
-			<PopoverContent align="start" className="w-80">
+			<PopoverContent align="start" className="w-80 gap-1 p-2">
 				{/* Header: Property + Condition + Menu */}
 				<div className="flex items-center justify-between">
-					<div className="flex items-center">
-						<span className="font-medium text-sm">{label}</span>
+					<div className="flex items-center pl-2">
+						<span className="font-medium text-muted-foreground text-sm">
+							{label}
+						</span>
 						<ConditionPicker
 							condition={rule.condition}
 							inline

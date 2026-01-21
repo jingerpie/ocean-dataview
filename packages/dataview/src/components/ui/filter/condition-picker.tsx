@@ -3,6 +3,7 @@
 import {
 	Select,
 	SelectContent,
+	SelectGroup,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
@@ -44,7 +45,7 @@ export function ConditionPicker({
 		>
 			<SelectTrigger
 				className={cn(
-					inline && "border-none bg-transparent! lowercase",
+					inline && "border-none bg-transparent! pl-2 lowercase",
 					className
 				)}
 				size="sm"
@@ -52,11 +53,13 @@ export function ConditionPicker({
 				<SelectValue />
 			</SelectTrigger>
 			<SelectContent align="start">
-				{items.map((item) => (
-					<SelectItem key={item.value} value={item.value}>
-						{item.label}
-					</SelectItem>
-				))}
+				<SelectGroup>
+					{items.map((item) => (
+						<SelectItem key={item.value} value={item.value}>
+							{item.label}
+						</SelectItem>
+					))}
+				</SelectGroup>
 			</SelectContent>
 		</Select>
 	);

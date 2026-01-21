@@ -10,6 +10,7 @@ import { cn } from "@ocean-dataview/dataview/lib/utils";
 import {
 	Select,
 	SelectContent,
+	SelectGroup,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
@@ -85,18 +86,20 @@ export function LogicPicker({
 				<SelectValue />
 			</SelectTrigger>
 			<SelectContent align="start" className="w-auto">
-				{LOGIC_OPTIONS.map((option) => (
-					<SelectItem key={option.value} value={option.value}>
-						<Item className="w-full p-0" size="xs">
-							<ItemContent className="gap-0">
-								<ItemTitle>{option.label}</ItemTitle>
-								<ItemDescription className="text-xs">
-									{option.description}
-								</ItemDescription>
-							</ItemContent>
-						</Item>
-					</SelectItem>
-				))}
+				<SelectGroup>
+					{LOGIC_OPTIONS.map((option) => (
+						<SelectItem key={option.value} value={option.value}>
+							<Item className="w-full p-0" size="xs">
+								<ItemContent className="gap-0">
+									<ItemTitle>{option.label}</ItemTitle>
+									<ItemDescription className="text-xs">
+										{option.description}
+									</ItemDescription>
+								</ItemContent>
+							</Item>
+						</SelectItem>
+					))}
+				</SelectGroup>
 			</SelectContent>
 		</Select>
 	);

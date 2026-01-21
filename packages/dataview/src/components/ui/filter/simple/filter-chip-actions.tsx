@@ -30,7 +30,7 @@ export function FilterChipActions({
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
-				render={<Button className={className} size="sm" variant="ghost" />}
+				render={<Button className={className} size="icon-sm" variant="ghost" />}
 			>
 				<MoreHorizontalIcon />
 				<span className="sr-only">Actions</span>
