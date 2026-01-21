@@ -73,7 +73,7 @@ function SortPropertyPicker<T>({
 					render={<Button size="icon-sm" variant="ghost" />}
 					showChevron={false}
 				>
-					<SortAscIcon className="size-4" />
+					<SortAscIcon />
 				</ComboboxTrigger>
 			);
 		}
@@ -81,7 +81,7 @@ function SortPropertyPicker<T>({
 		// default variant
 		return (
 			<ComboboxTrigger render={<Button size="sm" variant="outline" />}>
-				<SortAscIcon className="size-4" />
+				<SortAscIcon />
 				<span>Sort</span>
 			</ComboboxTrigger>
 		);
@@ -93,14 +93,14 @@ function SortPropertyPicker<T>({
 		if (variant === "icon") {
 			return (
 				<Button onClick={onClick} size="icon-sm" variant="ghost">
-					<SortAscIcon className="size-4" />
+					<SortAscIcon />
 				</Button>
 			);
 		}
 		// default variant
 		return (
 			<Button onClick={onClick} size="sm" variant="outline">
-				<SortAscIcon className="size-4" />
+				<SortAscIcon />
 				<span>Sort</span>
 			</Button>
 		);

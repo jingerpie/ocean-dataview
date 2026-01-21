@@ -29,9 +29,9 @@ export {
 export { SearchBar, SearchInput, type SearchInputProps } from "./search";
 // Sort
 export {
+	SortChip,
+	type SortChipProps,
 	SortDropdown,
-	SortList,
-	type SortListProps,
 	type SortOption,
 } from "./sort";
 // Toolbar

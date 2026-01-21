@@ -131,7 +131,7 @@ export function SearchInput({
 		<div
 			className={cn(
 				"relative flex items-center",
-				"fade-in slide-in-from-right-2 w-[200px] animate-in duration-200",
+				"fade-in slide-in-from-right-2 w-50 animate-in duration-200",
 				className
 			)}
 		>

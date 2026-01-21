@@ -19,7 +19,7 @@ import {
 	FilterChip,
 	FilterPropertyPicker,
 } from "../filter";
-import { SortList } from "../sort";
+import { SortChip } from "../sort";
 
 interface ChipsBarProps<T> {
 	/** Current sorts (multiple sorts supported) */
@@ -151,9 +151,9 @@ export function ChipsBar<T>({
 				className
 			)}
 		>
-			{/* 1. Sort List (multi-sort with drag-and-drop) */}
+			{/* 1. Sort Chip (multi-sort with drag-and-drop) */}
 			{sorts.length > 0 && (
-				<SortList
+				<SortChip
 					onSortsChange={onSortsChange}
 					properties={properties}
 					sorts={sorts}

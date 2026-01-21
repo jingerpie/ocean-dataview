@@ -13,6 +13,7 @@ export { useGroupConfig } from "./use-group-config";
 export { useInteractiveLegend } from "./use-interactive-legend";
 export { useSearchParams } from "./use-search-params";
 export { useSimpleFilterChip } from "./use-simple-filter-chip";
+export { useSortBuilder } from "./use-sort-builder";
 export { useSortParams } from "./use-sort-params";
 export type {
 	UseViewSetupOptions,
