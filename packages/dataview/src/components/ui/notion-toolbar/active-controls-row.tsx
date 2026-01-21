@@ -10,14 +10,10 @@ import type {
 	WhereRule,
 } from "@ocean-dataview/shared/types";
 import {
-	createDefaultCondition,
-	getDefaultFilterCondition,
-	getFilterVariantFromPropertyType,
 	normalizeFilter,
 	removeItem,
 	updateCondition,
 } from "@ocean-dataview/shared/utils";
-import { useState } from "react";
 import {
 	AdvancedFilterChip,
 	FilterChip,
@@ -44,8 +40,6 @@ interface ActiveControlsRowProps<T> {
 	simpleFilterConditions: Array<{ condition: WhereRule; index: number }>;
 	/** Total rule count in advanced filter */
 	ruleCount: number;
-	/** Callback to open advanced filter builder */
-	onOpenAdvancedFilter: () => void;
 	/** Additional class names */
 	className?: string;
 }
@@ -69,36 +63,10 @@ export function ActiveControlsRow<T>({
 	advancedFilterIndex,
 	simpleFilterConditions,
 	ruleCount,
-	onOpenAdvancedFilter,
 	className,
 }: ActiveControlsRowProps<T>) {
-	const [addFilterOpen, setAddFilterOpen] = useState(false);
-
 	// Get normalized filter for operations
 	const normalizedFilter = normalizeFilter(filter);
-
-	// Get property IDs already used in simple filters (to hide from picker)
-	const usedPropertyIds = simpleFilterConditions.map(
-		(f) => f.condition.property
-	);
-
-	// Handle adding a new simple filter (adds WhereRule to root)
-	const handleAddFilter = (property: DataViewProperty<T>) => {
-		// Get the correct default condition based on property type
-		const filterVariant = getFilterVariantFromPropertyType(property.type);
-		const defaultCondition = getDefaultFilterCondition(filterVariant);
-		const rule = createDefaultCondition(String(property.id), defaultCondition);
-
-		if (normalizedFilter) {
-			// Add to root level (alongside any existing advanced filter)
-			const items = normalizedFilter.and ?? [];
-			onFilterChange({ and: [...items, rule] });
-		} else {
-			// Create new filter with AND logic
-			onFilterChange({ and: [rule] });
-		}
-		setAddFilterOpen(false);
-	};
 
 	// Handle updating a simple filter rule
 	const handleRuleChange = (index: number, newRule: WhereRule) => {
@@ -222,15 +190,7 @@ export function ActiveControlsRow<T>({
 			})}
 
 			{/* 4. + Filter Button */}
-			<FilterPropertyPicker
-				excludePropertyIds={usedPropertyIds}
-				onAdvancedFilter={onOpenAdvancedFilter}
-				onOpenChange={setAddFilterOpen}
-				onSelect={handleAddFilter}
-				open={addFilterOpen}
-				properties={properties}
-				variant="icon"
-			/>
+			<FilterPropertyPicker properties={properties} variant="icon" />
 
 			{/* 5. Clear All Button */}
 			<Button

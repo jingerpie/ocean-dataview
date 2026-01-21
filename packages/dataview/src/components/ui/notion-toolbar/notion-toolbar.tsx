@@ -1,33 +1,17 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import {
-	Combobox,
-	ComboboxContent,
-	ComboboxEmpty,
-	ComboboxInput,
-	ComboboxItem,
-	ComboboxList,
-	ComboboxTrigger,
-} from "@ocean-dataview/dataview/components/ui/combobox";
-import {
-	useAdvanceFilterBuilder,
 	useFilterParams,
 	useSearchParams,
 	useSortParams,
 } from "@ocean-dataview/dataview/hooks";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
-import type { PropertySort } from "@ocean-dataview/shared/types";
-import {
-	createDefaultCondition,
-	normalizeFilter,
-} from "@ocean-dataview/shared/utils";
-import { ListFilterIcon, SortAscIcon } from "lucide-react";
-import { type ComponentProps, type ReactNode, useState } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { FilterPropertyPicker } from "../filter";
 import { SearchInput } from "../search";
-import { ToolbarButton, useToolbarState } from "../toolbar";
+import { SortPropertyPicker } from "../sort";
+import { useToolbarState } from "../toolbar";
 import { DataViewOptions } from "../visibility";
 import { ActiveControlsRow } from "./active-controls-row";
 
@@ -78,10 +62,6 @@ export function NotionToolbar<T>({
 	const { filter, setFilter: onFilterChange } = useFilterParams();
 	const { search, setSearch: onSearchChange } = useSearchParams();
 	const { sort: sorts, setSort: onSortsChange } = useSortParams<T>();
-	const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
-	const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
-
-	const openAdvancedFilter = useAdvanceFilterBuilder((state) => state.open);
 
 	const {
 		hasActiveControls,
@@ -92,73 +72,6 @@ export function NotionToolbar<T>({
 		advancedFilterIndex,
 		ruleCount,
 	} = useToolbarState({ filter, sorts });
-
-	// Handle filter button click
-	const handleFilterButtonClick = () => {
-		if (filter !== null) {
-			// Filter exists - toggle Row 2 visibility
-			toggleRow2();
-		} else {
-			// No filter - open dropdown
-			setFilterDropdownOpen(true);
-		}
-	};
-
-	// Handle sort button click
-	const handleSortButtonClick = () => {
-		if (sorts.length > 0) {
-			// Sorts exist - toggle Row 2 visibility
-			toggleRow2();
-		} else {
-			// No sorts - open dropdown
-			setSortDropdownOpen(true);
-		}
-	};
-
-	// Handle selecting a property to filter
-	const handleFilterPropertySelect = (property: DataViewProperty<T>) => {
-		const condition = createDefaultCondition(String(property.id));
-		onFilterChange({ and: [condition] });
-		setFilterDropdownOpen(false);
-	};
-
-	// Handle opening advanced filter
-	const handleOpenAdvancedFilter = () => {
-		setFilterDropdownOpen(false);
-
-		// Create advanced filter structure if it doesn't exist
-		const firstProperty = properties[0];
-		if (firstProperty && !advancedFilter) {
-			const defaultCondition = createDefaultCondition(String(firstProperty.id));
-
-			if (filter) {
-				// Has existing simple filters, add advanced filter alongside
-				const normalized = normalizeFilter(filter);
-				if (normalized) {
-					onFilterChange({
-						and: [...(normalized.and ?? []), { and: [defaultCondition] }],
-					});
-				}
-			} else {
-				// No filter exists, create new with advanced filter structure
-				// { and: [{ and: [defaultCondition] }] }
-				onFilterChange({ and: [{ and: [defaultCondition] }] });
-			}
-		}
-
-		openAdvancedFilter();
-	};
-
-	// Handle selecting a property to sort (adds first sort)
-	const handleSortPropertySelect = (prop: DataViewProperty<T>) => {
-		onSortsChange([
-			{
-				property: prop.id as PropertySort<T>["property"],
-				desc: false,
-			},
-		]);
-		setSortDropdownOpen(false);
-	};
 
 	return (
 		<div
@@ -174,69 +87,23 @@ export function NotionToolbar<T>({
 
 				{/* Right side: Controls */}
 				<div className="ml-auto flex items-center gap-1">
-					{/* Filter Button */}
-					{enableFilter &&
-						(filter !== null ? (
-							// Filter exists - simple button to toggle Row 2
-							<ToolbarButton
-								icon={<ListFilterIcon />}
-								isActive={true}
-								label="Filter"
-								onClick={handleFilterButtonClick}
-							/>
-						) : (
-							// No filter - FilterPropertyPicker dropdown
-							<FilterPropertyPicker
-								onAdvancedFilter={handleOpenAdvancedFilter}
-								onOpenChange={setFilterDropdownOpen}
-								onSelect={handleFilterPropertySelect}
-								open={filterDropdownOpen}
-								properties={properties}
-								variant="icon"
-							/>
-						))}
+					{/* Filter - single picker with conditional onClick */}
+					{enableFilter && (
+						<FilterPropertyPicker
+							onClick={filter !== null ? toggleRow2 : undefined}
+							properties={properties}
+							variant="icon"
+						/>
+					)}
 
-					{/* Sort Button */}
-					{enableSort &&
-						(sorts.length > 0 ? (
-							// Sorts exist - simple button to toggle Row 2
-							<ToolbarButton
-								icon={<SortAscIcon className="size-4" />}
-								isActive={true}
-								label="Sort"
-								onClick={handleSortButtonClick}
-							/>
-						) : (
-							// No sorts - Combobox dropdown to pick first sort
-							<Combobox
-								items={properties}
-								onOpenChange={setSortDropdownOpen}
-								onValueChange={(value) => {
-									if (value) {
-										handleSortPropertySelect(value as DataViewProperty<T>);
-									}
-								}}
-								open={sortDropdownOpen}
-							>
-								<ComboboxTrigger
-									render={<Button size="icon-sm" variant="ghost" />}
-									showChevron={false}
-								>
-									<SortAscIcon className="size-4" />
-								</ComboboxTrigger>
-								<ComboboxContent align="start" className="w-56">
-									<ComboboxInput placeholder="Sort by..." showTrigger={false} />
-									<ComboboxEmpty>No properties found.</ComboboxEmpty>
-									<ComboboxList>
-										{(property) => (
-											<ComboboxItem key={String(property.id)} value={property}>
-												{property.label ?? String(property.id)}
-											</ComboboxItem>
-										)}
-									</ComboboxList>
-								</ComboboxContent>
-							</Combobox>
-						))}
+					{/* Sort - single picker with conditional onClick */}
+					{enableSort && (
+						<SortPropertyPicker
+							onClick={sorts.length > 0 ? toggleRow2 : undefined}
+							properties={properties}
+							variant="icon"
+						/>
+					)}
 
 					{/* Search Input */}
 					{enableSearch && (
@@ -260,7 +127,6 @@ export function NotionToolbar<T>({
 					advancedFilterIndex={advancedFilterIndex}
 					filter={filter}
 					onFilterChange={onFilterChange}
-					onOpenAdvancedFilter={handleOpenAdvancedFilter}
 					onSortsChange={onSortsChange}
 					properties={properties}
 					ruleCount={ruleCount}

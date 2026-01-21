@@ -122,7 +122,7 @@ export function FilterRule<T>({
 			{/* Property Selector */}
 			<FilterPropertyPicker
 				advance
-				onSelect={handlePropertySelect}
+				onPropertyChange={handlePropertySelect}
 				properties={properties}
 				value={property}
 				variant="rule"

@@ -12,22 +12,29 @@ import {
 	ComboboxTrigger,
 	ComboboxValue,
 } from "@ocean-dataview/dataview/components/ui/combobox";
+import {
+	useAdvanceFilterBuilder,
+	useFilterParams,
+} from "@ocean-dataview/dataview/hooks";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
+import { isWhereExpression, isWhereRule } from "@ocean-dataview/shared/types";
+import {
+	createDefaultCondition,
+	getDefaultFilterCondition,
+	getFilterVariantFromPropertyType,
+	normalizeFilter,
+} from "@ocean-dataview/shared/utils";
 import { ListFilterIcon, PlusIcon } from "lucide-react";
+import { useMemo, useState } from "react";
 
 interface FilterPropertyPickerProps<T> {
 	/** Available properties to filter by */
 	properties: DataViewProperty<T>[];
-	/** Currently selected property (for rule variant) */
-	value?: DataViewProperty<T>;
-	/** Controlled open state */
-	open?: boolean;
-	/** Callback when open state changes */
-	onOpenChange?: (open: boolean) => void;
-	/** Callback when a property is selected */
-	onSelect: (property: DataViewProperty<T>) => void;
-	/** Callback when "Add advanced filter" is clicked (only shown when advance=false) */
-	onAdvancedFilter?: () => void;
+	/**
+	 * Override default click behavior. If provided, replaces default action (open dropdown).
+	 * Use this to customize what happens when the trigger is clicked.
+	 */
+	onClick?: () => void;
 	/**
 	 * Trigger variant:
 	 * - `default` - Filter icon with "Filter" label, outline button
@@ -38,15 +45,19 @@ interface FilterPropertyPickerProps<T> {
 	/**
 	 * Advanced mode (for use inside advanced filter builder):
 	 * - `true` - No "Add advanced filter" button, shows all properties
-	 * - `false` - Shows "Add advanced filter" button, can exclude properties
+	 * - `false` - Shows "Add advanced filter" button, excludes already-used properties
 	 */
 	advance?: boolean;
-	/** Property IDs to exclude from the list (only used when advance=false) */
-	excludePropertyIds?: string[];
+	/** Currently selected property (for rule variant only) */
+	value?: DataViewProperty<T>;
+	/** Callback when property changes (for rule variant only) */
+	onPropertyChange?: (property: DataViewProperty<T>) => void;
 }
 
 /**
  * Filter property picker with Combobox.
+ *
+ * Uses `useFilterParams()` and `useAdvanceFilterBuilder()` internally.
  *
  * Trigger Variants:
  * - `default` - Filter icon with "Filter" label, outline button
@@ -54,30 +65,109 @@ interface FilterPropertyPickerProps<T> {
  * - `rule` - Shows selected property value (for existing filter rules)
  *
  * Content Modes:
- * - `advance=false` (default) - Shows "Add advanced filter" button, respects excludePropertyIds
+ * - `advance=false` (default) - Shows "Add advanced filter" button, excludes already-used properties
  * - `advance=true` - No "Add advanced filter" button, shows all properties
+ *
+ * Click Behavior:
+ * - If `onClick` is NOT provided → default behavior (open dropdown)
+ * - If `onClick` IS provided → overrides default, calls provided function instead
  */
 function FilterPropertyPicker<T>({
 	properties,
-	value,
-	open,
-	onOpenChange,
-	onSelect,
-	onAdvancedFilter,
+	onClick,
 	variant = "default",
 	advance = false,
-	excludePropertyIds,
+	value,
+	onPropertyChange,
 }: FilterPropertyPickerProps<T>) {
-	// Filter out excluded properties (only when not in advance mode)
-	const availableProperties =
-		!advance && excludePropertyIds
-			? properties.filter((p) => !excludePropertyIds.includes(String(p.id)))
-			: properties;
+	const [open, setOpen] = useState(false);
+	const { filter, setFilter } = useFilterParams();
+	const openAdvancedFilterBuilder = useAdvanceFilterBuilder(
+		(state) => state.open
+	);
+
+	// Check if advanced filter already exists (nested WhereExpression at root)
+	const hasAdvancedFilter = useMemo(() => {
+		if (!filter) {
+			return false;
+		}
+		const normalized = normalizeFilter(filter);
+		return (normalized?.and ?? []).some(isWhereExpression);
+	}, [filter]);
+
+	// Compute property IDs already used in filter (for non-advance mode)
+	const usedPropertyIds = useMemo(() => {
+		if (advance || !filter) {
+			return [];
+		}
+		const normalized = normalizeFilter(filter);
+		return (normalized?.and ?? [])
+			.filter(isWhereRule)
+			.map((rule) => rule.property);
+	}, [advance, filter]);
+
+	// Filter out already-used properties (only when not in advance mode)
+	const availableProperties = useMemo(() => {
+		if (advance) {
+			return properties;
+		}
+		return properties.filter((p) => !usedPropertyIds.includes(String(p.id)));
+	}, [advance, properties, usedPropertyIds]);
 
 	// Find matching property from items for rule variant
 	const selectedProperty = value
 		? properties.find((p) => p.id === value.id)
 		: undefined;
+
+	// Handle property selection
+	const handleSelect = (property: DataViewProperty<T>) => {
+		// For rule variant, just notify parent
+		if (variant === "rule") {
+			onPropertyChange?.(property);
+			setOpen(false);
+			return;
+		}
+
+		// Get the correct default condition based on property type
+		const filterVariant = getFilterVariantFromPropertyType(property.type);
+		const defaultCondition = getDefaultFilterCondition(filterVariant);
+		const rule = createDefaultCondition(String(property.id), defaultCondition);
+
+		// Add to existing filter or create new
+		const normalized = normalizeFilter(filter);
+		if (normalized) {
+			const items = normalized.and ?? [];
+			setFilter({ and: [...items, rule] });
+		} else {
+			setFilter({ and: [rule] });
+		}
+
+		setOpen(false);
+	};
+
+	// Handle open advanced filter
+	const handleAdvancedFilter = () => {
+		setOpen(false);
+
+		// Create advanced filter structure if it doesn't exist
+		const firstProperty = properties[0];
+		if (firstProperty && !hasAdvancedFilter) {
+			const defaultCondition = createDefaultCondition(String(firstProperty.id));
+			const normalized = normalizeFilter(filter);
+
+			if (normalized) {
+				// Has existing simple filters, add advanced filter alongside
+				setFilter({
+					and: [...(normalized.and ?? []), { and: [defaultCondition] }],
+				});
+			} else {
+				// No filter exists, create new with advanced filter structure
+				setFilter({ and: [{ and: [defaultCondition] }] });
+			}
+		}
+
+		openAdvancedFilterBuilder();
+	};
 
 	// Render trigger based on variant
 	const renderTrigger = () => {
@@ -116,22 +206,38 @@ function FilterPropertyPicker<T>({
 		);
 	};
 
-	// Show "Add advanced filter" button only when not in advance mode
-	const showAdvancedFilterButton = !advance && onAdvancedFilter;
-
 	// Compute value - use null instead of undefined to keep component in controlled mode
 	// Type assertion needed because base-ui Combobox has complex generic inference with union types
 	const comboboxValue = (
 		variant === "rule" ? (selectedProperty ?? null) : null
 	) as never;
 
+	// When onClick is provided for non-rule variants, render standalone button
+	// This completely bypasses Combobox behavior - clicking only calls onClick
+	if (onClick && variant !== "rule") {
+		if (variant === "icon") {
+			return (
+				<Button onClick={onClick} size="icon-sm" variant="ghost">
+					<ListFilterIcon />
+				</Button>
+			);
+		}
+		// default variant
+		return (
+			<Button onClick={onClick} size="sm" variant="outline">
+				<ListFilterIcon />
+				<span>Filter</span>
+			</Button>
+		);
+	}
+
 	return (
 		<Combobox
 			items={availableProperties}
-			onOpenChange={onOpenChange}
+			onOpenChange={setOpen}
 			onValueChange={(newValue) => {
 				if (newValue) {
-					onSelect(newValue as DataViewProperty<T>);
+					handleSelect(newValue as DataViewProperty<T>);
 				}
 			}}
 			open={open}
@@ -148,15 +254,12 @@ function FilterPropertyPicker<T>({
 						</ComboboxItem>
 					)}
 				</ComboboxList>
-				{showAdvancedFilterButton && (
+				{!advance && (
 					<>
 						<ComboboxSeparator className="my-0" />
 						<Button
 							className="my-1 w-full justify-start"
-							onClick={() => {
-								onOpenChange?.(false);
-								onAdvancedFilter();
-							}}
+							onClick={handleAdvancedFilter}
 							size="sm"
 							variant="ghost"
 						>
