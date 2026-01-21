@@ -13,7 +13,7 @@ import { SearchInput } from "../search";
 import { SortPropertyPicker } from "../sort";
 import { useToolbarState } from "../toolbar";
 import { DataViewOptions } from "../visibility";
-import { ActiveControlsRow } from "./active-controls-row";
+import { ChipsBar } from "./chips-bar";
 
 interface NotionToolbarProps<T> extends ComponentProps<"div"> {
 	/** Available properties for filtering/sorting */
@@ -120,9 +120,9 @@ export function NotionToolbar<T>({
 				</div>
 			</div>
 
-			{/* Row 2: Active Controls (conditional) */}
+			{/* Row 2: Chips Bar (conditional) */}
 			{hasActiveControls && row2Visible && (
-				<ActiveControlsRow
+				<ChipsBar
 					advancedFilter={advancedFilter}
 					advancedFilterIndex={advancedFilterIndex}
 					filter={filter}

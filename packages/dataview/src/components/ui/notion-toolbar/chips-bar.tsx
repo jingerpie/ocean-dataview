@@ -21,7 +21,7 @@ import {
 } from "../filter";
 import { SortList } from "../sort";
 
-interface ActiveControlsRowProps<T> {
+interface ChipsBarProps<T> {
 	/** Current sorts (multiple sorts supported) */
 	sorts: PropertySort<T>[];
 	/** Callback when sorts change */
@@ -45,7 +45,7 @@ interface ActiveControlsRowProps<T> {
 }
 
 /**
- * Row 2 of the NotionToolbar showing active sort/filter chips.
+ * Bar displaying active sort/filter chips.
  *
  * Display Order (Fixed):
  * 1. Sort list (multi-sort with drag-and-drop)
@@ -53,7 +53,7 @@ interface ActiveControlsRowProps<T> {
  * 3. Simple filter chips (in array order)
  * 4. "+ Filter" button
  */
-export function ActiveControlsRow<T>({
+export function ChipsBar<T>({
 	sorts,
 	onSortsChange,
 	filter,
@@ -64,7 +64,7 @@ export function ActiveControlsRow<T>({
 	simpleFilterConditions,
 	ruleCount,
 	className,
-}: ActiveControlsRowProps<T>) {
+}: ChipsBarProps<T>) {
 	// Get normalized filter for operations
 	const normalizedFilter = normalizeFilter(filter);
 
@@ -210,4 +210,4 @@ export function ActiveControlsRow<T>({
 	);
 }
 
-export type { ActiveControlsRowProps };
+export type { ChipsBarProps };

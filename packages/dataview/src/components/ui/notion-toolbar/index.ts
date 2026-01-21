@@ -1,6 +1,3 @@
 // biome-ignore lint/performance/noBarrelFile: Intentional public API barrel file
-export {
-	ActiveControlsRow,
-	type ActiveControlsRowProps,
-} from "./active-controls-row";
+export { ChipsBar, type ChipsBarProps } from "./chips-bar";
 export { NotionToolbar, type NotionToolbarProps } from "./notion-toolbar";

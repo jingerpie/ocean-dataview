@@ -19,8 +19,8 @@ export {
 } from "./filter";
 // Notion Toolbar
 export {
-	ActiveControlsRow,
-	type ActiveControlsRowProps,
+	ChipsBar,
+	type ChipsBarProps,
 	NotionToolbar,
 	type NotionToolbarProps,
 } from "./notion-toolbar";
