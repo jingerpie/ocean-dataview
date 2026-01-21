@@ -15,6 +15,7 @@ import {
 import {
 	useAdvanceFilterBuilder,
 	useFilterParams,
+	useSimpleFilterChip,
 } from "@ocean-dataview/dataview/hooks";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { isWhereExpression, isWhereRule } from "@ocean-dataview/shared/types";
@@ -85,6 +86,7 @@ function FilterPropertyPicker<T>({
 	const openAdvancedFilterBuilder = useAdvanceFilterBuilder(
 		(state) => state.open
 	);
+	const openFilterChip = useSimpleFilterChip((state) => state.open);
 
 	// Check if advanced filter already exists (nested WhereExpression at root)
 	const hasAdvancedFilter = useMemo(() => {
@@ -143,6 +145,9 @@ function FilterPropertyPicker<T>({
 		}
 
 		setOpen(false);
+
+		// Auto-open the filter chip for the newly added filter
+		openFilterChip(String(property.id));
 	};
 
 	// Handle open advanced filter

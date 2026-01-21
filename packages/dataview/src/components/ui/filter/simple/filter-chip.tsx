@@ -9,31 +9,20 @@ import {
 	ComboboxItem,
 	ComboboxList,
 } from "@ocean-dataview/dataview/components/ui/combobox";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@ocean-dataview/dataview/components/ui/dropdown-menu";
 import { Input } from "@ocean-dataview/dataview/components/ui/input";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@ocean-dataview/dataview/components/ui/popover";
+import { useSimpleFilterChip } from "@ocean-dataview/dataview/hooks";
 import type {
 	DataViewProperty,
 	SelectOption,
 } from "@ocean-dataview/dataview/types";
 import type { FilterCondition, WhereRule } from "@ocean-dataview/shared/types";
 import { getFilterVariantFromPropertyType } from "@ocean-dataview/shared/utils";
-import {
-	ChevronDownIcon,
-	ListFilterIcon,
-	MoreHorizontalIcon,
-	TrashIcon,
-} from "lucide-react";
-import { useState } from "react";
+import { ChevronDownIcon } from "lucide-react";
 import { getBadgeVariant } from "../../../../lib/utils/get-badge-variant";
 import { CheckboxPickerContent } from "../../properties/checkbox-picker";
 import {
@@ -44,6 +33,7 @@ import {
 	SingleDateCalendar,
 } from "../../properties/date-picker";
 import { ConditionPicker } from "../condition-picker";
+import { FilterChipActions } from "./filter-chip-actions";
 
 interface FilterChipProps<T> {
 	/** The filter rule */
@@ -69,7 +59,12 @@ export function FilterChip<T>({
 	onRemove,
 	onAddToAdvanced,
 }: FilterChipProps<T>) {
-	const [open, setOpen] = useState(false);
+	const { openPropertyId, setOpen } = useSimpleFilterChip();
+	const isOpen = openPropertyId === rule.property;
+
+	const handleOpenChange = (open: boolean) => {
+		setOpen(open ? rule.property : null);
+	};
 
 	const variant = getFilterVariantFromPropertyType(property.type);
 	const label = property.label ?? String(property.id);
@@ -92,8 +87,10 @@ export function FilterChip<T>({
 		});
 	};
 
+	const close = () => setOpen(null);
+
 	return (
-		<Popover onOpenChange={setOpen} open={open}>
+		<Popover onOpenChange={handleOpenChange} open={isOpen}>
 			<PopoverTrigger render={<Button size="sm" variant="secondary" />}>
 				<span className="max-w-24 truncate">{label}</span>
 				<ChevronDownIcon className="size-3 opacity-50" />
@@ -110,34 +107,20 @@ export function FilterChip<T>({
 							variant={variant}
 						/>
 					</div>
-					<DropdownMenu>
-						<DropdownMenuTrigger render={<Button size="sm" variant="ghost" />}>
-							<MoreHorizontalIcon />
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="start" className="w-auto" side="bottom">
-							<DropdownMenuItem
-								onClick={() => {
-									onRemove();
-									setOpen(false);
-								}}
-								variant="destructive"
-							>
-								<TrashIcon />
-								Delete filter
-							</DropdownMenuItem>
-							{onAddToAdvanced && (
-								<DropdownMenuItem
-									onClick={() => {
+					<FilterChipActions
+						onAddToAdvanced={
+							onAddToAdvanced
+								? () => {
 										onAddToAdvanced();
-										setOpen(false);
-									}}
-								>
-									<ListFilterIcon />
-									Add to advanced filter
-								</DropdownMenuItem>
-							)}
-						</DropdownMenuContent>
-					</DropdownMenu>
+										close();
+									}
+								: undefined
+						}
+						onRemove={() => {
+							onRemove();
+							close();
+						}}
+					/>
 				</div>
 
 				{/* Value Input */}
