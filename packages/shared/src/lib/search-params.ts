@@ -111,13 +111,13 @@ const transformCodeToUrl = (node: WhereNode): unknown => {
 // ============================================================================
 
 const filterQueryValidator = (value: unknown): FilterQuery | null => {
-	if (typeof value !== "object" || value === null || !("and" in value)) {
+	// URL format is just an array (root AND is implicit)
+	if (!Array.isArray(value)) {
 		return null;
 	}
 
-	// Transform URL format (id) to code format (property)
-	const urlFilter = value as { and: unknown[] };
-	const transformedAnd = urlFilter.and
+	// Transform URL format to code format
+	const transformedAnd = value
 		.map(transformUrlToCode)
 		.filter((n): n is WhereNode => n !== null);
 
@@ -293,9 +293,9 @@ export const parseAsFilter = createParser({
 			return null;
 		}
 	},
-	// Transform to compact positional array format for URL
+	// Serialize without root {"and":} wrapper - just the array
 	serialize: (value: FilterQuery) =>
-		JSON.stringify({ and: value.and.map(transformCodeToUrl) }),
+		JSON.stringify(value.and.map(transformCodeToUrl)),
 });
 
 export const parseAsSort = createParser({
