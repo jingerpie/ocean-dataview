@@ -13,7 +13,7 @@ import { useQueryState } from "nuqs";
  * ```ts
  * const { filter, setFilter } = useFilterParams();
  *
- * // URL format: ?filter={"and":[{"property":"status","condition":"eq","value":"active"}]}
+ * // URL format: ?filter={"and":[["status","eq","active"]]}
  * ```
  */
 export function useFilterParams() {

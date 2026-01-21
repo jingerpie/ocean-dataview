@@ -150,10 +150,10 @@ export function NotionToolbar<T>({
 	};
 
 	// Handle selecting a property to sort (adds first sort)
-	const handleSortPropertySelect = (property: DataViewProperty<T>) => {
+	const handleSortPropertySelect = (prop: DataViewProperty<T>) => {
 		onSortsChange([
 			{
-				propertyId: property.id as PropertySort<T>["propertyId"],
+				property: prop.id as PropertySort<T>["property"],
 				desc: false,
 			},
 		]);

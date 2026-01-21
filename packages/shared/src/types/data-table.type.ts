@@ -24,7 +24,7 @@ export type FilterCondition = DataTableConfig["conditionalOperators"][number];
 // ============================================================================
 
 export interface PropertySort<TData> {
-	propertyId: Extract<keyof TData, string>;
+	property: Extract<keyof TData, string>;
 	desc: boolean;
 }
 

@@ -41,7 +41,7 @@ export function SortDropdown<T = unknown>({
 
 	// Get primary sort (first in array)
 	const primarySort = sort[0];
-	const currentSort = primarySort?.propertyId ?? null;
+	const currentSort = primarySort?.property ?? null;
 	const currentOrder = primarySort?.desc ? "desc" : "asc";
 
 	const activeOption = sortOptions.find((opt) => opt.field === currentSort);
@@ -55,7 +55,7 @@ export function SortDropdown<T = unknown>({
 		} else {
 			onSortChange([
 				{
-					propertyId: field as Extract<keyof T, string>,
+					property: field as Extract<keyof T, string>,
 					desc: order === "desc",
 				},
 			]);

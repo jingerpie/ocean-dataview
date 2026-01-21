@@ -84,7 +84,7 @@ export function SortList<T>({
 	);
 
 	const sortIds = useMemo(
-		() => sorts.map((s) => s.propertyId as string),
+		() => sorts.map((s) => s.property as string),
 		[sorts]
 	);
 
@@ -92,8 +92,8 @@ export function SortList<T>({
 		(event: DragEndEvent) => {
 			const { active, over } = event;
 			if (over && active.id !== over.id) {
-				const oldIndex = sorts.findIndex((s) => s.propertyId === active.id);
-				const newIndex = sorts.findIndex((s) => s.propertyId === over.id);
+				const oldIndex = sorts.findIndex((s) => s.property === active.id);
+				const newIndex = sorts.findIndex((s) => s.property === over.id);
 				onSortsChange(arrayMove(sorts, oldIndex, newIndex));
 			}
 		},
@@ -101,9 +101,9 @@ export function SortList<T>({
 	);
 
 	const onSortAdd = useCallback(
-		(propertyId: string) => {
+		(prop: string) => {
 			const newSort: PropertySort<T> = {
-				propertyId: propertyId as PropertySort<T>["propertyId"],
+				property: prop as PropertySort<T>["property"],
 				desc: false,
 			};
 			onSortsChange([...sorts, newSort]);
@@ -112,9 +112,9 @@ export function SortList<T>({
 	);
 
 	const onSortUpdate = useCallback(
-		(propertyId: string, updates: Partial<PropertySort<T>>) => {
+		(prop: string, updates: Partial<PropertySort<T>>) => {
 			const updatedSorts = sorts.map((sort) =>
-				sort.propertyId === propertyId ? { ...sort, ...updates } : sort
+				sort.property === prop ? { ...sort, ...updates } : sort
 			);
 			onSortsChange(updatedSorts);
 		},
@@ -122,8 +122,8 @@ export function SortList<T>({
 	);
 
 	const onSortRemove = useCallback(
-		(propertyId: string) => {
-			const updatedSorts = sorts.filter((s) => s.propertyId !== propertyId);
+		(prop: string) => {
+			const updatedSorts = sorts.filter((s) => s.property !== prop);
 			onSortsChange(updatedSorts);
 		},
 		[sorts, onSortsChange]
@@ -131,7 +131,7 @@ export function SortList<T>({
 
 	// Get properties not already in sort list
 	const availableProperties = properties.filter(
-		(prop) => !sorts.some((sort) => sort.propertyId === prop.id)
+		(prop) => !sorts.some((sort) => sort.property === prop.id)
 	);
 
 	// Render trigger based on variant
@@ -202,7 +202,7 @@ export function SortList<T>({
 								<div className="flex flex-col gap-1">
 									{sorts.map((sort) => {
 										const property = properties.find(
-											(p) => p.id === sort.propertyId
+											(p) => p.id === sort.property
 										);
 										if (!property) {
 											return null;
@@ -210,10 +210,10 @@ export function SortList<T>({
 
 										return (
 											<SortableItem
-												key={sort.propertyId}
-												onRemove={() => onSortRemove(sort.propertyId as string)}
+												key={sort.property}
+												onRemove={() => onSortRemove(sort.property as string)}
 												onUpdate={(updates) =>
-													onSortUpdate(sort.propertyId as string, updates)
+													onSortUpdate(sort.property as string, updates)
 												}
 												properties={properties}
 												property={property}
@@ -269,7 +269,7 @@ function SortableItem<T>(props: SortItemProps<T>) {
 		transform,
 		transition,
 		isDragging,
-	} = useSortable({ id: sort.propertyId as string });
+	} = useSortable({ id: sort.property as string });
 
 	const style = {
 		transform: CSS.Transform.toString(transform),
@@ -318,8 +318,8 @@ function SortItemContent<T>({
 				onValueChange={(newProperty) => {
 					if (newProperty) {
 						onUpdate({
-							propertyId: (newProperty as DataViewProperty<T>)
-								.id as PropertySort<T>["propertyId"],
+							property: (newProperty as DataViewProperty<T>)
+								.id as PropertySort<T>["property"],
 						});
 					}
 				}}
@@ -340,7 +340,7 @@ function SortItemContent<T>({
 					<ComboboxList>
 						{(prop) => (
 							<ComboboxItem
-								data-checked={prop.id === sort.propertyId}
+								data-checked={prop.id === sort.property}
 								key={String(prop.id)}
 								value={prop}
 							>
@@ -381,7 +381,7 @@ function SortItemContent<T>({
 
 interface AddSortButtonProps<T> {
 	properties: DataViewProperty<T>[];
-	onSelect: (propertyId: string) => void;
+	onSelect: (property: string) => void;
 }
 
 function AddSortButton<T>({ properties, onSelect }: AddSortButtonProps<T>) {

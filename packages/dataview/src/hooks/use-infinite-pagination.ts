@@ -126,7 +126,7 @@ const DEFAULT_LIMIT_OPTIONS = [10, 25, 50, 100];
  *
  *   const infiniteQuery = useSuspenseInfiniteQuery(
  *     trpc.product.getMany.infiniteQueryOptions(
- *       { limit: initialLimit, sort: [{ propertyId: "updatedAt", desc: true }] },
+ *       { limit: initialLimit, sort: [{ property: "updatedAt", desc: true }] },
  *       { getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined },
  *     ),
  *   );

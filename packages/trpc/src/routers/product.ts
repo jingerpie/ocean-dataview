@@ -28,25 +28,22 @@ export const productRouter = router({
 			// The `id` tiebreaker follows the same direction as the primary sort field
 			const sortColumns =
 				sort && sort.length > 0
-					? [
-							...sort,
-							{ propertyId: "id" as const, desc: sort[0]?.desc ?? true },
-						]
+					? [...sort, { property: "id" as const, desc: sort[0]?.desc ?? true }]
 					: [
-							{ propertyId: "createdAt" as const, desc: true },
-							{ propertyId: "id" as const, desc: true },
+							{ property: "createdAt" as const, desc: true },
+							{ property: "id" as const, desc: true },
 						];
 
 			// Build cursor condition: compare (col1, col2, ..., id) tuples
 			let cursorRule: ReturnType<typeof sql> | undefined;
 			if (cursorId) {
 				// Current row's sort column values
-				const rowValues = sortColumns.map((col) => product[col.propertyId]);
+				const rowValues = sortColumns.map((col) => product[col.property]);
 
 				// Cursor row's sort column values (fetched via subquery)
 				// Use column.name to get the actual DB column name (e.g., "created_at" not "createdAt")
 				const cursorValues = sortColumns.map((col) => {
-					const columnName = product[col.propertyId].name;
+					const columnName = product[col.property].name;
 					return sql`(SELECT ${sql.identifier(columnName)} FROM "product" WHERE "id" = ${cursorId})`;
 				});
 
@@ -61,15 +58,13 @@ export const productRouter = router({
 
 			// Build ORDER BY clause from sort columns
 			let orderBy = sortColumns.map((col) =>
-				col.desc ? desc(product[col.propertyId]) : asc(product[col.propertyId])
+				col.desc ? desc(product[col.property]) : asc(product[col.property])
 			);
 
 			// For backward navigation, reverse sort order (results are reversed after fetch)
 			if (isBackward) {
 				orderBy = sortColumns.map((col) =>
-					col.desc
-						? asc(product[col.propertyId])
-						: desc(product[col.propertyId])
+					col.desc ? asc(product[col.property]) : desc(product[col.property])
 				);
 			}
 

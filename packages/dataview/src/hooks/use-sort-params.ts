@@ -27,7 +27,7 @@ interface UseSortParamsOptions<T = unknown> {
  * // With explicit type
  * const { sort, setSort } = useSortParams<Product>();
  *
- * // URL format: ?sort=[{"propertyId":"name","desc":false}]
+ * // URL format: ?sort=[["name","asc"]]
  * ```
  */
 export function useSortParams<T = unknown>(
@@ -47,22 +47,20 @@ export function useSortParams<T = unknown>(
 		);
 	};
 
-	const addSort = (propertyId: Extract<keyof T, string>, desc = false) => {
-		const existing = sort.find((s) => s.propertyId === propertyId);
+	const addSort = (prop: Extract<keyof T, string>, desc = false) => {
+		const existing = sort.find((s) => s.property === prop);
 		if (existing) {
 			// Toggle direction
 			setSort(
-				sort.map((s) =>
-					s.propertyId === propertyId ? { ...s, desc: !s.desc } : s
-				)
+				sort.map((s) => (s.property === prop ? { ...s, desc: !s.desc } : s))
 			);
 		} else {
-			setSort([...sort, { propertyId, desc }]);
+			setSort([...sort, { property: prop, desc }]);
 		}
 	};
 
-	const removeSort = (propertyId: Extract<keyof T, string>) => {
-		setSort(sort.filter((s) => s.propertyId !== propertyId));
+	const removeSort = (prop: Extract<keyof T, string>) => {
+		setSort(sort.filter((s) => s.property !== prop));
 	};
 
 	const clearSort = () => setSortJson(null);

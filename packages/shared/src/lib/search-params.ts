@@ -8,8 +8,11 @@ import { z } from "zod";
 import {
 	type FilterQuery,
 	filterQuerySchema,
+	isWhereExpression,
+	isWhereRule,
 	type PropertySort,
 	searchQuerySchema,
+	type WhereNode,
 } from "../types/data-table.type";
 import {
 	type Cursors,
@@ -26,29 +29,134 @@ import { validateFilter } from "../utils/filter-validation";
 const DEFAULT_LIMIT = 25;
 
 // ============================================================================
+// Filter URL Transformation Helpers
+// ============================================================================
+
+/**
+ * Transform URL node to code node.
+ *
+ * URL format uses compact positional arrays for rules:
+ *   [property, condition, value?]
+ *
+ * Code format uses objects:
+ *   { property, condition, value? }
+ */
+const transformUrlToCode = (node: unknown): WhereNode | null => {
+	// Rule: positional array [property, condition, value?]
+	if (Array.isArray(node)) {
+		const [property, condition, value] = node;
+		if (typeof property === "string" && typeof condition === "string") {
+			return { property, condition, value } as WhereNode;
+		}
+		return null;
+	}
+
+	if (typeof node !== "object" || node === null) {
+		return null;
+	}
+
+	// Expression: { and: [...] } or { or: [...] }
+	if ("and" in node || "or" in node) {
+		const expr = node as { and?: unknown[]; or?: unknown[] };
+		if (expr.and) {
+			const transformedAnd = expr.and
+				.map(transformUrlToCode)
+				.filter((n): n is WhereNode => n !== null);
+			return { and: transformedAnd };
+		}
+		if (expr.or) {
+			const transformedOr = expr.or
+				.map(transformUrlToCode)
+				.filter((n): n is WhereNode => n !== null);
+			return { or: transformedOr };
+		}
+	}
+
+	return null;
+};
+
+/**
+ * Transform code node to URL node.
+ *
+ * Code format uses objects:
+ *   { property, condition, value? }
+ *
+ * URL format uses compact positional arrays for rules:
+ *   [property, condition, value?]
+ */
+const transformCodeToUrl = (node: WhereNode): unknown => {
+	if (isWhereRule(node)) {
+		// Compact array format: [property, condition, value?]
+		// Omit value if null/undefined for shorter URLs
+		if (node.value == null) {
+			return [node.property, node.condition];
+		}
+		return [node.property, node.condition, node.value];
+	}
+
+	if (isWhereExpression(node)) {
+		if (node.and) {
+			return { and: node.and.map(transformCodeToUrl) };
+		}
+		if (node.or) {
+			return { or: node.or.map(transformCodeToUrl) };
+		}
+	}
+
+	return node;
+};
+
+// ============================================================================
 // Validators (for NUQS JSON parsing)
 // ============================================================================
 
 const filterQueryValidator = (value: unknown): FilterQuery | null => {
-	const result = filterQuerySchema.safeParse(value);
+	if (typeof value !== "object" || value === null || !("and" in value)) {
+		return null;
+	}
+
+	// Transform URL format (id) to code format (property)
+	const urlFilter = value as { and: unknown[] };
+	const transformedAnd = urlFilter.and
+		.map(transformUrlToCode)
+		.filter((n): n is WhereNode => n !== null);
+
+	const transformed: FilterQuery = { and: transformedAnd };
+	const result = filterQuerySchema.safeParse(transformed);
 	return result.success ? result.data : null;
 };
 
+/**
+ * Transform URL sort format to code format.
+ *
+ * URL format: ["property", "asc"|"desc"]
+ * Code format: { property, desc: boolean }
+ */
 const sortValidator = (value: unknown): PropertySort<unknown>[] | null => {
 	if (!Array.isArray(value)) {
 		return null;
 	}
 
-	const isValid = value.every(
-		(item) =>
-			typeof item === "object" &&
-			item !== null &&
-			"propertyId" in item &&
-			"desc" in item &&
-			typeof item.propertyId === "string" &&
-			typeof item.desc === "boolean"
-	);
-	return isValid ? (value as PropertySort<unknown>[]) : null;
+	const result: Array<{ property: string; desc: boolean }> = [];
+
+	for (const item of value) {
+		// Expect positional array: [property, direction]
+		if (!Array.isArray(item) || item.length !== 2) {
+			return null;
+		}
+
+		const [property, direction] = item;
+		if (
+			typeof property !== "string" ||
+			(direction !== "asc" && direction !== "desc")
+		) {
+			return null;
+		}
+
+		result.push({ property, desc: direction === "desc" });
+	}
+
+	return result as PropertySort<unknown>[];
 };
 
 const cursorValidator = (value: unknown): CursorValue | null => {
@@ -80,7 +188,7 @@ const expandedValidator = (value: unknown): string[] | null => {
 
 /**
  * Creates a Zod schema for TRPC input validation.
- * Schema-bound: validates propertyId against entity keys.
+ * Schema-bound: validates property against entity keys.
  */
 export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 	schema: z.ZodObject<T>
@@ -88,7 +196,7 @@ export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 	const keys = Object.keys(schema.shape) as Extract<keyof T, string>[];
 
 	const sortSchema = z.object({
-		propertyId: z.enum(
+		property: z.enum(
 			keys as [Extract<keyof T, string>, ...Extract<keyof T, string>[]]
 		),
 		desc: z.boolean(),
@@ -185,7 +293,9 @@ export const parseAsFilter = createParser({
 			return null;
 		}
 	},
-	serialize: (value: FilterQuery) => JSON.stringify(value),
+	// Transform to compact positional array format for URL
+	serialize: (value: FilterQuery) =>
+		JSON.stringify({ and: value.and.map(transformCodeToUrl) }),
 });
 
 export const parseAsSort = createParser({
@@ -197,5 +307,7 @@ export const parseAsSort = createParser({
 			return null;
 		}
 	},
-	serialize: (value: PropertySort<unknown>[]) => JSON.stringify(value),
+	// Transform to compact positional array format: ["property", "asc"|"desc"]
+	serialize: (value: PropertySort<unknown>[]) =>
+		JSON.stringify(value.map((s) => [s.property, s.desc ? "desc" : "asc"])),
 });
