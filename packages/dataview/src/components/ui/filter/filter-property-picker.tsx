@@ -42,8 +42,9 @@ interface FilterPropertyPickerProps<T> {
 	 * - `default` - Filter icon with "Filter" label, outline button
 	 * - `icon` - Filter icon only, ghost button
 	 * - `rule` - Shows selected property value (for changing property in existing rule)
+	 * - `inline` - Filter icon only, ghost button, no label
 	 */
-	variant?: "default" | "icon" | "rule";
+	variant?: "default" | "icon" | "rule" | "inline";
 	/**
 	 * Advanced mode (for use inside advanced filter builder):
 	 * - `true` - No "Add advanced filter" button, shows all properties
@@ -191,16 +192,6 @@ function FilterPropertyPicker<T>({
 						) : (
 							"Select property..."
 						)}
-						{selectedProperty ? (
-							<>
-								<PropertyIcon type={selectedProperty.type} />
-								<span>
-									{selectedProperty.label ?? String(selectedProperty.id)}
-								</span>
-							</>
-						) : (
-							"Select property..."
-						)}
 					</ComboboxValue>
 				</ComboboxTrigger>
 			);
@@ -213,6 +204,18 @@ function FilterPropertyPicker<T>({
 					showChevron={false}
 				>
 					<ListFilterIcon />
+				</ComboboxTrigger>
+			);
+		}
+
+		if (variant === "inline") {
+			return (
+				<ComboboxTrigger
+					render={<Button size="sm" variant="ghost" />}
+					showChevron={false}
+				>
+					<PlusIcon />
+					<span>Filter</span>
 				</ComboboxTrigger>
 			);
 		}
@@ -270,10 +273,6 @@ function FilterPropertyPicker<T>({
 				<ComboboxList>
 					{(property) => (
 						<ComboboxItem key={String(property.id)} value={property}>
-							<PropertyIcon type={property.type} />
-							<span className="truncate">
-								{property.label ?? String(property.id)}
-							</span>
 							<PropertyIcon type={property.type} />
 							<span className="truncate">
 								{property.label ?? String(property.id)}
