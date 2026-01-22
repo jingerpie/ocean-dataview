@@ -24,6 +24,7 @@ import type {
 import type { FilterCondition, WhereRule } from "@ocean-dataview/shared/types";
 import { getFilterVariantFromPropertyType } from "@ocean-dataview/shared/utils";
 import { ChevronDownIcon } from "lucide-react";
+import { getFilterPreview } from "../../../../lib/filter-preview";
 import { getBadgeVariant } from "../../../../lib/utils/get-badge-variant";
 import { CheckboxPickerContent } from "../../properties/checkbox-picker";
 import {
@@ -47,11 +48,21 @@ interface FilterChipProps<T> {
 	onRemove: () => void;
 	/** Callback to add this filter to advanced filter */
 	onAddToAdvanced?: () => void;
+	/**
+	 * Chip variant:
+	 * - `compact` - Shows property name only: [Icon] Property ▾
+	 * - `detailed` - Shows property + preview: [Icon] Property: Preview ▾
+	 * @default "compact"
+	 */
+	variant?: "compact" | "detailed";
 }
 
 /**
  * Simple filter chip with inline editor popover.
- * Appearance: [◉ Property ▾]
+ *
+ * Variants:
+ * - `compact`: [◉ Property ▾]
+ * - `detailed`: [◉ Property: Preview ▾] (max-width: w-58, truncates)
  */
 export function FilterChip<T>({
 	rule,
@@ -59,6 +70,7 @@ export function FilterChip<T>({
 	onRuleChange,
 	onRemove,
 	onAddToAdvanced,
+	variant: chipVariant = "compact",
 }: FilterChipProps<T>) {
 	const { openPropertyId, setOpen } = useSimpleFilterChip();
 	const isOpen = openPropertyId === rule.property;
@@ -67,8 +79,35 @@ export function FilterChip<T>({
 		setOpen(open ? rule.property : null);
 	};
 
-	const variant = getFilterVariantFromPropertyType(property.type);
+	const filterVariant = getFilterVariantFromPropertyType(property.type);
 	const label = property.label ?? String(property.id);
+
+	// Get select options for preview (if applicable)
+	const options: SelectOption[] =
+		(property.type === "select" ||
+			property.type === "status" ||
+			property.type === "multiSelect") &&
+		property.config?.options
+			? property.config.options
+			: [];
+
+	// Compute preview for detailed variant
+	const preview =
+		chipVariant === "detailed"
+			? getFilterPreview({
+					condition: rule.condition,
+					value: rule.value,
+					variant: filterVariant as
+						| "text"
+						| "number"
+						| "date"
+						| "dateRange"
+						| "boolean"
+						| "select"
+						| "multiSelect",
+					options,
+				})
+			: "";
 
 	const handleConditionChange = (condition: FilterCondition) => {
 		onRuleChange({
@@ -90,12 +129,32 @@ export function FilterChip<T>({
 
 	const close = () => setOpen(null);
 
-	return (
-		<Popover onOpenChange={handleOpenChange} open={isOpen}>
-			<PopoverTrigger render={<Button size="sm" variant="secondary" />}>
+	// Build trigger content based on variant
+	const triggerContent =
+		chipVariant === "detailed" ? (
+			<>
+				<PropertyIcon type={property.type} />
+				<span className="truncate">
+					{label}
+					{preview ? `: ${preview}` : ""}
+				</span>
+				<ChevronDownIcon className="size-3 shrink-0 opacity-50" />
+			</>
+		) : (
+			<>
 				<PropertyIcon type={property.type} />
 				<span>{label}</span>
 				<ChevronDownIcon className="size-3 opacity-50" />
+			</>
+		);
+
+	return (
+		<Popover onOpenChange={handleOpenChange} open={isOpen}>
+			<PopoverTrigger
+				className={chipVariant === "detailed" ? "max-w-58" : undefined}
+				render={<Button size="sm" variant="secondary" />}
+			>
+				{triggerContent}
 			</PopoverTrigger>
 			<PopoverContent align="start" className="w-80 gap-1 p-2">
 				{/* Header: Property + Condition + Menu */}
@@ -108,7 +167,7 @@ export function FilterChip<T>({
 							condition={rule.condition}
 							inline
 							onConditionChange={handleConditionChange}
-							variant={variant}
+							variant={filterVariant}
 						/>
 					</div>
 					<FilterActions
@@ -132,7 +191,7 @@ export function FilterChip<T>({
 					onValueChange={handleValueChange}
 					property={property}
 					rule={rule}
-					variant={variant}
+					variant={filterVariant}
 				/>
 			</PopoverContent>
 		</Popover>

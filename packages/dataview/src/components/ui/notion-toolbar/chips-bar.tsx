@@ -146,7 +146,7 @@ export function ChipsBar<T>({
 	return (
 		<div
 			className={cn(
-				"flex flex-wrap items-center gap-1.5",
+				"flex items-center gap-1.5 overflow-x-auto",
 				"fade-in slide-in-from-top-1 animate-in duration-150",
 				className
 			)}
@@ -187,16 +187,17 @@ export function ChipsBar<T>({
 						onRuleChange={(newRule) => handleRuleChange(index, newRule)}
 						property={property}
 						rule={condition}
+						variant="detailed"
 					/>
 				);
 			})}
 
 			{/* 4. + Filter Button */}
-			<FilterPropertyPicker properties={properties} variant="icon" />
+			<FilterPropertyPicker properties={properties} variant="inline" />
 
-			{/* 5. Clear All Button */}
+			{/* 5. Clear All Button - Sticky to right */}
 			<Button
-				className="ml-auto text-muted-foreground hover:text-foreground"
+				className="sticky right-0 ml-auto shrink-0 bg-background text-muted-foreground hover:text-foreground"
 				onClick={() => {
 					onFilterChange(null);
 					onSortsChange([]);
@@ -204,7 +205,7 @@ export function ChipsBar<T>({
 				size="sm"
 				variant="ghost"
 			>
-				Clear all
+				Reset
 			</Button>
 		</div>
 	);

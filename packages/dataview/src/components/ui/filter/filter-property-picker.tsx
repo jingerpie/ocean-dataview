@@ -191,6 +191,16 @@ function FilterPropertyPicker<T>({
 						) : (
 							"Select property..."
 						)}
+						{selectedProperty ? (
+							<>
+								<PropertyIcon type={selectedProperty.type} />
+								<span>
+									{selectedProperty.label ?? String(selectedProperty.id)}
+								</span>
+							</>
+						) : (
+							"Select property..."
+						)}
 					</ComboboxValue>
 				</ComboboxTrigger>
 			);
@@ -260,6 +270,10 @@ function FilterPropertyPicker<T>({
 				<ComboboxList>
 					{(property) => (
 						<ComboboxItem key={String(property.id)} value={property}>
+							<PropertyIcon type={property.type} />
+							<span className="truncate">
+								{property.label ?? String(property.id)}
+							</span>
 							<PropertyIcon type={property.type} />
 							<span className="truncate">
 								{property.label ?? String(property.id)}
