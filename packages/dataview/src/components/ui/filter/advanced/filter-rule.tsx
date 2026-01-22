@@ -15,7 +15,72 @@ import {
 	getDefaultFilterCondition,
 	getFilterVariantFromPropertyType,
 } from "@ocean-dataview/shared/utils";
-import { useState } from "react";
+import { useDebouncer } from "@tanstack/react-pacer";
+import { useEffect, useState } from "react";
+
+const FILTER_INPUT_DEBOUNCE_MS = 150;
+
+// ============================================================================
+// Debounced Text Input Component
+// ============================================================================
+
+interface DebouncedTextInputProps {
+	value: string;
+	onChange: (value: string) => void;
+	type?: "text" | "number";
+	inputMode?: "numeric";
+	placeholder?: string;
+	className?: string;
+}
+
+function DebouncedTextInput({
+	value,
+	onChange,
+	type = "text",
+	inputMode,
+	placeholder,
+	className,
+}: DebouncedTextInputProps) {
+	const [localValue, setLocalValue] = useState(value);
+
+	// Debounced onChange callback
+	const changeDebouncer = useDebouncer(onChange, {
+		wait: FILTER_INPUT_DEBOUNCE_MS,
+	});
+
+	// Sync local state when prop value changes externally
+	useEffect(() => {
+		setLocalValue(value);
+	}, [value]);
+
+	// Flush on unmount
+	useEffect(() => {
+		return () => changeDebouncer.flush();
+	}, [changeDebouncer]);
+
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const newValue = e.target.value;
+		setLocalValue(newValue);
+		changeDebouncer.maybeExecute(newValue);
+	};
+
+	const handleBlur = () => {
+		changeDebouncer.flush();
+	};
+
+	return (
+		<Input
+			className={className}
+			inputMode={inputMode}
+			onBlur={handleBlur}
+			onChange={handleChange}
+			placeholder={placeholder}
+			type={type}
+			value={localValue}
+		/>
+	);
+}
+
 import { CheckboxPicker } from "../../properties/checkbox-picker";
 import {
 	type DateRangeValue,
@@ -219,10 +284,10 @@ function ValueInput<T>({
 		case "number":
 		case "range":
 			return (
-				<Input
+				<DebouncedTextInput
 					className="h-8"
 					inputMode={variant === "text" ? undefined : "numeric"}
-					onChange={(e) => onValueChange(e.target.value)}
+					onChange={(value) => onValueChange(value)}
 					placeholder="Enter value..."
 					type={variant === "text" ? "text" : "number"}
 					value={rule.value != null ? String(rule.value) : ""}

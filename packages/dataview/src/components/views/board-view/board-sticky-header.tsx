@@ -1,8 +1,18 @@
 "use client";
 
 import { cn } from "@ocean-dataview/dataview/lib/utils";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { useDebouncer, useThrottler } from "@tanstack/react-pacer";
+import {
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import { createPortal } from "react-dom";
+
+const SCROLL_THROTTLE_MS = 16; // 60fps
+const RESIZE_DEBOUNCE_MS = 150;
 
 interface BoardStickyHeaderProps {
 	/**
@@ -72,6 +82,36 @@ export function BoardStickyHeader({
 	// Shared scroll state for instant synchronization
 	const scrollStateRef = useRef({ scrollLeft: 0, isUpdating: false });
 
+	// Scroll handler logic (reads from refs)
+	const handleScrollLogic = useCallback(() => {
+		const headerElement = headerRef.current;
+		const containerElement = containerRef.current;
+		if (!(headerElement && containerElement)) {
+			return;
+		}
+
+		// Check if header top is above the sticky threshold
+		const headerRect = headerElement.getBoundingClientRect();
+		const contRect = containerElement.getBoundingClientRect();
+
+		setShowStickyHeader(
+			headerRect.top < offset && contRect.bottom > offset + headerRect.height
+		);
+
+		// Update container rect
+		setContainerRect(contRect);
+	}, [headerRef, containerRef, offset]);
+
+	// Throttled scroll handler for window scroll (16ms = 60fps)
+	const scrollThrottler = useThrottler(handleScrollLogic, {
+		wait: SCROLL_THROTTLE_MS,
+	});
+
+	// Debounced resize handler (150ms)
+	const resizeDebouncer = useDebouncer(handleScrollLogic, {
+		wait: RESIZE_DEBOUNCE_MS,
+	});
+
 	useEffect(() => {
 		setMounted(true);
 	}, []);
@@ -87,13 +127,6 @@ export function BoardStickyHeader({
 		if (!(headerElement && containerElement)) {
 			return;
 		}
-
-		// Update container position for viewport positioning
-		const updateContainerRect = () => {
-			if (containerElement) {
-				setContainerRect(containerElement.getBoundingClientRect());
-			}
-		};
 
 		// Synchronous scroll update function
 		const updateScrollPosition = (newScrollLeft: number) => {
@@ -122,28 +155,8 @@ export function BoardStickyHeader({
 			scrollStateRef.current.isUpdating = false;
 		};
 
-		// Check if header top is above the sticky threshold
-		const checkHeaderPosition = () => {
-			const headerRect = headerElement.getBoundingClientRect();
-			const contRect = containerElement.getBoundingClientRect();
-
-			// Show sticky header when:
-			// 1. The top of the original header goes above the threshold AND
-			// 2. We haven't scrolled past the bottom of the container
-			setShowStickyHeader(
-				headerRect.top < offset && contRect.bottom > offset + headerRect.height
-			);
-		};
-
 		// Initial setup
-		updateContainerRect();
-		checkHeaderPosition();
-
-		// Handle page scroll
-		const handleScroll = () => {
-			checkHeaderPosition();
-			updateContainerRect();
-		};
+		handleScrollLogic();
 
 		// Handle horizontal scroll in container
 		const handleContainerScroll = (e: Event) => {
@@ -151,26 +164,37 @@ export function BoardStickyHeader({
 			updateScrollPosition(target.scrollLeft);
 		};
 
-		// Update on resize
+		// Update on resize - use debounced handler
 		const resizeObserver = new ResizeObserver(() => {
-			updateContainerRect();
-			checkHeaderPosition();
+			resizeDebouncer.maybeExecute();
 		});
 
 		resizeObserver.observe(containerElement);
 
-		// Add event listeners
-		window.addEventListener("scroll", handleScroll, { passive: true });
+		const handleWindowScroll = () => {
+			scrollThrottler.maybeExecute();
+		};
+
+		// Add event listeners - use throttled handler for window scroll
+		window.addEventListener("scroll", handleWindowScroll, { passive: true });
 		containerElement.addEventListener("scroll", handleContainerScroll, {
 			passive: true,
 		});
 
 		return () => {
 			resizeObserver.disconnect();
-			window.removeEventListener("scroll", handleScroll);
+			resizeDebouncer.cancel();
+			window.removeEventListener("scroll", handleWindowScroll);
 			containerElement.removeEventListener("scroll", handleContainerScroll);
 		};
-	}, [enabled, headerRef, containerRef, offset]);
+	}, [
+		enabled,
+		headerRef,
+		containerRef,
+		handleScrollLogic,
+		resizeDebouncer,
+		scrollThrottler,
+	]);
 
 	// Effect for sticky header scroll synchronization
 	useEffect(() => {

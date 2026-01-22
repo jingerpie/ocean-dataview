@@ -2,46 +2,54 @@
 
 import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import { Input } from "@ocean-dataview/dataview/components/ui/input";
+import { useDebouncer } from "@tanstack/react-pacer";
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
+
+const SEARCH_DEBOUNCE_MS = 150;
 
 interface SearchBarProps {
 	value: string;
 	onChange: (value: string) => void;
 	placeholder?: string;
-	debounceMs?: number;
 }
 
 /**
- * Debounced search input component
+ * Debounced search input component (150ms debounce)
  * Waits for user to stop typing before triggering onChange
  */
 export function SearchBar({
 	value,
 	onChange,
 	placeholder = "Search...",
-	debounceMs = 300,
 }: SearchBarProps) {
 	const [localValue, setLocalValue] = useState(value);
 
-	// Sync local value when external value changes
+	// Debounced onChange using TanStack Pacer
+	const changeDebouncer = useDebouncer(onChange, {
+		wait: SEARCH_DEBOUNCE_MS,
+	});
+
+	// Sync local value when external value changes (e.g., back/forward navigation)
 	useEffect(() => {
 		setLocalValue(value);
 	}, [value]);
 
-	// Debounced onChange
+	// Trigger debounced onChange when local value changes
 	useEffect(() => {
-		const timer = setTimeout(() => {
-			if (localValue !== value) {
-				onChange(localValue);
-			}
-		}, debounceMs);
+		if (localValue !== value) {
+			changeDebouncer.maybeExecute(localValue);
+		}
+	}, [localValue, changeDebouncer, value]);
 
-		return () => clearTimeout(timer);
-	}, [localValue, debounceMs, onChange, value]);
+	// Flush pending updates on unmount
+	useEffect(() => {
+		return () => changeDebouncer.flush();
+	}, [changeDebouncer]);
 
 	const handleClear = () => {
 		setLocalValue("");
+		changeDebouncer.cancel();
 		onChange("");
 	};
 

@@ -23,6 +23,7 @@
     "@dnd-kit/utilities": "catalog:",
     "@hookform/resolvers": "catalog:",
     "@ocean-dataview/shared": "workspace:*",
+    "@tanstack/react-pacer": "catalog:",
     "@tanstack/react-query": "catalog:",
     "@tanstack/react-table": "catalog:",
     "chrono-node": "catalog:",

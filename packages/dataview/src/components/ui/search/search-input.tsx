@@ -3,8 +3,11 @@
 import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import { Input } from "@ocean-dataview/dataview/components/ui/input";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
+import { useDebouncer } from "@tanstack/react-pacer";
 import { SearchIcon, XIcon } from "lucide-react";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
+
+const SEARCH_DEBOUNCE_MS = 150;
 
 interface SearchInputProps {
 	/** Current search value */
@@ -13,8 +16,6 @@ interface SearchInputProps {
 	onChange: (value: string) => void;
 	/** Placeholder text */
 	placeholder?: string;
-	/** Debounce delay in milliseconds */
-	debounceMs?: number;
 	/** Additional class names */
 	className?: string;
 	/**
@@ -26,7 +27,7 @@ interface SearchInputProps {
 }
 
 /**
- * Expandable search input that expands in place.
+ * Expandable search input with 150ms debounce.
  * - Collapsed: Icon button only
  * - Expanded: Input field with icon + clear button
  */
@@ -34,7 +35,6 @@ export function SearchInput({
 	value,
 	onChange,
 	placeholder = "Type to search...",
-	debounceMs = 300,
 	className,
 	variant = "default",
 }: SearchInputProps) {
@@ -42,21 +42,27 @@ export function SearchInput({
 	const [localValue, setLocalValue] = useState(value);
 	const inputRef = useRef<HTMLInputElement>(null);
 
-	// Sync local value when external value changes
+	// Debounced onChange using TanStack Pacer
+	const changeDebouncer = useDebouncer(onChange, {
+		wait: SEARCH_DEBOUNCE_MS,
+	});
+
+	// Sync local value when external value changes (e.g., back/forward navigation)
 	useEffect(() => {
 		setLocalValue(value);
 	}, [value]);
 
-	// Debounced onChange
+	// Trigger debounced onChange when local value changes
 	useEffect(() => {
-		const timer = setTimeout(() => {
-			if (localValue !== value) {
-				onChange(localValue);
-			}
-		}, debounceMs);
+		if (localValue !== value) {
+			changeDebouncer.maybeExecute(localValue);
+		}
+	}, [localValue, changeDebouncer, value]);
 
-		return () => clearTimeout(timer);
-	}, [localValue, debounceMs, onChange, value]);
+	// Flush pending updates on unmount
+	useEffect(() => {
+		return () => changeDebouncer.flush();
+	}, [changeDebouncer]);
 
 	// Auto-expand when value exists
 	useEffect(() => {
@@ -78,6 +84,7 @@ export function SearchInput({
 
 	const handleClear = () => {
 		setLocalValue("");
+		changeDebouncer.cancel();
 		onChange("");
 		inputRef.current?.focus();
 	};

@@ -6,9 +6,13 @@ import {
 	TableHeader,
 	TableRow,
 } from "@ocean-dataview/dataview/components/ui/table";
+import { useDebouncer, useThrottler } from "@tanstack/react-pacer";
 import { flexRender, type Table as TanstackTable } from "@tanstack/react-table";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+
+const SCROLL_THROTTLE_MS = 16; // 60fps
+const RESIZE_DEBOUNCE_MS = 150;
 
 interface DataTableStickyHeaderProps<TData> {
 	table: TanstackTable<TData>;
@@ -35,6 +39,58 @@ export function DataTableStickyHeader<TData>({
 	// Shared scroll state for instant synchronization
 	const scrollStateRef = useRef({ scrollLeft: 0, isUpdating: false });
 
+	// Scroll handler logic (reads from refs)
+	const handleScrollLogic = useCallback(() => {
+		const headerElement = tableHeaderRef.current;
+		const containerElement = tableContainerRef.current;
+		if (!(headerElement && containerElement)) {
+			return;
+		}
+
+		// Check if header top is above the sticky threshold
+		const headerRect = headerElement.getBoundingClientRect();
+		const contRect = containerElement.getBoundingClientRect();
+
+		setShowStickyHeader(
+			headerRect.top < offset && contRect.bottom > offset + headerRect.height
+		);
+
+		// Update container rect
+		setContainerRect(contRect);
+	}, [tableHeaderRef, tableContainerRef, offset]);
+
+	// Resize handler logic (reads from refs)
+	const handleResizeLogic = useCallback(() => {
+		const headerElement = tableHeaderRef.current;
+		const containerElement = tableContainerRef.current;
+		if (!(headerElement && containerElement)) {
+			return;
+		}
+
+		// Update sticky offset
+		setStickyTopOffset(offset);
+
+		// Get column widths from the original header
+		const headerCells = headerElement.querySelectorAll("th");
+		const widths = Array.from(headerCells).map(
+			(cell) => cell.getBoundingClientRect().width
+		);
+		setColumnWidths(widths);
+
+		// Also update scroll logic
+		handleScrollLogic();
+	}, [tableHeaderRef, tableContainerRef, offset, handleScrollLogic]);
+
+	// Throttled scroll handler for window scroll (16ms = 60fps)
+	const scrollThrottler = useThrottler(handleScrollLogic, {
+		wait: SCROLL_THROTTLE_MS,
+	});
+
+	// Debounced resize handler (150ms)
+	const resizeDebouncer = useDebouncer(handleResizeLogic, {
+		wait: RESIZE_DEBOUNCE_MS,
+	});
+
 	useEffect(() => {
 		setMounted(true);
 	}, []);
@@ -50,31 +106,6 @@ export function DataTableStickyHeader<TData>({
 		if (!(headerElement && containerElement)) {
 			return;
 		}
-
-		// Sticky header position (accounts for site header/navbar)
-		const calculateStickyOffset = (): number => {
-			return offset;
-		};
-
-		setStickyTopOffset(calculateStickyOffset());
-
-		// Get column widths from the original header
-		const updateColumnWidths = () => {
-			if (headerElement) {
-				const headerCells = headerElement.querySelectorAll("th");
-				const widths = Array.from(headerCells).map(
-					(cell) => cell.getBoundingClientRect().width
-				);
-				setColumnWidths(widths);
-			}
-		};
-
-		// Update container position for viewport positioning
-		const updateContainerRect = () => {
-			if (containerElement) {
-				setContainerRect(containerElement.getBoundingClientRect());
-			}
-		};
 
 		// Synchronous scroll update function
 		const updateScrollPosition = (newScrollLeft: number) => {
@@ -103,38 +134,12 @@ export function DataTableStickyHeader<TData>({
 			scrollStateRef.current.isUpdating = false;
 		};
 
-		// Check if header top is above the sticky threshold
-		const checkHeaderPosition = () => {
-			const headerRect = headerElement.getBoundingClientRect();
-			const containerRect = containerElement.getBoundingClientRect();
-			const threshold = offset; // Always use base offset for WHEN to show (not stickyTopOffset)
+		// Initial setup (call immediately, not debounced)
+		handleResizeLogic();
 
-			// Show sticky header when:
-			// 1. The top of the original header goes above the threshold AND
-			// 2. We haven't scrolled past the bottom of the table container
-			setShowStickyHeader(
-				headerRect.top < threshold &&
-					containerRect.bottom > threshold + headerRect.height
-			);
-		};
-
-		// Initial setup
-		updateColumnWidths();
-		updateContainerRect();
-		checkHeaderPosition();
-
-		// Use scroll-based detection instead of IntersectionObserver for more precise control
-		const handleScroll = () => {
-			checkHeaderPosition();
-			updateContainerRect();
-		};
-
-		// Update on resize
+		// Update on resize - use debounced handler
 		const resizeObserver = new ResizeObserver(() => {
-			setStickyTopOffset(calculateStickyOffset());
-			updateColumnWidths();
-			updateContainerRect();
-			checkHeaderPosition();
+			resizeDebouncer.maybeExecute();
 		});
 
 		resizeObserver.observe(containerElement);
@@ -144,18 +149,30 @@ export function DataTableStickyHeader<TData>({
 			updateScrollPosition(target.scrollLeft);
 		};
 
-		// Add event listeners
-		window.addEventListener("scroll", handleScroll, { passive: true });
+		const handleWindowScroll = () => {
+			scrollThrottler.maybeExecute();
+		};
+
+		// Add event listeners - use throttled handler for window scroll
+		window.addEventListener("scroll", handleWindowScroll, { passive: true });
 		containerElement.addEventListener("scroll", handleTableScroll, {
 			passive: true,
 		});
 
 		return () => {
 			resizeObserver.disconnect();
-			window.removeEventListener("scroll", handleScroll);
+			resizeDebouncer.cancel();
+			window.removeEventListener("scroll", handleWindowScroll);
 			containerElement.removeEventListener("scroll", handleTableScroll);
 		};
-	}, [enabled, tableHeaderRef, tableContainerRef, offset]);
+	}, [
+		enabled,
+		tableHeaderRef,
+		tableContainerRef,
+		handleResizeLogic,
+		resizeDebouncer,
+		scrollThrottler,
+	]);
 
 	// Effect for sticky header scroll synchronization
 	useEffect(() => {

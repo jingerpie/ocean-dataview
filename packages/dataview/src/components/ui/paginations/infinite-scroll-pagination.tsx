@@ -1,8 +1,11 @@
 "use client";
 
 import type { PaginationContext } from "@ocean-dataview/dataview/types";
+import { useThrottler } from "@tanstack/react-pacer";
 import { Loader2 } from "lucide-react";
 import { useEffect, useRef } from "react";
+
+const THROTTLE_MS = 200;
 
 type InfiniteScrollPaginationProps = Partial<PaginationContext>;
 
@@ -10,6 +13,9 @@ type InfiniteScrollPaginationProps = Partial<PaginationContext>;
  * InfiniteScrollPagination component for automatic loading.
  * Uses Intersection Observer to detect when user scrolls near the sentinel element.
  * Data is appended to existing items (not replaced).
+ *
+ * Includes 200ms throttle to prevent race conditions when user scrolls
+ * rapidly near the trigger point (React state updates are async).
  */
 export function InfiniteScrollPagination({
 	hasNext = false,
@@ -19,18 +25,31 @@ export function InfiniteScrollPagination({
 }: InfiniteScrollPaginationProps) {
 	const sentinelRef = useRef<HTMLDivElement>(null);
 
+	// Use refs to avoid stale closures in the throttled callback
+	const stateRef = useRef({ hasNext, isFetchingNextPage, onNext });
+	stateRef.current = { hasNext, isFetchingNextPage, onNext };
+
+	// Throttle: at most one call per 200ms, leading edge (fires immediately)
+	const throttledOnNext = useThrottler(
+		() => {
+			const { hasNext, isFetchingNextPage, onNext } = stateRef.current;
+			if (hasNext && !isFetchingNextPage && onNext) {
+				onNext();
+			}
+		},
+		{ wait: THROTTLE_MS, leading: true, trailing: false }
+	);
+
 	useEffect(() => {
 		const sentinel = sentinelRef.current;
-		if (!(sentinel && onNext && hasNext)) {
+		if (!sentinel) {
 			return;
 		}
 
 		const observer = new IntersectionObserver(
 			(entries) => {
-				const entry = entries[0];
-				// Only trigger if not already fetching
-				if (entry?.isIntersecting && hasNext && !isFetchingNextPage) {
-					onNext();
+				if (entries[0]?.isIntersecting) {
+					throttledOnNext.maybeExecute();
 				}
 			},
 			{
@@ -43,8 +62,9 @@ export function InfiniteScrollPagination({
 
 		return () => {
 			observer.disconnect();
+			throttledOnNext.cancel();
 		};
-	}, [hasNext, isFetchingNextPage, onNext]);
+	}, [throttledOnNext]);
 
 	// Don't render if no more items and not loading
 	if (!(hasNext || isFetchingNextPage)) {

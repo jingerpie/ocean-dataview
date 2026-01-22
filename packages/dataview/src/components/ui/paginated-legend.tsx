@@ -1,11 +1,14 @@
 "use client";
 
+import { useDebouncedCallback } from "@tanstack/react-pacer";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import type { LegendPayload } from "recharts/types/component/DefaultLegendContent";
 import { useIsomorphicLayoutEffect, useResizeObserver } from "usehooks-ts";
 import { cn } from "../../lib/utils";
 import { Button } from "./button";
+
+const RESIZE_DEBOUNCE_MS = 150;
 
 interface LegendItem {
 	name: string;
@@ -116,10 +119,15 @@ export function PaginatedLegend({
 		});
 	}, []);
 
+	// Debounced resize handler
+	const debouncedMeasureGrid = useDebouncedCallback(measureGrid, {
+		wait: RESIZE_DEBOUNCE_MS,
+	});
+
 	// Watch for size changes
 	useResizeObserver({
 		ref: viewportRef as React.RefObject<HTMLElement>,
-		onResize: measureGrid,
+		onResize: debouncedMeasureGrid,
 	});
 
 	// Measure synchronously after items change or mount
