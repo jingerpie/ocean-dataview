@@ -72,7 +72,8 @@
   },
   "type": "module",
   "scripts": {
-    "check": "biome check --write .",
+    "check": "ultracite check",
+    "fix": "ultracite fix",
     "prepare": "husky",
     "dev": "turbo dev",
     "build": "turbo build",
