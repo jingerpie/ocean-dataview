@@ -10,13 +10,9 @@ import {
 	ComboboxList,
 	ComboboxTrigger,
 } from "@ocean-dataview/dataview/components/ui/combobox";
+import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import { Settings2 } from "lucide-react";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
-
-interface PropertyLike {
-	id: string | number;
-	label?: string;
-}
 
 export interface DataViewOptionsProps {
 	/**
@@ -38,15 +34,19 @@ export function DataViewOptions({
 	variant = "default",
 }: DataViewOptionsProps = {}) {
 	const {
-		properties,
+		propertyMetas,
 		propertyVisibility,
 		excludedPropertyIds,
 		setPropertyVisibility,
 	} = useDataViewContext();
 
-	// Direct computation - no useMemo needed for small arrays
-	const availableProperties = (properties as readonly PropertyLike[]).filter(
-		(property) => !excludedPropertyIds.some((id) => id === property.id)
+	// Filter out:
+	// 1. Properties with visibility: false
+	// 2. Excluded property IDs (e.g., grouped column)
+	const availableProperties = propertyMetas.filter(
+		(property) =>
+			property.visibility !== false &&
+			!excludedPropertyIds.some((id) => id === property.id)
 	);
 
 	const selectedProperties = availableProperties.filter((property) =>
@@ -80,7 +80,7 @@ export function DataViewOptions({
 			items={availableProperties}
 			multiple
 			onValueChange={(newSelection) => {
-				const newArray = (newSelection ?? []) as PropertyLike[];
+				const newArray = (newSelection ?? []) as PropertyMeta[];
 				setPropertyVisibility(newArray.map((p) => String(p.id)));
 			}}
 			value={selectedProperties}

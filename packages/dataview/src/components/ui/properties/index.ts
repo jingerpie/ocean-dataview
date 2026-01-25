@@ -20,6 +20,7 @@ export {
 export { DateProperty } from "./date-property";
 export { EmailProperty } from "./email-property";
 export { FilesMediaProperty } from "./files-media-property";
+export { Property } from "./formula-property";
 export { MultiSelectProperty } from "./multi-select-property";
 export { NumberProperty } from "./number-property";
 export { PhoneProperty } from "./phone-property";

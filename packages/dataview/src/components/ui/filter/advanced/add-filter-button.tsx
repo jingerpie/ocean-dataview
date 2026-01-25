@@ -7,7 +7,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@ocean-dataview/dataview/components/ui/dropdown-menu";
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
+import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type { WhereRule } from "@ocean-dataview/shared/types";
 import {
 	createDefaultCondition,
@@ -17,9 +17,9 @@ import {
 import { ChevronDownIcon, CopyPlusIcon, PlusIcon } from "lucide-react";
 import { cn } from "../../../../lib/utils";
 
-interface AddFilterButtonProps<T> {
+interface AddFilterButtonProps {
 	/** Available properties to filter on */
-	properties: DataViewProperty<T>[];
+	properties: readonly PropertyMeta[];
 	/** Whether adding a group is allowed (false at max depth) */
 	canAddGroup: boolean;
 	/** Callback when a new rule is added */
@@ -37,13 +37,13 @@ interface AddFilterButtonProps<T> {
  * - "Add filter group" creates a nested AND group
  * - User can change property afterward using PropertySelect in FilterRule
  */
-export function AddFilterButton<T>({
+export function AddFilterButton({
 	properties,
 	canAddGroup,
 	onAddRule,
 	onAddGroup,
 	className,
-}: AddFilterButtonProps<T>) {
+}: AddFilterButtonProps) {
 	// Create rule with first property as default
 	const handleAddRule = () => {
 		const firstProperty = properties[0];

@@ -3,7 +3,9 @@
 import { Input } from "@ocean-dataview/dataview/components/ui/input";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type {
-	DataViewProperty,
+	MultiSelectConfig,
+	PropertyMeta,
+	SelectConfig,
 	SelectOption,
 } from "@ocean-dataview/dataview/types";
 import type {
@@ -95,11 +97,11 @@ import { FilterPropertyPicker } from "../filter-property-picker";
 import { FilterActions } from "./filter-actions";
 import { LogicPicker } from "./logic-picker";
 
-interface FilterRuleProps<T> {
+interface FilterRuleProps {
 	/** The filter rule */
 	rule: WhereRule;
 	/** Available properties to filter on */
-	properties: DataViewProperty<T>[];
+	properties: readonly PropertyMeta[];
 	/** Whether this is the first rule in the group (shows "Where") */
 	isFirst: boolean;
 	/** Whether this is the second rule in the group (shows dropdown) */
@@ -126,7 +128,7 @@ interface FilterRuleProps<T> {
  * Single filter rule row in the filter builder.
  * Contains: LogicPicker, PropertySelector, ConditionPicker, ValueInput, ActionsMenu
  */
-export function FilterRule<T>({
+export function FilterRule({
 	rule,
 	properties,
 	isFirst,
@@ -139,7 +141,7 @@ export function FilterRule<T>({
 	onWrapInGroup,
 	canWrapInGroup,
 	className,
-}: FilterRuleProps<T>) {
+}: FilterRuleProps) {
 	const [showValueSelector, setShowValueSelector] = useState(false);
 
 	// Find the property for this rule
@@ -154,7 +156,7 @@ export function FilterRule<T>({
 	};
 
 	// Handle property selection
-	const handlePropertySelect = (newProperty: DataViewProperty<T>) => {
+	const handlePropertySelect = (newProperty: PropertyMeta) => {
 		const propVariant = getFilterVariantFromPropertyType(newProperty.type);
 		updateRule({
 			property: String(newProperty.id),
@@ -226,19 +228,19 @@ export function FilterRule<T>({
 // Filter Value Component (exported for reuse)
 // ============================================================================
 
-interface FilterValueProps<T> {
+interface FilterValueProps {
 	rule: WhereRule;
-	property: DataViewProperty<T>;
+	property: PropertyMeta;
 	variant: FilterVariant;
 	onValueChange: (value: unknown) => void;
 }
 
-export function FilterValue<T>({
+export function FilterValue({
 	rule,
 	property,
 	variant,
 	onValueChange,
-}: FilterValueProps<T>) {
+}: FilterValueProps) {
 	const [showSelector, setShowSelector] = useState(false);
 	return (
 		<ValueInput
@@ -256,9 +258,9 @@ export function FilterValue<T>({
 // Internal Value Input Component
 // ============================================================================
 
-interface ValueInputProps<T> {
+interface ValueInputProps {
 	rule: WhereRule;
-	property: DataViewProperty<T>;
+	property: PropertyMeta;
 	variant: FilterVariant;
 	onValueChange: (value: unknown) => void;
 	showSelector: boolean;
@@ -266,14 +268,14 @@ interface ValueInputProps<T> {
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Switch statement handling different filter variant types
-function ValueInput<T>({
+function ValueInput({
 	rule,
 	property,
 	variant,
 	onValueChange,
 	showSelector,
 	onShowSelectorChange,
-}: ValueInputProps<T>) {
+}: ValueInputProps) {
 	// Empty/Not Empty conditions don't need value input
 	if (rule.condition === "isEmpty" || rule.condition === "isNotEmpty") {
 		return null;
@@ -303,11 +305,8 @@ function ValueInput<T>({
 			);
 
 		case "select": {
-			const options: SelectOption[] =
-				(property.type === "select" || property.type === "status") &&
-				property.config?.options
-					? property.config.options
-					: [];
+			const selectConfig = property.config as SelectConfig | undefined;
+			const options: SelectOption[] = selectConfig?.options ?? [];
 
 			let selectedValues: string[];
 			if (Array.isArray(rule.value)) {
@@ -331,10 +330,10 @@ function ValueInput<T>({
 		}
 
 		case "multiSelect": {
-			const options: SelectOption[] =
-				property.type === "multiSelect" && property.config?.options
-					? property.config.options
-					: [];
+			const multiSelectConfig = property.config as
+				| MultiSelectConfig
+				| undefined;
+			const options: SelectOption[] = multiSelectConfig?.options ?? [];
 
 			let selectedValues: string[];
 			if (Array.isArray(rule.value)) {

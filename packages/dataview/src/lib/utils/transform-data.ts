@@ -37,7 +37,10 @@ export function transformData<TData>(
 		const transformed: TransformedData = {};
 
 		for (const property of properties) {
-			if (property.value) {
+			if (property.type === "formula") {
+				// Formula properties are rendered in PropertyDisplay with full context
+				transformed[property.id] = null;
+			} else if (property.value) {
 				// Transform: Call value function with full item, store result
 				transformed[property.id] = property.value(item);
 			} else {

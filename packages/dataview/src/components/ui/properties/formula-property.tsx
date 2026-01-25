@@ -19,8 +19,10 @@ type EmptyObject = Record<string, never>;
 const EMPTY_ID = "" as keyof EmptyObject;
 
 /**
- * Property component namespace for use in formula property types
- * Provides pre-built components that match each property type
+ * Property component namespace for manual composition in formula properties.
+ * Use these when you need direct control over rendering with custom configs.
+ *
+ * For automatic config application, use the `property(id)` renderer instead.
  *
  * @example
  * import { Property } from "@ocean-dataview/dataview/data-views";
@@ -28,10 +30,10 @@ const EMPTY_ID = "" as keyof EmptyObject;
  * {
  *   id: "summary",
  *   type: "formula",
- *   value: (_, item) => (
+ *   value: (_, data) => (
  *     <div className="flex gap-2">
- *       <Property.Text value={item.title} />
- *       <Property.Number value={item.price} config={{ numberFormat: "dollar" }} />
+ *       <Property.Text value={data.title} />
+ *       <Property.Number value={data.price} config={{ numberFormat: "dollar" }} />
  *     </div>
  *   )
  * }

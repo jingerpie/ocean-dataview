@@ -21,6 +21,7 @@ import {
 	cursorValueSchema,
 } from "../types/pagination.type";
 import { validateFilter } from "../utils/filter-validation";
+import { validateSort } from "../utils/sort-validation";
 
 // ============================================================================
 // Constants
@@ -132,7 +133,7 @@ const filterQueryValidator = (value: unknown): FilterQuery | null => {
  * URL format: ["property", "asc"|"desc"]
  * Code format: { property, desc: boolean }
  */
-const sortValidator = (value: unknown): PropertySort<unknown>[] | null => {
+const sortValidator = (value: unknown): PropertySort[] | null => {
 	if (!Array.isArray(value)) {
 		return null;
 	}
@@ -156,7 +157,7 @@ const sortValidator = (value: unknown): PropertySort<unknown>[] | null => {
 		result.push({ property, desc: direction === "desc" });
 	}
 
-	return result as PropertySort<unknown>[];
+	return result as PropertySort[];
 };
 
 const cursorValidator = (value: unknown): CursorValue | null => {
@@ -187,21 +188,21 @@ const expandedValidator = (value: unknown): string[] | null => {
 // ============================================================================
 
 /**
+ * Schema for sort entries - property is a string, not typed to entity keys.
+ * Validation of property names happens at runtime when building queries.
+ */
+const sortEntrySchema = z.object({
+	property: z.string(),
+	desc: z.boolean(),
+});
+
+/**
  * Creates a Zod schema for TRPC input validation.
- * Schema-bound: validates property against entity keys.
+ * Sort property validation is runtime-based, not schema-bound.
  */
 export const createSearchParamsSchema = <T extends z.ZodRawShape>(
-	schema: z.ZodObject<T>
+	_schema: z.ZodObject<T>
 ) => {
-	const keys = Object.keys(schema.shape) as Extract<keyof T, string>[];
-
-	const sortSchema = z.object({
-		property: z.enum(
-			keys as [Extract<keyof T, string>, ...Extract<keyof T, string>[]]
-		),
-		desc: z.boolean(),
-	});
-
 	return z.object({
 		cursor: z.union([cursorValueSchema, z.string()]).nullish(),
 		limit: z.number().int().min(1).max(200).default(DEFAULT_LIMIT),
@@ -209,7 +210,7 @@ export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 		filter: filterQuerySchema
 			.nullish()
 			.transform((f) => (f ? validateFilter(f) : null)),
-		sort: z.array(sortSchema).default([]),
+		sort: z.array(sortEntrySchema).default([]).transform(validateSort),
 	});
 };
 
@@ -299,7 +300,7 @@ export const parseAsFilter = createParser({
 });
 
 export const parseAsSort = createParser({
-	parse: (value: string): PropertySort<unknown>[] | null => {
+	parse: (value: string): PropertySort[] | null => {
 		try {
 			const parsed = JSON.parse(value);
 			return sortValidator(parsed);
@@ -308,6 +309,6 @@ export const parseAsSort = createParser({
 		}
 	},
 	// Transform to compact positional array format: ["property", "asc"|"desc"]
-	serialize: (value: PropertySort<unknown>[]) =>
+	serialize: (value: PropertySort[]) =>
 		JSON.stringify(value.map((s) => [s.property, s.desc ? "desc" : "asc"])),
 });

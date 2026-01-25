@@ -9,6 +9,14 @@ import { useEffect, useState } from "react";
 
 const FILTER_DEBOUNCE_MS = 150;
 
+interface UseFilterParamsOptions {
+	/**
+	 * Default filter to use when URL has no filter param.
+	 * This is used as the initial state when the URL is empty.
+	 */
+	filter?: WhereNode | null;
+}
+
 /**
  * Hook for managing filter state in URL with debouncing
  * Uses the new recursive WhereNode schema (AND/OR conditions)
@@ -20,19 +28,30 @@ const FILTER_DEBOUNCE_MS = 150;
  * ```ts
  * const { filter, setFilter, flush } = useFilterParams();
  *
+ * // With default filter:
+ * const { filter, setFilter } = useFilterParams({
+ *   filter: { and: [["status", "eq", "active"]] }
+ * });
+ *
  * // URL format: ?filter=[["status","eq","active"]]
  * // Call flush() before navigation to ensure pending updates are applied
  * ```
  */
-export function useFilterParams() {
+export function useFilterParams(options: UseFilterParamsOptions = {}) {
+	const defaultFilter = options.filter ?? null;
+
 	const [urlFilter, setUrlFilterState] = useQueryState(
 		"filter",
 		parseAsFilter.withOptions({ shallow: false })
 	);
 
+	// Use URL filter if present, otherwise fall back to default
+	const effectiveFilter =
+		urlFilter !== null ? (urlFilter as WhereNode | null) : defaultFilter;
+
 	// Local state for immediate UI updates
 	const [localFilter, setLocalFilter] = useState<WhereNode | null>(
-		urlFilter as WhereNode | null
+		effectiveFilter
 	);
 
 	// Debounced URL update with leading: true for responsive first click
@@ -45,8 +64,10 @@ export function useFilterParams() {
 
 	// Sync local state when URL changes (e.g., back/forward navigation)
 	useEffect(() => {
-		setLocalFilter(urlFilter as WhereNode | null);
-	}, [urlFilter]);
+		const effectiveValue =
+			urlFilter !== null ? (urlFilter as WhereNode | null) : defaultFilter;
+		setLocalFilter(effectiveValue);
+	}, [urlFilter, defaultFilter]);
 
 	// Flush pending updates on unmount
 	useEffect(() => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@ocean-dataview/dataview/lib/utils";
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
+import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type {
 	WhereExpression,
 	WhereNode,
@@ -24,11 +24,11 @@ import { FilterActions } from "./filter-actions";
 import { FilterRule } from "./filter-rule";
 import { LogicPicker } from "./logic-picker";
 
-interface FilterGroupProps<T> {
+interface FilterGroupProps {
 	/** The compound filter (AND/OR group) */
 	filter: WhereExpression;
 	/** Available properties to filter on */
-	properties: DataViewProperty<T>[];
+	properties: readonly PropertyMeta[];
 	/** Current nesting level (0 = root, 1, 2) */
 	level: 0 | 1 | 2;
 	/** Whether this is the first item in parent (for connector display) */
@@ -57,7 +57,7 @@ interface FilterGroupProps<T> {
  * Recursive filter group component.
  * Renders filter conditions and nested groups with AND/OR logic.
  */
-export function FilterGroup<T>({
+export function FilterGroup({
 	filter,
 	properties,
 	level,
@@ -71,7 +71,7 @@ export function FilterGroup<T>({
 	onConnectorLogicChange,
 	connectorLogic = "and",
 	className,
-}: FilterGroupProps<T>) {
+}: FilterGroupProps) {
 	const logic = getFilterLogic(filter);
 	const items = getFilterItems(filter);
 

@@ -12,14 +12,14 @@ import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { PaginationTabs } from "./pagination-tabs";
-import { type Product, productProperties } from "./product-properties";
+import { productProperties } from "./product-properties";
 
 interface ProductPaginationGalleryProps {
 	limit: number;
 	filter?: WhereNode | null;
 	/** Search filter (converted from URL ?search=xxx by server page) */
 	search?: WhereNode | null;
-	sort?: PropertySort<Product>[];
+	sort?: PropertySort[];
 }
 
 /**
@@ -84,7 +84,7 @@ export function ProductPaginationGallery({
 							cardSize: "medium",
 							fitImage: true,
 						}}
-						pagination="loadMore"
+						pagination="infiniteScroll"
 					/>
 				)}
 			</DataViewProvider>

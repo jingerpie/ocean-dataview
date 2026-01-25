@@ -2,7 +2,7 @@
 
 import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
+import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type {
 	PropertySort,
 	WhereExpression,
@@ -21,17 +21,17 @@ import {
 } from "../filter";
 import { SortChip } from "../sort";
 
-interface ChipsBarProps<T> {
+interface ChipsBarProps {
 	/** Current sorts (multiple sorts supported) */
-	sorts: PropertySort<T>[];
+	sorts: PropertySort[];
 	/** Callback when sorts change */
-	onSortsChange: (sorts: PropertySort<T>[]) => void;
+	onSortsChange: (sorts: PropertySort[]) => void;
 	/** Current filter */
 	filter: WhereNode | null;
 	/** Callback when filter changes */
 	onFilterChange: (filter: WhereNode | null) => void;
 	/** Available properties */
-	properties: DataViewProperty<T>[];
+	properties: readonly PropertyMeta[];
 	/** Advanced filter (WhereExpression at root level) */
 	advancedFilter: WhereExpression | null;
 	/** Index of advancedFilter in root array */
@@ -53,7 +53,7 @@ interface ChipsBarProps<T> {
  * 3. Simple filter chips (in array order)
  * 4. "+ Filter" button
  */
-export function ChipsBar<T>({
+export function ChipsBar({
 	sorts,
 	onSortsChange,
 	filter,
@@ -64,7 +64,7 @@ export function ChipsBar<T>({
 	simpleFilterConditions,
 	ruleCount,
 	className,
-}: ChipsBarProps<T>) {
+}: ChipsBarProps) {
 	// Get normalized filter for operations
 	const normalizedFilter = normalizeFilter(filter);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import { createPropertyRenderer } from "../../../lib/utils/create-property-renderer";
 import type { DataViewProperty } from "../../../types/property-types";
 import { CheckboxProperty } from "./checkbox-property";
 import { DateProperty } from "./date-property";
@@ -19,6 +20,11 @@ interface PropertyDisplayProps<T> {
 	property: DataViewProperty<T>;
 	item: T;
 	wrap?: boolean;
+	/**
+	 * All property definitions - required for formula properties
+	 * to render other properties via `property(id)` renderer
+	 */
+	allProperties?: readonly DataViewProperty<T>[];
 }
 
 /**
@@ -28,7 +34,9 @@ interface PropertyDisplayProps<T> {
 function PropertyDisplayComponent<T>({
 	value,
 	property,
+	item,
 	wrap = false,
+	allProperties,
 }: PropertyDisplayProps<T>) {
 	// Use the transformed value directly - transformation already happened in transformData()
 	// For properties with value functions, the result is already computed
@@ -36,9 +44,15 @@ function PropertyDisplayComponent<T>({
 	const displayValue = value;
 
 	switch (property.type) {
-		case "formula":
-			// For formula type, displayValue is already JSX from the value function
-			return <>{displayValue}</>;
+		case "formula": {
+			const valueFn = property.value;
+			if (!(valueFn && allProperties)) {
+				return null;
+			}
+			// Formula API: value(propertyRenderer, data) => ReactNode
+			const renderer = createPropertyRenderer(item, allProperties);
+			return <>{valueFn(renderer, item)}</>;
+		}
 
 		case "text":
 			return (

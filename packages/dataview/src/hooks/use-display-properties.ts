@@ -5,6 +5,7 @@ import type { DataViewProperty } from "../types";
  * Hook to compute display properties excluding groupBy and other special properties
  *
  * Handles:
+ * - Filtering out properties with visibility: false
  * - Filtering by propertyVisibility if specified
  * - Excluding special IDs (groupBy, preview, etc.)
  * - Maintaining specified order from propertyVisibility
@@ -20,12 +21,15 @@ export function useDisplayProperties<TData>(
 	excludeKeys?: string[]
 ): DataViewProperty<TData>[] {
 	return useMemo(() => {
-		let props: DataViewProperty<TData>[] = Array.from(properties);
+		// Start with properties that have visibility !== false
+		let props: DataViewProperty<TData>[] = Array.from(properties).filter(
+			(prop) => prop.visibility !== false
+		);
 
 		// Filter by propertyVisibility if specified
 		if (propertyVisibility) {
 			props = propertyVisibility
-				.map((id) => properties.find((prop) => prop.id === id))
+				.map((id) => props.find((prop) => prop.id === id))
 				.filter((prop): prop is DataViewProperty<TData> => prop !== undefined);
 		}
 

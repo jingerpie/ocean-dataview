@@ -19,10 +19,10 @@ export interface SortOption {
 	label: string;
 }
 
-interface SortDropdownProps<T = unknown> {
+interface SortDropdownProps {
 	sortOptions: SortOption[];
-	sort: PropertySort<T>[];
-	onSortChange: (sort: PropertySort<T>[]) => void;
+	sort: PropertySort[];
+	onSortChange: (sort: PropertySort[]) => void;
 }
 
 /**
@@ -30,11 +30,11 @@ interface SortDropdownProps<T = unknown> {
  * Uses PropertySort[] array for multi-column support
  * UI shows first sort as primary (single-column UI)
  */
-export function SortDropdown<T = unknown>({
+export function SortDropdown({
 	sortOptions,
 	sort,
 	onSortChange,
-}: SortDropdownProps<T>) {
+}: SortDropdownProps) {
 	if (sortOptions.length === 0) {
 		return null;
 	}
@@ -55,7 +55,7 @@ export function SortDropdown<T = unknown>({
 		} else {
 			onSortChange([
 				{
-					property: field as Extract<keyof T, string>,
+					property: field,
 					desc: order === "desc",
 				},
 			]);

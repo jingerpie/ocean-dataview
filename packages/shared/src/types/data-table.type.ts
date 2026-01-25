@@ -23,8 +23,23 @@ export type FilterCondition = DataTableConfig["conditionalOperators"][number];
 // Sort
 // ============================================================================
 
-export interface PropertySort<TData> {
-	property: Extract<keyof TData, string>;
+/**
+ * Sort configuration for a property.
+ *
+ * Property is typed as `string` for runtime flexibility.
+ * Use `satisfies` for type-safe property name validation at definition time.
+ *
+ * @example
+ * // Type-safe definition with satisfies
+ * const defaultSort = [
+ *   { property: "name", desc: false }
+ * ] satisfies PropertySort[];
+ *
+ * // Or with explicit keyof constraint
+ * const sort: { property: keyof Product; desc: boolean } = { property: "name", desc: false };
+ */
+export interface PropertySort {
+	property: string;
 	desc: boolean;
 }
 

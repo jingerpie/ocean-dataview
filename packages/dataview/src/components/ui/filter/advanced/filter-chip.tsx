@@ -7,7 +7,7 @@ import {
 	PopoverTrigger,
 } from "@ocean-dataview/dataview/components/ui/popover";
 import { useAdvanceFilterBuilder } from "@ocean-dataview/dataview/hooks";
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
+import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type { WhereExpression, WhereNode } from "@ocean-dataview/shared/types";
 import {
 	createDefaultCondition,
@@ -18,11 +18,11 @@ import { Separator } from "../../separator";
 import { AddFilterButton } from "./add-filter-button";
 import { FilterGroup } from "./filter-group";
 
-interface AdvancedFilterChipProps<T> {
+interface AdvancedFilterChipProps {
 	/** The compound filter */
 	filter: WhereExpression;
 	/** Available properties */
-	properties: DataViewProperty<T>[];
+	properties: readonly PropertyMeta[];
 	/** Callback when filter changes */
 	onFilterChange: (filter: WhereNode | null) => void;
 	/** Total number of rules in the filter */
@@ -35,12 +35,12 @@ interface AdvancedFilterChipProps<T> {
  *
  * Uses global Zustand store for popover state coordination with toolbar buttons.
  */
-export function AdvancedFilterChip<T>({
+export function AdvancedFilterChip({
 	filter,
 	properties,
 	onFilterChange,
 	ruleCount,
-}: AdvancedFilterChipProps<T>) {
+}: AdvancedFilterChipProps) {
 	const { isOpen, setOpen } = useAdvanceFilterBuilder();
 
 	const ruleText = ruleCount === 1 ? "1 rule" : `${ruleCount} rules`;

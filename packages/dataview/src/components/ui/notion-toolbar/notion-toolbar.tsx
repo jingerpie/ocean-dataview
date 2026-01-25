@@ -5,8 +5,9 @@ import {
 	useSearchParams,
 	useSortParams,
 } from "@ocean-dataview/dataview/hooks";
+import { useDataViewContext } from "@ocean-dataview/dataview/lib/providers";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
+import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type { ComponentProps, ReactNode } from "react";
 import { FilterPropertyPicker } from "../filter";
 import { SearchInput } from "../search";
@@ -15,9 +16,12 @@ import { useToolbarState } from "../toolbar";
 import { DataViewOptions } from "../visibility";
 import { ChipsBar } from "./chips-bar";
 
-interface NotionToolbarProps<T> extends ComponentProps<"div"> {
-	/** Available properties for filtering/sorting */
-	properties: DataViewProperty<T>[];
+interface NotionToolbarProps extends ComponentProps<"div"> {
+	/**
+	 * Available properties for filtering/sorting.
+	 * Optional - defaults to propertyMetas from DataViewContext.
+	 */
+	properties?: readonly PropertyMeta[];
 	/** Enable filter functionality */
 	enableFilter?: boolean;
 	/** Enable sort functionality */
@@ -38,18 +42,26 @@ interface NotionToolbarProps<T> extends ComponentProps<"div"> {
  * - ?sort=[...] for sorting
  * - ?search=... for search
  *
+ * Reads defaults from DataViewContext if available.
+ *
  * Row 1: [children] -------- [Filter] [Sort] [Search] [Properties]
  * Row 2: [SortList] [Filter Chips...] [+ Filter] (conditional)
  *
  * @example
  * ```tsx
+ * // Properties from context (recommended)
+ * <NotionToolbar>
+ *   <MyTabs />
+ * </NotionToolbar>
+ *
+ * // Or with explicit properties
  * <NotionToolbar properties={productProperties}>
  *   <MyTabs />
  * </NotionToolbar>
  * ```
  */
-export function NotionToolbar<T>({
-	properties,
+export function NotionToolbar({
+	properties: propProperties,
 	enableFilter = true,
 	enableSort = true,
 	enableSearch = true,
@@ -57,11 +69,21 @@ export function NotionToolbar<T>({
 	children,
 	className,
 	...props
-}: NotionToolbarProps<T>) {
-	// State managed via nuqs URL params
-	const { filter, setFilter: onFilterChange } = useFilterParams();
+}: NotionToolbarProps) {
+	// Get propertyMetas and defaults from context
+	const { propertyMetas, defaults } = useDataViewContext();
+
+	// Use prop properties if provided, otherwise fall back to context
+	const properties = propProperties ?? propertyMetas;
+
+	// State managed via nuqs URL params, with context defaults
+	const { filter, setFilter: onFilterChange } = useFilterParams({
+		filter: defaults?.filter,
+	});
 	const { search, setSearch: onSearchChange } = useSearchParams();
-	const { sort: sorts, setSort: onSortsChange } = useSortParams<T>();
+	const { sort: sorts, setSort: onSortsChange } = useSortParams({
+		sort: defaults?.sort,
+	});
 
 	const {
 		hasActiveControls,

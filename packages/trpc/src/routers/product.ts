@@ -4,10 +4,11 @@ import {
 	getCursorParams,
 	productSearchParamsSchema,
 } from "@ocean-dataview/shared/types";
-import { and, asc, count, desc, sql } from "drizzle-orm";
+import { and, count, desc } from "drizzle-orm";
 import { z } from "zod";
 import { publicProcedure, router } from "../index";
 import { buildWhere } from "../lib/filter-columns";
+import { buildCursor } from "../lib/sort-columns";
 
 export const productRouter = router({
 	getMany: publicProcedure
@@ -16,57 +17,31 @@ export const productRouter = router({
 			const { cursor, limit, filter, sort, search } = input;
 			const { after, before } = getCursorParams(cursor ?? undefined);
 
+			// Build filter/search WHERE
 			const searchWhere = buildWhere(product, search ?? null);
 			const filterWhere = buildWhere(product, filter ?? null);
-			const advancedWhere = and(searchWhere, filterWhere);
 
-			// Determine direction - cursor is just the ID string
+			// Determine pagination direction
 			const isBackward = !!before;
 			const cursorId = before || after;
 
-			// Build sort columns with `id` as final tiebreaker for stable pagination
-			// The `id` tiebreaker follows the same direction as the primary sort field
-			const sortColumns =
+			// Prepare sort with tiebreaker (uses last field's direction)
+			const sortWithTiebreaker =
 				sort && sort.length > 0
-					? [...sort, { property: "id" as const, desc: sort[0]?.desc ?? true }]
+					? [...sort, { property: "id", desc: sort.at(-1)?.desc ?? true }]
 					: [
-							{ property: "createdAt" as const, desc: true },
-							{ property: "id" as const, desc: true },
+							{ property: "createdAt", desc: true },
+							{ property: "id", desc: true },
 						];
 
-			// Build cursor condition: compare (col1, col2, ..., id) tuples
-			let cursorRule: ReturnType<typeof sql> | undefined;
-			if (cursorId) {
-				// Current row's sort column values
-				const rowValues = sortColumns.map((col) => product[col.property]);
+			// Build orderBy + cursor WHERE
+			const { orderBy, cursorWhere } = buildCursor(product, {
+				sort: sortWithTiebreaker,
+				cursor: cursorId,
+				direction: isBackward ? "backward" : "forward",
+			});
 
-				// Cursor row's sort column values (fetched via subquery)
-				// Use column.name to get the actual DB column name (e.g., "created_at" not "createdAt")
-				const cursorValues = sortColumns.map((col) => {
-					const columnName = product[col.property].name;
-					return sql`(SELECT ${sql.identifier(columnName)} FROM "product" WHERE "id" = ${cursorId})`;
-				});
-
-				// When direction matches sort order, use ">"; otherwise "<"
-				const isDesc = sortColumns[0]?.desc ?? true;
-				const condition = isBackward === isDesc ? sql.raw(">") : sql.raw("<");
-
-				cursorRule = sql`(${sql.join(rowValues, sql`, `)}) ${condition} (${sql.join(cursorValues, sql`, `)})`;
-			}
-
-			const where = and(advancedWhere, cursorRule);
-
-			// Build ORDER BY clause from sort columns
-			let orderBy = sortColumns.map((col) =>
-				col.desc ? desc(product[col.property]) : asc(product[col.property])
-			);
-
-			// For backward navigation, reverse sort order (results are reversed after fetch)
-			if (isBackward) {
-				orderBy = sortColumns.map((col) =>
-					col.desc ? asc(product[col.property]) : desc(product[col.property])
-				);
-			}
+			const where = and(filterWhere, searchWhere, cursorWhere);
 
 			const data = await db.query.product.findMany({
 				where,

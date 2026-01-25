@@ -12,14 +12,14 @@ import {
 } from "@ocean-dataview/dataview/components/ui/combobox";
 import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-icon";
 import { useSortParams } from "@ocean-dataview/dataview/hooks";
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
+import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type { PropertySort } from "@ocean-dataview/shared/types";
 import { SortAscIcon } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-interface SortPropertyPickerProps<T> {
+interface SortPropertyPickerProps {
 	/** Available properties to sort by */
-	properties: DataViewProperty<T>[];
+	properties: readonly PropertyMeta[];
 	/**
 	 * Override default click behavior. If provided, replaces default action (open dropdown).
 	 * Use this to customize what happens when the trigger is clicked.
@@ -46,18 +46,24 @@ interface SortPropertyPickerProps<T> {
  * - If `onClick` is NOT provided → default behavior (open dropdown)
  * - If `onClick` IS provided → overrides default, calls provided function instead
  */
-function SortPropertyPicker<T>({
+function SortPropertyPicker({
 	properties,
 	onClick,
 	variant = "default",
-}: SortPropertyPickerProps<T>) {
+}: SortPropertyPickerProps) {
 	const [open, setOpen] = useState(false);
-	const { sort: sorts, setSort } = useSortParams<T>();
+	const { sort: sorts, setSort } = useSortParams();
+
+	// Filter out formula properties (can't sort computed values) and properties with sort: false
+	const sortableProperties = useMemo(
+		() => properties.filter((p) => p.type !== "formula" && p.sort !== false),
+		[properties]
+	);
 
 	// Handle property selection - adds new sort
-	const handleSelect = (property: DataViewProperty<T>) => {
-		const newSort: PropertySort<T> = {
-			property: property.id as PropertySort<T>["property"],
+	const handleSelect = (property: PropertyMeta) => {
+		const newSort: PropertySort = {
+			property: String(property.id),
 			desc: false,
 		};
 
@@ -109,11 +115,11 @@ function SortPropertyPicker<T>({
 
 	return (
 		<Combobox
-			items={properties}
+			items={sortableProperties}
 			onOpenChange={setOpen}
 			onValueChange={(newValue) => {
 				if (newValue) {
-					handleSelect(newValue as DataViewProperty<T>);
+					handleSelect(newValue as PropertyMeta);
 				}
 			}}
 			open={open}

@@ -1,6 +1,11 @@
 "use client";
 
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
+import type {
+	DataViewProperty,
+	PropertyMeta,
+	PropertySort,
+	WhereNode,
+} from "@ocean-dataview/dataview/types";
 import { createContext, useContext } from "react";
 import type {
 	GroupInfinitePaginationState,
@@ -18,6 +23,30 @@ export type PaginationOutput<TData> =
 	| GroupPagePaginationState<TData>
 	| GroupInfinitePaginationState<TData>;
 
+/**
+ * Default values for DataView state when URL params are empty
+ */
+export interface DataViewDefaults {
+	/** Default visible property IDs */
+	visibility?: string[];
+	/** Default filter state */
+	filter?: WhereNode | null;
+	/** Default sort state */
+	sort?: PropertySort[];
+}
+
+/**
+ * Default values for DataView state when URL params are empty
+ */
+export interface DataViewDefaults {
+	/** Default visible property IDs */
+	visibility?: string[];
+	/** Default filter state */
+	filter?: WhereNode | null;
+	/** Default sort state */
+	sort?: PropertySort[];
+}
+
 export interface DataViewContextValue<
 	TData,
 	TProperties extends readonly DataViewProperty<TData>[],
@@ -25,6 +54,11 @@ export interface DataViewContextValue<
 	// Core data
 	data: TData[];
 	properties: TProperties;
+	/** Covariant property metadata - safe to pass to UI components */
+	propertyMetas: PropertyMeta[];
+
+	// Default values for URL state (when URL params are empty)
+	defaults?: DataViewDefaults;
 
 	// Property visibility state
 	propertyVisibility: TProperties[number]["id"][];

@@ -2,6 +2,7 @@
 export { buildPaginationContext } from "./build-pagination-context";
 export type { GroupedDataWithMeta } from "./compute-data";
 export { getGroupCounts, groupByProperty } from "./compute-data";
+export { createPropertyRenderer } from "./create-property-renderer";
 export {
 	formatDateForDisplay,
 	parseDate,

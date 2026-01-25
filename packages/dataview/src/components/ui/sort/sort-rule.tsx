@@ -16,20 +16,20 @@ import {
 import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-icon";
 import { DirectionPicker } from "@ocean-dataview/dataview/components/ui/sort/direction-picker";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
+import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type { PropertySort } from "@ocean-dataview/shared/types";
 import { GripVerticalIcon, X } from "lucide-react";
 import { useState } from "react";
 
-interface SortRuleProps<T> {
+interface SortRuleProps {
 	/** The sort rule */
-	sort: PropertySort<T>;
+	sort: PropertySort;
 	/** The current property for this sort */
-	property: DataViewProperty<T>;
+	property: PropertyMeta;
 	/** All available properties */
-	properties: DataViewProperty<T>[];
+	properties: readonly PropertyMeta[];
 	/** Callback when sort rule changes */
-	onUpdate: (updates: Partial<PropertySort<T>>) => void;
+	onUpdate: (updates: Partial<PropertySort>) => void;
 	/** Callback to remove this sort rule */
 	onRemove: () => void;
 	/** Whether to enable drag-and-drop (default: true) */
@@ -43,7 +43,7 @@ interface SortRuleProps<T> {
  *
  * When `draggable` is true (default), includes a drag handle for reordering.
  */
-function SortRule<T>({
+function SortRule({
 	sort,
 	property,
 	properties,
@@ -51,7 +51,7 @@ function SortRule<T>({
 	onRemove,
 	draggable = true,
 	className,
-}: SortRuleProps<T>) {
+}: SortRuleProps) {
 	const [open, setOpen] = useState(false);
 
 	const {
@@ -62,7 +62,7 @@ function SortRule<T>({
 		transition,
 		isDragging,
 	} = useSortable({
-		id: sort.property as string,
+		id: sort.property,
 		disabled: !draggable,
 	});
 
@@ -104,12 +104,12 @@ function SortRule<T>({
 					onValueChange={(newProperty) => {
 						if (newProperty) {
 							onUpdate({
-								property: (newProperty as DataViewProperty<T>)
-									.id as PropertySort<T>["property"],
+								property: String((newProperty as PropertyMeta).id),
 							});
 						}
 					}}
 					open={open}
+					// Type assertion needed due to Combobox generic constraints with union types
 					value={property as never}
 				>
 					<ComboboxTrigger render={<Button size="sm" variant="outline" />}>

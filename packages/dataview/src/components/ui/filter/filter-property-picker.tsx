@@ -18,7 +18,7 @@ import {
 	useFilterParams,
 	useSimpleFilterChip,
 } from "@ocean-dataview/dataview/hooks";
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
+import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import { isWhereExpression, isWhereRule } from "@ocean-dataview/shared/types";
 import {
 	createDefaultCondition,
@@ -29,9 +29,9 @@ import {
 import { ListFilterIcon, PlusIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
-interface FilterPropertyPickerProps<T> {
+interface FilterPropertyPickerProps {
 	/** Available properties to filter by */
-	properties: DataViewProperty<T>[];
+	properties: readonly PropertyMeta[];
 	/**
 	 * Override default click behavior. If provided, replaces default action (open dropdown).
 	 * Use this to customize what happens when the trigger is clicked.
@@ -52,9 +52,9 @@ interface FilterPropertyPickerProps<T> {
 	 */
 	advance?: boolean;
 	/** Currently selected property (for rule variant only) */
-	value?: DataViewProperty<T>;
+	value?: PropertyMeta;
 	/** Callback when property changes (for rule variant only) */
-	onPropertyChange?: (property: DataViewProperty<T>) => void;
+	onPropertyChange?: (property: PropertyMeta) => void;
 }
 
 /**
@@ -75,14 +75,14 @@ interface FilterPropertyPickerProps<T> {
  * - If `onClick` is NOT provided → default behavior (open dropdown)
  * - If `onClick` IS provided → overrides default, calls provided function instead
  */
-function FilterPropertyPicker<T>({
+function FilterPropertyPicker({
 	properties,
 	onClick,
 	variant = "default",
 	advance = false,
 	value,
 	onPropertyChange,
-}: FilterPropertyPickerProps<T>) {
+}: FilterPropertyPickerProps) {
 	const [open, setOpen] = useState(false);
 	const { filter, setFilter } = useFilterParams();
 	const openAdvancedFilterBuilder = useAdvanceFilterBuilder(
@@ -110,12 +110,22 @@ function FilterPropertyPicker<T>({
 			.map((rule) => rule.property);
 	}, [advance, filter]);
 
-	// Filter out already-used properties (only when not in advance mode)
+	// Filter out:
+	// 1. Formula properties (can't filter computed values at database level)
+	// 2. Properties with filter: false
+	// 3. Already-used properties (only when not in advance mode)
 	const availableProperties = useMemo(() => {
+		// First, filter out formula properties and properties with filter: false
+		const filterableProperties = properties.filter(
+			(p) => p.type !== "formula" && p.filter !== false
+		);
+
 		if (advance) {
-			return properties;
+			return filterableProperties;
 		}
-		return properties.filter((p) => !usedPropertyIds.includes(String(p.id)));
+		return filterableProperties.filter(
+			(p) => !usedPropertyIds.includes(String(p.id))
+		);
 	}, [advance, properties, usedPropertyIds]);
 
 	// Find matching property from items for rule variant
@@ -124,7 +134,7 @@ function FilterPropertyPicker<T>({
 		: undefined;
 
 	// Handle property selection
-	const handleSelect = (property: DataViewProperty<T>) => {
+	const handleSelect = (property: PropertyMeta) => {
 		// For rule variant, just notify parent
 		if (variant === "rule") {
 			onPropertyChange?.(property);
@@ -260,7 +270,7 @@ function FilterPropertyPicker<T>({
 			onOpenChange={setOpen}
 			onValueChange={(newValue) => {
 				if (newValue) {
-					handleSelect(newValue as DataViewProperty<T>);
+					handleSelect(newValue as PropertyMeta);
 				}
 			}}
 			open={open}

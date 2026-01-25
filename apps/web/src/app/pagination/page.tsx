@@ -38,7 +38,7 @@ export default async function PaginationPage(props: PageProps) {
 
 	return (
 		<HydrationBoundary state={dehydrate(queryClient)}>
-			<Tabs className="w-full" defaultValue="table">
+			<Tabs className="w-full" defaultValue="table" id="pagination-tabs">
 				<TabsContent value="table">
 					<ProductPaginationTable
 						cursor={cursor}

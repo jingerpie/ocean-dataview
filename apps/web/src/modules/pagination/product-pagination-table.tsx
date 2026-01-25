@@ -16,7 +16,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { PaginationTabs } from "./pagination-tabs";
-import { type Product, productProperties } from "./product-properties";
+import { productProperties } from "./product-properties";
 
 /**
  * Props passed from server (parsed URL params)
@@ -27,7 +27,7 @@ interface PaginationProps {
 	filter?: WhereNode | null;
 	/** Search filter (converted from URL ?search=xxx by server page) */
 	search?: WhereNode | null;
-	sorts?: PropertySort<Product>[];
+	sorts?: PropertySort[];
 }
 
 /**

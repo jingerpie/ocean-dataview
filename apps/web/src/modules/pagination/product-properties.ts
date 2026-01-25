@@ -76,4 +76,4 @@ export const productProperties = [
 		type: "checkbox",
 		value: (item) => item.type !== "UNDEFINED",
 	},
-] as const satisfies DataViewProperty<Product>[];
+] as DataViewProperty<Product>[];

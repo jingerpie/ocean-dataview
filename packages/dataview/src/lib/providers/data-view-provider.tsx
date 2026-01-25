@@ -1,12 +1,16 @@
 "use client";
 
 import { cn } from "@ocean-dataview/dataview/lib/utils";
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
+import {
+	type DataViewProperty,
+	toPropertyMetaArray,
+} from "@ocean-dataview/dataview/types";
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
 	DataViewContext,
 	type DataViewContextValue,
+	type DataViewDefaults,
 	type PaginationOutput,
 } from "./data-view-context";
 
@@ -19,6 +23,13 @@ export interface DataViewProviderProps<
 	children: ReactNode;
 	className?: string;
 	pagination?: PaginationOutput<TData> | undefined;
+	/**
+	 * Default values for URL state when URL params are empty
+	 * - visibility: Default visible property IDs
+	 * - filter: Default filter state
+	 * - sort: Default sort state
+	 */
+	defaults?: DataViewDefaults;
 }
 
 export function DataViewProvider<
@@ -31,50 +42,97 @@ export function DataViewProvider<
 	children,
 	className,
 	pagination,
+	defaults,
 }: DataViewProviderProps<TData, TProperties>) {
-	const [propertyVisibility, setPropertyVisibility] = useState<
-		TProperties[number]["id"][]
-	>(() => properties.map((prop) => prop.id));
+	// Get all property IDs that CAN be visible (visibility !== false in definition)
+	const visiblePropertyIds = useMemo(
+		() =>
+			properties
+				.filter((p) => p.visibility !== false)
+				.map((p) => p.id) as TProperties[number]["id"][],
+		[properties]
+	);
+
+	// Store only user overrides (properties explicitly hidden by user)
+	// This is the minimal state - visibility is derived from properties + overrides
+	const [hiddenByUser, setHiddenByUser] = useState<
+		Set<TProperties[number]["id"]>
+	>(() => {
+		// Inline computation since visiblePropertyIds memo isn't available yet
+		const canBeVisible = properties
+			.filter((p) => p.visibility !== false)
+			.map((p) => p.id) as TProperties[number]["id"][];
+
+		if (defaults?.visibility) {
+			// defaults.visibility = IDs that should be visible
+			// hiddenByUser = IDs that should be hidden (inverse)
+			const defaultVisible = new Set(defaults.visibility);
+			return new Set(canBeVisible.filter((id) => !defaultVisible.has(id)));
+		}
+		return new Set();
+	});
+
+	// Derive visible properties from property definitions + user overrides
+	// This automatically handles HMR changes to property definitions
+	const propertyVisibility = useMemo(
+		() => visiblePropertyIds.filter((id) => !hiddenByUser.has(id)),
+		[visiblePropertyIds, hiddenByUser]
+	);
 
 	const [excludedPropertyIds, setExcludedPropertyIds] = useState<
 		TProperties[number]["id"][]
 	>([]);
 
-	// Sync visibility when properties change
-	useEffect(() => {
-		setPropertyVisibility((prev) => {
-			const validIds = properties.map((p) => p.id);
-			const filtered = prev.filter((id) => validIds.includes(id));
-			return filtered.length > 0 ? filtered : validIds;
-		});
-	}, [properties]);
+	// Public API: setPropertyVisibility converts to internal hiddenByUser format
+	const setPropertyVisibility = useCallback(
+		(visible: TProperties[number]["id"][]) => {
+			const visibleSet = new Set(visible);
+			// Hidden = all possible visible IDs minus the ones being set as visible
+			setHiddenByUser(
+				new Set(visiblePropertyIds.filter((id) => !visibleSet.has(id)))
+			);
+		},
+		[visiblePropertyIds]
+	);
 
 	const toggleProperty = useCallback(
 		(propertyId: TProperties[number]["id"]) => {
-			setPropertyVisibility((prev) => {
-				const isVisible = prev.includes(propertyId);
-				if (isVisible) {
-					return prev.filter((id) => id !== propertyId);
+			setHiddenByUser((prev) => {
+				const next = new Set(prev);
+				if (next.has(propertyId)) {
+					next.delete(propertyId); // Show
+				} else {
+					next.add(propertyId); // Hide
 				}
-				const allIds = properties.map((p) => p.id);
-				return allIds.filter((id) => prev.includes(id) || id === propertyId);
+				return next;
 			});
 		},
-		[properties]
+		[]
 	);
 
+	// Show all properties - clear all user overrides
 	const showAllProperties = useCallback(() => {
-		setPropertyVisibility(properties.map((prop) => prop.id));
-	}, [properties]);
-
-	const hideAllProperties = useCallback(() => {
-		setPropertyVisibility([]);
+		setHiddenByUser(new Set());
 	}, []);
+
+	// Hide all properties that CAN be hidden
+	// (properties with visibility: false in definition are already always hidden)
+	const hideAllProperties = useCallback(() => {
+		setHiddenByUser(new Set(visiblePropertyIds));
+	}, [visiblePropertyIds]);
+
+	// Convert properties to covariant PropertyMeta[] for UI components
+	const propertyMetas = useMemo(
+		() => toPropertyMetaArray(properties),
+		[properties]
+	);
 
 	const contextValue = useMemo<DataViewContextValue<TData, TProperties>>(
 		() => ({
 			data,
 			properties,
+			propertyMetas,
+			defaults,
 			propertyVisibility,
 			setPropertyVisibility,
 			excludedPropertyIds,
@@ -87,7 +145,10 @@ export function DataViewProvider<
 		[
 			data,
 			properties,
+			propertyMetas,
+			defaults,
 			propertyVisibility,
+			setPropertyVisibility,
 			excludedPropertyIds,
 			toggleProperty,
 			showAllProperties,

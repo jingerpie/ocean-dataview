@@ -12,13 +12,13 @@ import {
 } from "@ocean-dataview/dataview/components/ui/combobox";
 import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-icon";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
+import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 
-interface AddSortButtonProps<T> {
+interface AddSortButtonProps {
 	/** Available properties to sort by */
-	properties: DataViewProperty<T>[];
+	properties: readonly PropertyMeta[];
 	/** Callback when a property is selected */
 	onSelect: (propertyId: string) => void;
 	/** Additional class names */
@@ -30,11 +30,11 @@ interface AddSortButtonProps<T> {
  *
  * Opens a searchable dropdown with available properties.
  */
-function AddSortButton<T>({
+function AddSortButton({
 	properties,
 	onSelect,
 	className,
-}: AddSortButtonProps<T>) {
+}: AddSortButtonProps) {
 	const [open, setOpen] = useState(false);
 
 	return (
@@ -43,7 +43,7 @@ function AddSortButton<T>({
 			onOpenChange={setOpen}
 			onValueChange={(property) => {
 				if (property) {
-					onSelect(String((property as DataViewProperty<T>).id));
+					onSelect(String((property as PropertyMeta).id));
 					setOpen(false);
 				}
 			}}

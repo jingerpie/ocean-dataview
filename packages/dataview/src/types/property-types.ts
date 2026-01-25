@@ -30,13 +30,42 @@ export interface BaseProperty<T> {
 	 * @returns Transformed value to be passed to property component
 	 */
 	value?: (item: T) => unknown;
+
+	// ===== Constraint fields (all default to true) =====
+
 	/**
-	 * Override default search behavior for this property.
+	 * Show as column & in visibility toggle.
+	 * When false, the property is hidden from columns but can still be:
+	 * - Rendered via property() in formulas
+	 * - Available in filter picker (unless filter: false)
+	 * - Available in sort picker (unless sort: false)
+	 * - Included in search (unless search: false)
+	 * @default true
+	 */
+	visibility?: boolean;
+
+	/**
+	 * Show in filter picker.
+	 * When false, property won't appear in the filter dropdown.
+	 * @default true
+	 */
+	filter?: boolean;
+
+	/**
+	 * Show in sort picker.
+	 * When false, property won't appear in the sort dropdown.
+	 * @default true
+	 */
+	sort?: boolean;
+
+	/**
+	 * Include in search queries.
 	 * - `true`: Include in search (even if type would be excluded by default)
 	 * - `false`: Exclude from search (even if type would be included by default)
 	 * - `undefined`: Use type-based default (excluded: filesMedia, checkbox, formula)
+	 * @default true (except filesMedia, checkbox, formula which default to false)
 	 */
-	allowSearch?: boolean;
+	search?: boolean;
 }
 
 // Type-specific configurations
@@ -114,6 +143,84 @@ export interface FilesMediaConfig {
 	displayAs?: "thumbnail" | "list" | "gallery";
 }
 
+/**
+ * Union of all property configuration types.
+ * Used by PropertyMeta for covariant type safety.
+ */
+export type PropertyConfig =
+	| NumberConfig
+	| SelectConfig
+	| MultiSelectConfig
+	| StatusConfig
+	| DateConfig
+	| UrlConfig
+	| EmailConfig
+	| PhoneConfig
+	| FilesMediaConfig;
+
+// ============================================================================
+// PropertyMeta - Covariant Property Type for UI Components
+// ============================================================================
+
+/**
+ * Covariant property metadata type - safe to pass to any component.
+ *
+ * This type excludes the `value` function which causes TypeScript contravariance issues.
+ * Use PropertyMeta when components only need property metadata (id, type, label, config)
+ * but don't need to call the value function.
+ *
+ * @example
+ * // UI components that display property info use PropertyMeta
+ * interface SortChipProps {
+ *   properties: readonly PropertyMeta[];
+ * }
+ *
+ * // Data components that render values use DataViewProperty<T>
+ * interface TableViewProps<T> {
+ *   properties: DataViewProperty<T>[];
+ * }
+ */
+export interface PropertyMeta {
+	/** Unique identifier for this property */
+	id: string;
+	/** Property type for rendering */
+	type: PropertyType;
+	/** Display label */
+	label?: string;
+	/** Type-specific configuration */
+	config?: PropertyConfig;
+	/** Show in visibility toggle and as column @default true */
+	visibility?: boolean;
+	/** Show in filter picker @default true */
+	filter?: boolean;
+	/** Show in sort picker @default true */
+	sort?: boolean;
+	/** Include in search @default type-dependent */
+	search?: boolean;
+}
+
+/**
+ * Convert a DataViewProperty to PropertyMeta by stripping contravariant fields.
+ * Safe to call with any property type.
+ */
+export function toPropertyMeta<T>(property: DataViewProperty<T>): PropertyMeta {
+	// Use type assertion to access sortBy which only exists on FormulaPropertyType
+	const { value, sortBy, ...meta } = property as DataViewProperty<T> & {
+		sortBy?: unknown;
+	};
+	return meta as PropertyMeta;
+}
+
+/**
+ * Convert an array of DataViewProperty to PropertyMeta[].
+ * Use this in DataViewProvider to create the propertyMetas context value.
+ */
+export function toPropertyMetaArray<T>(
+	properties: readonly DataViewProperty<T>[]
+): PropertyMeta[] {
+	return properties.map(toPropertyMeta);
+}
+
 // Property type definitions with discriminated unions
 export type TextPropertyType<T> = BaseProperty<T> & {
 	type: "text";
@@ -170,9 +277,71 @@ export type PhonePropertyType<T> = BaseProperty<T> & {
 	config?: PhoneConfig;
 };
 
-export type FormulaPropertyType<T> = BaseProperty<T> & {
+/**
+ * Property renderer function type for formula properties.
+ * Call with a property ID to render that property's value with its full config.
+ */
+// biome-ignore lint/suspicious/noExplicitAny: Returns ReactNode but using any for simpler type inference
+export type PropertyRenderer = (id: string) => any;
+
+/**
+ * Formula property type - renders composite values using other properties.
+ *
+ * The `value` function receives:
+ * - `property`: A renderer function that takes a property ID and returns the rendered JSX
+ * - `data`: The raw data item for conditional logic and manual property access
+ *
+ * @example
+ * ```tsx
+ * // Using property() renderer for automatic config application
+ * {
+ *   id: "productName",
+ *   type: "formula",
+ *   label: "Product",
+ *   sortBy: "name",
+ *   filter: false,
+ *   sort: false,
+ *   value: (property, data) => (
+ *     <div className="flex flex-col gap-1">
+ *       {property("name")}        // Rendered with text styling
+ *       {property("familyGroup")} // Rendered with select colors
+ *       {data.minCalories > 500 && (
+ *         <span className="text-red-500 text-xs">High cal</span>
+ *       )}
+ *     </div>
+ *   ),
+ * }
+ *
+ * // Using Property components for manual composition
+ * {
+ *   id: "summary",
+ *   type: "formula",
+ *   value: (_, data) => (
+ *     <div className="flex gap-2">
+ *       <Property.Text value={data.title} />
+ *       <Property.Number value={data.price} config={{ numberFormat: "dollar" }} />
+ *     </div>
+ *   ),
+ * }
+ * ```
+ */
+export type FormulaPropertyType<T> = Omit<BaseProperty<T>, "value"> & {
 	type: "formula";
 	config?: never;
+	/**
+	 * Formula value function.
+	 *
+	 * @param property - Renderer function: `property(id)` renders a property with its full config
+	 * @param data - The raw data item for conditional logic and manual property access
+	 * @returns ReactNode to render in the cell
+	 */
+	// biome-ignore lint/suspicious/noExplicitAny: Flexible signature to avoid type inference issues with union types
+	value?: (property: PropertyRenderer, data: any) => any;
+	/**
+	 * Optional: which property to use for sorting this formula column.
+	 * Since formulas can't be sorted directly, this specifies a backing property.
+	 */
+	sortBy?: keyof T;
 };
 
 /**
@@ -228,7 +397,7 @@ const EXCLUDED_SEARCH_TYPES: PropertyType[] = [
  * - Included: text, url, email, phone, number, select, multiSelect, status, date
  * - Excluded: filesMedia, checkbox, formula
  *
- * Override with `allowSearch: true/false` on individual properties.
+ * Override with `search: true/false` on individual properties.
  *
  * @example
  * const searchableFields = getSearchableProperties(productProperties);
@@ -240,11 +409,11 @@ export function getSearchableProperties<T>(
 	return properties
 		.filter((p) => {
 			// Explicit false → exclude
-			if (p.allowSearch === false) {
+			if (p.search === false) {
 				return false;
 			}
 			// Explicit true → include
-			if (p.allowSearch === true) {
+			if (p.search === true) {
 				return true;
 			}
 			// Default: include unless type is in excluded list

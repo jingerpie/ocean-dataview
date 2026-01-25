@@ -1,6 +1,5 @@
 "use client";
 
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { parseAsSort } from "@ocean-dataview/shared/lib";
 import type { PropertySort } from "@ocean-dataview/shared/types";
 import { useDebouncer } from "@tanstack/react-pacer";
@@ -9,52 +8,42 @@ import { useEffect, useState } from "react";
 
 const SORT_DEBOUNCE_MS = 150;
 
-interface UseSortParamsOptions<T = unknown> {
-	/** Initial sort from server props */
-	sort?: PropertySort<T>[];
-	/**
-	 * Properties array for type inference.
-	 * When provided, T is inferred from the properties type.
-	 */
-	properties?: DataViewProperty<T>[];
+interface UseSortParamsOptions {
+	/** Initial sort from server props or defaults */
+	sort?: PropertySort[];
 }
 
 /**
- * Hook for managing sort state in URL with debouncing
- * Uses PropertySort[] array format for multi-column sort support
+ * Hook for managing sort state in URL with debouncing.
+ * Uses PropertySort[] array format for multi-column sort support.
  *
  * Debouncing: 150ms with leading edge (first click fires immediately,
  * subsequent rapid clicks are batched)
  *
  * @example
  * ```ts
- * // With type inference from properties (recommended)
- * const { sort, setSort, flush } = useSortParams({ properties: productProperties });
+ * const { sort, setSort, flush } = useSortParams();
  *
- * // With explicit type
- * const { sort, setSort, flush } = useSortParams<Product>();
+ * // With default sort
+ * const { sort, setSort } = useSortParams({ sort: defaults?.sort });
  *
  * // URL format: ?sort=[["name","asc"]]
  * // Call flush() before navigation to ensure pending updates are applied
  * ```
  */
-export function useSortParams<T = unknown>(
-	options: UseSortParamsOptions<T> = {}
-) {
+export function useSortParams(options: UseSortParamsOptions = {}) {
 	const [urlSort, setUrlSortJson] = useQueryState("sort", {
 		...parseAsSort,
-		defaultValue: (options.sort as PropertySort<unknown>[]) ?? [],
+		defaultValue: options.sort ?? [],
 		shallow: false,
 	});
 
 	// Local state for immediate UI updates
-	const [localSort, setLocalSort] = useState<PropertySort<T>[]>(
-		(urlSort as PropertySort<T>[]) ?? []
-	);
+	const [localSort, setLocalSort] = useState<PropertySort[]>(urlSort ?? []);
 
 	// Debounced URL update with leading: true for responsive first click
 	const urlDebouncer = useDebouncer(
-		(newSort: PropertySort<unknown>[] | null) => {
+		(newSort: PropertySort[] | null) => {
 			setUrlSortJson(newSort);
 		},
 		{ wait: SORT_DEBOUNCE_MS, leading: true, trailing: true }
@@ -62,7 +51,7 @@ export function useSortParams<T = unknown>(
 
 	// Sync local state when URL changes (e.g., back/forward navigation)
 	useEffect(() => {
-		setLocalSort((urlSort as PropertySort<T>[]) ?? []);
+		setLocalSort(urlSort ?? []);
 	}, [urlSort]);
 
 	// Flush pending updates on unmount
@@ -70,14 +59,12 @@ export function useSortParams<T = unknown>(
 		return () => urlDebouncer.flush();
 	}, [urlDebouncer]);
 
-	const setSort = (newSort: PropertySort<T>[]) => {
+	const setSort = (newSort: PropertySort[]) => {
 		setLocalSort(newSort);
-		urlDebouncer.maybeExecute(
-			newSort.length === 0 ? null : (newSort as PropertySort<unknown>[])
-		);
+		urlDebouncer.maybeExecute(newSort.length === 0 ? null : newSort);
 	};
 
-	const addSort = (prop: Extract<keyof T, string>, desc = false) => {
+	const addSort = (prop: string, desc = false) => {
 		const existing = localSort.find((s) => s.property === prop);
 		if (existing) {
 			// Toggle direction
@@ -91,7 +78,7 @@ export function useSortParams<T = unknown>(
 		}
 	};
 
-	const removeSort = (prop: Extract<keyof T, string>) => {
+	const removeSort = (prop: string) => {
 		setSort(localSort.filter((s) => s.property !== prop));
 	};
 

@@ -13,7 +13,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "./group-pagination-tabs";
-import { type Product, productProperties } from "./product-properties";
+import { productProperties } from "./product-properties";
 
 const DEFAULT_EXPANDED: string[] = [];
 
@@ -27,7 +27,7 @@ interface Props {
 	filter?: WhereNode | null;
 	/** Search filter (converted from URL ?search=xxx by server page) */
 	search?: WhereNode | null;
-	sort?: PropertySort<Product>[];
+	sort?: PropertySort[];
 }
 
 /**

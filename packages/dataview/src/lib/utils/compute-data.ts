@@ -204,7 +204,10 @@ export function groupByProperty<TData>(
 	for (const item of data) {
 		// Extract value using property transformation
 		let value: unknown;
-		if (property?.value) {
+		if (property?.type === "formula") {
+			// Formula properties can't be grouped - skip value extraction
+			value = null;
+		} else if (property?.value) {
 			// Use transformation function if defined
 			value = property.value(item);
 		} else {
@@ -385,6 +388,11 @@ export function computeData<TData>(
 	const extractValue = (item: TData): unknown => {
 		if (!propertyId) {
 			return undefined;
+		}
+
+		if (property?.type === "formula") {
+			// Formula properties can't be used for group counts
+			return null;
 		}
 
 		if (property?.value) {

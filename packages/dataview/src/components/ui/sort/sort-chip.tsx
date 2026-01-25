@@ -24,18 +24,18 @@ import {
 import { AddSortButton } from "@ocean-dataview/dataview/components/ui/sort/add-sort-button";
 import { SortRule } from "@ocean-dataview/dataview/components/ui/sort/sort-rule";
 import { useSortBuilder } from "@ocean-dataview/dataview/hooks";
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
+import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type { PropertySort } from "@ocean-dataview/shared/types";
 import { ChevronDownIcon, SortAscIcon, Trash2Icon } from "lucide-react";
 import { useCallback, useMemo } from "react";
 
-interface SortChipProps<T> {
+interface SortChipProps {
 	/** Current sort rules */
-	sorts: PropertySort<T>[];
+	sorts: PropertySort[];
 	/** Available properties to sort by */
-	properties: DataViewProperty<T>[];
+	properties: readonly PropertyMeta[];
 	/** Callback when sorts change */
-	onSortsChange: (sorts: PropertySort<T>[]) => void;
+	onSortsChange: (sorts: PropertySort[]) => void;
 }
 
 /**
@@ -44,11 +44,7 @@ interface SortChipProps<T> {
  *
  * Uses global Zustand store for popover state coordination with toolbar buttons.
  */
-export function SortChip<T>({
-	sorts,
-	properties,
-	onSortsChange,
-}: SortChipProps<T>) {
+export function SortChip({ sorts, properties, onSortsChange }: SortChipProps) {
 	const { isOpen, setOpen } = useSortBuilder();
 
 	const sortText = sorts.length === 1 ? "1 sort" : `${sorts.length} sorts`;
@@ -60,10 +56,7 @@ export function SortChip<T>({
 		})
 	);
 
-	const sortIds = useMemo(
-		() => sorts.map((s) => s.property as string),
-		[sorts]
-	);
+	const sortIds = useMemo(() => sorts.map((s) => s.property), [sorts]);
 
 	const onDragEnd = useCallback(
 		(event: DragEndEvent) => {
@@ -79,8 +72,8 @@ export function SortChip<T>({
 
 	const onSortAdd = useCallback(
 		(prop: string) => {
-			const newSort: PropertySort<T> = {
-				property: prop as PropertySort<T>["property"],
+			const newSort: PropertySort = {
+				property: prop,
 				desc: false,
 			};
 			onSortsChange([...sorts, newSort]);
@@ -89,7 +82,7 @@ export function SortChip<T>({
 	);
 
 	const onSortUpdate = useCallback(
-		(prop: string, updates: Partial<PropertySort<T>>) => {
+		(prop: string, updates: Partial<PropertySort>) => {
 			const updatedSorts = sorts.map((sort) =>
 				sort.property === prop ? { ...sort, ...updates } : sort
 			);
@@ -149,9 +142,9 @@ export function SortChip<T>({
 										return (
 											<SortRule
 												key={sort.property}
-												onRemove={() => onSortRemove(sort.property as string)}
+												onRemove={() => onSortRemove(sort.property)}
 												onUpdate={(updates) =>
-													onSortUpdate(sort.property as string, updates)
+													onSortUpdate(sort.property, updates)
 												}
 												properties={properties}
 												property={property}

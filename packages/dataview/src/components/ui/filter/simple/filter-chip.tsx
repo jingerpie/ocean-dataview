@@ -18,7 +18,8 @@ import {
 import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-icon";
 import { useSimpleFilterChip } from "@ocean-dataview/dataview/hooks";
 import type {
-	DataViewProperty,
+	PropertyMeta,
+	SelectConfig,
 	SelectOption,
 } from "@ocean-dataview/dataview/types";
 import type { FilterCondition, WhereRule } from "@ocean-dataview/shared/types";
@@ -37,11 +38,11 @@ import {
 import { ConditionPicker } from "../condition-picker";
 import { FilterActions } from "./filter-actions";
 
-interface FilterChipProps<T> {
+interface FilterChipProps {
 	/** The filter rule */
 	rule: WhereRule;
 	/** The property being filtered */
-	property: DataViewProperty<T>;
+	property: PropertyMeta;
 	/** Callback when rule changes */
 	onRuleChange: (rule: WhereRule) => void;
 	/** Callback to remove this filter */
@@ -64,14 +65,14 @@ interface FilterChipProps<T> {
  * - `compact`: [◉ Property ▾]
  * - `detailed`: [◉ Property: Preview ▾] (max-width: w-58, truncates)
  */
-export function FilterChip<T>({
+export function FilterChip({
 	rule,
 	property,
 	onRuleChange,
 	onRemove,
 	onAddToAdvanced,
 	variant: chipVariant = "compact",
-}: FilterChipProps<T>) {
+}: FilterChipProps) {
 	const { openPropertyId, setOpen } = useSimpleFilterChip();
 	const isOpen = openPropertyId === rule.property;
 
@@ -83,13 +84,13 @@ export function FilterChip<T>({
 	const label = property.label ?? String(property.id);
 
 	// Get select options for preview (if applicable)
-	const options: SelectOption[] =
-		(property.type === "select" ||
-			property.type === "status" ||
-			property.type === "multiSelect") &&
-		property.config?.options
-			? property.config.options
-			: [];
+	const selectConfig =
+		property.type === "select" ||
+		property.type === "status" ||
+		property.type === "multiSelect"
+			? (property.config as SelectConfig | undefined)
+			: undefined;
+	const options: SelectOption[] = selectConfig?.options ?? [];
 
 	// Compute preview for detailed variant
 	const preview =
@@ -202,19 +203,19 @@ export function FilterChip<T>({
 // FilterChipValue - Value input for filter chip
 // ============================================================================
 
-interface FilterChipValueProps<T> {
+interface FilterChipValueProps {
 	rule: WhereRule;
-	property: DataViewProperty<T>;
+	property: PropertyMeta;
 	variant: string;
 	onValueChange: (value: unknown) => void;
 }
 
-function FilterChipValue<T>({
+function FilterChipValue({
 	rule,
 	property,
 	variant,
 	onValueChange,
-}: FilterChipValueProps<T>) {
+}: FilterChipValueProps) {
 	// Empty/Not Empty conditions don't need value input
 	if (rule.condition === "isEmpty" || rule.condition === "isNotEmpty") {
 		return null;
@@ -244,13 +245,13 @@ function FilterChipValue<T>({
 
 		case "select":
 		case "multiSelect": {
-			const options: SelectOption[] =
-				(property.type === "select" ||
-					property.type === "status" ||
-					property.type === "multiSelect") &&
-				property.config?.options
-					? property.config.options
-					: [];
+			const selectConfig =
+				property.type === "select" ||
+				property.type === "status" ||
+				property.type === "multiSelect"
+					? (property.config as SelectConfig | undefined)
+					: undefined;
+			const options: SelectOption[] = selectConfig?.options ?? [];
 
 			let selectedValues: string[];
 			if (Array.isArray(rule.value)) {

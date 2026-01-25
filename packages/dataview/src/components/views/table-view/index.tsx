@@ -201,6 +201,7 @@ export function TableView<
 				header: property.label ?? String(property.id),
 				cell: ({ getValue, row }) => (
 					<PropertyDisplay
+						allProperties={properties}
 						item={row.original}
 						property={property}
 						value={getValue()}
@@ -296,7 +297,13 @@ export function TableView<
 		}
 
 		return allColumns;
-	}, [displayProperties, wrapAllColumns, enableRowSelection, actions]);
+	}, [
+		displayProperties,
+		properties,
+		wrapAllColumns,
+		enableRowSelection,
+		actions,
+	]);
 
 	// Generate action bar if actions provided
 	const actionBar = useMemo(() => {
@@ -485,6 +492,7 @@ export type { DataViewContextValue as TableContextValue } from "../../../lib/pro
 export { useDataViewContext as useTableContext } from "../../../lib/providers/data-view-context";
 export type { DataViewProviderProps as TableProviderProps } from "../../../lib/providers/data-view-provider";
 export { DataViewProvider as TableProvider } from "../../../lib/providers/data-view-provider";
+export { Property } from "../../ui/properties";
 export {
 	DataViewOptions,
 	type DataViewOptionsProps,
