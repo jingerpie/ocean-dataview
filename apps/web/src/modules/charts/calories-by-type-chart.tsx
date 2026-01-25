@@ -8,54 +8,54 @@ import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 
 import {
-	maxCaloriesProperty,
-	productTypeProperty,
+  maxCaloriesProperty,
+  productTypeProperty,
 } from "./product-chart-properties";
 
 const productProperties = [productTypeProperty, maxCaloriesProperty] as const;
 
 function CaloriesByType() {
-	const trpc = useTRPC();
-	const { data } = useSuspenseQuery(
-		trpc.product.getMany.queryOptions({ limit: 200 })
-	);
+  const trpc = useTRPC();
+  const { data } = useSuspenseQuery(
+    trpc.product.getMany.queryOptions({ limit: 200 })
+  );
 
-	return (
-		<ChartViewProvider data={data.items} properties={productProperties}>
-			<VerticalBarChartView
-				config={{
-					xAxis: {
-						whatToShow: { property: "type" },
-						sortBy: "countDescending",
-					},
-					yAxis: {
-						whatToShow: { property: "maxCalories", showAs: "average" },
-					},
-					style: {
-						color: "orange",
-						height: "medium",
-						gridLine: "horizontal",
-						axisName: "both",
-						dataLabels: true,
-						caption: "Average Calories by Product Type",
-						showLegend: false,
-					},
-				}}
-			/>
-		</ChartViewProvider>
-	);
+  return (
+    <ChartViewProvider data={data.items} properties={productProperties}>
+      <VerticalBarChartView
+        config={{
+          xAxis: {
+            whatToShow: { property: "type" },
+            sortBy: "countDescending",
+          },
+          yAxis: {
+            whatToShow: { property: "maxCalories", showAs: "average" },
+          },
+          style: {
+            color: "orange",
+            height: "medium",
+            gridLine: "horizontal",
+            axisName: "both",
+            dataLabels: true,
+            caption: "Average Calories by Product Type",
+            showLegend: false,
+          },
+        }}
+      />
+    </ChartViewProvider>
+  );
 }
 
 export function CaloriesByTypeChart() {
-	return (
-		<Suspense
-			fallback={
-				<div className="flex h-80 items-center justify-center rounded-lg border bg-muted/30">
-					<p className="text-muted-foreground">Loading chart...</p>
-				</div>
-			}
-		>
-			<CaloriesByType />
-		</Suspense>
-	);
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-80 items-center justify-center rounded-lg border bg-muted/30">
+          <p className="text-muted-foreground">Loading chart...</p>
+        </div>
+      }
+    >
+      <CaloriesByType />
+    </Suspense>
+  );
 }

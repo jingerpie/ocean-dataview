@@ -30,28 +30,28 @@ export type TransformedData = Record<string, unknown>;
  * // Note: name, price, and internal fields are dropped
  */
 export function transformData<TData>(
-	rawData: readonly TData[],
-	properties: readonly DataViewProperty<TData>[]
+  rawData: readonly TData[],
+  properties: readonly DataViewProperty<TData>[]
 ): TransformedData[] {
-	return rawData.map((item) => {
-		const transformed: TransformedData = {};
+  return rawData.map((item) => {
+    const transformed: TransformedData = {};
 
-		for (const property of properties) {
-			if (property.type === "formula") {
-				// Formula properties are rendered in PropertyDisplay with full context
-				transformed[property.id] = null;
-			} else if (property.value) {
-				// Transform: Call value function with full item, store result
-				transformed[property.id] = property.value(item);
-			} else {
-				// Pass: Auto-map property.id to field name
-				transformed[property.id] = (item as Record<string, unknown>)[
-					property.id
-				];
-			}
-		}
+    for (const property of properties) {
+      if (property.type === "formula") {
+        // Formula properties are rendered in PropertyDisplay with full context
+        transformed[property.id] = null;
+      } else if (property.value) {
+        // Transform: Call value function with full item, store result
+        transformed[property.id] = property.value(item);
+      } else {
+        // Pass: Auto-map property.id to field name
+        transformed[property.id] = (item as Record<string, unknown>)[
+          property.id
+        ];
+      }
+    }
 
-		// Clean: Only property.id fields remain, all others dropped
-		return transformed;
-	});
+    // Clean: Only property.id fields remain, all others dropped
+    return transformed;
+  });
 }

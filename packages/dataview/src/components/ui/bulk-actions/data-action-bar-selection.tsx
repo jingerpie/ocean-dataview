@@ -3,30 +3,30 @@
 import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import { Separator } from "@ocean-dataview/dataview/components/ui/separator";
 import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@ocean-dataview/dataview/components/ui/tooltip";
 import type { Table } from "@tanstack/react-table";
 import { X } from "lucide-react";
 import { useCallback } from "react";
 
 interface DataActionBarSelectionProps<TData> {
-	/**
-	 * TanStack Table instance (for TableView)
-	 * Optional - if not provided, use selectedCount and onClearSelection
-	 */
-	table?: Table<TData>;
+  /**
+   * TanStack Table instance (for TableView)
+   * Optional - if not provided, use selectedCount and onClearSelection
+   */
+  table?: Table<TData>;
 
-	/**
-	 * Selected count (for ListView or custom implementations)
-	 */
-	selectedCount?: number;
+  /**
+   * Selected count (for ListView or custom implementations)
+   */
+  selectedCount?: number;
 
-	/**
-	 * Clear selection callback (for ListView or custom implementations)
-	 */
-	onClearSelection?: () => void;
+  /**
+   * Clear selection callback (for ListView or custom implementations)
+   */
+  onClearSelection?: () => void;
 }
 
 /**
@@ -34,53 +34,53 @@ interface DataActionBarSelectionProps<TData> {
  * Works with both TanStack Table and custom selection state
  */
 export function DataActionBarSelection<TData>({
-	table,
-	selectedCount: selectedCountProp,
-	onClearSelection,
+  table,
+  selectedCount: selectedCountProp,
+  onClearSelection,
 }: DataActionBarSelectionProps<TData>) {
-	const selectedCount = table
-		? table.getFilteredSelectedRowModel().rows.length
-		: (selectedCountProp ?? 0);
+  const selectedCount = table
+    ? table.getFilteredSelectedRowModel().rows.length
+    : (selectedCountProp ?? 0);
 
-	const handleClearSelection = useCallback(() => {
-		if (table) {
-			table.toggleAllRowsSelected(false);
-		} else if (onClearSelection) {
-			onClearSelection();
-		}
-	}, [table, onClearSelection]);
+  const handleClearSelection = useCallback(() => {
+    if (table) {
+      table.toggleAllRowsSelected(false);
+    } else if (onClearSelection) {
+      onClearSelection();
+    }
+  }, [table, onClearSelection]);
 
-	return (
-		<div className="flex h-9 items-center rounded-md border pr-2 pl-3">
-			<span className="whitespace-nowrap text-sm">
-				{selectedCount} selected
-			</span>
-			<Separator className="mr-1 ml-2 h-4" orientation="vertical" />
-			<Tooltip>
-				<TooltipTrigger
-					render={
-						<Button
-							className="size-6"
-							onClick={handleClearSelection}
-							size="icon"
-							variant="ghost"
-						/>
-					}
-				>
-					<X className="size-4" />
-				</TooltipTrigger>
-				<TooltipContent
-					className="flex items-center gap-2 border bg-accent px-2 py-1 font-semibold text-foreground"
-					sideOffset={10}
-				>
-					<p>Clear selection</p>
-					<kbd className="select-none rounded border bg-background px-1.5 py-px font-mono font-normal text-[0.7rem] text-foreground shadow-sm">
-						<abbr className="no-underline" title="Escape">
-							Esc
-						</abbr>
-					</kbd>
-				</TooltipContent>
-			</Tooltip>
-		</div>
-	);
+  return (
+    <div className="flex h-9 items-center rounded-md border pr-2 pl-3">
+      <span className="whitespace-nowrap text-sm">
+        {selectedCount} selected
+      </span>
+      <Separator className="mr-1 ml-2 h-4" orientation="vertical" />
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              className="size-6"
+              onClick={handleClearSelection}
+              size="icon"
+              variant="ghost"
+            />
+          }
+        >
+          <X className="size-4" />
+        </TooltipTrigger>
+        <TooltipContent
+          className="flex items-center gap-2 border bg-accent px-2 py-1 font-semibold text-foreground"
+          sideOffset={10}
+        >
+          <p>Clear selection</p>
+          <kbd className="select-none rounded border bg-background px-1.5 py-px font-mono font-normal text-[0.7rem] text-foreground shadow-sm">
+            <abbr className="no-underline" title="Escape">
+              Esc
+            </abbr>
+          </kbd>
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  );
 }

@@ -5,8 +5,8 @@ import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
 import type { SelectPropertyType } from "../../../types/property-types";
 
 interface SelectPropertyProps<T> {
-	value: unknown;
-	property: SelectPropertyType<T>;
+  value: unknown;
+  property: SelectPropertyType<T>;
 }
 
 /**
@@ -17,21 +17,21 @@ interface SelectPropertyProps<T> {
  * @returns Colored badge with option label
  */
 export function SelectProperty<T>({ value, property }: SelectPropertyProps<T>) {
-	if (!value) {
-		return <span className="text-muted-foreground text-sm">-</span>;
-	}
+  if (!value) {
+    return <span className="text-muted-foreground text-sm">-</span>;
+  }
 
-	const stringValue = String(value);
-	const option = property.config?.options?.find(
-		(opt) => opt.value === stringValue
-	);
+  const stringValue = String(value);
+  const option = property.config?.options?.find(
+    (opt) => opt.value === stringValue
+  );
 
-	// If option not found, still render as badge with gray color
-	if (!option) {
-		return <Badge variant="gray-subtle">{stringValue}</Badge>;
-	}
+  // If option not found, still render as badge with gray color
+  if (!option) {
+    return <Badge variant="gray-subtle">{stringValue}</Badge>;
+  }
 
-	const variant = getBadgeVariant(option.color);
+  const variant = getBadgeVariant(option.color);
 
-	return <Badge variant={variant}>{option.label}</Badge>;
+  return <Badge variant={variant}>{option.label}</Badge>;
 }

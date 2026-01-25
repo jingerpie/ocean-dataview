@@ -11,22 +11,22 @@ import { getColumn } from "./filter-columns";
  * @param options.reverse - Reverse sort direction (for backward pagination)
  */
 export function buildSort<T extends Table>(
-	table: T,
-	sort: PropertySort[],
-	options?: { reverse?: boolean }
+  table: T,
+  sort: PropertySort[],
+  options?: { reverse?: boolean }
 ): SQL[] {
-	const reverse = options?.reverse ?? false;
+  const reverse = options?.reverse ?? false;
 
-	return sort
-		.map((s) => {
-			const column = getColumn(table, s.property as keyof T);
-			if (!column) {
-				return null;
-			}
-			const isDesc = reverse ? !s.desc : s.desc;
-			return isDesc ? desc(column) : asc(column);
-		})
-		.filter((col): col is SQL => col !== null);
+  return sort
+    .map((s) => {
+      const column = getColumn(table, s.property as keyof T);
+      if (!column) {
+        return null;
+      }
+      const isDesc = reverse ? !s.desc : s.desc;
+      return isDesc ? desc(column) : asc(column);
+    })
+    .filter((col): col is SQL => col !== null);
 }
 
 /**
@@ -41,51 +41,51 @@ export function buildSort<T extends Table>(
  * @param options.direction - Pagination direction
  */
 export function buildCursor<T extends Table>(
-	table: T,
-	options: {
-		sort: PropertySort[];
-		cursor?: string | null;
-		direction?: "forward" | "backward";
-	}
+  table: T,
+  options: {
+    sort: PropertySort[];
+    cursor?: string | null;
+    direction?: "forward" | "backward";
+  }
 ): {
-	orderBy: SQL[];
-	cursorWhere?: SQL;
+  orderBy: SQL[];
+  cursorWhere?: SQL;
 } {
-	const { sort, cursor, direction = "forward" } = options;
-	const reverse = direction === "backward";
+  const { sort, cursor, direction = "forward" } = options;
+  const reverse = direction === "backward";
 
-	// Build orderBy using buildSort
-	const orderBy = buildSort(table, sort, { reverse });
+  // Build orderBy using buildSort
+  const orderBy = buildSort(table, sort, { reverse });
 
-	// If no cursor, just return orderBy
-	if (!cursor) {
-		return { orderBy };
-	}
+  // If no cursor, just return orderBy
+  if (!cursor) {
+    return { orderBy };
+  }
 
-	// Filter to valid columns only (for cursor building)
-	const validSort = sort.filter((s) => {
-		const column = getColumn(table, s.property as keyof T);
-		return column !== undefined;
-	});
+  // Filter to valid columns only (for cursor building)
+  const validSort = sort.filter((s) => {
+    const column = getColumn(table, s.property as keyof T);
+    return column !== undefined;
+  });
 
-	if (validSort.length === 0) {
-		return { orderBy };
-	}
+  if (validSort.length === 0) {
+    return { orderBy };
+  }
 
-	// Build cursor WHERE condition
-	const rowValues = validSort.map((s) =>
-		getColumn(table, s.property as keyof T)
-	);
+  // Build cursor WHERE condition
+  const rowValues = validSort.map((s) =>
+    getColumn(table, s.property as keyof T)
+  );
 
-	const cursorValues = validSort.map((s) => {
-		const column = getColumn(table, s.property as keyof T);
-		return sql`(SELECT ${sql.identifier(column.name)} FROM ${table} WHERE "id" = ${cursor})`;
-	});
+  const cursorValues = validSort.map((s) => {
+    const column = getColumn(table, s.property as keyof T);
+    return sql`(SELECT ${sql.identifier(column.name)} FROM ${table} WHERE "id" = ${cursor})`;
+  });
 
-	// Use last sort field's direction for comparison operator
-	const isDesc = validSort.at(-1)?.desc ?? true;
-	const op = reverse === isDesc ? sql.raw(">") : sql.raw("<");
-	const cursorWhere = sql`(${sql.join(rowValues, sql`, `)}) ${op} (${sql.join(cursorValues, sql`, `)})`;
+  // Use last sort field's direction for comparison operator
+  const isDesc = validSort.at(-1)?.desc ?? true;
+  const op = reverse === isDesc ? sql.raw(">") : sql.raw("<");
+  const cursorWhere = sql`(${sql.join(rowValues, sql`, `)}) ${op} (${sql.join(cursorValues, sql`, `)})`;
 
-	return { orderBy, cursorWhere };
+  return { orderBy, cursorWhere };
 }

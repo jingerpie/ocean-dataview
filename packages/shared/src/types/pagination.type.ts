@@ -6,12 +6,12 @@ import { z } from "zod";
  * - Grouped pagination: used as values in `cursors` object map
  */
 export const cursorValueSchema = z.object({
-	after: z.string().optional(), // forward cursor
-	before: z.string().optional(), // backward cursor
-	start: z
-		.number()
-		.optional()
-		.transform((v) => v ?? 0), // display offset, defaults to 0
+  after: z.string().optional(), // forward cursor
+  before: z.string().optional(), // backward cursor
+  start: z
+    .number()
+    .optional()
+    .transform((v) => v ?? 0), // display offset, defaults to 0
 });
 
 export type CursorValue = z.infer<typeof cursorValueSchema>;
@@ -33,14 +33,14 @@ export type Cursors = z.infer<typeof cursorsSchema>;
  * - string: treats as forward cursor (after) - for infinite queries
  */
 export function getCursorParams(cursor: CursorValue | string | undefined): {
-	after: string | undefined;
-	before: string | undefined;
+  after: string | undefined;
+  before: string | undefined;
 } {
-	if (typeof cursor === "string") {
-		return { after: cursor, before: undefined };
-	}
-	return {
-		after: cursor?.after,
-		before: cursor?.before,
-	};
+  if (typeof cursor === "string") {
+    return { after: cursor, before: undefined };
+  }
+  return {
+    after: cursor?.after,
+    before: cursor?.before,
+  };
 }

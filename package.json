@@ -91,12 +91,9 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "turbo": "2.7.2",
-    "ultracite": "7.0.11"
+    "ultracite": "7.0.12"
   },
   "lint-staged": {
-    "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
-      "biome check --write ."
-    ],
     "*.{js,jsx,ts,tsx,json,jsonc,css,scss,md,mdx}": [
       "bun x ultracite fix"
     ]

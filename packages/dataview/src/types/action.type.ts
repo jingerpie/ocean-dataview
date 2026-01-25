@@ -5,51 +5,51 @@ import type { ReactNode } from "react";
  * Used for both individual row actions and bulk operations
  */
 export interface Action<T> {
-	/**
-	 * Action label displayed to users
-	 */
-	label: string;
+  /**
+   * Action label displayed to users
+   */
+  label: string;
 
-	/**
-	 * Optional icon to display with the action
-	 */
-	icon?: ReactNode;
+  /**
+   * Optional icon to display with the action
+   */
+  icon?: ReactNode;
 
-	/**
-	 * Action handler - always receives an array of items
-	 * For row actions: array with single item
-	 * For bulk actions: array with all selected items
-	 */
-	onClick: (items: T[]) => void;
+  /**
+   * Action handler - always receives an array of items
+   * For row actions: array with single item
+   * For bulk actions: array with all selected items
+   */
+  onClick: (items: T[]) => void;
 
-	/**
-	 * Mark as primary action
-	 * Shows as main button in row actions SplitButton
-	 * First action with primary: true is used
-	 */
-	primary?: boolean;
+  /**
+   * Mark as primary action
+   * Shows as main button in row actions SplitButton
+   * First action with primary: true is used
+   */
+  primary?: boolean;
 
-	/**
-	 * Visual variant for the action
-	 * 'destructive' renders in red for dangerous actions
-	 */
-	variant?: "default" | "destructive";
+  /**
+   * Visual variant for the action
+   * 'destructive' renders in red for dangerous actions
+   */
+  variant?: "default" | "destructive";
 
-	/**
-	 * Only show this action in bulk action bar
-	 * Hides from individual row actions
-	 */
-	bulkOnly?: boolean;
+  /**
+   * Only show this action in bulk action bar
+   * Hides from individual row actions
+   */
+  bulkOnly?: boolean;
 
-	/**
-	 * Only show this action in row actions
-	 * Hides from bulk action bar
-	 */
-	rowOnly?: boolean;
+  /**
+   * Only show this action in row actions
+   * Hides from bulk action bar
+   */
+  rowOnly?: boolean;
 
-	/**
-	 * Loading state for async actions
-	 * Shows spinner when true
-	 */
-	isPending?: boolean;
+  /**
+   * Loading state for async actions
+   * Shows spinner when true
+   */
+  isPending?: boolean;
 }

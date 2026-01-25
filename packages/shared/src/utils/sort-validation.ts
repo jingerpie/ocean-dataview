@@ -8,20 +8,20 @@ import type { PropertySort } from "../types/data-table.type";
  * Mirrors validateFilter pattern for consistency.
  */
 export function validateSort(sort: PropertySort[]): PropertySort[] {
-	const seen = new Set<string>();
+  const seen = new Set<string>();
 
-	return sort.filter((s) => {
-		// Skip invalid entries
-		if (typeof s.property !== "string" || s.property.trim() === "") {
-			return false;
-		}
+  return sort.filter((s) => {
+    // Skip invalid entries
+    if (typeof s.property !== "string" || s.property.trim() === "") {
+      return false;
+    }
 
-		// Deduplicate - keep first occurrence
-		if (seen.has(s.property)) {
-			return false;
-		}
+    // Deduplicate - keep first occurrence
+    if (seen.has(s.property)) {
+      return false;
+    }
 
-		seen.add(s.property);
-		return true;
-	});
+    seen.add(s.property);
+    return true;
+  });
 }

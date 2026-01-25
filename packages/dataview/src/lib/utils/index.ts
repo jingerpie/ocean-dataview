@@ -4,9 +4,9 @@ export type { GroupedDataWithMeta } from "./compute-data";
 export { getGroupCounts, groupByProperty } from "./compute-data";
 export { createPropertyRenderer } from "./create-property-renderer";
 export {
-	formatDateForDisplay,
-	parseDate,
-	parseValue,
+  formatDateForDisplay,
+  parseDate,
+  parseValue,
 } from "./date-picker-utils";
 export { groupByField } from "./group";
 export { paginateData } from "./paginate";
@@ -20,5 +20,5 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-	return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs));
 }

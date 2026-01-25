@@ -2,13 +2,13 @@
 
 import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import {
-	Combobox,
-	ComboboxContent,
-	ComboboxEmpty,
-	ComboboxInput,
-	ComboboxItem,
-	ComboboxList,
-	ComboboxTrigger,
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
 } from "@ocean-dataview/dataview/components/ui/combobox";
 import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-icon";
 import { useSortParams } from "@ocean-dataview/dataview/hooks";
@@ -18,19 +18,19 @@ import { SortAscIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
 interface SortPropertyPickerProps {
-	/** Available properties to sort by */
-	properties: readonly PropertyMeta[];
-	/**
-	 * Override default click behavior. If provided, replaces default action (open dropdown).
-	 * Use this to customize what happens when the trigger is clicked.
-	 */
-	onClick?: () => void;
-	/**
-	 * Trigger variant:
-	 * - `default` - Sort icon with "Sort" label, outline button
-	 * - `icon` - Sort icon only, ghost button
-	 */
-	variant?: "default" | "icon";
+  /** Available properties to sort by */
+  properties: readonly PropertyMeta[];
+  /**
+   * Override default click behavior. If provided, replaces default action (open dropdown).
+   * Use this to customize what happens when the trigger is clicked.
+   */
+  onClick?: () => void;
+  /**
+   * Trigger variant:
+   * - `default` - Sort icon with "Sort" label, outline button
+   * - `icon` - Sort icon only, ghost button
+   */
+  variant?: "default" | "icon";
 }
 
 /**
@@ -47,100 +47,100 @@ interface SortPropertyPickerProps {
  * - If `onClick` IS provided → overrides default, calls provided function instead
  */
 function SortPropertyPicker({
-	properties,
-	onClick,
-	variant = "default",
+  properties,
+  onClick,
+  variant = "default",
 }: SortPropertyPickerProps) {
-	const [open, setOpen] = useState(false);
-	const { sort: sorts, setSort } = useSortParams();
+  const [open, setOpen] = useState(false);
+  const { sort: sorts, setSort } = useSortParams();
 
-	// Filter out formula properties (can't sort computed values) and properties with sort: false
-	const sortableProperties = useMemo(
-		() => properties.filter((p) => p.type !== "formula" && p.sort !== false),
-		[properties]
-	);
+  // Filter out formula properties (can't sort computed values) and properties with sort: false
+  const sortableProperties = useMemo(
+    () => properties.filter((p) => p.type !== "formula" && p.sort !== false),
+    [properties]
+  );
 
-	// Handle property selection - adds new sort
-	const handleSelect = (property: PropertyMeta) => {
-		const newSort: PropertySort = {
-			property: String(property.id),
-			desc: false,
-		};
+  // Handle property selection - adds new sort
+  const handleSelect = (property: PropertyMeta) => {
+    const newSort: PropertySort = {
+      property: String(property.id),
+      desc: false,
+    };
 
-		// Add to existing sorts
-		setSort([...sorts, newSort]);
-		setOpen(false);
-	};
+    // Add to existing sorts
+    setSort([...sorts, newSort]);
+    setOpen(false);
+  };
 
-	// Render trigger based on variant
-	const renderTrigger = () => {
-		if (variant === "icon") {
-			return (
-				<ComboboxTrigger
-					render={<Button size="icon-sm" variant="ghost" />}
-					showChevron={false}
-				>
-					<SortAscIcon />
-				</ComboboxTrigger>
-			);
-		}
+  // Render trigger based on variant
+  const renderTrigger = () => {
+    if (variant === "icon") {
+      return (
+        <ComboboxTrigger
+          render={<Button size="icon-sm" variant="ghost" />}
+          showChevron={false}
+        >
+          <SortAscIcon />
+        </ComboboxTrigger>
+      );
+    }
 
-		// default variant
-		return (
-			<ComboboxTrigger render={<Button size="sm" variant="outline" />}>
-				<SortAscIcon />
-				<span>Sort</span>
-			</ComboboxTrigger>
-		);
-	};
+    // default variant
+    return (
+      <ComboboxTrigger render={<Button size="sm" variant="outline" />}>
+        <SortAscIcon />
+        <span>Sort</span>
+      </ComboboxTrigger>
+    );
+  };
 
-	// When onClick is provided, render standalone button
-	// This completely bypasses Combobox behavior - clicking only calls onClick
-	if (onClick) {
-		if (variant === "icon") {
-			return (
-				<Button onClick={onClick} size="icon-sm" variant="ghost">
-					<SortAscIcon />
-				</Button>
-			);
-		}
-		// default variant
-		return (
-			<Button onClick={onClick} size="sm" variant="outline">
-				<SortAscIcon />
-				<span>Sort</span>
-			</Button>
-		);
-	}
+  // When onClick is provided, render standalone button
+  // This completely bypasses Combobox behavior - clicking only calls onClick
+  if (onClick) {
+    if (variant === "icon") {
+      return (
+        <Button onClick={onClick} size="icon-sm" variant="ghost">
+          <SortAscIcon />
+        </Button>
+      );
+    }
+    // default variant
+    return (
+      <Button onClick={onClick} size="sm" variant="outline">
+        <SortAscIcon />
+        <span>Sort</span>
+      </Button>
+    );
+  }
 
-	return (
-		<Combobox
-			items={sortableProperties}
-			onOpenChange={setOpen}
-			onValueChange={(newValue) => {
-				if (newValue) {
-					handleSelect(newValue as PropertyMeta);
-				}
-			}}
-			open={open}
-		>
-			{renderTrigger()}
-			<ComboboxContent align="start" className="w-56">
-				<ComboboxInput placeholder="Sort by..." showTrigger={false} />
-				<ComboboxEmpty>No properties found.</ComboboxEmpty>
-				<ComboboxList>
-					{(property) => (
-						<ComboboxItem key={String(property.id)} value={property}>
-							<PropertyIcon type={property.type} />
-							<span className="truncate">
-								{property.label ?? String(property.id)}
-							</span>
-						</ComboboxItem>
-					)}
-				</ComboboxList>
-			</ComboboxContent>
-		</Combobox>
-	);
+  return (
+    <Combobox
+      items={sortableProperties}
+      onOpenChange={setOpen}
+      onValueChange={(newValue) => {
+        if (newValue) {
+          handleSelect(newValue as PropertyMeta);
+        }
+      }}
+      open={open}
+    >
+      {renderTrigger()}
+      <ComboboxContent align="start" className="w-56">
+        <ComboboxInput placeholder="Sort by..." showTrigger={false} />
+        <ComboboxEmpty>No properties found.</ComboboxEmpty>
+        <ComboboxList>
+          {(property) => (
+            <ComboboxItem key={String(property.id)} value={property}>
+              <PropertyIcon type={property.type} />
+              <span className="truncate">
+                {property.label ?? String(property.id)}
+              </span>
+            </ComboboxItem>
+          )}
+        </ComboboxList>
+      </ComboboxContent>
+    </Combobox>
+  );
 }
 
 export { SortPropertyPicker, type SortPropertyPickerProps };

@@ -8,25 +8,25 @@ export * from "./chart.type";
 // Export pagination types
 export type { PaginationContext } from "./pagination";
 export type {
-	BasePaginatedResponse,
-	BidirectionalPaginatedResponse,
-	GroupCounts,
-	InferItemsFromQueryOptions,
+  BasePaginatedResponse,
+  BidirectionalPaginatedResponse,
+  GroupCounts,
+  InferItemsFromQueryOptions,
 } from "./pagination-types";
 export * from "./property-types";
 
 // Pagination result interface
 export interface PaginationResult<T> {
-	data: T[];
-	totalPages: number;
-	currentPage: number;
-	hasNext: boolean;
-	hasPrev: boolean;
-	totalItems: number;
-	pageSize: number;
+  data: T[];
+  totalPages: number;
+  currentPage: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+  totalItems: number;
+  pageSize: number;
 }
 
 // Grouped data interface
 export interface GroupedData<T> {
-	[key: string]: T[];
+  [key: string]: T[];
 }

@@ -7,10 +7,10 @@ import type { DataTableConfig } from "../config/data-table";
 // ============================================================================
 
 export interface Option {
-	label: string;
-	value: string;
-	count?: number;
-	icon?: FC<SVGProps<SVGSVGElement>>;
+  label: string;
+  value: string;
+  count?: number;
+  icon?: FC<SVGProps<SVGSVGElement>>;
 }
 
 // ============================================================================
@@ -39,8 +39,8 @@ export type FilterCondition = DataTableConfig["conditionalOperators"][number];
  * const sort: { property: keyof Product; desc: boolean } = { property: "name", desc: false };
  */
 export interface PropertySort {
-	property: string;
-	desc: boolean;
+  property: string;
+  desc: boolean;
 }
 
 // ============================================================================
@@ -51,17 +51,17 @@ export interface PropertySort {
  * Leaf node - single WHERE rule
  */
 export interface WhereRule {
-	property: string;
-	condition: FilterCondition;
-	value?: unknown;
+  property: string;
+  condition: FilterCondition;
+  value?: unknown;
 }
 
 /**
  * Branch node - AND/OR grouping
  */
 export interface WhereExpression {
-	and?: WhereNode[];
-	or?: WhereNode[];
+  and?: WhereNode[];
+  or?: WhereNode[];
 }
 
 /**
@@ -73,14 +73,14 @@ export type WhereNode = WhereRule | WhereExpression;
  * Search parameter - always OR at root, flat (no nesting)
  */
 export interface SearchQuery {
-	or: WhereRule[];
+  or: WhereRule[];
 }
 
 /**
  * Filter parameter - always AND at root, can nest
  */
 export interface FilterQuery {
-	and: WhereNode[];
+  and: WhereNode[];
 }
 
 // ============================================================================
@@ -88,72 +88,72 @@ export interface FilterQuery {
 // ============================================================================
 
 const conditionValues = [
-	"iLike",
-	"notILike",
-	"eq",
-	"ne",
-	"inArray",
-	"notInArray",
-	"isEmpty",
-	"isNotEmpty",
-	"lt",
-	"lte",
-	"gt",
-	"gte",
-	"isBetween",
-	"isRelativeToToday",
-	"startsWith",
-	"endsWith",
+  "iLike",
+  "notILike",
+  "eq",
+  "ne",
+  "inArray",
+  "notInArray",
+  "isEmpty",
+  "isNotEmpty",
+  "lt",
+  "lte",
+  "gt",
+  "gte",
+  "isBetween",
+  "isRelativeToToday",
+  "startsWith",
+  "endsWith",
 ] as const;
 
 /**
  * Schema for WhereRule
  */
 export const whereRuleSchema = z.object({
-	property: z.string(),
-	condition: z.enum(conditionValues),
-	value: z.unknown().optional(),
+  property: z.string(),
+  condition: z.enum(conditionValues),
+  value: z.unknown().optional(),
 });
 
 /**
  * Schema for WhereExpression (recursive)
  */
 export const whereExpressionSchema: z.ZodType<WhereExpression> = z.lazy(() =>
-	z
-		.object({
-			and: z.array(whereNodeSchema).optional(),
-			or: z.array(whereNodeSchema).optional(),
-		})
-		.refine(
-			(obj) => {
-				const hasAnd = obj.and !== undefined;
-				const hasOr = obj.or !== undefined;
-				return (hasAnd && !hasOr) || (!hasAnd && hasOr);
-			},
-			{ message: "Exactly one of 'and' or 'or' required" }
-		)
+  z
+    .object({
+      and: z.array(whereNodeSchema).optional(),
+      or: z.array(whereNodeSchema).optional(),
+    })
+    .refine(
+      (obj) => {
+        const hasAnd = obj.and !== undefined;
+        const hasOr = obj.or !== undefined;
+        return (hasAnd && !hasOr) || (!hasAnd && hasOr);
+      },
+      { message: "Exactly one of 'and' or 'or' required" }
+    )
 );
 
 /**
  * Schema for WhereNode
  */
 export const whereNodeSchema: z.ZodType<WhereNode> = z.union([
-	whereRuleSchema,
-	whereExpressionSchema,
+  whereRuleSchema,
+  whereExpressionSchema,
 ]);
 
 /**
  * Schema for SearchQuery - always { or: WhereRule[] }
  */
 export const searchQuerySchema: z.ZodType<SearchQuery> = z.object({
-	or: z.array(whereRuleSchema),
+  or: z.array(whereRuleSchema),
 });
 
 /**
  * Schema for FilterQuery - always { and: WhereNode[] }
  */
 export const filterQuerySchema: z.ZodType<FilterQuery> = z.object({
-	and: z.array(whereNodeSchema),
+  and: z.array(whereNodeSchema),
 });
 
 // ============================================================================
@@ -161,11 +161,11 @@ export const filterQuerySchema: z.ZodType<FilterQuery> = z.object({
 // ============================================================================
 
 export function isWhereExpression(node: WhereNode): node is WhereExpression {
-	return "and" in node || "or" in node;
+  return "and" in node || "or" in node;
 }
 
 export function isWhereRule(node: WhereNode): node is WhereRule {
-	return "property" in node && "condition" in node;
+  return "property" in node && "condition" in node;
 }
 
 // ============================================================================
@@ -173,12 +173,12 @@ export function isWhereRule(node: WhereNode): node is WhereRule {
 // ============================================================================
 
 export type FilterVariant =
-	| "text"
-	| "number"
-	| "range"
-	| "date"
-	| "dateRange"
-	| "boolean"
-	| "select"
-	| "multiSelect"
-	| "files";
+  | "text"
+  | "number"
+  | "range"
+  | "date"
+  | "dateRange"
+  | "boolean"
+  | "select"
+  | "multiSelect"
+  | "files";

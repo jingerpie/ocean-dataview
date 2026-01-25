@@ -7,5 +7,5 @@ export const selectProductSchema = createSelectSchema(product);
 export type SelectProduct = z.infer<typeof selectProductSchema>;
 
 export const productSearchParamsSchema =
-	createSearchParamsSchema(selectProductSchema);
+  createSearchParamsSchema(selectProductSchema);
 export type productSearchParams = z.infer<typeof productSearchParamsSchema>;

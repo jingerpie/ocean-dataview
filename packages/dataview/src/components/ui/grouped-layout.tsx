@@ -1,8 +1,8 @@
 "use client";
 
 import type {
-	DataViewProperty,
-	PaginationContext,
+  DataViewProperty,
+  PaginationContext,
 } from "@ocean-dataview/dataview/types";
 import type { GroupedDataItem } from "../../hooks";
 import { Accordion } from "./accordion";
@@ -10,32 +10,32 @@ import { GroupSection } from "./group-section";
 import { type PaginationMode, renderPagination } from "./paginations";
 
 interface GroupedLayoutProps<TData> {
-	/** Grouped data items to render */
-	groups: GroupedDataItem<TData>[];
+  /** Grouped data items to render */
+  groups: GroupedDataItem<TData>[];
 
-	/** Property definition for the groupBy field */
-	groupByProperty: DataViewProperty<TData> | undefined;
+  /** Property definition for the groupBy field */
+  groupByProperty: DataViewProperty<TData> | undefined;
 
-	/** Default expanded accordion values */
-	defaultExpanded?: string[];
+  /** Default expanded accordion values */
+  defaultExpanded?: string[];
 
-	/** Callback when accordion value changes */
-	onAccordionChange?: (value: string[]) => void;
+  /** Callback when accordion value changes */
+  onAccordionChange?: (value: string[]) => void;
 
-	/** Render function for group content */
-	renderGroupContent: (group: GroupedDataItem<TData>) => React.ReactNode;
+  /** Render function for group content */
+  renderGroupContent: (group: GroupedDataItem<TData>) => React.ReactNode;
 
-	/** Pagination mode */
-	pagination?: PaginationMode;
+  /** Pagination mode */
+  pagination?: PaginationMode;
 
-	/** Function to get pagination context for a group */
-	getPaginationContext?: (groupKey: string) => PaginationContext | undefined;
+  /** Function to get pagination context for a group */
+  getPaginationContext?: (groupKey: string) => PaginationContext | undefined;
 
-	/** Optional className for the container */
-	className?: string;
+  /** Optional className for the container */
+  className?: string;
 
-	/** Display aggregation counts in group headers (default: true) */
-	showAggregation?: boolean;
+  /** Display aggregation counts in group headers (default: true) */
+  showAggregation?: boolean;
 }
 
 /**
@@ -43,40 +43,40 @@ interface GroupedLayoutProps<TData> {
  * Eliminates duplication across TableView, ListView, BoardView, GalleryView
  */
 export function GroupedLayout<TData>({
-	groups,
-	groupByProperty,
-	defaultExpanded,
-	onAccordionChange,
-	renderGroupContent,
-	pagination,
-	getPaginationContext,
-	className,
-	showAggregation = true,
+  groups,
+  groupByProperty,
+  defaultExpanded,
+  onAccordionChange,
+  renderGroupContent,
+  pagination,
+  getPaginationContext,
+  className,
+  showAggregation = true,
 }: GroupedLayoutProps<TData>) {
-	return (
-		<div className={className}>
-			<Accordion
-				defaultValue={defaultExpanded}
-				multiple
-				onValueChange={onAccordionChange}
-			>
-				{groups.map((group) => {
-					const paginationContext = getPaginationContext?.(group.key);
+  return (
+    <div className={className}>
+      <Accordion
+        defaultValue={defaultExpanded}
+        multiple
+        onValueChange={onAccordionChange}
+      >
+        {groups.map((group) => {
+          const paginationContext = getPaginationContext?.(group.key);
 
-					return (
-						<GroupSection
-							group={group}
-							groupByPropertyDef={groupByProperty}
-							isLoading={false}
-							key={group.key}
-							renderFooter={renderPagination(pagination, paginationContext)}
-							showAggregation={showAggregation}
-						>
-							{renderGroupContent(group)}
-						</GroupSection>
-					);
-				})}
-			</Accordion>
-		</div>
-	);
+          return (
+            <GroupSection
+              group={group}
+              groupByPropertyDef={groupByProperty}
+              isLoading={false}
+              key={group.key}
+              renderFooter={renderPagination(pagination, paginationContext)}
+              showAggregation={showAggregation}
+            >
+              {renderGroupContent(group)}
+            </GroupSection>
+          );
+        })}
+      </Accordion>
+    </div>
+  );
 }

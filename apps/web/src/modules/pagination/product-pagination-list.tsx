@@ -2,8 +2,8 @@
 
 import { NotionToolbar } from "@ocean-dataview/dataview/components/ui";
 import {
-	ListSkeleton,
-	ListView,
+  ListSkeleton,
+  ListView,
 } from "@ocean-dataview/dataview/components/views/list-view";
 import { useInfinitePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
@@ -15,11 +15,11 @@ import { PaginationTabs } from "./pagination-tabs";
 import { productProperties } from "./product-properties";
 
 interface ProductPaginationListProps {
-	limit: number;
-	filter?: WhereNode | null;
-	/** Search filter (converted from URL ?search=xxx by server page) */
-	search?: WhereNode | null;
-	sort?: PropertySort[];
+  limit: number;
+  filter?: WhereNode | null;
+  /** Search filter (converted from URL ?search=xxx by server page) */
+  search?: WhereNode | null;
+  sort?: PropertySort[];
 }
 
 /**
@@ -31,56 +31,56 @@ interface ProductPaginationListProps {
  * - useInfinitePagination handles data flattening + pagination state
  */
 export function ProductPaginationList({
-	limit: defaultLimit,
-	filter = null,
-	search: searchQuery = null,
-	sort = [],
+  limit: defaultLimit,
+  filter = null,
+  search: searchQuery = null,
+  sort = [],
 }: ProductPaginationListProps) {
-	const trpc = useTRPC();
+  const trpc = useTRPC();
 
-	// Infinite query using TRPC infiniteQueryOptions
-	// search is now a Filter (converted from URL param by server)
-	const infiniteQuery = useSuspenseInfiniteQuery(
-		trpc.product.getMany.infiniteQueryOptions(
-			{
-				limit: defaultLimit,
-				filter,
-				search: searchQuery,
-				sort,
-			},
-			{
-				getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
-			}
-		)
-	);
+  // Infinite query using TRPC infiniteQueryOptions
+  // search is now a Filter (converted from URL param by server)
+  const infiniteQuery = useSuspenseInfiniteQuery(
+    trpc.product.getMany.infiniteQueryOptions(
+      {
+        limit: defaultLimit,
+        filter,
+        search: searchQuery,
+        sort,
+      },
+      {
+        getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
+      }
+    )
+  );
 
-	// Use the new hook for pagination state
-	const { items, pagination } = useInfinitePagination({
-		infiniteQuery,
-		defaultLimit,
-		limitOptions: [10, 25, 50, 100],
-	});
+  // Use the new hook for pagination state
+  const { items, pagination } = useInfinitePagination({
+    infiniteQuery,
+    defaultLimit,
+    limitOptions: [10, 25, 50, 100],
+  });
 
-	return (
-		<Suspense fallback={<ListSkeleton rowCount={8} />}>
-			<DataViewProvider
-				data={items}
-				pagination={pagination}
-				properties={productProperties}
-			>
-				{/* Uncontrolled mode: NotionToolbar manages state via nuqs */}
-				<NotionToolbar properties={productProperties}>
-					<PaginationTabs />
-				</NotionToolbar>
+  return (
+    <Suspense fallback={<ListSkeleton rowCount={8} />}>
+      <DataViewProvider
+        data={items}
+        pagination={pagination}
+        properties={productProperties}
+      >
+        {/* Uncontrolled mode: NotionToolbar manages state via nuqs */}
+        <NotionToolbar properties={productProperties}>
+          <PaginationTabs />
+        </NotionToolbar>
 
-				{items.length === 0 ? (
-					<div className="flex min-h-100 items-center justify-center">
-						<p className="text-muted-foreground">No products found</p>
-					</div>
-				) : (
-					<ListView pagination="loadMore" />
-				)}
-			</DataViewProvider>
-		</Suspense>
-	);
+        {items.length === 0 ? (
+          <div className="flex min-h-100 items-center justify-center">
+            <p className="text-muted-foreground">No products found</p>
+          </div>
+        ) : (
+          <ListView pagination="loadMore" />
+        )}
+      </DataViewProvider>
+    </Suspense>
+  );
 }

@@ -12,8 +12,8 @@ import { StatusProperty } from "../../components/ui/properties/status-property";
 import { TextProperty } from "../../components/ui/properties/text-property";
 import { UrlProperty } from "../../components/ui/properties/url-property";
 import type {
-	DataViewProperty,
-	PropertyRenderer,
+  DataViewProperty,
+  PropertyRenderer,
 } from "../../types/property-types";
 
 /**
@@ -38,70 +38,70 @@ import type {
  * ```
  */
 export function createPropertyRenderer<TData>(
-	data: TData,
-	properties: readonly DataViewProperty<TData>[]
+  data: TData,
+  properties: readonly DataViewProperty<TData>[]
 ): PropertyRenderer {
-	return (id: string) => {
-		// Find the property definition
-		const property = properties.find((p) => p.id === id);
-		if (!property) {
-			return null;
-		}
+  return (id: string) => {
+    // Find the property definition
+    const property = properties.find((p) => p.id === id);
+    if (!property) {
+      return null;
+    }
 
-		// Get the value for this property
-		let value: unknown;
-		if (property.type === "formula") {
-			// Formulas can't be nested - return null
-			return null;
-		}
-		if (property.value) {
-			value = property.value(data);
-		} else {
-			value = (data as Record<string, unknown>)[id];
-		}
+    // Get the value for this property
+    let value: unknown;
+    if (property.type === "formula") {
+      // Formulas can't be nested - return null
+      return null;
+    }
+    if (property.value) {
+      value = property.value(data);
+    } else {
+      value = (data as Record<string, unknown>)[id];
+    }
 
-		// Render based on property type
-		switch (property.type) {
-			case "text":
-				return <TextProperty property={property} value={value} wrap={false} />;
+    // Render based on property type
+    switch (property.type) {
+      case "text":
+        return <TextProperty property={property} value={value} wrap={false} />;
 
-			case "number":
-				return <NumberProperty property={property} value={value} />;
+      case "number":
+        return <NumberProperty property={property} value={value} />;
 
-			case "select":
-				return <SelectProperty property={property} value={value} />;
+      case "select":
+        return <SelectProperty property={property} value={value} />;
 
-			case "multiSelect":
-				return <MultiSelectProperty property={property} value={value} />;
+      case "multiSelect":
+        return <MultiSelectProperty property={property} value={value} />;
 
-			case "status":
-				return <StatusProperty property={property} value={value} />;
+      case "status":
+        return <StatusProperty property={property} value={value} />;
 
-			case "date":
-				return <DateProperty property={property} value={value} />;
+      case "date":
+        return <DateProperty property={property} value={value} />;
 
-			case "checkbox":
-				return <CheckboxProperty property={property} value={value} />;
+      case "checkbox":
+        return <CheckboxProperty property={property} value={value} />;
 
-			case "url":
-				return <UrlProperty property={property} value={value} />;
+      case "url":
+        return <UrlProperty property={property} value={value} />;
 
-			case "email":
-				return <EmailProperty property={property} value={value} />;
+      case "email":
+        return <EmailProperty property={property} value={value} />;
 
-			case "phone":
-				return <PhoneProperty property={property} value={value} />;
+      case "phone":
+        return <PhoneProperty property={property} value={value} />;
 
-			case "filesMedia":
-				return (
-					<FilesMediaProperty property={property} value={value} wrap={false} />
-				);
+      case "filesMedia":
+        return (
+          <FilesMediaProperty property={property} value={value} wrap={false} />
+        );
 
-			default:
-				// Fallback for unknown types
-				return (
-					<span className="text-sm">{value != null ? String(value) : "-"}</span>
-				);
-		}
-	};
+      default:
+        // Fallback for unknown types
+        return (
+          <span className="text-sm">{value != null ? String(value) : "-"}</span>
+        );
+    }
+  };
 }

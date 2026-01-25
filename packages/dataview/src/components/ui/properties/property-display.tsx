@@ -16,15 +16,15 @@ import { TextProperty } from "./text-property";
 import { UrlProperty } from "./url-property";
 
 interface PropertyDisplayProps<T> {
-	value: unknown;
-	property: DataViewProperty<T>;
-	item: T;
-	wrap?: boolean;
-	/**
-	 * All property definitions - required for formula properties
-	 * to render other properties via `property(id)` renderer
-	 */
-	allProperties?: readonly DataViewProperty<T>[];
+  value: unknown;
+  property: DataViewProperty<T>;
+  item: T;
+  wrap?: boolean;
+  /**
+   * All property definitions - required for formula properties
+   * to render other properties via `property(id)` renderer
+   */
+  allProperties?: readonly DataViewProperty<T>[];
 }
 
 /**
@@ -32,77 +32,77 @@ interface PropertyDisplayProps<T> {
  * Memoized to prevent unnecessary re-renders in table cells
  */
 function PropertyDisplayComponent<T>({
-	value,
-	property,
-	item,
-	wrap = false,
-	allProperties,
+  value,
+  property,
+  item,
+  wrap = false,
+  allProperties,
 }: PropertyDisplayProps<T>) {
-	// Use the transformed value directly - transformation already happened in transformData()
-	// For properties with value functions, the result is already computed
-	// For properties without value functions, the field was auto-mapped
-	const displayValue = value;
+  // Use the transformed value directly - transformation already happened in transformData()
+  // For properties with value functions, the result is already computed
+  // For properties without value functions, the field was auto-mapped
+  const displayValue = value;
 
-	switch (property.type) {
-		case "formula": {
-			const valueFn = property.value;
-			if (!(valueFn && allProperties)) {
-				return null;
-			}
-			// Formula API: value(propertyRenderer, data) => ReactNode
-			const renderer = createPropertyRenderer(item, allProperties);
-			return <>{valueFn(renderer, item)}</>;
-		}
+  switch (property.type) {
+    case "formula": {
+      const valueFn = property.value;
+      if (!(valueFn && allProperties)) {
+        return null;
+      }
+      // Formula API: value(propertyRenderer, data) => ReactNode
+      const renderer = createPropertyRenderer(item, allProperties);
+      return <>{valueFn(renderer, item)}</>;
+    }
 
-		case "text":
-			return (
-				<TextProperty property={property} value={displayValue} wrap={wrap} />
-			);
+    case "text":
+      return (
+        <TextProperty property={property} value={displayValue} wrap={wrap} />
+      );
 
-		case "number":
-			return <NumberProperty property={property} value={displayValue} />;
+    case "number":
+      return <NumberProperty property={property} value={displayValue} />;
 
-		case "select":
-			return <SelectProperty property={property} value={displayValue} />;
+    case "select":
+      return <SelectProperty property={property} value={displayValue} />;
 
-		case "multiSelect":
-			return <MultiSelectProperty property={property} value={displayValue} />;
+    case "multiSelect":
+      return <MultiSelectProperty property={property} value={displayValue} />;
 
-		case "status":
-			return <StatusProperty property={property} value={displayValue} />;
+    case "status":
+      return <StatusProperty property={property} value={displayValue} />;
 
-		case "date":
-			return <DateProperty property={property} value={displayValue} />;
+    case "date":
+      return <DateProperty property={property} value={displayValue} />;
 
-		case "checkbox":
-			return <CheckboxProperty property={property} value={displayValue} />;
+    case "checkbox":
+      return <CheckboxProperty property={property} value={displayValue} />;
 
-		case "url":
-			return <UrlProperty property={property} value={displayValue} />;
+    case "url":
+      return <UrlProperty property={property} value={displayValue} />;
 
-		case "email":
-			return <EmailProperty property={property} value={displayValue} />;
+    case "email":
+      return <EmailProperty property={property} value={displayValue} />;
 
-		case "phone":
-			return <PhoneProperty property={property} value={displayValue} />;
+    case "phone":
+      return <PhoneProperty property={property} value={displayValue} />;
 
-		case "filesMedia":
-			return (
-				<FilesMediaProperty
-					property={property}
-					value={displayValue}
-					wrap={wrap}
-				/>
-			);
+    case "filesMedia":
+      return (
+        <FilesMediaProperty
+          property={property}
+          value={displayValue}
+          wrap={wrap}
+        />
+      );
 
-		default:
-			// Fallback for unknown types
-			return (
-				<span className="text-sm">
-					{displayValue != null ? String(displayValue) : "-"}
-				</span>
-			);
-	}
+    default:
+      // Fallback for unknown types
+      return (
+        <span className="text-sm">
+          {displayValue != null ? String(displayValue) : "-"}
+        </span>
+      );
+  }
 }
 
 /**
@@ -110,5 +110,5 @@ function PropertyDisplayComponent<T>({
  * Prevents unnecessary re-renders in table cells and list items
  */
 export const PropertyDisplay = memo(
-	PropertyDisplayComponent
+  PropertyDisplayComponent
 ) as typeof PropertyDisplayComponent;

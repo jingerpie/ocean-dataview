@@ -4,13 +4,13 @@ import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import type { LucideIcon } from "lucide-react";
 
 interface EmptyStateProps {
-	icon?: LucideIcon;
-	title: string;
-	description?: string;
-	action?: {
-		label: string;
-		onClick: () => void;
-	};
+  icon?: LucideIcon;
+  title: string;
+  description?: string;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 /**
@@ -18,29 +18,29 @@ interface EmptyStateProps {
  * Shows when there's no data to display
  */
 export function EmptyState({
-	icon: Icon,
-	title,
-	description,
-	action,
+  icon: Icon,
+  title,
+  description,
+  action,
 }: EmptyStateProps) {
-	return (
-		<div className="flex flex-col items-center justify-center px-4 py-12 text-center">
-			{Icon && (
-				<div className="mb-4 rounded-full bg-muted p-3">
-					<Icon className="h-6 w-6 text-muted-foreground" />
-				</div>
-			)}
-			<h3 className="font-semibold text-lg">{title}</h3>
-			{description && (
-				<p className="mt-2 max-w-sm text-muted-foreground text-sm">
-					{description}
-				</p>
-			)}
-			{action && (
-				<Button className="mt-4" onClick={action.onClick}>
-					{action.label}
-				</Button>
-			)}
-		</div>
-	);
+  return (
+    <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
+      {Icon && (
+        <div className="mb-4 rounded-full bg-muted p-3">
+          <Icon className="h-6 w-6 text-muted-foreground" />
+        </div>
+      )}
+      <h3 className="font-semibold text-lg">{title}</h3>
+      {description && (
+        <p className="mt-2 max-w-sm text-muted-foreground text-sm">
+          {description}
+        </p>
+      )}
+      {action && (
+        <Button className="mt-4" onClick={action.onClick}>
+          {action.label}
+        </Button>
+      )}
+    </div>
+  );
 }

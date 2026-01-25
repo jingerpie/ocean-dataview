@@ -1,4 +1,4 @@
-# npm test
+# bun test
 
 #!/bin/sh
 # Exit on any error

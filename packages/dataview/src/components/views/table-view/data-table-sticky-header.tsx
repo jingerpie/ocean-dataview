@@ -1,10 +1,10 @@
 "use client";
 
 import {
-	Table,
-	TableHead,
-	TableHeader,
-	TableRow,
+  Table,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@ocean-dataview/dataview/components/ui/table";
 import { useDebouncer, useThrottler } from "@tanstack/react-pacer";
 import { flexRender, type Table as TanstackTable } from "@tanstack/react-table";
@@ -15,275 +15,275 @@ const SCROLL_THROTTLE_MS = 16; // 60fps
 const RESIZE_DEBOUNCE_MS = 150;
 
 interface DataTableStickyHeaderProps<TData> {
-	table: TanstackTable<TData>;
-	enabled: boolean;
-	tableHeaderRef: React.RefObject<HTMLTableSectionElement | null>;
-	tableContainerRef: React.RefObject<HTMLDivElement | null>;
-	offset?: number;
+  table: TanstackTable<TData>;
+  enabled: boolean;
+  tableHeaderRef: React.RefObject<HTMLTableSectionElement | null>;
+  tableContainerRef: React.RefObject<HTMLDivElement | null>;
+  offset?: number;
 }
 
 export function DataTableStickyHeader<TData>({
-	table,
-	enabled,
-	tableHeaderRef,
-	tableContainerRef,
-	offset = 0,
+  table,
+  enabled,
+  tableHeaderRef,
+  tableContainerRef,
+  offset = 0,
 }: DataTableStickyHeaderProps<TData>) {
-	const stickyHeaderScrollRef = useRef<HTMLDivElement>(null);
-	const [showStickyHeader, setShowStickyHeader] = useState(false);
-	const [columnWidths, setColumnWidths] = useState<number[]>([]);
-	const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
-	const [mounted, setMounted] = useState(false);
-	const [stickyTopOffset, setStickyTopOffset] = useState<number>(offset);
+  const stickyHeaderScrollRef = useRef<HTMLDivElement>(null);
+  const [showStickyHeader, setShowStickyHeader] = useState(false);
+  const [columnWidths, setColumnWidths] = useState<number[]>([]);
+  const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [stickyTopOffset, setStickyTopOffset] = useState<number>(offset);
 
-	// Shared scroll state for instant synchronization
-	const scrollStateRef = useRef({ scrollLeft: 0, isUpdating: false });
+  // Shared scroll state for instant synchronization
+  const scrollStateRef = useRef({ scrollLeft: 0, isUpdating: false });
 
-	// Scroll handler logic (reads from refs)
-	const handleScrollLogic = useCallback(() => {
-		const headerElement = tableHeaderRef.current;
-		const containerElement = tableContainerRef.current;
-		if (!(headerElement && containerElement)) {
-			return;
-		}
+  // Scroll handler logic (reads from refs)
+  const handleScrollLogic = useCallback(() => {
+    const headerElement = tableHeaderRef.current;
+    const containerElement = tableContainerRef.current;
+    if (!(headerElement && containerElement)) {
+      return;
+    }
 
-		// Check if header top is above the sticky threshold
-		const headerRect = headerElement.getBoundingClientRect();
-		const contRect = containerElement.getBoundingClientRect();
+    // Check if header top is above the sticky threshold
+    const headerRect = headerElement.getBoundingClientRect();
+    const contRect = containerElement.getBoundingClientRect();
 
-		setShowStickyHeader(
-			headerRect.top < offset && contRect.bottom > offset + headerRect.height
-		);
+    setShowStickyHeader(
+      headerRect.top < offset && contRect.bottom > offset + headerRect.height
+    );
 
-		// Update container rect
-		setContainerRect(contRect);
-	}, [tableHeaderRef, tableContainerRef, offset]);
+    // Update container rect
+    setContainerRect(contRect);
+  }, [tableHeaderRef, tableContainerRef, offset]);
 
-	// Resize handler logic (reads from refs)
-	const handleResizeLogic = useCallback(() => {
-		const headerElement = tableHeaderRef.current;
-		const containerElement = tableContainerRef.current;
-		if (!(headerElement && containerElement)) {
-			return;
-		}
+  // Resize handler logic (reads from refs)
+  const handleResizeLogic = useCallback(() => {
+    const headerElement = tableHeaderRef.current;
+    const containerElement = tableContainerRef.current;
+    if (!(headerElement && containerElement)) {
+      return;
+    }
 
-		// Update sticky offset
-		setStickyTopOffset(offset);
+    // Update sticky offset
+    setStickyTopOffset(offset);
 
-		// Get column widths from the original header
-		const headerCells = headerElement.querySelectorAll("th");
-		const widths = Array.from(headerCells).map(
-			(cell) => cell.getBoundingClientRect().width
-		);
-		setColumnWidths(widths);
+    // Get column widths from the original header
+    const headerCells = headerElement.querySelectorAll("th");
+    const widths = Array.from(headerCells).map(
+      (cell) => cell.getBoundingClientRect().width
+    );
+    setColumnWidths(widths);
 
-		// Also update scroll logic
-		handleScrollLogic();
-	}, [tableHeaderRef, tableContainerRef, offset, handleScrollLogic]);
+    // Also update scroll logic
+    handleScrollLogic();
+  }, [tableHeaderRef, tableContainerRef, offset, handleScrollLogic]);
 
-	// Throttled scroll handler for window scroll (16ms = 60fps)
-	const scrollThrottler = useThrottler(handleScrollLogic, {
-		wait: SCROLL_THROTTLE_MS,
-	});
+  // Throttled scroll handler for window scroll (16ms = 60fps)
+  const scrollThrottler = useThrottler(handleScrollLogic, {
+    wait: SCROLL_THROTTLE_MS,
+  });
 
-	// Debounced resize handler (150ms)
-	const resizeDebouncer = useDebouncer(handleResizeLogic, {
-		wait: RESIZE_DEBOUNCE_MS,
-	});
+  // Debounced resize handler (150ms)
+  const resizeDebouncer = useDebouncer(handleResizeLogic, {
+    wait: RESIZE_DEBOUNCE_MS,
+  });
 
-	useEffect(() => {
-		setMounted(true);
-	}, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-	useEffect(() => {
-		if (!enabled) {
-			setShowStickyHeader(false);
-			return;
-		}
+  useEffect(() => {
+    if (!enabled) {
+      setShowStickyHeader(false);
+      return;
+    }
 
-		const headerElement = tableHeaderRef.current;
-		const containerElement = tableContainerRef.current;
-		if (!(headerElement && containerElement)) {
-			return;
-		}
+    const headerElement = tableHeaderRef.current;
+    const containerElement = tableContainerRef.current;
+    if (!(headerElement && containerElement)) {
+      return;
+    }
 
-		// Synchronous scroll update function
-		const updateScrollPosition = (newScrollLeft: number) => {
-			if (scrollStateRef.current.isUpdating) {
-				return;
-			}
+    // Synchronous scroll update function
+    const updateScrollPosition = (newScrollLeft: number) => {
+      if (scrollStateRef.current.isUpdating) {
+        return;
+      }
 
-			scrollStateRef.current.isUpdating = true;
-			scrollStateRef.current.scrollLeft = newScrollLeft;
+      scrollStateRef.current.isUpdating = true;
+      scrollStateRef.current.scrollLeft = newScrollLeft;
 
-			// Update both containers synchronously
-			const stickyScrollElement = stickyHeaderScrollRef.current;
+      // Update both containers synchronously
+      const stickyScrollElement = stickyHeaderScrollRef.current;
 
-			if (containerElement.scrollLeft !== newScrollLeft) {
-				containerElement.scrollLeft = newScrollLeft;
-			}
+      if (containerElement.scrollLeft !== newScrollLeft) {
+        containerElement.scrollLeft = newScrollLeft;
+      }
 
-			if (
-				stickyScrollElement &&
-				stickyScrollElement.scrollLeft !== newScrollLeft
-			) {
-				stickyScrollElement.scrollLeft = newScrollLeft;
-			}
+      if (
+        stickyScrollElement &&
+        stickyScrollElement.scrollLeft !== newScrollLeft
+      ) {
+        stickyScrollElement.scrollLeft = newScrollLeft;
+      }
 
-			// Reset flag synchronously (no RAF needed)
-			scrollStateRef.current.isUpdating = false;
-		};
+      // Reset flag synchronously (no RAF needed)
+      scrollStateRef.current.isUpdating = false;
+    };
 
-		// Initial setup (call immediately, not debounced)
-		handleResizeLogic();
+    // Initial setup (call immediately, not debounced)
+    handleResizeLogic();
 
-		// Update on resize - use debounced handler
-		const resizeObserver = new ResizeObserver(() => {
-			resizeDebouncer.maybeExecute();
-		});
+    // Update on resize - use debounced handler
+    const resizeObserver = new ResizeObserver(() => {
+      resizeDebouncer.maybeExecute();
+    });
 
-		resizeObserver.observe(containerElement);
+    resizeObserver.observe(containerElement);
 
-		const handleTableScroll = (e: Event) => {
-			const target = e.target as HTMLElement;
-			updateScrollPosition(target.scrollLeft);
-		};
+    const handleTableScroll = (e: Event) => {
+      const target = e.target as HTMLElement;
+      updateScrollPosition(target.scrollLeft);
+    };
 
-		const handleWindowScroll = () => {
-			scrollThrottler.maybeExecute();
-		};
+    const handleWindowScroll = () => {
+      scrollThrottler.maybeExecute();
+    };
 
-		// Add event listeners - use throttled handler for window scroll
-		window.addEventListener("scroll", handleWindowScroll, { passive: true });
-		containerElement.addEventListener("scroll", handleTableScroll, {
-			passive: true,
-		});
+    // Add event listeners - use throttled handler for window scroll
+    window.addEventListener("scroll", handleWindowScroll, { passive: true });
+    containerElement.addEventListener("scroll", handleTableScroll, {
+      passive: true,
+    });
 
-		return () => {
-			resizeObserver.disconnect();
-			resizeDebouncer.cancel();
-			window.removeEventListener("scroll", handleWindowScroll);
-			containerElement.removeEventListener("scroll", handleTableScroll);
-		};
-	}, [
-		enabled,
-		tableHeaderRef,
-		tableContainerRef,
-		handleResizeLogic,
-		resizeDebouncer,
-		scrollThrottler,
-	]);
+    return () => {
+      resizeObserver.disconnect();
+      resizeDebouncer.cancel();
+      window.removeEventListener("scroll", handleWindowScroll);
+      containerElement.removeEventListener("scroll", handleTableScroll);
+    };
+  }, [
+    enabled,
+    tableHeaderRef,
+    tableContainerRef,
+    handleResizeLogic,
+    resizeDebouncer,
+    scrollThrottler,
+  ]);
 
-	// Effect for sticky header scroll synchronization
-	useEffect(() => {
-		if (!enabled) {
-			return;
-		}
+  // Effect for sticky header scroll synchronization
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
 
-		const stickyScrollElement = stickyHeaderScrollRef.current;
-		const containerElement = tableContainerRef.current;
+    const stickyScrollElement = stickyHeaderScrollRef.current;
+    const containerElement = tableContainerRef.current;
 
-		if (!(stickyScrollElement && containerElement && showStickyHeader)) {
-			return;
-		}
+    if (!(stickyScrollElement && containerElement && showStickyHeader)) {
+      return;
+    }
 
-		// Synchronous scroll update function
-		const updateScrollPosition = (newScrollLeft: number) => {
-			if (scrollStateRef.current.isUpdating) {
-				return;
-			}
+    // Synchronous scroll update function
+    const updateScrollPosition = (newScrollLeft: number) => {
+      if (scrollStateRef.current.isUpdating) {
+        return;
+      }
 
-			scrollStateRef.current.isUpdating = true;
-			scrollStateRef.current.scrollLeft = newScrollLeft;
+      scrollStateRef.current.isUpdating = true;
+      scrollStateRef.current.scrollLeft = newScrollLeft;
 
-			// Update both containers synchronously
-			if (containerElement.scrollLeft !== newScrollLeft) {
-				containerElement.scrollLeft = newScrollLeft;
-			}
+      // Update both containers synchronously
+      if (containerElement.scrollLeft !== newScrollLeft) {
+        containerElement.scrollLeft = newScrollLeft;
+      }
 
-			if (stickyScrollElement.scrollLeft !== newScrollLeft) {
-				stickyScrollElement.scrollLeft = newScrollLeft;
-			}
+      if (stickyScrollElement.scrollLeft !== newScrollLeft) {
+        stickyScrollElement.scrollLeft = newScrollLeft;
+      }
 
-			// Reset flag synchronously
-			scrollStateRef.current.isUpdating = false;
-		};
+      // Reset flag synchronously
+      scrollStateRef.current.isUpdating = false;
+    };
 
-		const handleStickyScroll = (e: Event) => {
-			const target = e.target as HTMLElement;
-			updateScrollPosition(target.scrollLeft);
-		};
+    const handleStickyScroll = (e: Event) => {
+      const target = e.target as HTMLElement;
+      updateScrollPosition(target.scrollLeft);
+    };
 
-		// Sync initial position immediately
-		stickyScrollElement.scrollLeft = scrollStateRef.current.scrollLeft;
+    // Sync initial position immediately
+    stickyScrollElement.scrollLeft = scrollStateRef.current.scrollLeft;
 
-		// Add listeners
-		stickyScrollElement.addEventListener("scroll", handleStickyScroll, {
-			passive: true,
-		});
+    // Add listeners
+    stickyScrollElement.addEventListener("scroll", handleStickyScroll, {
+      passive: true,
+    });
 
-		return () => {
-			stickyScrollElement.removeEventListener("scroll", handleStickyScroll);
-		};
-	}, [enabled, showStickyHeader, tableContainerRef]);
+    return () => {
+      stickyScrollElement.removeEventListener("scroll", handleStickyScroll);
+    };
+  }, [enabled, showStickyHeader, tableContainerRef]);
 
-	// Don't render anything if not enabled, not mounted, or conditions not met
-	if (
-		!(enabled && mounted && showStickyHeader && containerRect) ||
-		columnWidths.length === 0
-	) {
-		return null;
-	}
+  // Don't render anything if not enabled, not mounted, or conditions not met
+  if (
+    !(enabled && mounted && showStickyHeader && containerRect) ||
+    columnWidths.length === 0
+  ) {
+    return null;
+  }
 
-	// Render the sticky header using a portal
-	return createPortal(
-		<div
-			className="fixed z-50 bg-muted"
-			style={{
-				top: stickyTopOffset,
-				left: Math.max(0, containerRect.left),
-				width: Math.min(
-					containerRect.width,
-					window.innerWidth - Math.max(0, containerRect.left)
-				),
-			}}
-		>
-			<div
-				className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-				ref={stickyHeaderScrollRef}
-			>
-				<Table>
-					<TableHeader>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
-								{headerGroup.headers.map((header, headerIndex) => (
-									<TableHead
-										colSpan={header.colSpan}
-										key={header.id}
-										style={{
-											...(columnWidths[headerIndex]
-												? {
-														width: columnWidths[headerIndex],
-														minWidth: columnWidths[headerIndex],
-														maxWidth: columnWidths[headerIndex],
-													}
-												: {}),
-										}}
-									>
-										{header.isPlaceholder
-											? null
-											: flexRender(
-													header.column.columnDef.header,
-													header.getContext()
-												)}
-									</TableHead>
-								))}
-							</TableRow>
-						))}
-					</TableHeader>
-				</Table>
-			</div>
-		</div>,
-		document.body
-	);
+  // Render the sticky header using a portal
+  return createPortal(
+    <div
+      className="fixed z-50 bg-muted"
+      style={{
+        top: stickyTopOffset,
+        left: Math.max(0, containerRect.left),
+        width: Math.min(
+          containerRect.width,
+          window.innerWidth - Math.max(0, containerRect.left)
+        ),
+      }}
+    >
+      <div
+        className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        ref={stickyHeaderScrollRef}
+      >
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header, headerIndex) => (
+                  <TableHead
+                    colSpan={header.colSpan}
+                    key={header.id}
+                    style={{
+                      ...(columnWidths[headerIndex]
+                        ? {
+                            width: columnWidths[headerIndex],
+                            minWidth: columnWidths[headerIndex],
+                            maxWidth: columnWidths[headerIndex],
+                          }
+                        : {}),
+                    }}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+        </Table>
+      </div>
+    </div>,
+    document.body
+  );
 }

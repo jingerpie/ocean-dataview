@@ -5,9 +5,9 @@ export { ChartViewContext, useChartViewContext } from "./chart-view-context";
 export type { ChartViewProviderProps } from "./chart-view-provider";
 export { ChartViewProvider } from "./chart-view-provider";
 export type {
-	DataViewContextValue,
-	DataViewDefaults,
-	PaginationOutput,
+  DataViewContextValue,
+  DataViewDefaults,
+  PaginationOutput,
 } from "./data-view-context";
 export { DataViewContext, useDataViewContext } from "./data-view-context";
 export type { DataViewProviderProps } from "./data-view-provider";

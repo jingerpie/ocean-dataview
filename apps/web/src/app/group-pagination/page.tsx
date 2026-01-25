@@ -11,74 +11,74 @@ import { ProductSubGroupPaginationBoard } from "@/modules/group-pagination/produ
 import { getQueryClient, trpc } from "@/utils/trpc/server";
 
 interface PageProps {
-	searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export default async function GroupPaginationPage(props: PageProps) {
-	const searchParams = await props.searchParams;
-	const params = groupPaginationParams.parse(searchParams);
+  const searchParams = await props.searchParams;
+  const params = groupPaginationParams.parse(searchParams);
 
-	const {
-		expanded,
-		cursors,
-		limit,
-		filter,
-		sort,
-		search: searchQuery,
-	} = params;
+  const {
+    expanded,
+    cursors,
+    limit,
+    filter,
+    sort,
+    search: searchQuery,
+  } = params;
 
-	// Convert URL search string to Filter object using property definitions
-	const searchableFields = getSearchableProperties(productProperties);
-	const search = buildSearchFilter(searchQuery, searchableFields);
-	const queryClient = getQueryClient();
+  // Convert URL search string to Filter object using property definitions
+  const searchableFields = getSearchableProperties(productProperties);
+  const search = buildSearchFilter(searchQuery, searchableFields);
+  const queryClient = getQueryClient();
 
-	await queryClient.prefetchQuery(
-		trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" })
-	);
+  await queryClient.prefetchQuery(
+    trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" })
+  );
 
-	return (
-		<HydrationBoundary state={dehydrate(queryClient)}>
-			<Tabs className="w-full" defaultValue="table">
-				<TabsContent value="table">
-					<ProductGroupPaginationTable
-						cursors={cursors}
-						expanded={expanded}
-						filter={filter}
-						limit={limit}
-						search={search}
-						sort={sort}
-					/>
-				</TabsContent>
-				<TabsContent value="list">
-					<ProductGroupPaginationList
-						cursors={cursors}
-						expanded={expanded}
-						filter={filter}
-						limit={limit}
-						search={search}
-						sort={sort}
-					/>
-				</TabsContent>
-				<TabsContent value="gallery">
-					<ProductGroupPaginationGallery
-						cursors={cursors}
-						expanded={expanded}
-						filter={filter}
-						limit={limit}
-						search={search}
-						sort={sort}
-					/>
-				</TabsContent>
-				<TabsContent value="board">
-					<ProductSubGroupPaginationBoard
-						cursors={cursors}
-						filter={filter}
-						limit={limit}
-						search={search}
-						sort={sort}
-					/>
-				</TabsContent>
-			</Tabs>
-		</HydrationBoundary>
-	);
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <Tabs className="w-full" defaultValue="table">
+        <TabsContent value="table">
+          <ProductGroupPaginationTable
+            cursors={cursors}
+            expanded={expanded}
+            filter={filter}
+            limit={limit}
+            search={search}
+            sort={sort}
+          />
+        </TabsContent>
+        <TabsContent value="list">
+          <ProductGroupPaginationList
+            cursors={cursors}
+            expanded={expanded}
+            filter={filter}
+            limit={limit}
+            search={search}
+            sort={sort}
+          />
+        </TabsContent>
+        <TabsContent value="gallery">
+          <ProductGroupPaginationGallery
+            cursors={cursors}
+            expanded={expanded}
+            filter={filter}
+            limit={limit}
+            search={search}
+            sort={sort}
+          />
+        </TabsContent>
+        <TabsContent value="board">
+          <ProductSubGroupPaginationBoard
+            cursors={cursors}
+            filter={filter}
+            limit={limit}
+            search={search}
+            sort={sort}
+          />
+        </TabsContent>
+      </Tabs>
+    </HydrationBoundary>
+  );
 }

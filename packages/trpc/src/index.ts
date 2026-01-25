@@ -7,10 +7,10 @@ import type { Context } from "./context";
 export { type Context, createContext } from "./context";
 
 const t = initTRPC.context<Context>().create({
-	/**
-	 * @see https://trpc.io/docs/server/data-transformers
-	 */
-	transformer: superjson,
+  /**
+   * @see https://trpc.io/docs/server/data-transformers
+   */
+  transformer: superjson,
 });
 
 export const router = t.router;

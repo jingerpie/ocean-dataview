@@ -6,23 +6,23 @@ import { TRPCReactProvider } from "@/utils/trpc/client";
 import { ThemeProvider } from "./theme-provider";
 
 export default function ClientProviders({
-	children,
+  children,
 }: {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-	return (
-		<ThemeProvider
-			attribute="class"
-			defaultTheme="system"
-			disableTransitionOnChange
-			enableSystem
-			storageKey="dashseller-theme"
-		>
-			<TRPCReactProvider>
-				{children}
-				<ReactQueryDevtools />
-			</TRPCReactProvider>
-			<Toaster richColors />
-		</ThemeProvider>
-	);
+  return (
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      disableTransitionOnChange
+      enableSystem
+      storageKey="dashseller-theme"
+    >
+      <TRPCReactProvider>
+        {children}
+        <ReactQueryDevtools />
+      </TRPCReactProvider>
+      <Toaster richColors />
+    </ThemeProvider>
+  );
 }

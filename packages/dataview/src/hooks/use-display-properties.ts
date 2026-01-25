@@ -16,28 +16,28 @@ import type { DataViewProperty } from "../types";
  * @returns Filtered and ordered display properties
  */
 export function useDisplayProperties<TData>(
-	properties: readonly DataViewProperty<TData>[] | DataViewProperty<TData>[],
-	propertyVisibility?: string[],
-	excludeKeys?: string[]
+  properties: readonly DataViewProperty<TData>[] | DataViewProperty<TData>[],
+  propertyVisibility?: string[],
+  excludeKeys?: string[]
 ): DataViewProperty<TData>[] {
-	return useMemo(() => {
-		// Start with properties that have visibility !== false
-		let props: DataViewProperty<TData>[] = Array.from(properties).filter(
-			(prop) => prop.visibility !== false
-		);
+  return useMemo(() => {
+    // Start with properties that have visibility !== false
+    let props: DataViewProperty<TData>[] = Array.from(properties).filter(
+      (prop) => prop.visibility !== false
+    );
 
-		// Filter by propertyVisibility if specified
-		if (propertyVisibility) {
-			props = propertyVisibility
-				.map((id) => props.find((prop) => prop.id === id))
-				.filter((prop): prop is DataViewProperty<TData> => prop !== undefined);
-		}
+    // Filter by propertyVisibility if specified
+    if (propertyVisibility) {
+      props = propertyVisibility
+        .map((id) => props.find((prop) => prop.id === id))
+        .filter((prop): prop is DataViewProperty<TData> => prop !== undefined);
+    }
 
-		// Exclude special IDs if specified
-		if (excludeKeys && excludeKeys.length > 0) {
-			props = props.filter((prop) => !excludeKeys.includes(prop.id));
-		}
+    // Exclude special IDs if specified
+    if (excludeKeys && excludeKeys.length > 0) {
+      props = props.filter((prop) => !excludeKeys.includes(prop.id));
+    }
 
-		return props;
-	}, [properties, propertyVisibility, excludeKeys]);
+    return props;
+  }, [properties, propertyVisibility, excludeKeys]);
 }

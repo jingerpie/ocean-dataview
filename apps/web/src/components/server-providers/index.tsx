@@ -1,9 +1,9 @@
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 export default function ServerProviders({
-	children,
+  children,
 }: {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-	return <NuqsAdapter>{children}</NuqsAdapter>;
+  return <NuqsAdapter>{children}</NuqsAdapter>;
 }

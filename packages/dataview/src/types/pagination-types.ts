@@ -17,9 +17,9 @@
  * Used by infinite pagination (forward-only navigation).
  */
 export interface BasePaginatedResponse<TData> {
-	items: TData[];
-	endCursor?: string | number | null;
-	hasNextPage?: boolean;
+  items: TData[];
+  endCursor?: string | number | null;
+  hasNextPage?: boolean;
 }
 
 /**
@@ -27,9 +27,9 @@ export interface BasePaginatedResponse<TData> {
  * Used by page-based pagination (Prev/Next navigation).
  */
 export interface BidirectionalPaginatedResponse<TData>
-	extends BasePaginatedResponse<TData> {
-	startCursor?: string | null;
-	hasPreviousPage?: boolean;
+  extends BasePaginatedResponse<TData> {
+  startCursor?: string | null;
+  hasPreviousPage?: boolean;
 }
 
 // ============================================================================
@@ -41,7 +41,7 @@ export interface BidirectionalPaginatedResponse<TData>
  * Used by grouped pagination hooks.
  */
 export interface GroupCounts {
-	[key: string]: { count: number; hasMore: boolean };
+  [key: string]: { count: number; hasMore: boolean };
 }
 
 // ============================================================================
@@ -55,10 +55,10 @@ export interface GroupCounts {
  * Works with both TRPC's queryOptions and infiniteQueryOptions return types.
  */
 export type InferItemsFromQueryOptions<T> = T extends {
-	// biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
-	queryFn?: (...args: any[]) => Promise<infer R> | infer R;
+  // biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
+  queryFn?: (...args: any[]) => Promise<infer R> | infer R;
 }
-	? R extends { items: (infer U)[] }
-		? U
-		: never
-	: never;
+  ? R extends { items: (infer U)[] }
+    ? U
+    : never
+  : never;

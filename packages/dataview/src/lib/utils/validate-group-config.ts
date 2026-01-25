@@ -8,51 +8,51 @@ import type { DataViewProperty } from "../../types";
  * @returns Error message string if invalid, null if valid
  */
 export function validateShowAs(
-	propertyType: string,
-	propertyKey: string,
-	showAs: string | undefined
+  propertyType: string,
+  propertyKey: string,
+  showAs: string | undefined
 ): string | null {
-	if (!showAs) {
-		return null;
-	}
+  if (!showAs) {
+    return null;
+  }
 
-	// Check date property with date-specific showAs
-	if (propertyType === "date") {
-		const validDateShowAs = ["day", "week", "month", "year", "relative"];
-		if (!validDateShowAs.includes(showAs)) {
-			return `Property "${propertyKey}" is type 'date' and cannot use showAs: '${showAs}'. Valid options for date properties: ${validDateShowAs.join(
-				", "
-			)}`;
-		}
-	}
+  // Check date property with date-specific showAs
+  if (propertyType === "date") {
+    const validDateShowAs = ["day", "week", "month", "year", "relative"];
+    if (!validDateShowAs.includes(showAs)) {
+      return `Property "${propertyKey}" is type 'date' and cannot use showAs: '${showAs}'. Valid options for date properties: ${validDateShowAs.join(
+        ", "
+      )}`;
+    }
+  }
 
-	// Check status property with status-specific showAs
-	if (propertyType === "status") {
-		const validStatusShowAs = ["option", "group"];
-		if (!validStatusShowAs.includes(showAs)) {
-			return `Property "${propertyKey}" is type 'status' and cannot use showAs: '${showAs}'. Valid options for status properties: ${validStatusShowAs.join(
-				", "
-			)}`;
-		}
-	}
+  // Check status property with status-specific showAs
+  if (propertyType === "status") {
+    const validStatusShowAs = ["option", "group"];
+    if (!validStatusShowAs.includes(showAs)) {
+      return `Property "${propertyKey}" is type 'status' and cannot use showAs: '${showAs}'. Valid options for status properties: ${validStatusShowAs.join(
+        ", "
+      )}`;
+    }
+  }
 
-	// Check other properties don't use date/status showAs
-	if (propertyType !== "date" && propertyType !== "status") {
-		const dateOrStatusShowAs = [
-			"day",
-			"week",
-			"month",
-			"year",
-			"relative",
-			"option",
-			"group",
-		];
-		if (dateOrStatusShowAs.includes(showAs)) {
-			return `Property "${propertyKey}" is type '${propertyType}' and cannot use showAs: '${showAs}'. This showAs option is only for date or status properties.`;
-		}
-	}
+  // Check other properties don't use date/status showAs
+  if (propertyType !== "date" && propertyType !== "status") {
+    const dateOrStatusShowAs = [
+      "day",
+      "week",
+      "month",
+      "year",
+      "relative",
+      "option",
+      "group",
+    ];
+    if (dateOrStatusShowAs.includes(showAs)) {
+      return `Property "${propertyKey}" is type '${propertyType}' and cannot use showAs: '${showAs}'. This showAs option is only for date or status properties.`;
+    }
+  }
 
-	return null;
+  return null;
 }
 
 /**
@@ -63,20 +63,20 @@ export function validateShowAs(
  * @returns Error message string if invalid, null if valid
  */
 export function validateGroupConfig<TData>(
-	properties: readonly DataViewProperty<TData>[],
-	groupBy: string,
-	showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option"
+  properties: readonly DataViewProperty<TData>[],
+  groupBy: string,
+  showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option"
 ): string | null {
-	// groupBy references property IDs
-	// Find a property that matches this ID for validation
-	const groupByProperty = properties.find((prop) => prop.id === groupBy);
+  // groupBy references property IDs
+  // Find a property that matches this ID for validation
+  const groupByProperty = properties.find((prop) => prop.id === groupBy);
 
-	// If no property found, allow it - user may define property later
-	// The component will handle missing property gracefully
-	if (!groupByProperty) {
-		return null;
-	}
+  // If no property found, allow it - user may define property later
+  // The component will handle missing property gracefully
+  if (!groupByProperty) {
+    return null;
+  }
 
-	// If property found, validate showAs compatibility with property type
-	return validateShowAs(groupByProperty.type, String(groupBy), showAs);
+  // If property found, validate showAs compatibility with property type
+  return validateShowAs(groupByProperty.type, String(groupBy), showAs);
 }

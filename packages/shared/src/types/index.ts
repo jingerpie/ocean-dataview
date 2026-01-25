@@ -4,5 +4,5 @@ export * from "./pagination.type";
 export * from "./product.type";
 
 export interface SearchParams {
-	[key: string]: string | string[] | undefined;
+  [key: string]: string | string[] | undefined;
 }

@@ -20,20 +20,20 @@ import type { SearchQuery, WhereRule } from "../types";
  * ```
  */
 export function buildSearchFilter(
-	search: string,
-	searchFields: string[]
+  search: string,
+  searchFields: string[]
 ): SearchQuery | null {
-	const trimmed = search.trim();
+  const trimmed = search.trim();
 
-	if (!trimmed || searchFields.length === 0) {
-		return null;
-	}
+  if (!trimmed || searchFields.length === 0) {
+    return null;
+  }
 
-	const rules: WhereRule[] = searchFields.map((field) => ({
-		property: field,
-		condition: "iLike",
-		value: trimmed,
-	}));
+  const rules: WhereRule[] = searchFields.map((field) => ({
+    property: field,
+    condition: "iLike",
+    value: trimmed,
+  }));
 
-	return { or: rules };
+  return { or: rules };
 }

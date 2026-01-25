@@ -14,15 +14,15 @@ import type { BasePaginatedResponse } from "../types/pagination-types";
  * Uses loose typing to accept TRPC's query result type
  */
 export interface InfiniteQueryState {
-	// biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
-	data: InfiniteData<any>;
-	fetchNextPage: () => void;
-	hasNextPage: boolean;
-	isFetchingNextPage: boolean;
-	isFetching: boolean;
-	isLoading: boolean;
-	error?: unknown;
-	isError: boolean;
+  // biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
+  data: InfiniteData<any>;
+  fetchNextPage: () => void;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  isFetching: boolean;
+  isLoading: boolean;
+  error?: unknown;
+  isError: boolean;
 }
 
 /**
@@ -30,13 +30,13 @@ export interface InfiniteQueryState {
  * Extracts TData from InfiniteData<{ items: TData[], ... }>.
  */
 type InferItemsFromInfiniteQuery<T> = T extends {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	data: InfiniteData<infer TPage>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: InfiniteData<infer TPage>;
 }
-	? TPage extends { items: (infer U)[] }
-		? U
-		: never
-	: never;
+  ? TPage extends { items: (infer U)[] }
+    ? U
+    : never
+  : never;
 
 /**
  * Input options for useInfinitePagination hook.
@@ -44,53 +44,53 @@ type InferItemsFromInfiniteQuery<T> = T extends {
  * TData is automatically inferred from the query data's items array.
  */
 export interface UseInfinitePaginationOptions<
-	TQuery extends InfiniteQueryState,
-	_TData = InferItemsFromInfiniteQuery<TQuery>,
+  TQuery extends InfiniteQueryState,
+  _TData = InferItemsFromInfiniteQuery<TQuery>,
 > {
-	/** Infinite query result from useSuspenseInfiniteQuery */
-	infiniteQuery: TQuery;
-	/** Default limit (for URL state) */
-	defaultLimit?: number;
-	/** Available limit options (default: [10, 25, 50, 100]) */
-	limitOptions?: number[];
+  /** Infinite query result from useSuspenseInfiniteQuery */
+  infiniteQuery: TQuery;
+  /** Default limit (for URL state) */
+  defaultLimit?: number;
+  /** Available limit options (default: [10, 25, 50, 100]) */
+  limitOptions?: number[];
 }
 
 /**
  * Pagination state for infinite views
  */
 export interface InfinitePaginationState {
-	// Navigation
-	hasNext: boolean;
-	hasPrev: false;
-	onNext: () => void;
-	onPrev: () => void;
+  // Navigation
+  hasNext: boolean;
+  hasPrev: false;
+  onNext: () => void;
+  onPrev: () => void;
 
-	// Limit control
-	limit: number;
-	onLimitChange: (limit: number) => void;
-	limitOptions: number[];
+  // Limit control
+  limit: number;
+  onLimitChange: (limit: number) => void;
+  limitOptions: number[];
 
-	// Infinite-specific
-	totalLoaded: number;
-	isFetchingNextPage: boolean;
+  // Infinite-specific
+  totalLoaded: number;
+  isFetchingNextPage: boolean;
 
-	// Loading states
-	isLoading: boolean;
-	isFetching: boolean;
+  // Loading states
+  isLoading: boolean;
+  isFetching: boolean;
 
-	// Error state
-	error: unknown;
-	isError: boolean;
+  // Error state
+  error: unknown;
+  isError: boolean;
 }
 
 /**
  * Output type for useInfinitePagination hook
  */
 export interface InfinitePaginationResult<TData> {
-	/** Flattened items from all pages */
-	items: TData[];
-	/** Pagination state for DataViewProvider */
-	pagination: InfinitePaginationState;
+  /** Flattened items from all pages */
+  items: TData[];
+  /** Pagination state for DataViewProvider */
+  pagination: InfinitePaginationState;
 }
 
 // ============================================================================
@@ -146,76 +146,76 @@ const DEFAULT_LIMIT_OPTIONS = [10, 25, 50, 100];
  * ```
  */
 export function useInfinitePagination<
-	TQuery extends InfiniteQueryState,
-	TData = InferItemsFromInfiniteQuery<TQuery>,
+  TQuery extends InfiniteQueryState,
+  TData = InferItemsFromInfiniteQuery<TQuery>,
 >(
-	options: UseInfinitePaginationOptions<TQuery, TData>
+  options: UseInfinitePaginationOptions<TQuery, TData>
 ): InfinitePaginationResult<TData> {
-	const {
-		infiniteQuery,
-		defaultLimit = DEFAULT_LIMIT,
-		limitOptions = DEFAULT_LIMIT_OPTIONS,
-	} = options;
+  const {
+    infiniteQuery,
+    defaultLimit = DEFAULT_LIMIT,
+    limitOptions = DEFAULT_LIMIT_OPTIONS,
+  } = options;
 
-	const {
-		data,
-		fetchNextPage,
-		hasNextPage,
-		isFetchingNextPage,
-		isFetching,
-		isLoading,
-		error,
-		isError,
-	} = infiniteQuery;
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetching,
+    isLoading,
+    error,
+    isError,
+  } = infiniteQuery;
 
-	// Only limit in URL - cursor state lives in React Query cache
-	// shallow: false - needs server re-render to update props for query
-	const [limit, setLimit] = useQueryState(
-		"limit",
-		parseAsInteger.withDefault(defaultLimit).withOptions({
-			shallow: false,
-			clearOnDefault: true,
-		})
-	);
+  // Only limit in URL - cursor state lives in React Query cache
+  // shallow: false - needs server re-render to update props for query
+  const [limit, setLimit] = useQueryState(
+    "limit",
+    parseAsInteger.withDefault(defaultLimit).withOptions({
+      shallow: false,
+      clearOnDefault: true,
+    })
+  );
 
-	// Flatten all pages into single array
-	const items = useMemo(() => {
-		return data.pages.flatMap(
-			(page: BasePaginatedResponse<TData>) => page.items
-		);
-	}, [data.pages]);
+  // Flatten all pages into single array
+  const items = useMemo(() => {
+    return data.pages.flatMap(
+      (page: BasePaginatedResponse<TData>) => page.items
+    );
+  }, [data.pages]);
 
-	const onNext = useCallback(() => {
-		if (hasNextPage && !isFetchingNextPage) {
-			fetchNextPage();
-		}
-	}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const onNext = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-	return {
-		items,
-		pagination: {
-			// Navigation
-			hasNext: hasNextPage ?? false,
-			hasPrev: false,
-			onNext,
-			onPrev: () => undefined,
+  return {
+    items,
+    pagination: {
+      // Navigation
+      hasNext: hasNextPage ?? false,
+      hasPrev: false,
+      onNext,
+      onPrev: () => undefined,
 
-			// Limit control
-			limit,
-			onLimitChange: setLimit,
-			limitOptions,
+      // Limit control
+      limit,
+      onLimitChange: setLimit,
+      limitOptions,
 
-			// Infinite-specific
-			totalLoaded: items.length,
-			isFetchingNextPage,
+      // Infinite-specific
+      totalLoaded: items.length,
+      isFetchingNextPage,
 
-			// Loading states
-			isLoading,
-			isFetching,
+      // Loading states
+      isLoading,
+      isFetching,
 
-			// Error state
-			error,
-			isError,
-		},
-	};
+      // Error state
+      error,
+      isError,
+    },
+  };
 }

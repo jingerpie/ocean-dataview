@@ -17,7 +17,7 @@ import { type AnyColumn, sql } from "drizzle-orm";
  * ```
  */
 export function isEmpty<TColumn extends AnyColumn>(column: TColumn) {
-	return sql<boolean>`
+  return sql<boolean>`
     case
       when ${column} is null then true
       when ${column} = '' then true
@@ -32,16 +32,16 @@ export function isEmpty<TColumn extends AnyColumn>(column: TColumn) {
  * Get first item from array or null
  */
 export function takeFirstOrNull<TData>(data: TData[]) {
-	return data[0] ?? null;
+  return data[0] ?? null;
 }
 
 /**
  * Get first item from array or throw error
  */
 export function takeFirstOrThrow<TData>(data: TData[], errorMessage?: string) {
-	const first = takeFirstOrNull(data);
-	if (!first) {
-		throw new Error(errorMessage ?? "Item not found");
-	}
-	return first;
+  const first = takeFirstOrNull(data);
+  if (!first) {
+    throw new Error(errorMessage ?? "Item not found");
+  }
+  return first;
 }

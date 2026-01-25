@@ -5,44 +5,44 @@ import { useMemo } from "react";
 import type { DataViewProperty } from "../../types";
 import { cn } from "../utils";
 import {
-	ChartViewContext,
-	type ChartViewContextValue,
+  ChartViewContext,
+  type ChartViewContextValue,
 } from "./chart-view-context";
 
 export interface ChartViewProviderProps<
-	TData,
-	TProperties extends readonly DataViewProperty<NoInfer<TData>>[],
+  TData,
+  TProperties extends readonly DataViewProperty<NoInfer<TData>>[],
 > {
-	data: TData[];
-	properties: TProperties;
-	children: ReactNode;
-	className?: string;
+  data: TData[];
+  properties: TProperties;
+  children: ReactNode;
+  className?: string;
 }
 
 export function ChartViewProvider<
-	TData,
-	const TProperties extends readonly DataViewProperty<NoInfer<TData>>[],
+  TData,
+  const TProperties extends readonly DataViewProperty<NoInfer<TData>>[],
 >({
-	data,
-	properties,
-	children,
-	className,
+  data,
+  properties,
+  children,
+  className,
 }: ChartViewProviderProps<TData, TProperties>) {
-	const contextValue = useMemo<ChartViewContextValue<TData, TProperties>>(
-		() => ({ data, properties }),
-		[data, properties]
-	);
+  const contextValue = useMemo<ChartViewContextValue<TData, TProperties>>(
+    () => ({ data, properties }),
+    [data, properties]
+  );
 
-	return (
-		<ChartViewContext.Provider
-			value={
-				contextValue as ChartViewContextValue<
-					unknown,
-					readonly DataViewProperty<unknown>[]
-				>
-			}
-		>
-			<div className={cn("flex flex-col", className)}>{children}</div>
-		</ChartViewContext.Provider>
-	);
+  return (
+    <ChartViewContext.Provider
+      value={
+        contextValue as ChartViewContextValue<
+          unknown,
+          readonly DataViewProperty<unknown>[]
+        >
+      }
+    >
+      <div className={cn("flex flex-col", className)}>{children}</div>
+    </ChartViewContext.Provider>
+  );
 }

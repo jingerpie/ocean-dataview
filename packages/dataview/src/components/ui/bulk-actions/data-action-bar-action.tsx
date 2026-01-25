@@ -1,28 +1,28 @@
 "use client";
 
 import {
-	Button,
-	type ButtonProps,
+  Button,
+  type ButtonProps,
 } from "@ocean-dataview/dataview/components/ui/button";
 import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@ocean-dataview/dataview/components/ui/tooltip";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { Loader } from "lucide-react";
 
 type DataActionBarActionProps = ButtonProps & {
-	/**
-	 * Tooltip text to display on hover
-	 */
-	tooltip?: string;
+  /**
+   * Tooltip text to display on hover
+   */
+  tooltip?: string;
 
-	/**
-	 * Whether the action is pending/loading
-	 * Shows a spinner when true
-	 */
-	isPending?: boolean;
+  /**
+   * Whether the action is pending/loading
+   * Shows a spinner when true
+   */
+  isPending?: boolean;
 };
 
 /**
@@ -31,43 +31,43 @@ type DataActionBarActionProps = ButtonProps & {
  * Optional tooltip support
  */
 export function DataActionBarAction({
-	size = "sm",
-	tooltip,
-	isPending,
-	disabled,
-	className,
-	children,
-	...props
+  size = "sm",
+  tooltip,
+  isPending,
+  disabled,
+  className,
+  children,
+  ...props
 }: DataActionBarActionProps) {
-	const trigger = (
-		<Button
-			className={cn(
-				"gap-2 border border-secondary bg-secondary/50 hover:bg-secondary/70 [&>svg]:size-4",
-				size === "icon" ? "size-9" : "h-9",
-				className
-			)}
-			disabled={disabled || isPending}
-			size={size}
-			variant="secondary"
-			{...props}
-		>
-			{isPending ? <Loader className="animate-spin" /> : children}
-		</Button>
-	);
+  const trigger = (
+    <Button
+      className={cn(
+        "gap-2 border border-secondary bg-secondary/50 hover:bg-secondary/70 [&>svg]:size-4",
+        size === "icon" ? "size-9" : "h-9",
+        className
+      )}
+      disabled={disabled || isPending}
+      size={size}
+      variant="secondary"
+      {...props}
+    >
+      {isPending ? <Loader className="animate-spin" /> : children}
+    </Button>
+  );
 
-	if (!tooltip) {
-		return trigger;
-	}
+  if (!tooltip) {
+    return trigger;
+  }
 
-	return (
-		<Tooltip>
-			<TooltipTrigger render={trigger} />
-			<TooltipContent
-				className="border bg-accent font-semibold text-foreground"
-				sideOffset={6}
-			>
-				<p>{tooltip}</p>
-			</TooltipContent>
-		</Tooltip>
-	);
+  return (
+    <Tooltip>
+      <TooltipTrigger render={trigger} />
+      <TooltipContent
+        className="border bg-accent font-semibold text-foreground"
+        sideOffset={6}
+      >
+        <p>{tooltip}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
 }

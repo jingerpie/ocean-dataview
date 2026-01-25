@@ -23,21 +23,21 @@ export type PaginationMode = "page" | "loadMore" | "infiniteScroll";
  * @returns The pagination component or null
  */
 export function renderPagination(
-	mode: PaginationMode | undefined,
-	context: PaginationContext | undefined
+  mode: PaginationMode | undefined,
+  context: PaginationContext | undefined
 ): React.ReactNode {
-	if (!(mode && context)) {
-		return null;
-	}
+  if (!(mode && context)) {
+    return null;
+  }
 
-	switch (mode) {
-		case "page":
-			return <PagePagination {...context} />;
-		case "loadMore":
-			return <LoadMorePagination {...context} />;
-		case "infiniteScroll":
-			return <InfiniteScrollPagination {...context} />;
-		default:
-			return null;
-	}
+  switch (mode) {
+    case "page":
+      return <PagePagination {...context} />;
+    case "loadMore":
+      return <LoadMorePagination {...context} />;
+    case "infiniteScroll":
+      return <InfiniteScrollPagination {...context} />;
+    default:
+      return null;
+  }
 }

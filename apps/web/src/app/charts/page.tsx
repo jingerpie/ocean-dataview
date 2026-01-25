@@ -10,61 +10,61 @@ import { ProductsOverTimeLineChart } from "@/modules/charts/products-over-time-l
 import { getQueryClient, trpc } from "@/utils/trpc/server";
 
 export default async function ChartsPage() {
-	const queryClient = getQueryClient();
+  const queryClient = getQueryClient();
 
-	// Prefetch product data for all charts
-	await queryClient.prefetchQuery(
-		trpc.product.getMany.queryOptions({ limit: 200 })
-	);
+  // Prefetch product data for all charts
+  await queryClient.prefetchQuery(
+    trpc.product.getMany.queryOptions({ limit: 200 })
+  );
 
-	return (
-		<HydrationBoundary state={dehydrate(queryClient)}>
-			<div className="container mx-auto space-y-8 py-8">
-				<div>
-					<h1 className="font-bold text-2xl">Product Analytics Dashboard</h1>
-					<p className="text-muted-foreground">
-						Visual insights into product distribution, nutrition, and categories
-					</p>
-				</div>
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <div className="container mx-auto space-y-8 py-8">
+        <div>
+          <h1 className="font-bold text-2xl">Product Analytics Dashboard</h1>
+          <p className="text-muted-foreground">
+            Visual insights into product distribution, nutrition, and categories
+          </p>
+        </div>
 
-				{/* Bento Box Grid Layout */}
-				<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-					{/* Large card - spans 2 columns on lg */}
-					<div className="lg:col-span-2">
-						<ProductTypeVerticalChart />
-					</div>
+        {/* Bento Box Grid Layout */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {/* Large card - spans 2 columns on lg */}
+          <div className="lg:col-span-2">
+            <ProductTypeVerticalChart />
+          </div>
 
-					{/* Regular card */}
-					<div>
-						<ProductTypeDonutChart />
-					</div>
+          {/* Regular card */}
+          <div>
+            <ProductTypeDonutChart />
+          </div>
 
-					{/* Regular card */}
-					<div>
-						<CaloriesByTypeChart />
-					</div>
+          {/* Regular card */}
+          <div>
+            <CaloriesByTypeChart />
+          </div>
 
-					{/* Regular card */}
-					<div>
-						<ProductTagDonutChart />
-					</div>
+          {/* Regular card */}
+          <div>
+            <ProductTagDonutChart />
+          </div>
 
-					{/* Tall card */}
-					<div>
-						<FamilyGroupHorizontalChart />
-					</div>
+          {/* Tall card */}
+          <div>
+            <FamilyGroupHorizontalChart />
+          </div>
 
-					{/* Line chart - spans 2 columns on lg */}
-					<div className="lg:col-span-2">
-						<ProductsOverTimeLineChart />
-					</div>
+          {/* Line chart - spans 2 columns on lg */}
+          <div className="lg:col-span-2">
+            <ProductsOverTimeLineChart />
+          </div>
 
-					{/* Area chart */}
-					<div>
-						<CaloriesTrendAreaChart />
-					</div>
-				</div>
-			</div>
-		</HydrationBoundary>
-	);
+          {/* Area chart */}
+          <div>
+            <CaloriesTrendAreaChart />
+          </div>
+        </div>
+      </div>
+    </HydrationBoundary>
+  );
 }
