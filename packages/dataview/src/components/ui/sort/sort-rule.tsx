@@ -17,19 +17,19 @@ import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-ic
 import { DirectionPicker } from "@ocean-dataview/dataview/components/ui/sort/direction-picker";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { PropertyMeta } from "@ocean-dataview/dataview/types";
-import type { PropertySort } from "@ocean-dataview/shared/types";
+import type { SortQuery } from "@ocean-dataview/shared/types";
 import { GripVerticalIcon, X } from "lucide-react";
 import { useState } from "react";
 
 interface SortRuleProps {
   /** The sort rule */
-  sort: PropertySort;
+  sort: SortQuery;
   /** The current property for this sort */
   property: PropertyMeta;
   /** All available properties */
   properties: readonly PropertyMeta[];
   /** Callback when sort rule changes */
-  onUpdate: (updates: Partial<PropertySort>) => void;
+  onUpdate: (updates: Partial<SortQuery>) => void;
   /** Callback to remove this sort rule */
   onRemove: () => void;
   /** Whether to enable drag-and-drop (default: true) */
@@ -138,8 +138,8 @@ function SortRule({
 
         {/* Direction Picker */}
         <DirectionPicker
-          onValueChange={(desc) => onUpdate({ desc })}
-          value={sort.desc}
+          onValueChange={(direction) => onUpdate({ direction })}
+          value={sort.direction}
         />
       </div>
       {/* Remove Button */}

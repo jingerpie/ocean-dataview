@@ -7,11 +7,13 @@ import {
 } from "@ocean-dataview/dataview/components/views/table-view";
 import { usePagePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
+import { getSearchableProperties } from "@ocean-dataview/dataview/types";
 import type {
   CursorValue,
-  PropertySort,
+  SortQuery,
   WhereNode,
 } from "@ocean-dataview/shared/types";
+import { buildSearchFilter } from "@ocean-dataview/shared/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
@@ -19,35 +21,39 @@ import { PaginationTabs } from "./pagination-tabs";
 import { productProperties } from "./product-properties";
 
 /**
- * Props passed from server (parsed URL params)
+ * Props passed from server (with defaults already applied)
  */
 interface PaginationProps {
   cursor?: CursorValue | null;
   limit: number;
   filter?: WhereNode | null;
-  /** Search filter (converted from URL ?search=xxx by server page) */
-  search?: WhereNode | null;
-  sorts?: PropertySort[];
+  /** Raw search string from URL (for UI display) */
+  search?: string;
+  sorts?: SortQuery[];
 }
 
 /**
  * Product Table with simple cursor-based pagination.
  *
  * Pattern: Server prefetch → Props → Client uses props for query
- * - Server parses URL, prefetches, passes props
+ * - Server parses URL, applies defaults, prefetches, passes props
  * - Client uses useSuspenseQuery with props (matches server prefetch = cache hit)
- * - NotionToolbar manages filter/sort/search state via nuqs (uncontrolled mode)
- * - usePagePagination handles URL updates (shallow: false)
+ * - Props are passed to DataViewProvider defaults
+ * - Hooks read from defaults (server props), write to URL
  */
 export function ProductPaginationTable(props: PaginationProps) {
   const {
-    cursor,
+    cursor = null,
     limit,
     filter = null,
-    search: searchQuery = null,
+    search: searchQuery = "",
     sorts = [],
   } = props;
   const trpc = useTRPC();
+
+  // Build search filter from raw search string
+  const searchableFields = getSearchableProperties(productProperties);
+  const search = buildSearchFilter(searchQuery, searchableFields);
 
   // Query with props directly - MUST match server prefetch for cache hit
   const { data } = useSuspenseQuery(
@@ -55,12 +61,12 @@ export function ProductPaginationTable(props: PaginationProps) {
       cursor,
       limit,
       filter,
-      search: searchQuery,
+      search,
       sort: sorts,
     })
   );
 
-  // Pagination controls using the new hook
+  // Pagination controls
   const pagination = usePagePagination({
     cursor,
     limit,
@@ -72,10 +78,14 @@ export function ProductPaginationTable(props: PaginationProps) {
     <Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
       <DataViewProvider
         data={data.items}
+        defaults={{
+          filter,
+          sort: sorts,
+          search: searchQuery,
+        }}
         pagination={pagination}
         properties={productProperties}
       >
-        {/* Uncontrolled mode: NotionToolbar manages state via nuqs */}
         <NotionToolbar properties={productProperties}>
           <PaginationTabs />
         </NotionToolbar>

@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@ocean-dataview/dataview/components/ui/dropdown-menu";
-import type { PropertySort } from "@ocean-dataview/shared/types";
+import type { SortQuery } from "@ocean-dataview/shared/types";
 import { ArrowDown, ArrowUp, ArrowUpDown, X } from "lucide-react";
 
 export interface SortOption {
@@ -21,13 +21,13 @@ export interface SortOption {
 
 interface SortDropdownProps {
   sortOptions: SortOption[];
-  sort: PropertySort[];
-  onSortChange: (sort: PropertySort[]) => void;
+  sort: SortQuery[];
+  onSortChange: (sort: SortQuery[]) => void;
 }
 
 /**
  * Dropdown component for sorting data
- * Uses PropertySort[] array for multi-column support
+ * Uses SortQuery[] array for multi-column support
  * UI shows first sort as primary (single-column UI)
  */
 export function SortDropdown({
@@ -42,7 +42,7 @@ export function SortDropdown({
   // Get primary sort (first in array)
   const primarySort = sort[0];
   const currentSort = primarySort?.property ?? null;
-  const currentOrder = primarySort?.desc ? "desc" : "asc";
+  const currentOrder = primarySort?.direction ?? "asc";
 
   const activeOption = sortOptions.find((opt) => opt.field === currentSort);
 
@@ -56,7 +56,7 @@ export function SortDropdown({
       onSortChange([
         {
           property: field,
-          desc: order === "desc",
+          direction: order,
         },
       ]);
     }

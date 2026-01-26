@@ -16,18 +16,16 @@ const DIRECTION_ITEMS = [
 ];
 
 interface DirectionPickerProps {
-  /** Whether sort is descending */
-  value: boolean;
+  /** Sort direction */
+  value: "asc" | "desc";
   /** Callback when direction changes */
-  onValueChange: (desc: boolean) => void;
+  onValueChange: (direction: "asc" | "desc") => void;
   /** Additional class names for the trigger */
   className?: string;
 }
 
 /**
  * Sort direction picker (Ascending/Descending).
- *
- * Accepts boolean `desc` value internally but displays as "Ascending"/"Descending".
  */
 function DirectionPicker({
   value,
@@ -37,8 +35,8 @@ function DirectionPicker({
   return (
     <Select
       items={DIRECTION_ITEMS}
-      onValueChange={(v) => onValueChange(v === "desc")}
-      value={value ? "desc" : "asc"}
+      onValueChange={(v) => onValueChange(v as "asc" | "desc")}
+      value={value}
     >
       <SelectTrigger className={cn("w-28", className)} size="sm">
         <SelectValue />

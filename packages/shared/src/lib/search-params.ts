@@ -10,7 +10,7 @@ import {
   filterQuerySchema,
   isWhereExpression,
   isWhereRule,
-  type PropertySort,
+  type SortQuery,
   searchQuerySchema,
   type WhereNode,
 } from "../types/data-table.type";
@@ -131,14 +131,14 @@ const filterQueryValidator = (value: unknown): FilterQuery | null => {
  * Transform URL sort format to code format.
  *
  * URL format: ["property", "asc"|"desc"]
- * Code format: { property, desc: boolean }
+ * Code format: { property, direction: "asc" | "desc" }
  */
-const sortValidator = (value: unknown): PropertySort[] | null => {
+const sortValidator = (value: unknown): SortQuery[] | null => {
   if (!Array.isArray(value)) {
     return null;
   }
 
-  const result: Array<{ property: string; desc: boolean }> = [];
+  const result: SortQuery[] = [];
 
   for (const item of value) {
     // Expect positional array: [property, direction]
@@ -154,10 +154,10 @@ const sortValidator = (value: unknown): PropertySort[] | null => {
       return null;
     }
 
-    result.push({ property, desc: direction === "desc" });
+    result.push({ property, direction });
   }
 
-  return result as PropertySort[];
+  return result;
 };
 
 const cursorValidator = (value: unknown): CursorValue | null => {
@@ -193,7 +193,7 @@ const expandedValidator = (value: unknown): string[] | null => {
  */
 const sortEntrySchema = z.object({
   property: z.string(),
-  desc: z.boolean(),
+  direction: z.enum(["asc", "desc"]),
 });
 
 /**
@@ -300,7 +300,7 @@ export const parseAsFilter = createParser({
 });
 
 export const parseAsSort = createParser({
-  parse: (value: string): PropertySort[] | null => {
+  parse: (value: string): SortQuery[] | null => {
     try {
       const parsed = JSON.parse(value);
       return sortValidator(parsed);
@@ -309,6 +309,6 @@ export const parseAsSort = createParser({
     }
   },
   // Transform to compact positional array format: ["property", "asc"|"desc"]
-  serialize: (value: PropertySort[]) =>
-    JSON.stringify(value.map((s) => [s.property, s.desc ? "desc" : "asc"])),
+  serialize: (value: SortQuery[]) =>
+    JSON.stringify(value.map((s) => [s.property, s.direction])),
 });

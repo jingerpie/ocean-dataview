@@ -43,7 +43,7 @@ export interface UseGroupPagePaginationOptions<
   groupCounts: GroupCounts;
   /** Cursors object per group (from URL props) */
   cursors?: Cursors;
-  /** Items per page */
+  /** Items per page (from server props) */
   limit: number;
   /** Factory to create query options for each group */
   createQueryOptions: (groupKey: string, cursor?: CursorValue) => TQueryOptions;
@@ -181,11 +181,11 @@ export function useGroupPagePagination<
       const cursor = cursors[groupKey];
       const isEnabled = expanded.includes(groupKey);
 
-      const options = createQueryOptions(groupKey, cursor);
+      const queryOpts = createQueryOptions(groupKey, cursor);
 
       return {
-        queryKey: options.queryKey,
-        queryFn: options.queryFn,
+        queryKey: queryOpts.queryKey,
+        queryFn: queryOpts.queryFn,
         enabled: isEnabled,
       };
     }),
@@ -193,7 +193,7 @@ export function useGroupPagePagination<
 
   const [, startTransition] = useTransition();
 
-  // URL setters (shallow: false triggers server re-render)
+  // URL state setters (shallow: false triggers server re-render)
   const [, setExpanded] = useQueryState(
     "expanded",
     parseAsExpanded.withOptions({ shallow: false })
@@ -202,9 +202,11 @@ export function useGroupPagePagination<
     "cursors",
     parseAsCursors.withDefault({}).withOptions({ shallow: false })
   );
-  const [, setLimit] = useQueryState(
+
+  // Write-only URL state for limit changes
+  const [, setUrlLimit] = useQueryState(
     "limit",
-    parseAsInteger.withOptions({ shallow: false, clearOnDefault: true })
+    parseAsInteger.withOptions({ shallow: false })
   );
 
   // Build groups array with items and pagination info
@@ -293,11 +295,11 @@ export function useGroupPagePagination<
   const onLimitChange = useCallback(
     (newLimit: number) => {
       startTransition(() => {
-        setLimit(newLimit);
+        setUrlLimit(newLimit);
         setCursors({}); // Reset all cursors when limit changes
       });
     },
-    [setLimit, setCursors]
+    [setUrlLimit, setCursors]
   );
 
   // Accordion change handler

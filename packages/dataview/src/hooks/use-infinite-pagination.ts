@@ -49,8 +49,8 @@ export interface UseInfinitePaginationOptions<
 > {
   /** Infinite query result from useSuspenseInfiniteQuery */
   infiniteQuery: TQuery;
-  /** Default limit (for URL state) */
-  defaultLimit?: number;
+  /** Items per page (from server props) */
+  limit: number;
   /** Available limit options (default: [10, 25, 50, 100]) */
   limitOptions?: number[];
 }
@@ -97,7 +97,6 @@ export interface InfinitePaginationResult<TData> {
 // Constants
 // ============================================================================
 
-const DEFAULT_LIMIT = 25;
 // Smaller batch sizes for infinite scroll (data accumulates client-side)
 const DEFAULT_LIMIT_OPTIONS = [10, 25, 50, 100];
 
@@ -111,34 +110,34 @@ const DEFAULT_LIMIT_OPTIONS = [10, 25, 50, 100];
  * Features:
  * - Takes infinite query result from useSuspenseInfiniteQuery
  * - Flattens pages into single items array
- * - URL state for limit only (shallow: false - server re-render for new limit)
+ * - Reads limit from URL first, falls back to context defaults
  * - Automatic type inference from infiniteQuery parameter
  *
  * URL State Strategy:
- * - Only `limit` is stored in URL (shallow: false for server re-render)
- * - Accumulated data lives in React Query cache
- * - When limit changes, server re-renders with new prop for query
+ * - Reads `limit` from URL (null if absent)
+ * - Falls back to `defaults.limit` from DataViewContext
+ * - When limit changes, writes to URL (shallow: false for server re-render)
  *
  * @example
  * ```tsx
- * const ProductGallery = ({ limit: initialLimit }: Props) => {
+ * const ProductGallery = ({ limit }: Props) => {
  *   const trpc = useTRPC();
  *
  *   const infiniteQuery = useSuspenseInfiniteQuery(
  *     trpc.product.getMany.infiniteQueryOptions(
- *       { limit: initialLimit, sort: [{ property: "updatedAt", desc: true }] },
+ *       { limit, sort: [{ property: "updatedAt", direction: "desc" }] },
  *       { getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined },
  *     ),
  *   );
  *
- *   // Type is inferred from infiniteQuery result
- *   const { items, pagination } = useInfinitePagination({
- *     infiniteQuery,
- *     defaultLimit: initialLimit,
- *   });
+ *   const { items, pagination } = useInfinitePagination({ infiniteQuery });
  *
  *   return (
- *     <DataViewProvider data={items} pagination={pagination}>
+ *     <DataViewProvider
+ *       data={items}
+ *       pagination={pagination}
+ *       defaults={{ limit }}
+ *     >
  *       <GalleryView pagination="loadMore" />
  *     </DataViewProvider>
  *   );
@@ -153,7 +152,7 @@ export function useInfinitePagination<
 ): InfinitePaginationResult<TData> {
   const {
     infiniteQuery,
-    defaultLimit = DEFAULT_LIMIT,
+    limit,
     limitOptions = DEFAULT_LIMIT_OPTIONS,
   } = options;
 
@@ -168,14 +167,10 @@ export function useInfinitePagination<
     isError,
   } = infiniteQuery;
 
-  // Only limit in URL - cursor state lives in React Query cache
-  // shallow: false - needs server re-render to update props for query
-  const [limit, setLimit] = useQueryState(
+  // Write-only URL state for limit changes
+  const [, setUrlLimit] = useQueryState(
     "limit",
-    parseAsInteger.withDefault(defaultLimit).withOptions({
-      shallow: false,
-      clearOnDefault: true,
-    })
+    parseAsInteger.withOptions({ shallow: false })
   );
 
   // Flatten all pages into single array
@@ -202,7 +197,7 @@ export function useInfinitePagination<
 
       // Limit control
       limit,
-      onLimitChange: setLimit,
+      onLimitChange: setUrlLimit,
       limitOptions,
 
       // Infinite-specific

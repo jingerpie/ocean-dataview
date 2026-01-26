@@ -48,7 +48,7 @@ export interface UseGroupInfinitePaginationOptions<
   expanded: string[];
   /** Group counts from API */
   groupCounts: GroupCounts;
-  /** Items per page/batch */
+  /** Items per page (from server props) */
   limit: number;
   /** Factory to create query options for each group */
   createQueryOptions: (groupKey: string) => TQueryOptions;
@@ -258,14 +258,16 @@ export function useGroupInfinitePagination<
 
   const [, startTransition] = useTransition();
 
-  // URL setters - shallow: false for server re-render to update props
+  // URL state setters - shallow: false for server re-render to update props
   const [, setExpanded] = useQueryState(
     "expanded",
     parseAsExpanded.withOptions({ shallow: false })
   );
-  const [, setLimit] = useQueryState(
+
+  // Write-only URL state for limit changes
+  const [, setUrlLimit] = useQueryState(
     "limit",
-    parseAsInteger.withOptions({ shallow: false, clearOnDefault: true })
+    parseAsInteger.withOptions({ shallow: false })
   );
 
   // Create infinite queries internally
@@ -323,10 +325,10 @@ export function useGroupInfinitePagination<
   const onLimitChange = useCallback(
     (newLimit: number) => {
       startTransition(() => {
-        setLimit(newLimit);
+        setUrlLimit(newLimit);
       });
     },
-    [setLimit]
+    [setUrlLimit]
   );
 
   // Accordion change handler

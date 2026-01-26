@@ -9,7 +9,7 @@ import { useGroupPagePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
 import type {
   Cursors,
-  PropertySort,
+  SortQuery,
   WhereNode,
 } from "@ocean-dataview/shared/types";
 import { combineGroupFilter } from "@ocean-dataview/shared/utils";
@@ -31,7 +31,7 @@ interface Props {
   filter?: WhereNode | null;
   /** Search filter (converted from URL ?search=xxx by server page) */
   search?: WhereNode | null;
-  sort?: PropertySort[];
+  sort?: SortQuery[];
 }
 
 /**

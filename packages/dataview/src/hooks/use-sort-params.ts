@@ -1,21 +1,24 @@
 "use client";
 
 import { parseAsSort } from "@ocean-dataview/shared/lib";
-import type { PropertySort } from "@ocean-dataview/shared/types";
+import type { SortQuery } from "@ocean-dataview/shared/types";
 import { useDebouncer } from "@tanstack/react-pacer";
 import { useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
+import { useDataViewContext } from "../lib/providers";
 
 const SORT_DEBOUNCE_MS = 150;
 
-interface UseSortParamsOptions {
-  /** Initial sort from server props or defaults */
-  sort?: PropertySort[];
-}
+/** Empty sort sentinel - written to URL when user explicitly clears sort */
+const EMPTY_SORT: SortQuery[] = [];
 
 /**
- * Hook for managing sort state in URL with debouncing.
- * Uses PropertySort[] array format for multi-column sort support.
+ * Hook for managing sort state with debouncing.
+ * Uses SortQuery[] array format for multi-column sort support.
+ *
+ * - Reads from DataViewContext defaults (server props)
+ * - Writes to URL via nuqs (triggers server re-render)
+ * - Uses empty array `[]` in URL to distinguish "cleared" from "use default"
  *
  * Debouncing: 150ms with leading edge (first click fires immediately,
  * subsequent rapid clicks are batched)
@@ -24,57 +27,62 @@ interface UseSortParamsOptions {
  * ```ts
  * const { sort, setSort, flush } = useSortParams();
  *
- * // With default sort
- * const { sort, setSort } = useSortParams({ sort: defaults?.sort });
- *
  * // URL format: ?sort=[["name","asc"]]
+ * // Empty sort: ?sort=[]
  * // Call flush() before navigation to ensure pending updates are applied
  * ```
  */
-export function useSortParams(options: UseSortParamsOptions = {}) {
-  const [urlSort, setUrlSortJson] = useQueryState("sort", {
+export function useSortParams() {
+  // Read sort from context (server props)
+  const { defaults } = useDataViewContext();
+  const serverSort = defaults?.sort ?? [];
+
+  // Write-only URL state
+  const [, setUrlSortState] = useQueryState("sort", {
     ...parseAsSort,
-    defaultValue: options.sort ?? [],
     shallow: false,
   });
 
-  // Local state for immediate UI updates
-  const [localSort, setLocalSort] = useState<PropertySort[]>(urlSort ?? []);
+  // Local state for immediate UI updates (initialized from server)
+  const [localSort, setLocalSort] = useState<SortQuery[]>(serverSort);
 
   // Debounced URL update with leading: true for responsive first click
   const urlDebouncer = useDebouncer(
-    (newSort: PropertySort[] | null) => {
-      setUrlSortJson(newSort);
+    (newSort: SortQuery[]) => {
+      setUrlSortState(newSort);
     },
     { wait: SORT_DEBOUNCE_MS, leading: true, trailing: true }
   );
 
-  // Sync local state when URL changes (e.g., back/forward navigation)
+  // Sync local state when server value changes (navigation, refresh)
   useEffect(() => {
-    setLocalSort(urlSort ?? []);
-  }, [urlSort]);
+    setLocalSort(serverSort);
+  }, [serverSort]);
 
   // Flush pending updates on unmount
   useEffect(() => {
     return () => urlDebouncer.flush();
   }, [urlDebouncer]);
 
-  const setSort = (newSort: PropertySort[]) => {
+  const setSort = (newSort: SortQuery[]) => {
     setLocalSort(newSort);
-    urlDebouncer.maybeExecute(newSort.length === 0 ? null : newSort);
+    // Always write to URL (even empty array) to track explicit state
+    urlDebouncer.maybeExecute(newSort);
   };
 
-  const addSort = (prop: string, desc = false) => {
+  const addSort = (prop: string, direction: "asc" | "desc" = "asc") => {
     const existing = localSort.find((s) => s.property === prop);
     if (existing) {
       // Toggle direction
       setSort(
         localSort.map((s) =>
-          s.property === prop ? { ...s, desc: !s.desc } : s
+          s.property === prop
+            ? { ...s, direction: s.direction === "asc" ? "desc" : "asc" }
+            : s
         )
       );
     } else {
-      setSort([...localSort, { property: prop, desc }]);
+      setSort([...localSort, { property: prop, direction }]);
     }
   };
 
@@ -85,7 +93,8 @@ export function useSortParams(options: UseSortParamsOptions = {}) {
   const clearSort = () => {
     setLocalSort([]);
     urlDebouncer.cancel();
-    setUrlSortJson(null);
+    // Write empty array to URL to distinguish from "use default"
+    setUrlSortState(EMPTY_SORT);
   };
 
   return {

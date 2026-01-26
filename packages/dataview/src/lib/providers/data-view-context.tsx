@@ -3,7 +3,7 @@
 import type {
   DataViewProperty,
   PropertyMeta,
-  PropertySort,
+  SortQuery,
   WhereNode,
 } from "@ocean-dataview/dataview/types";
 import { createContext, useContext } from "react";
@@ -24,27 +24,20 @@ export type PaginationOutput<TData> =
   | GroupInfinitePaginationState<TData>;
 
 /**
- * Default values for DataView state when URL params are empty
+ * Default values for DataView state - passed from server props
+ * These are the source of truth for the current view state
  */
 export interface DataViewDefaults {
   /** Default visible property IDs */
   visibility?: string[];
-  /** Default filter state */
+  /** Current filter state (from server) */
   filter?: WhereNode | null;
-  /** Default sort state */
-  sort?: PropertySort[];
-}
-
-/**
- * Default values for DataView state when URL params are empty
- */
-export interface DataViewDefaults {
-  /** Default visible property IDs */
-  visibility?: string[];
-  /** Default filter state */
-  filter?: WhereNode | null;
-  /** Default sort state */
-  sort?: PropertySort[];
+  /** Current sort state (from server) */
+  sort?: SortQuery[];
+  /** Current search string (from server) */
+  search?: string;
+  /** Default page size */
+  limit?: number;
 }
 
 export interface DataViewContextValue<

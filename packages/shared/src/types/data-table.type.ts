@@ -32,15 +32,15 @@ export type FilterCondition = DataTableConfig["conditionalOperators"][number];
  * @example
  * // Type-safe definition with satisfies
  * const defaultSort = [
- *   { property: "name", desc: false }
- * ] satisfies PropertySort[];
+ *   { property: "name", direction: "asc" }
+ * ] satisfies SortQuery[];
  *
  * // Or with explicit keyof constraint
- * const sort: { property: keyof Product; desc: boolean } = { property: "name", desc: false };
+ * const sort: { property: keyof Product; direction: "asc" | "desc" } = { property: "name", direction: "asc" };
  */
-export interface PropertySort {
+export interface SortQuery {
   property: string;
-  desc: boolean;
+  direction: "asc" | "desc";
 }
 
 // ============================================================================

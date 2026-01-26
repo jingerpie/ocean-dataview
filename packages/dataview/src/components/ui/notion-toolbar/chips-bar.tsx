@@ -4,7 +4,7 @@ import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type {
-  PropertySort,
+  SortQuery,
   WhereExpression,
   WhereNode,
   WhereRule,
@@ -23,9 +23,9 @@ import { SortChip } from "../sort";
 
 interface ChipsBarProps {
   /** Current sorts (multiple sorts supported) */
-  sorts: PropertySort[];
+  sorts: SortQuery[];
   /** Callback when sorts change */
-  onSortsChange: (sorts: PropertySort[]) => void;
+  onSortsChange: (sorts: SortQuery[]) => void;
   /** Current filter */
   filter: WhereNode | null;
   /** Callback when filter changes */

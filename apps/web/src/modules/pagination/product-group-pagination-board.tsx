@@ -7,8 +7,12 @@ import {
 } from "@ocean-dataview/dataview/components/views/board-view";
 import { useGroupInfinitePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
-import type { PropertySort, WhereNode } from "@ocean-dataview/shared/types";
-import { combineGroupFilter } from "@ocean-dataview/shared/utils";
+import { getSearchableProperties } from "@ocean-dataview/dataview/types";
+import type { SortQuery, WhereNode } from "@ocean-dataview/shared/types";
+import {
+  buildSearchFilter,
+  combineGroupFilter,
+} from "@ocean-dataview/shared/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
@@ -18,9 +22,9 @@ import { productProperties } from "../group-pagination/product-properties";
 interface Props {
   limit: number;
   filter?: WhereNode | null;
-  /** Search filter (converted from URL ?search=xxx by server page) */
-  search?: WhereNode | null;
-  sort?: PropertySort[];
+  /** Raw search string from URL (for UI display) */
+  search?: string;
+  sort?: SortQuery[];
 }
 
 /**
@@ -28,14 +32,19 @@ interface Props {
  *
  * Unlike Table/List/Gallery, BoardView columns are always visible (no accordion).
  * All group keys are always "expanded" so all columns fetch data.
+ * Props are passed to DataViewProvider defaults.
  */
 export function ProductGroupPaginationBoard({
   limit,
   filter = null,
-  search: searchQuery = null,
+  search: searchQuery = "",
   sort = [],
 }: Props) {
   const trpc = useTRPC();
+
+  // Build search filter from raw search string
+  const searchableFields = getSearchableProperties(productProperties);
+  const search = buildSearchFilter(searchQuery, searchableFields);
 
   // 1. Fetch group counts
   const { data: groupCounts } = useSuspenseQuery(
@@ -55,7 +64,7 @@ export function ProductGroupPaginationBoard({
       trpc.product.getMany.infiniteQueryOptions(
         {
           filter: combineGroupFilter("familyGroup", groupKey, filter),
-          search: searchQuery,
+          search,
           sort,
           limit,
         },
@@ -69,10 +78,14 @@ export function ProductGroupPaginationBoard({
     <Suspense fallback={<BoardSkeleton columnCount={4} />}>
       <DataViewProvider
         data={data}
+        defaults={{
+          filter,
+          sort,
+          search: searchQuery,
+        }}
         pagination={pagination}
         properties={productProperties}
       >
-        {/* Uncontrolled mode: NotionToolbar manages state via nuqs */}
         <NotionToolbar properties={productProperties}>
           <GroupPaginationTabs />
         </NotionToolbar>

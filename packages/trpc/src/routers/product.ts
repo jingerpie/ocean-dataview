@@ -26,12 +26,18 @@ export const productRouter = router({
       const cursorId = before || after;
 
       // Prepare sort with tiebreaker (uses last field's direction)
-      const sortWithTiebreaker =
+      const sortWithTiebreaker: typeof sort =
         sort && sort.length > 0
-          ? [...sort, { property: "id", desc: sort.at(-1)?.desc ?? true }]
+          ? [
+              ...sort,
+              {
+                property: "id",
+                direction: sort.at(-1)?.direction ?? "desc",
+              },
+            ]
           : [
-              { property: "createdAt", desc: true },
-              { property: "id", desc: true },
+              { property: "createdAt", direction: "desc" },
+              { property: "id", direction: "desc" },
             ];
 
       // Build orderBy + cursor WHERE

@@ -70,20 +70,16 @@ export function NotionToolbar({
   className,
   ...props
 }: NotionToolbarProps) {
-  // Get propertyMetas and defaults from context
-  const { propertyMetas, defaults } = useDataViewContext();
+  // Get propertyMetas from context
+  const { propertyMetas } = useDataViewContext();
 
   // Use prop properties if provided, otherwise fall back to context
   const properties = propProperties ?? propertyMetas;
 
-  // State managed via nuqs URL params, with context defaults
-  const { filter, setFilter: onFilterChange } = useFilterParams({
-    filter: defaults?.filter,
-  });
+  // State managed via hooks that read from context defaults, write to URL
+  const { filter, setFilter: onFilterChange } = useFilterParams();
   const { search, setSearch: onSearchChange } = useSearchParams();
-  const { sort: sorts, setSort: onSortsChange } = useSortParams({
-    sort: defaults?.sort,
-  });
+  const { sort: sorts, setSort: onSortsChange } = useSortParams();
 
   const {
     hasActiveControls,

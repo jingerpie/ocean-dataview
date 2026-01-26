@@ -6,20 +6,19 @@ import { normalizeFilter } from "@ocean-dataview/shared/utils";
 import { useDebouncer } from "@tanstack/react-pacer";
 import { useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
+import { useDataViewContext } from "../lib/providers";
 
 const FILTER_DEBOUNCE_MS = 150;
 
-interface UseFilterParamsOptions {
-  /**
-   * Default filter to use when URL has no filter param.
-   * This is used as the initial state when the URL is empty.
-   */
-  filter?: WhereNode | null;
-}
+/** Empty filter sentinel - written to URL when user explicitly clears filter */
+const EMPTY_FILTER: FilterQuery = { and: [] };
 
 /**
- * Hook for managing filter state in URL with debouncing
- * Uses the new recursive WhereNode schema (AND/OR conditions)
+ * Hook for managing filter state with debouncing.
+ *
+ * - Reads from DataViewContext defaults (server props)
+ * - Writes to URL via nuqs (triggers server re-render)
+ * - Uses empty filter `{ and: [] }` in URL to distinguish "cleared" from "use default"
  *
  * Debouncing: 150ms with leading edge (first click fires immediately,
  * subsequent rapid clicks are batched)
@@ -28,46 +27,39 @@ interface UseFilterParamsOptions {
  * ```ts
  * const { filter, setFilter, flush } = useFilterParams();
  *
- * // With default filter:
- * const { filter, setFilter } = useFilterParams({
- *   filter: { and: [["status", "eq", "active"]] }
- * });
- *
  * // URL format: ?filter=[["status","eq","active"]]
+ * // Empty filter: ?filter=[]
  * // Call flush() before navigation to ensure pending updates are applied
  * ```
  */
-export function useFilterParams(options: UseFilterParamsOptions = {}) {
-  const defaultFilter = options.filter ?? null;
+export function useFilterParams() {
+  // Read filter from context (server props)
+  const { defaults } = useDataViewContext();
+  const serverFilter = defaults?.filter ?? null;
 
-  const [urlFilter, setUrlFilterState] = useQueryState(
+  // Write-only URL state
+  const [, setUrlFilterState] = useQueryState(
     "filter",
     parseAsFilter.withOptions({ shallow: false })
   );
 
-  // Use URL filter if present, otherwise fall back to default
-  const effectiveFilter =
-    urlFilter !== null ? (urlFilter as WhereNode | null) : defaultFilter;
-
-  // Local state for immediate UI updates
+  // Local state for immediate UI updates (initialized from server)
   const [localFilter, setLocalFilter] = useState<WhereNode | null>(
-    effectiveFilter
+    serverFilter
   );
 
   // Debounced URL update with leading: true for responsive first click
   const urlDebouncer = useDebouncer(
-    (normalized: FilterQuery | null) => {
+    (normalized: FilterQuery) => {
       setUrlFilterState(normalized);
     },
     { wait: FILTER_DEBOUNCE_MS, leading: true, trailing: true }
   );
 
-  // Sync local state when URL changes (e.g., back/forward navigation)
+  // Sync local state when server value changes (navigation, refresh)
   useEffect(() => {
-    const effectiveValue =
-      urlFilter !== null ? (urlFilter as WhereNode | null) : defaultFilter;
-    setLocalFilter(effectiveValue);
-  }, [urlFilter, defaultFilter]);
+    setLocalFilter(serverFilter);
+  }, [serverFilter]);
 
   // Flush pending updates on unmount
   useEffect(() => {
@@ -80,18 +72,20 @@ export function useFilterParams(options: UseFilterParamsOptions = {}) {
     setLocalFilter(newFilter);
 
     if (newFilter === null) {
-      urlDebouncer.maybeExecute(null);
+      // Write empty filter to URL to distinguish from "use default"
+      urlDebouncer.maybeExecute(EMPTY_FILTER);
       return;
     }
     // Normalize to ensure it's always { and: [...] } format for URL
     const normalized = normalizeFilter(newFilter);
-    urlDebouncer.maybeExecute(normalized as FilterQuery | null);
+    urlDebouncer.maybeExecute(normalized as FilterQuery);
   };
 
   const clearFilter = () => {
     setLocalFilter(null);
     urlDebouncer.cancel();
-    setUrlFilterState(null);
+    // Write empty filter to URL to distinguish from "use default"
+    setUrlFilterState(EMPTY_FILTER);
   };
 
   return {

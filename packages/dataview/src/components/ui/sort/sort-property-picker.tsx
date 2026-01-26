@@ -13,7 +13,7 @@ import {
 import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-icon";
 import { useSortParams } from "@ocean-dataview/dataview/hooks";
 import type { PropertyMeta } from "@ocean-dataview/dataview/types";
-import type { PropertySort } from "@ocean-dataview/shared/types";
+import type { SortQuery } from "@ocean-dataview/shared/types";
 import { SortAscIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -62,9 +62,9 @@ function SortPropertyPicker({
 
   // Handle property selection - adds new sort
   const handleSelect = (property: PropertyMeta) => {
-    const newSort: PropertySort = {
+    const newSort: SortQuery = {
       property: String(property.id),
-      desc: false,
+      direction: "asc",
     };
 
     // Add to existing sorts

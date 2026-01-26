@@ -16,7 +16,7 @@ import type { BidirectionalPaginatedResponse } from "../types/pagination-types";
 export interface UsePagePaginationOptions<TData> {
   /** Cursor value (from URL) for flat pagination */
   cursor?: CursorValue | null;
-  /** Items per page */
+  /** Items per page (from server props) */
   limit: number;
   /** Query result from useSuspenseQuery */
   data: BidirectionalPaginatedResponse<TData>;
@@ -64,10 +64,13 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
  *
  * Features:
  * - Simple interface: pass cursor from URL + query data
+ * - Reads limit from URL first, falls back to context defaults
  * - Handles URL updates for navigation (shallow: false for server re-render)
  * - Returns PaginationContext-compatible object
  *
  * URL State Strategy:
+ * - Reads `limit` from URL (null if absent)
+ * - Falls back to `defaults.limit` from DataViewContext
  * - Uses single cursor param for flat pagination
  * - shallow: false triggers server re-render for bookmarkable URLs
  *
@@ -80,10 +83,14 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
  *     trpc.product.getMany.queryOptions({ cursor, limit }),
  *   );
  *
- *   const pagination = usePagePagination({ cursor, limit, data });
+ *   const pagination = usePagePagination({ cursor, data });
  *
  *   return (
- *     <DataViewProvider data={data.items} pagination={pagination}>
+ *     <DataViewProvider
+ *       data={data.items}
+ *       pagination={pagination}
+ *       defaults={{ limit }}
+ *     >
  *       <TableView pagination="page" />
  *     </DataViewProvider>
  *   );
@@ -100,17 +107,16 @@ export function usePagePagination<TData>(
   // Get current start offset
   const start = cursor?.start ?? 0;
 
-  // URL setters (shallow: false triggers server re-render)
+  // URL state for cursor
   const [, setCursor] = useQueryState(
     "cursor",
     parseAsCursor.withOptions({ shallow: false })
   );
-  const [, setLimit] = useQueryState(
+
+  // Write-only URL state for limit changes
+  const [, setUrlLimit] = useQueryState(
     "limit",
-    parseAsInteger.withOptions({
-      shallow: false,
-      clearOnDefault: true,
-    })
+    parseAsInteger.withOptions({ shallow: false })
   );
 
   const items = data.items;
@@ -144,12 +150,12 @@ export function usePagePagination<TData>(
   const onLimitChange = useCallback(
     (newLimit: number) => {
       startTransition(() => {
-        setLimit(newLimit);
+        setUrlLimit(newLimit);
         // Reset to first page
         setCursor(null);
       });
     },
-    [setLimit, setCursor]
+    [setUrlLimit, setCursor]
   );
 
   return {

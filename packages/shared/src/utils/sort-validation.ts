@@ -1,4 +1,4 @@
-import type { PropertySort } from "../types/data-table.type";
+import type { SortQuery } from "../types/data-table.type";
 
 /**
  * Validate and clean sort array.
@@ -7,7 +7,7 @@ import type { PropertySort } from "../types/data-table.type";
  *
  * Mirrors validateFilter pattern for consistency.
  */
-export function validateSort(sort: PropertySort[]): PropertySort[] {
+export function validateSort(sort: SortQuery[]): SortQuery[] {
   const seen = new Set<string>();
 
   return sort.filter((s) => {

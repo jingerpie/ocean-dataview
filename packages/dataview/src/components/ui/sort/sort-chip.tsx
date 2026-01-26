@@ -25,17 +25,17 @@ import { AddSortButton } from "@ocean-dataview/dataview/components/ui/sort/add-s
 import { SortRule } from "@ocean-dataview/dataview/components/ui/sort/sort-rule";
 import { useSortBuilder } from "@ocean-dataview/dataview/hooks";
 import type { PropertyMeta } from "@ocean-dataview/dataview/types";
-import type { PropertySort } from "@ocean-dataview/shared/types";
+import type { SortQuery } from "@ocean-dataview/shared/types";
 import { ChevronDownIcon, SortAscIcon, Trash2Icon } from "lucide-react";
 import { useCallback, useMemo } from "react";
 
 interface SortChipProps {
   /** Current sort rules */
-  sorts: PropertySort[];
+  sorts: SortQuery[];
   /** Available properties to sort by */
   properties: readonly PropertyMeta[];
   /** Callback when sorts change */
-  onSortsChange: (sorts: PropertySort[]) => void;
+  onSortsChange: (sorts: SortQuery[]) => void;
 }
 
 /**
@@ -72,9 +72,9 @@ export function SortChip({ sorts, properties, onSortsChange }: SortChipProps) {
 
   const onSortAdd = useCallback(
     (prop: string) => {
-      const newSort: PropertySort = {
+      const newSort: SortQuery = {
         property: prop,
-        desc: false,
+        direction: "asc",
       };
       onSortsChange([...sorts, newSort]);
     },
@@ -82,7 +82,7 @@ export function SortChip({ sorts, properties, onSortsChange }: SortChipProps) {
   );
 
   const onSortUpdate = useCallback(
-    (prop: string, updates: Partial<PropertySort>) => {
+    (prop: string, updates: Partial<SortQuery>) => {
       const updatedSorts = sorts.map((sort) =>
         sort.property === prop ? { ...sort, ...updates } : sort
       );

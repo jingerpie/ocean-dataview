@@ -1,4 +1,4 @@
-import type { PropertySort } from "@ocean-dataview/shared/types";
+import type { SortQuery } from "@ocean-dataview/shared/types";
 import { asc, desc, type SQL, sql, type Table } from "drizzle-orm";
 import { getColumn } from "./filter-columns";
 
@@ -12,7 +12,7 @@ import { getColumn } from "./filter-columns";
  */
 export function buildSort<T extends Table>(
   table: T,
-  sort: PropertySort[],
+  sort: SortQuery[],
   options?: { reverse?: boolean }
 ): SQL[] {
   const reverse = options?.reverse ?? false;
@@ -23,8 +23,9 @@ export function buildSort<T extends Table>(
       if (!column) {
         return null;
       }
-      const isDesc = reverse ? !s.desc : s.desc;
-      return isDesc ? desc(column) : asc(column);
+      const isDesc = s.direction === "desc";
+      const effectiveDesc = reverse ? !isDesc : isDesc;
+      return effectiveDesc ? desc(column) : asc(column);
     })
     .filter((col): col is SQL => col !== null);
 }
@@ -43,7 +44,7 @@ export function buildSort<T extends Table>(
 export function buildCursor<T extends Table>(
   table: T,
   options: {
-    sort: PropertySort[];
+    sort: SortQuery[];
     cursor?: string | null;
     direction?: "forward" | "backward";
   }
@@ -83,7 +84,8 @@ export function buildCursor<T extends Table>(
   });
 
   // Use last sort field's direction for comparison operator
-  const isDesc = validSort.at(-1)?.desc ?? true;
+  const lastDirection = validSort.at(-1)?.direction ?? "desc";
+  const isDesc = lastDirection === "desc";
   const op = reverse === isDesc ? sql.raw(">") : sql.raw("<");
   const cursorWhere = sql`(${sql.join(rowValues, sql`, `)}) ${op} (${sql.join(cursorValues, sql`, `)})`;
 

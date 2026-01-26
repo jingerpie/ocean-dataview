@@ -7,7 +7,7 @@ import {
 } from "@ocean-dataview/dataview/components/views/gallery-view";
 import { useGroupInfinitePagination } from "@ocean-dataview/dataview/hooks";
 import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
-import type { PropertySort, WhereNode } from "@ocean-dataview/shared/types";
+import type { SortQuery, WhereNode } from "@ocean-dataview/shared/types";
 import { combineGroupFilter } from "@ocean-dataview/shared/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
@@ -27,7 +27,7 @@ interface Props {
   filter?: WhereNode | null;
   /** Search filter (converted from URL ?search=xxx by server page) */
   search?: WhereNode | null;
-  sort?: PropertySort[];
+  sort?: SortQuery[];
 }
 
 /**

@@ -1,5 +1,6 @@
 import { getSearchableProperties } from "@ocean-dataview/dataview/types";
 import { paginationParams } from "@ocean-dataview/shared/lib";
+import type { FilterQuery, SearchParams } from "@ocean-dataview/shared/types";
 import { buildSearchFilter } from "@ocean-dataview/shared/utils";
 import { Tabs, TabsContent } from "@ocean-dataview/ui/components/tabs";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
@@ -10,15 +11,46 @@ import { ProductPaginationTable } from "@/modules/pagination/product-pagination-
 import { productProperties } from "@/modules/pagination/product-properties";
 import { getQueryClient, trpc } from "@/utils/trpc/server";
 
+/**
+ * Default values for the pagination view when URL params are empty.
+ * These are applied server-side before prefetch and passed to client.
+ */
+const VIEW_DEFAULTS: { filter: FilterQuery } = {
+  filter: {
+    and: [
+      {
+        property: "type",
+        condition: "eq",
+        value: "ITEM",
+      },
+      {
+        property: "name",
+        condition: "iLike",
+        value: "Toy",
+      },
+      {
+        property: "minCalories",
+        condition: "eq",
+        value: "0",
+      },
+    ],
+  },
+};
+
 interface PageProps {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: Promise<SearchParams>;
 }
 
 export default async function PaginationPage(props: PageProps) {
   const searchParams = await props.searchParams;
   const params = paginationParams.parse(searchParams);
 
-  const { cursor, limit, filter, sort, search: searchQuery } = params;
+  // Apply defaults when URL params are missing
+  const cursor = params.cursor ?? null;
+  const limit = params.limit;
+  const filter = params.filter ?? VIEW_DEFAULTS.filter;
+  const sort = params.sort;
+  const searchQuery = params.search ?? "";
 
   // Convert URL search string to Filter object using property definitions
   const searchableFields = getSearchableProperties(productProperties);
@@ -32,7 +64,7 @@ export default async function PaginationPage(props: PageProps) {
       limit,
       filter,
       sort,
-      search, // Pass search separately, tRPC handles merge
+      search,
     })
   );
 
@@ -44,15 +76,15 @@ export default async function PaginationPage(props: PageProps) {
             cursor={cursor}
             filter={filter}
             limit={limit}
-            search={search}
-            sorts={sort ?? []}
+            search={searchQuery}
+            sorts={sort}
           />
         </TabsContent>
         <TabsContent value="list">
           <ProductPaginationList
             filter={filter}
             limit={limit}
-            search={search}
+            search={searchQuery}
             sort={sort}
           />
         </TabsContent>
@@ -60,7 +92,7 @@ export default async function PaginationPage(props: PageProps) {
           <ProductPaginationGallery
             filter={filter}
             limit={limit}
-            search={search}
+            search={searchQuery}
             sort={sort}
           />
         </TabsContent>
@@ -68,7 +100,7 @@ export default async function PaginationPage(props: PageProps) {
           <ProductGroupPaginationBoard
             filter={filter}
             limit={limit}
-            search={search}
+            search={searchQuery}
             sort={sort}
           />
         </TabsContent>
