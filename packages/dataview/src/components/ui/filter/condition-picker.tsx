@@ -52,7 +52,7 @@ export function ConditionPicker({
       >
         <SelectValue />
       </SelectTrigger>
-      <SelectContent align="start">
+      <SelectContent align="start" className="w-auto">
         <SelectGroup>
           {items.map((item) => (
             <SelectItem key={item.value} value={item.value}>

@@ -157,7 +157,7 @@ export function FilterChip({
       >
         {triggerContent}
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-80 gap-1 p-2">
+      <PopoverContent align="start" className="w-auto gap-1 p-2">
         {/* Header: Property + Condition + Menu */}
         <div className="flex items-center justify-between">
           <div className="flex items-center pl-2">

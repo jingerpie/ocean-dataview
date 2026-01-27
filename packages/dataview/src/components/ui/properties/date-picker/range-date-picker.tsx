@@ -10,13 +10,18 @@ import {
 } from "@ocean-dataview/dataview/components/ui/popover";
 import {
   cn,
-  formatDateForDisplay,
   parseDate,
   parseValue,
   toDateOnlyString,
 } from "@ocean-dataview/dataview/lib/utils";
+import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { type ChangeEvent, type KeyboardEvent, useState } from "react";
+
+/** Format date as numeric M/d/yyyy for compact display */
+function formatNumericDate(date: Date): string {
+  return format(date, "M/d/yyyy");
+}
 
 interface DateRangeValue {
   from?: string;
@@ -51,8 +56,8 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
 
   // Display values
   const fromDisplay =
-    fromDraft ?? (fromDate ? formatDateForDisplay(fromDate) : "");
-  const toDisplay = toDraft ?? (toDate ? formatDateForDisplay(toDate) : "");
+    fromDraft ?? (fromDate ? formatNumericDate(fromDate) : "");
+  const toDisplay = toDraft ?? (toDate ? formatNumericDate(toDate) : "");
 
   // Handle from input change
   const handleFromChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -74,7 +79,7 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
 
     const parsed = parseDate(fromDraft);
     if (parsed) {
-      const formatted = formatDateForDisplay(parsed);
+      const formatted = formatNumericDate(parsed);
       setFromDraft(formatted);
       setFromValid(true);
       onChange({ ...value, from: toDateOnlyString(parsed) });
@@ -91,7 +96,7 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
 
     const parsed = parseDate(toDraft);
     if (parsed) {
-      const formatted = formatDateForDisplay(parsed);
+      const formatted = formatNumericDate(parsed);
       setToDraft(formatted);
       setToValid(true);
       onChange({ ...value, to: toDateOnlyString(parsed) });
@@ -128,9 +133,10 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
   return (
     <div className="flex flex-col items-center">
       {/* Two inputs side by side */}
-      <div className="flex gap-2">
+      <div className="flex w-full gap-2">
         <Input
           className={cn(
+            "w-0 flex-1",
             !fromValid && "border-destructive focus-visible:ring-destructive"
           )}
           onBlur={handleFromBlur}
@@ -142,6 +148,7 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
         />
         <Input
           className={cn(
+            "w-0 flex-1",
             !toValid && "border-destructive focus-visible:ring-destructive"
           )}
           onBlur={handleToBlur}
@@ -180,7 +187,7 @@ function RangeDatePicker({ value, onChange }: RangeDatePickerProps) {
   // Format display text
   const displayText =
     fromDate || toDate
-      ? `${fromDate ? formatDateForDisplay(fromDate) : "..."} - ${toDate ? formatDateForDisplay(toDate) : "..."}`
+      ? `${fromDate ? formatNumericDate(fromDate) : "..."} - ${toDate ? formatNumericDate(toDate) : "..."}`
       : "Select a range";
 
   return (

@@ -1,11 +1,10 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
 import { Calendar } from "@ocean-dataview/dataview/components/ui/calendar";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@ocean-dataview/dataview/components/ui/dropdown-menu";
 import {
@@ -29,10 +28,14 @@ import {
   subMonths,
   subWeeks,
 } from "date-fns";
-import { CheckIcon, ChevronDownIcon, XIcon } from "lucide-react";
-import { useState } from "react";
+import { ChevronDownIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
-type DatePickerMode = "selector" | "input";
+/** Get the first day of the month for calendar display */
+function getMonthStart(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
 type DatePreset =
   | "today"
   | "tomorrow"
@@ -94,32 +97,29 @@ function getDateFromPreset(preset: DatePreset): Date {
   }
 }
 
-function getMode(
-  preset: DatePreset | null,
-  draft: string | null
-): DatePickerMode {
-  if (preset && draft === null) {
-    return "selector";
-  }
-  return "input";
-}
-
 /**
- * Calendar component for filter chips with two UI modes:
- * - Selector mode: Shows preset label, acts as dropdown trigger
- * - Input mode: Shows editable text input with clear and dropdown buttons (default)
- *
+ * Calendar component for filter chips.
+ * Shows an input field (disabled when preset selected) with a dropdown for presets.
  * Calendar is always visible below.
  */
 function SingleDateCalendar({ value, onChange }: SingleDateCalendarProps) {
   const [preset, setPreset] = useState<DatePreset | null>(null);
   const [draft, setDraft] = useState<string | null>(null);
   const [isValid, setIsValid] = useState(true);
+  const [displayMonth, setDisplayMonth] = useState<Date>(() => new Date());
 
   const dateValue = parseValue(value);
-  const displayValue =
-    draft ?? (dateValue ? formatDateForDisplay(dateValue) : "");
-  const mode = getMode(preset, draft);
+  const isPresetMode = preset !== null && draft === null;
+  const displayValue = isPresetMode
+    ? PRESET_LABELS[preset]
+    : (draft ?? (dateValue ? formatDateForDisplay(dateValue) : ""));
+
+  // Sync displayMonth when value changes externally
+  useEffect(() => {
+    if (dateValue) {
+      setDisplayMonth(getMonthStart(dateValue));
+    }
+  }, [dateValue]);
 
   const handlePresetSelect = (selected: DatePreset | "custom") => {
     if (selected === "custom") {
@@ -131,6 +131,7 @@ function SingleDateCalendar({ value, onChange }: SingleDateCalendarProps) {
       setDraft(null);
       setIsValid(true);
       const date = getDateFromPreset(selected);
+      setDisplayMonth(getMonthStart(date));
       onChange(toDateOnlyString(date));
     }
   };
@@ -158,6 +159,7 @@ function SingleDateCalendar({ value, onChange }: SingleDateCalendarProps) {
       const formatted = formatDateForDisplay(parsed);
       setDraft(formatted);
       setIsValid(true);
+      setDisplayMonth(getMonthStart(parsed));
       onChange(toDateOnlyString(parsed));
     } else {
       setIsValid(false);
@@ -168,77 +170,67 @@ function SingleDateCalendar({ value, onChange }: SingleDateCalendarProps) {
     setPreset(null);
     setDraft(null);
     setIsValid(true);
+    if (date) {
+      setDisplayMonth(getMonthStart(date));
+    }
     onChange(date ? toDateOnlyString(date) : "");
   };
 
-  const handleClear = () => {
-    setPreset(null);
-    setDraft(null);
-    setIsValid(true);
-    onChange("");
-  };
-
   const presetMenuContent = (
-    <DropdownMenuContent align="start" className="w-48">
+    <DropdownMenuContent align="start" className="w-auto">
       {DATE_PRESETS.map((presetOption) => (
-        <DropdownMenuItem
+        <DropdownMenuCheckboxItem
+          checked={preset === presetOption.value}
           key={presetOption.value}
-          onClick={() => handlePresetSelect(presetOption.value)}
+          onCheckedChange={() => handlePresetSelect(presetOption.value)}
         >
-          <span className="flex-1">{presetOption.label}</span>
-          {preset === presetOption.value && <CheckIcon className="size-4" />}
-        </DropdownMenuItem>
+          {presetOption.label}
+        </DropdownMenuCheckboxItem>
       ))}
-      <DropdownMenuItem onClick={() => handlePresetSelect("custom")}>
-        <span className="flex-1">Custom date</span>
-        {preset === null && draft !== null && <CheckIcon className="size-4" />}
-      </DropdownMenuItem>
+      <DropdownMenuCheckboxItem
+        checked={preset === null && draft !== null}
+        onCheckedChange={() => handlePresetSelect("custom")}
+      >
+        Custom date
+      </DropdownMenuCheckboxItem>
     </DropdownMenuContent>
   );
 
   return (
     <div className="flex flex-col items-center">
-      {!isValid && (
-        <span className="mb-1 text-destructive text-sm">Invalid date</span>
-      )}
-
-      {mode === "input" ? (
-        <InputGroup className={cn(!isValid && "border-destructive")}>
-          <InputGroupInput
-            onBlur={handleBlur}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Select or type a date..."
-            value={displayValue}
-          />
-          <InputGroupAddon align="inline-end">
-            <InputGroupButton onClick={handleClear} size="icon-sm">
-              <XIcon className="size-3.5" />
-            </InputGroupButton>
-            <DropdownMenu>
-              <DropdownMenuTrigger render={<InputGroupButton size="icon-sm" />}>
-                <ChevronDownIcon className="size-3.5" />
-              </DropdownMenuTrigger>
-              {presetMenuContent}
-            </DropdownMenu>
-          </InputGroupAddon>
-        </InputGroup>
-      ) : (
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button className="w-full justify-between" variant="outline" />
-            }
-          >
-            <span>{preset ? PRESET_LABELS[preset] : "Select a date..."}</span>
-            <ChevronDownIcon className="size-4 opacity-50" />
-          </DropdownMenuTrigger>
-          {presetMenuContent}
-        </DropdownMenu>
-      )}
+      <InputGroup className={cn(!isValid && "border-destructive")}>
+        <InputGroupInput
+          className="disabled:opacity-100"
+          disabled={isPresetMode}
+          onBlur={handleBlur}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          placeholder="Select or type a date..."
+          type="search"
+          value={displayValue}
+        />
+        <InputGroupAddon align="inline-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <InputGroupButton
+                  aria-label="Select a date"
+                  size="icon-xs"
+                  variant="ghost"
+                />
+              }
+            >
+              <ChevronDownIcon />
+            </DropdownMenuTrigger>
+            {presetMenuContent}
+          </DropdownMenu>
+        </InputGroupAddon>
+      </InputGroup>
 
       <Calendar
         mode="single"
+        month={displayMonth}
+        onMonthChange={setDisplayMonth}
         onSelect={handleCalendarSelect}
         selected={dateValue}
       />
