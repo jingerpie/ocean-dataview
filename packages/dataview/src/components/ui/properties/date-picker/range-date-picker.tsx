@@ -13,6 +13,7 @@ import {
   formatDateForDisplay,
   parseDate,
   parseValue,
+  toDateOnlyString,
 } from "@ocean-dataview/dataview/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { type ChangeEvent, type KeyboardEvent, useState } from "react";
@@ -76,7 +77,7 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
       const formatted = formatDateForDisplay(parsed);
       setFromDraft(formatted);
       setFromValid(true);
-      onChange({ ...value, from: parsed.toISOString() });
+      onChange({ ...value, from: toDateOnlyString(parsed) });
     } else {
       setFromValid(false);
     }
@@ -93,7 +94,7 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
       const formatted = formatDateForDisplay(parsed);
       setToDraft(formatted);
       setToValid(true);
-      onChange({ ...value, to: parsed.toISOString() });
+      onChange({ ...value, to: toDateOnlyString(parsed) });
     } else {
       setToValid(false);
     }
@@ -119,8 +120,8 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
     setFromValid(true);
     setToValid(true);
     onChange({
-      from: range?.from?.toISOString(),
-      to: range?.to?.toISOString(),
+      from: range?.from ? toDateOnlyString(range.from) : undefined,
+      to: range?.to ? toDateOnlyString(range.to) : undefined,
     });
   };
 

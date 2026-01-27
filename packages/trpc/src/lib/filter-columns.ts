@@ -12,6 +12,7 @@ import {
   endOfMonth,
   endOfWeek,
   endOfYear,
+  parseISO,
   startOfDay,
   startOfMonth,
   startOfWeek,
@@ -39,6 +40,28 @@ import {
   sql,
   type Table,
 } from "drizzle-orm";
+
+// ============================================
+// Date-only string helpers for midnight boundary logic
+// ============================================
+
+/** Regex to detect date-only strings (YYYY-MM-DD) */
+const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Check if value is a date-only string (no time component) */
+function isDateOnlyString(value: unknown): value is string {
+  return typeof value === "string" && DATE_ONLY_REGEX.test(value);
+}
+
+/** Get midnight (00:00:00) of the date */
+function toMidnight(dateStr: string): Date {
+  return startOfDay(parseISO(dateStr));
+}
+
+/** Get midnight (00:00:00) of the next day */
+function toNextMidnight(dateStr: string): Date {
+  return addDays(startOfDay(parseISO(dateStr)), 1);
+}
 
 /**
  * Converts filter array to Drizzle SQL conditions.
@@ -149,27 +172,50 @@ function buildCondition<T extends Table>(
         : undefined;
 
     // ============================================
-    // Equality conditions
+    // Equality conditions (with date-only midnight boundary support)
     // ============================================
     case "eq":
+      // Date-only strings: match entire day (>= day 00:00 AND < nextDay 00:00)
+      if (isDateOnlyString(value)) {
+        return and(
+          gte(column, toMidnight(value)),
+          lt(column, toNextMidnight(value))
+        );
+      }
       return eq(column, value);
 
     case "ne":
       return ne(column, value);
 
     // ============================================
-    // Comparison conditions
+    // Comparison conditions (with date-only midnight boundary support)
     // ============================================
     case "lt":
+      // Date-only: "before Nov 5" means < Nov 5 00:00
+      if (isDateOnlyString(value)) {
+        return lt(column, toMidnight(value));
+      }
       return lt(column, value);
 
     case "lte":
+      // Date-only: "on or before Nov 5" means < Nov 6 00:00
+      if (isDateOnlyString(value)) {
+        return lt(column, toNextMidnight(value));
+      }
       return lte(column, value);
 
     case "gt":
+      // Date-only: "after Nov 5" means >= Nov 6 00:00
+      if (isDateOnlyString(value)) {
+        return gte(column, toNextMidnight(value));
+      }
       return gt(column, value);
 
     case "gte":
+      // Date-only: "on or after Nov 5" means >= Nov 5 00:00
+      if (isDateOnlyString(value)) {
+        return gte(column, toMidnight(value));
+      }
       return gte(column, value);
 
     // ============================================
@@ -182,17 +228,27 @@ function buildCondition<T extends Table>(
       return Array.isArray(value) ? notInArray(column, value) : undefined;
 
     // ============================================
-    // Range condition
+    // Range condition (with date-only midnight boundary support)
     // ============================================
     case "isBetween":
       if (Array.isArray(value) && value.length === 2) {
         const [min, max] = value;
         const conditions: SQL[] = [];
         if (min != null) {
-          conditions.push(gte(column, min));
+          // Date-only: use >= day 00:00
+          conditions.push(
+            isDateOnlyString(min)
+              ? gte(column, toMidnight(min))
+              : gte(column, min)
+          );
         }
         if (max != null) {
-          conditions.push(lte(column, max));
+          // Date-only: use < nextDay 00:00 (includes all of max day)
+          conditions.push(
+            isDateOnlyString(max)
+              ? lt(column, toNextMidnight(max))
+              : lte(column, max)
+          );
         }
         return conditions.length > 0 ? and(...conditions) : undefined;
       }

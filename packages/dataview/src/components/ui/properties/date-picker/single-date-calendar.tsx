@@ -19,6 +19,7 @@ import {
   formatDateForDisplay,
   parseDate,
   parseValue,
+  toDateOnlyString,
 } from "@ocean-dataview/dataview/lib/utils";
 import {
   addDays,
@@ -67,7 +68,7 @@ const PRESET_LABELS: Record<DatePreset, string> = {
 interface SingleDateCalendarProps {
   /** Current value (ISO string or timestamp) */
   value: string | number | undefined;
-  /** Callback when value changes (receives ISO string) */
+  /** Callback when value changes (receives date-only string YYYY-MM-DD) */
   onChange: (value: string) => void;
 }
 
@@ -130,7 +131,7 @@ function SingleDateCalendar({ value, onChange }: SingleDateCalendarProps) {
       setDraft(null);
       setIsValid(true);
       const date = getDateFromPreset(selected);
-      onChange(date.toISOString());
+      onChange(toDateOnlyString(date));
     }
   };
 
@@ -157,7 +158,7 @@ function SingleDateCalendar({ value, onChange }: SingleDateCalendarProps) {
       const formatted = formatDateForDisplay(parsed);
       setDraft(formatted);
       setIsValid(true);
-      onChange(parsed.toISOString());
+      onChange(toDateOnlyString(parsed));
     } else {
       setIsValid(false);
     }
@@ -167,7 +168,7 @@ function SingleDateCalendar({ value, onChange }: SingleDateCalendarProps) {
     setPreset(null);
     setDraft(null);
     setIsValid(true);
-    onChange(date?.toISOString() ?? "");
+    onChange(date ? toDateOnlyString(date) : "");
   };
 
   const handleClear = () => {

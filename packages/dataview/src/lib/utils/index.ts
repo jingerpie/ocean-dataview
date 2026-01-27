@@ -7,6 +7,7 @@ export {
   formatDateForDisplay,
   parseDate,
   parseValue,
+  toDateOnlyString,
 } from "./date-picker-utils";
 export { groupByField } from "./group";
 export { paginateData } from "./paginate";
