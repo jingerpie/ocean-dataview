@@ -33,8 +33,8 @@ export const dataTableConfig = {
     { label: "Is not empty", value: "isNotEmpty" as const },
   ],
   selectConditions: [
-    { label: "Is", value: "eq" as const },
-    { label: "Is not", value: "ne" as const },
+    { label: "Is", value: "inArray" as const },
+    { label: "Is not", value: "notInArray" as const },
     { label: "Is empty", value: "isEmpty" as const },
     { label: "Is not empty", value: "isNotEmpty" as const },
   ],
