@@ -18,8 +18,9 @@ export const productRouter = router({
       const { after, before } = getCursorParams(cursor ?? undefined);
 
       // Build filter/search WHERE
-      const searchWhere = buildWhere(product, search ?? null);
-      const filterWhere = buildWhere(product, filter ?? null);
+      // search is SearchQuery ({ or: [...] }), wrap in array for buildWhere
+      const searchWhere = buildWhere(product, search ? [search] : null);
+      const filterWhere = buildWhere(product, filter);
 
       // Determine pagination direction
       const isBackward = !!before;
@@ -32,7 +33,7 @@ export const productRouter = router({
               ...sort,
               {
                 property: "id",
-                direction: sort.at(-1)?.direction ?? "desc",
+                direction: "desc",
               },
             ]
           : [

@@ -6,13 +6,12 @@ import {
 } from "nuqs/server";
 import { z } from "zod";
 import {
-  type FilterQuery,
-  filterQuerySchema,
   isWhereExpression,
   isWhereRule,
   type SortQuery,
   searchQuerySchema,
   type WhereNode,
+  whereNodeSchema,
 } from "../types/data-table.type";
 import {
   type Cursors,
@@ -111,20 +110,18 @@ const transformCodeToUrl = (node: WhereNode): unknown => {
 // Validators (for NUQS JSON parsing)
 // ============================================================================
 
-const filterQueryValidator = (value: unknown): FilterQuery | null => {
+const filterValidator = (value: unknown): WhereNode[] | null => {
   // URL format is just an array (root AND is implicit)
   if (!Array.isArray(value)) {
     return null;
   }
 
   // Transform URL format to code format
-  const transformedAnd = value
+  const transformed = value
     .map(transformUrlToCode)
     .filter((n): n is WhereNode => n !== null);
 
-  const transformed: FilterQuery = { and: transformedAnd };
-  const result = filterQuerySchema.safeParse(transformed);
-  return result.success ? result.data : null;
+  return transformed;
 };
 
 /**
@@ -207,7 +204,8 @@ export const createSearchParamsSchema = <T extends z.ZodRawShape>(
     cursor: z.union([cursorValueSchema, z.string()]).nullish(),
     limit: z.number().int().min(1).max(200).default(DEFAULT_LIMIT),
     search: searchQuerySchema.nullish(),
-    filter: filterQuerySchema
+    filter: z
+      .array(whereNodeSchema)
       .nullish()
       .transform((f) => (f ? validateFilter(f) : null)),
     sort: z.array(sortEntrySchema).default([]).transform(validateSort),
@@ -220,7 +218,7 @@ export const createSearchParamsSchema = <T extends z.ZodRawShape>(
 
 const sharedParsers = {
   limit: parseAsInteger.withDefault(DEFAULT_LIMIT),
-  filter: parseAsJson(filterQueryValidator),
+  filter: parseAsJson(filterValidator),
   sort: parseAsJson(sortValidator).withDefault([]),
   search: createParser({
     parse: (v) => (typeof v === "string" ? v : ""),
@@ -286,17 +284,16 @@ export const parseAsExpanded = createParser({
 });
 
 export const parseAsFilter = createParser({
-  parse: (value: string): FilterQuery | null => {
+  parse: (value: string): WhereNode[] | null => {
     try {
       const parsed = JSON.parse(value);
-      return filterQueryValidator(parsed);
+      return filterValidator(parsed);
     } catch {
       return null;
     }
   },
-  // Serialize without root {"and":} wrapper - just the array
-  serialize: (value: FilterQuery) =>
-    JSON.stringify(value.and.map(transformCodeToUrl)),
+  serialize: (value: WhereNode[]) =>
+    JSON.stringify(value.map(transformCodeToUrl)),
 });
 
 export const parseAsSort = createParser({

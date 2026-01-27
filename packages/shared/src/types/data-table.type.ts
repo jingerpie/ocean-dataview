@@ -76,13 +76,6 @@ export interface SearchQuery {
   or: WhereRule[];
 }
 
-/**
- * Filter parameter - always AND at root, can nest
- */
-export interface FilterQuery {
-  and: WhereNode[];
-}
-
 // ============================================================================
 // Zod Schemas
 // ============================================================================
@@ -147,13 +140,6 @@ export const whereNodeSchema: z.ZodType<WhereNode> = z.union([
  */
 export const searchQuerySchema: z.ZodType<SearchQuery> = z.object({
   or: z.array(whereRuleSchema),
-});
-
-/**
- * Schema for FilterQuery - always { and: WhereNode[] }
- */
-export const filterQuerySchema: z.ZodType<FilterQuery> = z.object({
-  and: z.array(whereNodeSchema),
 });
 
 // ============================================================================

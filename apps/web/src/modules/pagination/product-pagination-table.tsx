@@ -26,7 +26,7 @@ import { productProperties } from "./product-properties";
 interface PaginationProps {
   cursor?: CursorValue | null;
   limit: number;
-  filter?: WhereNode | null;
+  filter?: WhereNode[] | null;
   /** Raw search string from URL (for UI display) */
   search?: string;
   sorts?: SortQuery[];

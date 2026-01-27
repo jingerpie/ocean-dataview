@@ -48,19 +48,30 @@ export function createDefaultCondition(
 // ============================================================================
 
 /**
- * Normalize a filter to always be a where expression (or null)
- * Wraps single conditions in an AND group
+ * Normalize a filter to WhereNode[] format.
+ * - null/undefined → null
+ * - WhereNode[] → returns as-is
+ * - WhereExpression → unwraps .and array (legacy support)
  */
 export function normalizeFilter(
-  filter: WhereNode | null | undefined
-): WhereExpression | null {
+  filter: WhereNode[] | WhereExpression | null | undefined
+): WhereNode[] | null {
   if (!filter) {
     return null;
   }
-  if (isWhereRule(filter)) {
-    return { and: [filter] };
+  // Already an array
+  if (Array.isArray(filter)) {
+    return filter;
   }
-  return filter;
+  // Legacy WhereExpression format - unwrap
+  if ("and" in filter && filter.and) {
+    return filter.and;
+  }
+  if ("or" in filter && filter.or) {
+    // OR at root - wrap in array as single expression
+    return [filter];
+  }
+  return null;
 }
 
 // ============================================================================
@@ -97,14 +108,14 @@ function countRules(node: WhereNode): number {
 /**
  * Analyze a filter to separate simple conditions from advanced filter.
  *
- * Root level is always { and: [...] }
+ * Root is WhereNode[] (implicit AND)
  * - Simple filters (chips) = WhereRule items at root
  * - Advanced filter = WhereExpression item at root (first one found)
  * - Both can coexist, combined with AND logic
  */
-export function analyzeFilter(filter: WhereNode | null): FilterAnalysis {
+export function analyzeFilter(filter: WhereNode[] | null): FilterAnalysis {
   // Empty filter
-  if (!filter) {
+  if (!filter || filter.length === 0) {
     return {
       simpleConditions: [],
       advancedFilter: null,
@@ -114,36 +125,12 @@ export function analyzeFilter(filter: WhereNode | null): FilterAnalysis {
     };
   }
 
-  // Single condition (legacy/simple case) - treat as simple
-  if (isWhereRule(filter)) {
-    return {
-      simpleConditions: [{ condition: filter, index: 0 }],
-      advancedFilter: null,
-      advancedFilterIndex: null,
-      needsNormalization: true, // Should wrap in { and: [...] }
-      ruleCount: 1,
-    };
-  }
-
-  // OR at root (invalid for simple UI) - treat as advanced
-  if ("or" in filter && !("and" in filter)) {
-    return {
-      simpleConditions: [],
-      advancedFilter: filter,
-      advancedFilterIndex: 0,
-      needsNormalization: true, // Should wrap in { and: [filter] }
-      ruleCount: countRules(filter),
-    };
-  }
-
-  // Normal AND at root
-  const items = filter.and ?? [];
   const simpleConditions: Array<{ condition: WhereRule; index: number }> = [];
   let advancedFilter: WhereExpression | null = null;
   let advancedFilterIndex: number | null = null;
   let compoundCount = 0;
 
-  for (const [index, item] of items.entries()) {
+  for (const [index, item] of filter.entries()) {
     if (isWhereRule(item)) {
       simpleConditions.push({ condition: item, index });
     } else if (isWhereExpression(item)) {
@@ -165,46 +152,35 @@ export function analyzeFilter(filter: WhereNode | null): FilterAnalysis {
 }
 
 /**
- * Normalize filter structure to ensure consistent { and: [...] } root.
+ * Normalize filter structure - merges multiple WhereExpressions into one.
  * Called on save/modify to ensure consistent structure.
  */
 export function normalizeFilterStructure(
-  filter: WhereNode | null
-): WhereExpression | null {
-  if (!filter) {
+  filter: WhereNode[] | null
+): WhereNode[] | null {
+  if (!filter || filter.length === 0) {
     return null;
   }
 
-  // Single condition → wrap in { and: [...] }
-  if (isWhereRule(filter)) {
-    return { and: [filter] };
-  }
+  const compounds = filter.filter(isWhereExpression);
+  const conditions = filter.filter(isWhereRule);
 
-  // OR at root → wrap in { and: [...] }
-  if ("or" in filter && !("and" in filter)) {
-    return { and: [filter] };
-  }
-
-  // Multiple WhereExpressions at root → merge into first
-  const items = filter.and ?? [];
-  const compounds = items.filter(isWhereExpression);
-  const conditions = items.filter(isWhereRule);
-
+  // No merging needed if 0 or 1 compound
   if (compounds.length <= 1) {
-    return filter as WhereExpression;
+    return filter;
   }
 
   // Merge all compounds into one (preserve first's logic)
   const firstCompound = compounds[0];
   if (!firstCompound) {
-    return filter as WhereExpression;
+    return filter;
   }
   const firstLogic = "and" in firstCompound ? "and" : "or";
   const mergedItems = compounds.flatMap((c) => c.and ?? c.or ?? []);
   const mergedAdvanced: WhereExpression =
     firstLogic === "and" ? { and: mergedItems } : { or: mergedItems };
 
-  return { and: [mergedAdvanced, ...conditions] };
+  return [mergedAdvanced, ...conditions];
 }
 
 // ============================================================================

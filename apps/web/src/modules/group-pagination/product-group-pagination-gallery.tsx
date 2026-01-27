@@ -24,7 +24,7 @@ interface Props {
   expanded: string[] | null;
   cursors: unknown; // Not used for infinite pagination, but passed from page
   limit: number;
-  filter?: WhereNode | null;
+  filter?: WhereNode[] | null;
   /** Search filter (converted from URL ?search=xxx by server page) */
   search?: WhereNode | null;
   sort?: SortQuery[];

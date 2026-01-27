@@ -18,7 +18,7 @@ import { productProperties } from "./product-properties";
 
 interface ProductPaginationGalleryProps {
   limit: number;
-  filter?: WhereNode | null;
+  filter?: WhereNode[] | null;
   /** Raw search string from URL (for UI display) */
   search?: string;
   sort?: SortQuery[];

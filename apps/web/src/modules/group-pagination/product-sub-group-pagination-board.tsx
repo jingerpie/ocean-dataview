@@ -25,7 +25,7 @@ import { productProperties } from "./product-properties";
 interface Props {
   cursors: Cursors;
   limit: number;
-  filter?: WhereNode | null;
+  filter?: WhereNode[] | null;
   /** Search filter (converted from URL ?search=xxx by server page) */
   search?: WhereNode | null;
   sort?: SortQuery[];

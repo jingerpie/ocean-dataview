@@ -1,23 +1,25 @@
 import type { WhereNode, WhereRule } from "../types";
 
 /**
- * Combines a group filter with an optional user filter.
+ * Combines a group filter with an optional user filter array.
  * Used in grouped views where each group needs its own query.
+ *
+ * @returns Array of WhereNodes for use with buildWhere
  */
 export function combineGroupFilter(
   groupProperty: string,
   groupKey: string,
-  userFilter: WhereNode | null
-): WhereNode {
+  userFilter: WhereNode[] | null
+): WhereNode[] {
   const groupRule: WhereRule = {
     property: groupProperty,
     condition: "eq",
     value: groupKey,
   };
 
-  if (!userFilter) {
-    return { and: [groupRule] };
+  if (!userFilter || userFilter.length === 0) {
+    return [groupRule];
   }
 
-  return { and: [groupRule, userFilter] };
+  return [groupRule, ...userFilter];
 }

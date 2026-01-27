@@ -9,13 +9,8 @@ import {
 import { useAdvanceFilterBuilder } from "@ocean-dataview/dataview/hooks";
 import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type { WhereExpression, WhereNode } from "@ocean-dataview/shared/types";
-import {
-  createDefaultCondition,
-  normalizeFilter,
-} from "@ocean-dataview/shared/utils";
 import { ChevronDownIcon, ListFilterIcon, TrashIcon } from "lucide-react";
 import { Separator } from "../../separator";
-import { AddFilterButton } from "./add-filter-button";
 import { FilterGroup } from "./filter-group";
 
 interface AdvancedFilterChipProps {
@@ -45,23 +40,6 @@ export function AdvancedFilterChip({
 
   const ruleText = ruleCount === 1 ? "1 rule" : `${ruleCount} rules`;
 
-  // Normalize filter to always work with compound filters internally
-  const normalizedFilter = normalizeFilter(filter);
-
-  // Handle adding the first rule
-  const handleAddFirstRule = (
-    condition: ReturnType<typeof createDefaultCondition>
-  ) => {
-    onFilterChange({ and: [{ and: [condition] }] });
-  };
-
-  // Handle adding the first group
-  const handleAddFirstGroup = () => {
-    const defaultProperty = properties[0]?.id ? String(properties[0].id) : "";
-    const defaultCondition = createDefaultCondition(defaultProperty);
-    onFilterChange({ and: [{ and: [defaultCondition] }] });
-  };
-
   // Handle filter changes from FilterGroup
   const handleFilterChange = (newFilter: WhereExpression) => {
     onFilterChange(newFilter);
@@ -83,23 +61,14 @@ export function AdvancedFilterChip({
       <PopoverContent align="start" className="w-auto min-w-64 p-1">
         <div className="flex flex-col gap-1">
           {/* Filter Content */}
-          {normalizedFilter ? (
-            <FilterGroup
-              filter={normalizedFilter}
-              isFirst={true}
-              level={0}
-              onChange={handleFilterChange}
-              onRemove={handleDeleteFilter}
-              properties={properties}
-            />
-          ) : (
-            <AddFilterButton
-              canAddGroup={true}
-              onAddGroup={handleAddFirstGroup}
-              onAddRule={handleAddFirstRule}
-              properties={properties}
-            />
-          )}
+          <FilterGroup
+            filter={filter}
+            isFirst={true}
+            level={0}
+            onChange={handleFilterChange}
+            onRemove={handleDeleteFilter}
+            properties={properties}
+          />
 
           <Separator />
 

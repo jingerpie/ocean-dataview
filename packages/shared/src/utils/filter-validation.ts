@@ -39,36 +39,22 @@ function isRuleValid(rule: WhereRule): boolean {
 }
 
 /**
- * Validate and clean a filter, removing conditions with empty values.
- * Returns null if the filter becomes empty after validation.
- *
- * @example
- * ```ts
- * // Input: { and: [{ property: "name", condition: "eq", value: "" }] }
- * // Output: null (empty string is invalid)
- *
- * // Input: { and: [{ property: "status", condition: "isEmpty" }] }
- * // Output: same (isEmpty doesn't need a value)
- * ```
+ * Validate a single WhereNode, returning null if invalid.
  */
-export function validateFilter(filter: WhereNode | null): WhereNode | null {
-  if (!filter) {
-    return null;
-  }
-
+function validateNode(node: WhereNode): WhereNode | null {
   // Single rule
-  if (isWhereRule(filter)) {
-    return isRuleValid(filter) ? filter : null;
+  if (isWhereRule(node)) {
+    return isRuleValid(node) ? node : null;
   }
 
   // Compound filter
-  if (isWhereExpression(filter)) {
-    const logic = getFilterLogic(filter);
-    const items = getFilterItems(filter);
+  if (isWhereExpression(node)) {
+    const logic = getFilterLogic(node);
+    const items = getFilterItems(node);
 
     // Recursively validate each item
     const validItems = items
-      .map((item) => validateFilter(item))
+      .map((item) => validateNode(item))
       .filter((item): item is WhereNode => item !== null);
 
     // If no valid items, return null
@@ -80,4 +66,29 @@ export function validateFilter(filter: WhereNode | null): WhereNode | null {
   }
 
   return null;
+}
+
+/**
+ * Validate and clean a filter array, removing conditions with empty values.
+ * Returns null if the filter becomes empty after validation.
+ *
+ * @example
+ * ```ts
+ * // Input: [{ property: "name", condition: "eq", value: "" }]
+ * // Output: null (empty string is invalid)
+ *
+ * // Input: [{ property: "status", condition: "isEmpty" }]
+ * // Output: same (isEmpty doesn't need a value)
+ * ```
+ */
+export function validateFilter(filter: WhereNode[] | null): WhereNode[] | null {
+  if (!filter || filter.length === 0) {
+    return null;
+  }
+
+  const validItems = filter
+    .map((item) => validateNode(item))
+    .filter((item): item is WhereNode => item !== null);
+
+  return validItems.length > 0 ? validItems : null;
 }

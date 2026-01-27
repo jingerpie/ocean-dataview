@@ -1,6 +1,6 @@
 import { getSearchableProperties } from "@ocean-dataview/dataview/types";
 import { paginationParams } from "@ocean-dataview/shared/lib";
-import type { FilterQuery, SearchParams } from "@ocean-dataview/shared/types";
+import type { SearchParams, WhereNode } from "@ocean-dataview/shared/types";
 import { buildSearchFilter } from "@ocean-dataview/shared/utils";
 import { Tabs, TabsContent } from "@ocean-dataview/ui/components/tabs";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
@@ -15,26 +15,24 @@ import { getQueryClient, trpc } from "@/utils/trpc/server";
  * Default values for the pagination view when URL params are empty.
  * These are applied server-side before prefetch and passed to client.
  */
-const VIEW_DEFAULTS: { filter: FilterQuery } = {
-  filter: {
-    and: [
-      {
-        property: "type",
-        condition: "eq",
-        value: "ITEM",
-      },
-      {
-        property: "name",
-        condition: "iLike",
-        value: "Toy",
-      },
-      {
-        property: "minCalories",
-        condition: "eq",
-        value: "0",
-      },
-    ],
-  },
+const VIEW_DEFAULTS: { filter: WhereNode[] } = {
+  filter: [
+    {
+      property: "type",
+      condition: "eq",
+      value: "ITEM",
+    },
+    {
+      property: "name",
+      condition: "iLike",
+      value: "Toy",
+    },
+    {
+      property: "minCalories",
+      condition: "eq",
+      value: "0",
+    },
+  ],
 };
 
 interface PageProps {

@@ -1,8 +1,7 @@
 "use client";
 
 import { parseAsFilter } from "@ocean-dataview/shared/lib";
-import type { FilterQuery, WhereNode } from "@ocean-dataview/shared/types";
-import { normalizeFilter } from "@ocean-dataview/shared/utils";
+import type { WhereNode } from "@ocean-dataview/shared/types";
 import { useDebouncer } from "@tanstack/react-pacer";
 import { useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
@@ -11,14 +10,14 @@ import { useDataViewContext } from "../lib/providers";
 const FILTER_DEBOUNCE_MS = 150;
 
 /** Empty filter sentinel - written to URL when user explicitly clears filter */
-const EMPTY_FILTER: FilterQuery = { and: [] };
+const EMPTY_FILTER: WhereNode[] = [];
 
 /**
  * Hook for managing filter state with debouncing.
  *
  * - Reads from DataViewContext defaults (server props)
  * - Writes to URL via nuqs (triggers server re-render)
- * - Uses empty filter `{ and: [] }` in URL to distinguish "cleared" from "use default"
+ * - Uses empty filter `[]` in URL to distinguish "cleared" from "use default"
  *
  * Debouncing: 150ms with leading edge (first click fires immediately,
  * subsequent rapid clicks are batched)
@@ -44,14 +43,14 @@ export function useFilterParams() {
   );
 
   // Local state for immediate UI updates (initialized from server)
-  const [localFilter, setLocalFilter] = useState<WhereNode | null>(
+  const [localFilter, setLocalFilter] = useState<WhereNode[] | null>(
     serverFilter
   );
 
   // Debounced URL update with leading: true for responsive first click
   const urlDebouncer = useDebouncer(
-    (normalized: FilterQuery) => {
-      setUrlFilterState(normalized);
+    (filter: WhereNode[]) => {
+      setUrlFilterState(filter);
     },
     { wait: FILTER_DEBOUNCE_MS, leading: true, trailing: true }
   );
@@ -66,9 +65,8 @@ export function useFilterParams() {
     return () => urlDebouncer.flush();
   }, [urlDebouncer]);
 
-  // Set the entire filter object (replaces previous filter)
-  // Normalizes WhereNode to FilterQuery format ({ and: [...] })
-  const setFilter = (newFilter: WhereNode | null) => {
+  // Set the entire filter array (replaces previous filter)
+  const setFilter = (newFilter: WhereNode[] | null) => {
     setLocalFilter(newFilter);
 
     if (newFilter === null) {
@@ -76,9 +74,7 @@ export function useFilterParams() {
       urlDebouncer.maybeExecute(EMPTY_FILTER);
       return;
     }
-    // Normalize to ensure it's always { and: [...] } format for URL
-    const normalized = normalizeFilter(newFilter);
-    urlDebouncer.maybeExecute(normalized as FilterQuery);
+    urlDebouncer.maybeExecute(newFilter);
   };
 
   const clearFilter = () => {
@@ -88,11 +84,19 @@ export function useFilterParams() {
     setUrlFilterState(EMPTY_FILTER);
   };
 
+  /** Remove filter param from URL entirely, restoring to server defaults */
+  const resetFilter = () => {
+    setLocalFilter(serverFilter);
+    urlDebouncer.cancel();
+    setUrlFilterState(null);
+  };
+
   return {
     filter: localFilter,
     setFilter,
     clearFilter,
-    isFiltered: localFilter !== null,
+    resetFilter,
+    isFiltered: localFilter !== null && localFilter.length > 0,
     /** Immediately apply pending filter to URL */
     flush: () => urlDebouncer.flush(),
   };

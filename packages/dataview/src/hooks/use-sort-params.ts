@@ -97,12 +97,20 @@ export function useSortParams() {
     setUrlSortState(EMPTY_SORT);
   };
 
+  /** Remove sort param from URL entirely, restoring to server defaults */
+  const resetSort = () => {
+    setLocalSort(serverSort);
+    urlDebouncer.cancel();
+    setUrlSortState(null);
+  };
+
   return {
     sort: localSort,
     setSort,
     addSort,
     removeSort,
     clearSort,
+    resetSort,
     isSorted: localSort.length > 0,
     /** Immediately apply pending sort to URL */
     flush: () => urlDebouncer.flush(),

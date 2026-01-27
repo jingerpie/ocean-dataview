@@ -30,8 +30,8 @@ export type PaginationOutput<TData> =
 export interface DataViewDefaults {
   /** Default visible property IDs */
   visibility?: string[];
-  /** Current filter state (from server) */
-  filter?: WhereNode | null;
+  /** Current filter state (from server) - array of WhereNode (implicit AND) */
+  filter?: WhereNode[] | null;
   /** Current sort state (from server) */
   sort?: SortQuery[];
   /** Current search string (from server) */

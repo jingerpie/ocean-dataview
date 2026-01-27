@@ -77,9 +77,9 @@ export function NotionToolbar({
   const properties = propProperties ?? propertyMetas;
 
   // State managed via hooks that read from context defaults, write to URL
-  const { filter, setFilter: onFilterChange } = useFilterParams();
+  const { filter, setFilter: onFilterChange, resetFilter } = useFilterParams();
   const { search, setSearch: onSearchChange } = useSearchParams();
-  const { sort: sorts, setSort: onSortsChange } = useSortParams();
+  const { sort: sorts, setSort: onSortsChange, resetSort } = useSortParams();
 
   const {
     hasActiveControls,
@@ -145,6 +145,10 @@ export function NotionToolbar({
           advancedFilterIndex={advancedFilterIndex}
           filter={filter}
           onFilterChange={onFilterChange}
+          onReset={() => {
+            resetFilter();
+            resetSort();
+          }}
           onSortsChange={onSortsChange}
           properties={properties}
           ruleCount={ruleCount}

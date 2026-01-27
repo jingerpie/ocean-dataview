@@ -374,7 +374,6 @@ export type PropertyKeys<T extends readonly DataViewProperty<any>[]> =
 // Re-export filter types from shared package for unified system
 export type {
   FilterCondition,
-  FilterQuery,
   FilterVariant,
   SearchQuery,
   SortQuery,

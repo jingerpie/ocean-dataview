@@ -24,7 +24,6 @@ import {
   createDefaultCondition,
   getDefaultFilterCondition,
   getFilterVariantFromPropertyType,
-  normalizeFilter,
 } from "@ocean-dataview/shared/utils";
 import { ListFilterIcon, PlusIcon } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -95,8 +94,7 @@ function FilterPropertyPicker({
     if (!filter) {
       return false;
     }
-    const normalized = normalizeFilter(filter);
-    return (normalized?.and ?? []).some(isWhereExpression);
+    return filter.some(isWhereExpression);
   }, [filter]);
 
   // Compute property IDs already used in filter (for non-advance mode)
@@ -104,10 +102,7 @@ function FilterPropertyPicker({
     if (advance || !filter) {
       return [];
     }
-    const normalized = normalizeFilter(filter);
-    return (normalized?.and ?? [])
-      .filter(isWhereRule)
-      .map((rule) => rule.property);
+    return filter.filter(isWhereRule).map((rule) => rule.property);
   }, [advance, filter]);
 
   // Filter out:
@@ -148,12 +143,10 @@ function FilterPropertyPicker({
     const rule = createDefaultCondition(String(property.id), defaultCondition);
 
     // Add to existing filter or create new
-    const normalized = normalizeFilter(filter);
-    if (normalized) {
-      const items = normalized.and ?? [];
-      setFilter({ and: [...items, rule] });
+    if (filter) {
+      setFilter([...filter, rule]);
     } else {
-      setFilter({ and: [rule] });
+      setFilter([rule]);
     }
 
     setOpen(false);
@@ -170,16 +163,13 @@ function FilterPropertyPicker({
     const firstProperty = properties[0];
     if (firstProperty && !hasAdvancedFilter) {
       const defaultCondition = createDefaultCondition(String(firstProperty.id));
-      const normalized = normalizeFilter(filter);
 
-      if (normalized) {
+      if (filter) {
         // Has existing simple filters, add advanced filter alongside
-        setFilter({
-          and: [...(normalized.and ?? []), { and: [defaultCondition] }],
-        });
+        setFilter([...filter, { and: [defaultCondition] }]);
       } else {
         // No filter exists, create new with advanced filter structure
-        setFilter({ and: [{ and: [defaultCondition] }] });
+        setFilter([{ and: [defaultCondition] }]);
       }
     }
 

@@ -41,68 +41,71 @@ import {
 } from "drizzle-orm";
 
 /**
- * Converts filter to Drizzle SQL conditions.
- * Handles recursive AND/OR compound filters.
+ * Converts filter array to Drizzle SQL conditions.
+ * Root is always AND (implicit). Handles nested AND/OR expressions.
  *
  * @param table - Drizzle table schema
- * @param filter - Filter (single condition or compound AND/OR)
+ * @param filter - Array of WhereNode (WhereRule or WhereExpression)
  * @returns SQL condition or undefined if no valid filter
  *
  * @example
  * ```typescript
- * // Single condition
- * const where = buildWhere(listing, {
- *   property: "title",
- *   condition: "iLike",
- *   value: "phone"
- * });
+ * // Simple filter (array of rules)
+ * const where = buildWhere(listing, [
+ *   { property: "price", condition: "gt", value: 100 },
+ *   { property: "status", condition: "eq", value: "active" }
+ * ]);
  *
- * // Compound filter (AND)
- * const where = buildWhere(listing, {
- *   and: [
- *     { property: "price", condition: "gt", value: 100 },
- *     { property: "status", condition: "eq", value: "active" }
- *   ]
- * });
- *
- * // Nested (OR containing ANDs)
- * const where = buildWhere(listing, {
- *   or: [
- *     { and: [{ property: "price", condition: "gt", value: 100 }, { property: "status", condition: "eq", value: "active" }] },
- *     { and: [{ property: "featured", condition: "eq", value: true }] }
- *   ]
- * });
+ * // With nested OR
+ * const where = buildWhere(listing, [
+ *   { property: "status", condition: "eq", value: "active" },
+ *   { or: [
+ *     { property: "type", condition: "eq", value: "A" },
+ *     { property: "type", condition: "eq", value: "B" }
+ *   ]}
+ * ]);
  * ```
  */
 export function buildWhere<T extends Table>(
   table: T,
-  filter: WhereNode | null | undefined
+  filter: WhereNode[] | null | undefined
 ): SQL | undefined {
-  if (!filter) {
+  if (!filter || filter.length === 0) {
     return undefined;
   }
 
-  // Handle compound filter (AND/OR)
-  if (isWhereExpression(filter)) {
-    if (filter.and) {
-      const conditions = filter.and
-        .map((f) => buildWhere(table, f))
-        .filter((c): c is SQL => c !== undefined);
-      return conditions.length > 0 ? and(...conditions) : undefined;
-    }
+  const conditions = filter
+    .map((node) => buildNode(table, node))
+    .filter((c): c is SQL => c !== undefined);
 
-    if (filter.or) {
-      const conditions = filter.or
-        .map((f) => buildWhere(table, f))
+  return conditions.length > 0 ? and(...conditions) : undefined;
+}
+
+/**
+ * Recursively build SQL for any WhereNode (rule or expression)
+ */
+function buildNode<T extends Table>(
+  table: T,
+  node: WhereNode
+): SQL | undefined {
+  if (isWhereExpression(node)) {
+    if (node.or) {
+      const conditions = node.or
+        .map((n) => buildNode(table, n))
         .filter((c): c is SQL => c !== undefined);
       return conditions.length > 0 ? or(...conditions) : undefined;
     }
-
+    if (node.and) {
+      const conditions = node.and
+        .map((n) => buildNode(table, n))
+        .filter((c): c is SQL => c !== undefined);
+      return conditions.length > 0 ? and(...conditions) : undefined;
+    }
     return undefined;
   }
 
-  // Handle single rule
-  return buildCondition(table, filter);
+  // WhereRule
+  return buildCondition(table, node);
 }
 
 /**

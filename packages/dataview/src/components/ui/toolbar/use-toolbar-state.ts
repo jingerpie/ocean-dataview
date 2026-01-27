@@ -9,7 +9,7 @@ import { analyzeFilter } from "@ocean-dataview/shared/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export interface UseToolbarStateOptions {
-  filter: WhereNode | null;
+  filter: WhereNode[] | null;
   sorts: unknown[];
 }
 
@@ -39,8 +39,8 @@ export interface UseToolbarStateReturn {
  * Handles Row 2 visibility, filter analysis, and derived state.
  *
  * Filter structure:
- * - Root level is always { and: [...] }
- * - Simple filters (chips) = WhereCondition items at root
+ * - Root level is WhereNode[] (implicit AND)
+ * - Simple filters (chips) = WhereRule items at root
  * - Advanced filter = WhereExpression item at root (first one found)
  * - Both can coexist, combined with AND logic
  */

@@ -28,7 +28,7 @@ interface Props {
   expanded: string[] | null;
   cursors: Cursors;
   limit: number;
-  filter?: WhereNode | null;
+  filter?: WhereNode[] | null;
   /** Search query (converted from URL ?search=xxx by server page) */
   search?: WhereNode | null;
   sort?: SortQuery[];

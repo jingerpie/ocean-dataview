@@ -10,11 +10,6 @@ import type {
   WhereRule,
 } from "@ocean-dataview/shared/types";
 import {
-  normalizeFilter,
-  removeItem,
-  updateCondition,
-} from "@ocean-dataview/shared/utils";
-import {
   AdvancedFilterChip,
   FilterChip,
   FilterPropertyPicker,
@@ -26,10 +21,12 @@ interface ChipsBarProps {
   sorts: SortQuery[];
   /** Callback when sorts change */
   onSortsChange: (sorts: SortQuery[]) => void;
-  /** Current filter */
-  filter: WhereNode | null;
+  /** Current filter (array of WhereNode, implicit AND) */
+  filter: WhereNode[] | null;
   /** Callback when filter changes */
-  onFilterChange: (filter: WhereNode | null) => void;
+  onFilterChange: (filter: WhereNode[] | null) => void;
+  /** Callback to reset all filters and sorts (removes from URL) */
+  onReset: () => void;
   /** Available properties */
   properties: readonly PropertyMeta[];
   /** Advanced filter (WhereExpression at root level) */
@@ -58,6 +55,7 @@ export function ChipsBar({
   onSortsChange,
   filter,
   onFilterChange,
+  onReset,
   properties,
   advancedFilter,
   advancedFilterIndex,
@@ -65,35 +63,32 @@ export function ChipsBar({
   ruleCount,
   className,
 }: ChipsBarProps) {
-  // Get normalized filter for operations
-  const normalizedFilter = normalizeFilter(filter);
-
   // Handle updating a simple filter rule
   const handleRuleChange = (index: number, newRule: WhereRule) => {
-    if (!normalizedFilter) {
+    if (!filter) {
       return;
     }
-    onFilterChange(updateCondition(normalizedFilter, [index], newRule));
+    const newFilter = [...filter];
+    newFilter[index] = newRule;
+    onFilterChange(newFilter);
   };
 
   // Handle removing a simple filter rule
   const handleRuleRemove = (index: number) => {
-    if (!normalizedFilter) {
+    if (!filter) {
       return;
     }
-    const result = removeItem(normalizedFilter, [index]);
-    // Clean up empty filter - if no items left, set to null
-    const cleanResult = result.and?.length === 0 ? null : result;
-    onFilterChange(cleanResult);
+    const newFilter = filter.filter((_, i) => i !== index);
+    onFilterChange(newFilter.length > 0 ? newFilter : null);
   };
 
   // Handle adding a simple rule to advanced filter
   const handleAddToAdvanced = (index: number, rule: WhereRule) => {
-    if (!normalizedFilter) {
+    if (!filter) {
       return;
     }
 
-    const items = [...(normalizedFilter.and ?? [])];
+    const items = [...filter];
 
     // Remove the rule from root level
     items.splice(index, 1);
@@ -101,45 +96,41 @@ export function ChipsBar({
     if (advancedFilter && advancedFilterIndex !== null) {
       // Add to existing advanced filter
       const advancedItems = advancedFilter.and ?? advancedFilter.or ?? [];
-      const newAdvanced = advancedFilter.and
+      const newAdvanced: WhereExpression = advancedFilter.and
         ? { and: [...advancedItems, rule] }
         : { or: [...advancedItems, rule] };
       items[advancedFilterIndex] = newAdvanced;
     } else {
       // Create new advanced filter with wrapped structure
-      const newAdvanced = { and: [rule] };
+      const newAdvanced: WhereExpression = { and: [rule] };
       items.unshift(newAdvanced); // Add at beginning
     }
 
-    onFilterChange(items.length > 0 ? { and: items } : null);
+    onFilterChange(items.length > 0 ? items : null);
   };
 
   // Handle advanced filter changes
   const handleAdvancedFilterChange = (newAdvanced: WhereNode | null) => {
-    if (!normalizedFilter || advancedFilterIndex === null) {
+    if (!filter || advancedFilterIndex === null) {
       // No existing filter or advanced filter - set as new root
       if (newAdvanced) {
-        onFilterChange({ and: [newAdvanced] });
+        onFilterChange([newAdvanced]);
       } else {
         onFilterChange(null);
       }
       return;
     }
 
-    const items = [...(normalizedFilter.and ?? [])];
+    const items = [...filter];
 
     if (newAdvanced === null) {
       // Remove advanced filter
       items.splice(advancedFilterIndex, 1);
-      if (items.length === 0) {
-        onFilterChange(null);
-      } else {
-        onFilterChange({ and: items });
-      }
+      onFilterChange(items.length > 0 ? items : null);
     } else {
       // Update advanced filter at its index
       items[advancedFilterIndex] = newAdvanced;
-      onFilterChange({ and: items });
+      onFilterChange(items);
     }
   };
 
@@ -195,13 +186,10 @@ export function ChipsBar({
       {/* 4. + Filter Button */}
       <FilterPropertyPicker properties={properties} variant="inline" />
 
-      {/* 5. Clear All Button - Sticky to right */}
+      {/* 5. Reset Button - Removes filter/sort from URL to restore defaults */}
       <Button
         className="sticky right-0 ml-auto shrink-0 bg-background text-muted-foreground hover:text-foreground"
-        onClick={() => {
-          onFilterChange(null);
-          onSortsChange([]);
-        }}
+        onClick={onReset}
         size="sm"
         variant="ghost"
       >
