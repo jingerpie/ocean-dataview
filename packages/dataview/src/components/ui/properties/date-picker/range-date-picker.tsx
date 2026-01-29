@@ -138,7 +138,7 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
       <div className="flex w-full gap-2">
         <Input
           className={cn(
-            "w-0 flex-1",
+            "h-8 w-0 flex-1",
             !fromValid && "border-destructive focus-visible:ring-destructive"
           )}
           onBlur={handleFromBlur}
@@ -150,7 +150,7 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
         />
         <Input
           className={cn(
-            "w-0 flex-1",
+            "h-8 w-0 flex-1",
             !toValid && "border-destructive focus-visible:ring-destructive"
           )}
           onBlur={handleToBlur}

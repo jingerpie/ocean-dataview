@@ -86,7 +86,7 @@ function RelativeDateDropdowns({
         onValueChange={handleDirectionChange}
         value={direction}
       >
-        <SelectTrigger className="w-0 flex-1">
+        <SelectTrigger className="min-w-22 flex-1" size="sm">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -101,7 +101,7 @@ function RelativeDateDropdowns({
       {/* Count input - only show for past/next, fixed width */}
       {showCount && (
         <Input
-          className="w-16"
+          className="h-8 w-16"
           min={1}
           onChange={handleCountChange}
           type="number"
@@ -110,7 +110,7 @@ function RelativeDateDropdowns({
       )}
 
       <Select items={unitItems} onValueChange={handleUnitChange} value={unit}>
-        <SelectTrigger className="w-0 flex-1">
+        <SelectTrigger className="min-w-22 flex-1" size="sm">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
