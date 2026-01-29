@@ -107,12 +107,12 @@ function FilterPropertyPicker({
 
   // Filter out:
   // 1. Formula properties (can't filter computed values at database level)
-  // 2. Properties with filter: false
+  // 2. Properties with enableFilter: false
   // 3. Already-used properties (only when not in advance mode)
   const availableProperties = useMemo(() => {
-    // First, filter out formula properties and properties with filter: false
+    // First, filter out formula properties and properties with enableFilter: false
     const filterableProperties = properties.filter(
-      (p) => p.type !== "formula" && p.filter !== false
+      (p) => p.type !== "formula" && p.enableFilter !== false
     );
 
     if (advance) {

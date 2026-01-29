@@ -44,11 +44,11 @@ export function DataViewProvider<
   pagination,
   defaults,
 }: DataViewProviderProps<TData, TProperties>) {
-  // Get all property IDs that CAN be visible (visibility !== false in definition)
+  // Get all property IDs that CAN be visible (hidden !== true in definition)
   const visiblePropertyIds = useMemo(
     () =>
       properties
-        .filter((p) => p.visibility !== false)
+        .filter((p) => p.hidden !== true)
         .map((p) => p.id) as TProperties[number]["id"][],
     [properties]
   );
@@ -60,7 +60,7 @@ export function DataViewProvider<
   >(() => {
     // Inline computation since visiblePropertyIds memo isn't available yet
     const canBeVisible = properties
-      .filter((p) => p.visibility !== false)
+      .filter((p) => p.hidden !== true)
       .map((p) => p.id) as TProperties[number]["id"][];
 
     if (defaults?.visibility) {
@@ -116,7 +116,7 @@ export function DataViewProvider<
   }, []);
 
   // Hide all properties that CAN be hidden
-  // (properties with visibility: false in definition are already always hidden)
+  // (properties with hidden: true in definition are already always hidden)
   const hideAllProperties = useCallback(() => {
     setHiddenByUser(new Set(visiblePropertyIds));
   }, [visiblePropertyIds]);

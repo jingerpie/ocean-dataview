@@ -41,11 +41,11 @@ export function DataViewOptions({
   } = useDataViewContext();
 
   // Filter out:
-  // 1. Properties with visibility: false
+  // 1. Properties with hidden: true
   // 2. Excluded property IDs (e.g., grouped column)
   const availableProperties = propertyMetas.filter(
     (property) =>
-      property.visibility !== false &&
+      property.hidden !== true &&
       !excludedPropertyIds.some((id) => id === property.id)
   );
 

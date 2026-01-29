@@ -47,10 +47,10 @@ export const productProperties = [
     id: "image",
     label: "Image",
     type: "text",
-    visibility: false, // Hidden - used by imageDisplay formula
-    search: false,
-    filter: false,
-    sort: false,
+    hidden: true, // Hidden - used by imageDisplay formula
+    enableSearch: false,
+    enableFilter: false,
+    enableSort: false,
   },
   {
     id: "imageDisplay",

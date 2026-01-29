@@ -24,41 +24,41 @@ export interface BaseProperty<_T> {
   label?: string;
   type: PropertyType;
 
-  // ===== Constraint fields (all default to true) =====
+  // ===== Constraint fields =====
 
   /**
-   * Show as column & in visibility toggle.
-   * When false, the property is hidden from columns but can still be:
+   * Hide from columns & visibility toggle.
+   * When true, the property is hidden from columns but can still be:
    * - Rendered via property() in formulas
-   * - Available in filter picker (unless filter: false)
-   * - Available in sort picker (unless sort: false)
-   * - Included in search (unless search: false)
-   * @default true
+   * - Available in filter picker (unless enableFilter: false)
+   * - Available in sort picker (unless enableSort: false)
+   * - Included in search (unless enableSearch: false)
+   * @default false
    */
-  visibility?: boolean;
+  hidden?: boolean;
 
   /**
-   * Show in filter picker.
+   * Enable filtering for this property.
    * When false, property won't appear in the filter dropdown.
    * @default true
    */
-  filter?: boolean;
+  enableFilter?: boolean;
 
   /**
-   * Show in sort picker.
+   * Enable sorting for this property.
    * When false, property won't appear in the sort dropdown.
    * @default true
    */
-  sort?: boolean;
+  enableSort?: boolean;
 
   /**
-   * Include in search queries.
+   * Enable search for this property.
    * - `true`: Include in search (even if type would be excluded by default)
    * - `false`: Exclude from search (even if type would be included by default)
    * - `undefined`: Use type-based default (excluded: filesMedia, checkbox, formula)
    * @default true (except filesMedia, checkbox, formula which default to false)
    */
-  search?: boolean;
+  enableSearch?: boolean;
 }
 
 // Type-specific configurations
@@ -180,14 +180,14 @@ export interface PropertyMeta {
   label?: string;
   /** Type-specific configuration */
   config?: PropertyConfig;
-  /** Show in visibility toggle and as column @default true */
-  visibility?: boolean;
-  /** Show in filter picker @default true */
-  filter?: boolean;
-  /** Show in sort picker @default true */
-  sort?: boolean;
-  /** Include in search @default type-dependent */
-  search?: boolean;
+  /** Hide from visibility toggle and columns @default false */
+  hidden?: boolean;
+  /** Enable filtering @default true */
+  enableFilter?: boolean;
+  /** Enable sorting @default true */
+  enableSort?: boolean;
+  /** Enable search @default type-dependent */
+  enableSearch?: boolean;
 }
 
 /**
@@ -306,8 +306,8 @@ export type PropertyRenderer = PropertyFunction<any>;
  *   type: "formula",
  *   label: "Product",
  *   sortBy: "name",
- *   filter: false,
- *   sort: false,
+ *   enableFilter: false,
+ *   enableSort: false,
  *   value: (property) => (
  *     <div className="flex flex-col gap-1">
  *       {property("name")}        // Rendered with text styling
@@ -404,7 +404,7 @@ const EXCLUDED_SEARCH_TYPES: PropertyType[] = [
  * - Included: text, url, email, phone, number, select, multiSelect, status, date
  * - Excluded: filesMedia, checkbox, formula
  *
- * Override with `search: true/false` on individual properties.
+ * Override with `enableSearch: true/false` on individual properties.
  *
  * @example
  * const searchableFields = getSearchableProperties(productProperties);
@@ -416,11 +416,11 @@ export function getSearchableProperties<T>(
   return properties
     .filter((p) => {
       // Explicit false → exclude
-      if (p.search === false) {
+      if (p.enableSearch === false) {
         return false;
       }
       // Explicit true → include
-      if (p.search === true) {
+      if (p.enableSearch === true) {
         return true;
       }
       // Default: include unless type is in excluded list

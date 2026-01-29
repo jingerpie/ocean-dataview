@@ -54,9 +54,10 @@ function SortPropertyPicker({
   const [open, setOpen] = useState(false);
   const { sort: sorts, setSort } = useSortParams();
 
-  // Filter out formula properties (can't sort computed values) and properties with sort: false
+  // Filter out formula properties (can't sort computed values) and properties with enableSort: false
   const sortableProperties = useMemo(
-    () => properties.filter((p) => p.type !== "formula" && p.sort !== false),
+    () =>
+      properties.filter((p) => p.type !== "formula" && p.enableSort !== false),
     [properties]
   );
 
