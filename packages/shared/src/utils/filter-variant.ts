@@ -1,4 +1,57 @@
-import type { FilterVariant } from "../types/data-table.type";
+import type { FilterCondition, FilterVariant } from "../types/data-table.type";
+
+// ============================================================================
+// Filter Value Transformation (for condition changes)
+// ============================================================================
+
+/**
+ * Transforms a filter value when the condition changes.
+ *
+ * Conditions with incompatible value formats:
+ * - isEmpty/isNotEmpty: no value needed
+ * - isBetween: needs [start, end] array
+ * - isRelativeToToday: needs [direction, count, unit] tuple
+ *
+ * Switching to/from these resets the value (validateFilter removes incomplete filters).
+ * Only isRelativeToToday gets a default because it's the only one that can work immediately.
+ */
+export function transformValueForCondition(
+  oldCondition: FilterCondition,
+  newCondition: FilterCondition,
+  value: unknown
+): unknown {
+  // To isRelativeToToday - use working default
+  if (newCondition === "isRelativeToToday") {
+    return ["this", 1, "week"];
+  }
+
+  // To isEmpty/isNotEmpty - no value needed
+  if (newCondition === "isEmpty" || newCondition === "isNotEmpty") {
+    return undefined;
+  }
+
+  // From isEmpty/isNotEmpty/isRelativeToToday/isBetween - reset (incompatible format)
+  if (
+    oldCondition === "isEmpty" ||
+    oldCondition === "isNotEmpty" ||
+    oldCondition === "isRelativeToToday" ||
+    oldCondition === "isBetween"
+  ) {
+    return undefined;
+  }
+
+  // To isBetween - reset (user picks fresh range)
+  if (newCondition === "isBetween") {
+    return undefined;
+  }
+
+  // All other transitions - keep value
+  return value;
+}
+
+// ============================================================================
+// Property Type to Filter Variant Mapping
+// ============================================================================
 
 /**
  * Property type values that can be mapped to filter variants.

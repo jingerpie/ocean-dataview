@@ -28,26 +28,25 @@ import {
   subYears,
 } from "date-fns";
 
-type RelativeDirection = "Past" | "This" | "Next";
+type RelativeDirection = "past" | "this" | "next";
 type RelativeUnit = "day" | "week" | "month" | "year";
 
-interface RelativeToTodayValue {
-  direction: RelativeDirection;
-  count: number;
-  unit: RelativeUnit;
-}
+/**
+ * Relative date value as positional array: [direction, count, unit]
+ */
+type RelativeToTodayValue = [RelativeDirection, number, RelativeUnit];
 
 interface RelativeDatePickerProps {
-  /** Current value with direction, count, and unit */
+  /** Current value as [direction, count, unit] array */
   value: RelativeToTodayValue | undefined;
   /** Callback when value changes */
   onChange: (value: RelativeToTodayValue) => void;
 }
 
 const directionItems = [
-  { label: "Past", value: "Past" },
-  { label: "This", value: "This" },
-  { label: "Next", value: "Next" },
+  { label: "Past", value: "past" },
+  { label: "This", value: "this" },
+  { label: "Next", value: "next" },
 ];
 
 const unitItems = [
@@ -67,72 +66,72 @@ function getRelativeDateRange(
   count: number,
   unit: RelativeUnit
 ): { start: Date; end: Date } {
-  // For "This" direction, count is always 1
-  const n = direction === "This" ? 1 : count;
+  // For "this" direction, count is always 1
+  const n = direction === "this" ? 1 : count;
 
   switch (unit) {
     case "day":
-      if (direction === "Past") {
+      if (direction === "past") {
         return {
           start: startOfDay(subDays(now, n)),
           end: endOfDay(subDays(now, 1)),
         };
       }
-      if (direction === "Next") {
+      if (direction === "next") {
         return {
           start: startOfDay(addDays(now, 1)),
           end: endOfDay(addDays(now, n)),
         };
       }
-      // This
+      // this
       return { start: startOfDay(now), end: endOfDay(now) };
 
     case "week":
-      if (direction === "Past") {
+      if (direction === "past") {
         return {
           start: startOfWeek(subWeeks(now, n)),
           end: endOfWeek(subWeeks(now, 1)),
         };
       }
-      if (direction === "Next") {
+      if (direction === "next") {
         return {
           start: startOfWeek(addWeeks(now, 1)),
           end: endOfWeek(addWeeks(now, n)),
         };
       }
-      // This
+      // this
       return { start: startOfWeek(now), end: endOfWeek(now) };
 
     case "month":
-      if (direction === "Past") {
+      if (direction === "past") {
         return {
           start: startOfMonth(subMonths(now, n)),
           end: endOfMonth(subMonths(now, 1)),
         };
       }
-      if (direction === "Next") {
+      if (direction === "next") {
         return {
           start: startOfMonth(addMonths(now, 1)),
           end: endOfMonth(addMonths(now, n)),
         };
       }
-      // This
+      // this
       return { start: startOfMonth(now), end: endOfMonth(now) };
 
     case "year":
-      if (direction === "Past") {
+      if (direction === "past") {
         return {
           start: startOfYear(subYears(now, n)),
           end: endOfYear(subYears(now, 1)),
         };
       }
-      if (direction === "Next") {
+      if (direction === "next") {
         return {
           start: startOfYear(addYears(now, 1)),
           end: endOfYear(addYears(now, n)),
         };
       }
-      // This
+      // this
       return { start: startOfYear(now), end: endOfYear(now) };
 
     default:
@@ -153,30 +152,26 @@ function RelativeDateDropdowns({
   value,
   onChange,
 }: RelativeDateDropdownsProps) {
-  // Default to "This week" if no value
-  const direction = value?.direction ?? "This";
-  const count = value?.count ?? 1;
-  const unit = value?.unit ?? "week";
+  // Default to "this week" if no value (value is [direction, count, unit])
+  const direction = value?.[0] ?? "this";
+  const count = value?.[1] ?? 1;
+  const unit = value?.[2] ?? "week";
 
-  // Show count input only for Past/Next (not "This")
-  const showCount = direction !== "This";
+  // Show count input only for past/next (not "this")
+  const showCount = direction !== "this";
 
   // Handle direction change
   const handleDirectionChange = (newDirection: RelativeDirection | null) => {
     if (!newDirection) {
       return;
     }
-    onChange({
-      direction: newDirection,
-      count,
-      unit,
-    });
+    onChange([newDirection, count, unit]);
   };
 
   // Handle count change
   const handleCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newCount = Math.max(1, Number.parseInt(e.target.value, 10) || 1);
-    onChange({ direction, count: newCount, unit });
+    onChange([direction, newCount, unit]);
   };
 
   // Handle unit change
@@ -184,7 +179,7 @@ function RelativeDateDropdowns({
     if (!newUnit) {
       return;
     }
-    onChange({ direction, count, unit: newUnit });
+    onChange([direction, count, newUnit]);
   };
 
   return (
@@ -245,10 +240,10 @@ function RelativeDatePickerContent({
   value,
   onChange,
 }: RelativeDatePickerProps) {
-  // Default to "This week" if no value
-  const direction = value?.direction ?? "This";
-  const count = value?.count ?? 1;
-  const unit = value?.unit ?? "week";
+  // Default to "this week" if no value (value is [direction, count, unit])
+  const direction = value?.[0] ?? "this";
+  const count = value?.[1] ?? 1;
+  const unit = value?.[2] ?? "week";
 
   // Calculate date range for calendar display
   const now = new Date();

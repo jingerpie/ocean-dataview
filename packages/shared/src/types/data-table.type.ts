@@ -80,7 +80,7 @@ export interface SearchQuery {
 // Zod Schemas
 // ============================================================================
 
-const conditionValues = [
+export const conditionValues = [
   "iLike",
   "notILike",
   "eq",

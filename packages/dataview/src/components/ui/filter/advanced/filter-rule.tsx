@@ -16,6 +16,7 @@ import type {
 import {
   getDefaultFilterCondition,
   getFilterVariantFromPropertyType,
+  transformValueForCondition,
 } from "@ocean-dataview/shared/utils";
 import { useDebouncer } from "@tanstack/react-pacer";
 import { useEffect, useState } from "react";
@@ -167,12 +168,14 @@ export function FilterRule({
 
   // Handle condition change
   const handleConditionChange = (newCondition: FilterCondition) => {
+    const newValue = transformValueForCondition(
+      rule.condition,
+      newCondition,
+      rule.value
+    );
     updateRule({
       condition: newCondition,
-      value:
-        newCondition === "isEmpty" || newCondition === "isNotEmpty"
-          ? undefined
-          : rule.value,
+      value: newValue,
     });
   };
 

@@ -23,7 +23,10 @@ import type {
   SelectOption,
 } from "@ocean-dataview/dataview/types";
 import type { FilterCondition, WhereRule } from "@ocean-dataview/shared/types";
-import { getFilterVariantFromPropertyType } from "@ocean-dataview/shared/utils";
+import {
+  getFilterVariantFromPropertyType,
+  transformValueForCondition,
+} from "@ocean-dataview/shared/utils";
 import { ChevronDownIcon } from "lucide-react";
 import { getFilterPreview } from "../../../../lib/filter-preview";
 import { getBadgeVariant } from "../../../../lib/utils/get-badge-variant";
@@ -110,14 +113,16 @@ export function FilterChip({
         })
       : "";
 
-  const handleConditionChange = (condition: FilterCondition) => {
+  const handleConditionChange = (newCondition: FilterCondition) => {
+    const newValue = transformValueForCondition(
+      rule.condition,
+      newCondition,
+      rule.value
+    );
     onRuleChange({
       ...rule,
-      condition,
-      value:
-        condition === "isEmpty" || condition === "isNotEmpty"
-          ? undefined
-          : rule.value,
+      condition: newCondition,
+      value: newValue,
     });
   };
 

@@ -2,21 +2,18 @@ import type { FilterCondition } from "@ocean-dataview/shared/types";
 import { format, parseISO } from "date-fns";
 
 /**
- * Date range value for isBetween condition
+ * Date range value for isBetween condition: [from, to]
  */
-interface DateRangeValue {
-  from?: string;
-  to?: string;
-}
+type DateRangeValue = [string | null, string | null];
 
 /**
- * Relative date value for isRelativeToToday condition
+ * Relative date value for isRelativeToToday condition: [direction, count, unit]
  */
-interface RelativeToTodayValue {
-  direction: "Past" | "This" | "Next";
-  count: number;
-  unit: "day" | "week" | "month" | "year";
-}
+type RelativeToTodayValue = [
+  "past" | "this" | "next",
+  number,
+  "day" | "week" | "month" | "year",
+];
 
 /**
  * Select option for select/multi-select values
@@ -62,14 +59,18 @@ function formatDateShort(dateStr: string): string {
  * Format relative date value to display string
  */
 function formatRelativeDate(value: RelativeToTodayValue): string {
-  const { direction, count, unit } = value;
+  const [direction, count, unit] = value;
 
-  if (direction === "This") {
+  // Capitalize for display
+  const displayDirection =
+    direction.charAt(0).toUpperCase() + direction.slice(1);
+
+  if (direction === "this") {
     return `This ${unit}`;
   }
 
   const pluralUnit = count === 1 ? unit : `${unit}s`;
-  return `${direction} ${count} ${pluralUnit}`;
+  return `${displayDirection} ${count} ${pluralUnit}`;
 }
 
 /**
@@ -146,8 +147,8 @@ function getDatePreview(condition: FilterCondition, value: unknown): string {
 
   if (condition === "isBetween" && value) {
     const range = value as DateRangeValue;
-    const from = range.from ? formatDateShort(range.from) : "?";
-    const to = range.to ? formatDateShort(range.to) : "?";
+    const from = range[0] ? formatDateShort(range[0]) : "?";
+    const to = range[1] ? formatDateShort(range[1]) : "?";
     return `${from} → ${to}`;
   }
 

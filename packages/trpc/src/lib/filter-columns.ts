@@ -258,26 +258,18 @@ function buildCondition<T extends Table>(
     // Date relative condition
     // ============================================
     case "isRelativeToToday": {
-      if (
-        !value ||
-        typeof value !== "object" ||
-        !("direction" in value) ||
-        !("unit" in value)
-      ) {
+      // Value is array: [direction, count, unit]
+      if (!Array.isArray(value) || value.length !== 3) {
         return undefined;
       }
 
-      const {
-        direction,
-        count = 1,
-        unit,
-      } = value as {
-        direction: "past" | "this" | "next";
-        count?: number;
-        unit: "day" | "week" | "month" | "year";
-      };
+      const [direction, count, unit] = value as [
+        "past" | "this" | "next",
+        number,
+        "day" | "week" | "month" | "year",
+      ];
       const now = new Date();
-      const range = getRelativeDateRange(now, direction, count, unit);
+      const range = getRelativeDateRange(now, direction, count ?? 1, unit);
 
       if (!range) {
         return undefined;

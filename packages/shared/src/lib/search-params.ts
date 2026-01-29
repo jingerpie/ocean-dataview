@@ -16,7 +16,6 @@ import {
 import {
   type Cursors,
   type CursorValue,
-  cursorsSchema,
   cursorValueSchema,
 } from "../types/pagination.type";
 import { validateFilter } from "../utils/filter-validation";
@@ -35,6 +34,10 @@ const DEFAULT_LIMIT = 25;
 /**
  * Transform URL node to code node.
  *
+ * NUQS validators handle parsing and structural transformation only.
+ * Semantic validation (enum values, business rules) happens in tRPC.
+ * This avoids redundant validation across RSC and Client paths.
+ *
  * URL format uses compact positional arrays for rules:
  *   [property, condition, value?]
  *
@@ -45,10 +48,16 @@ const transformUrlToCode = (node: unknown): WhereNode | null => {
   // Rule: positional array [property, condition, value?]
   if (Array.isArray(node)) {
     const [property, condition, value] = node;
-    if (typeof property === "string" && typeof condition === "string") {
-      return { property, condition, value } as WhereNode;
+
+    // Only structural checks - let tRPC validate condition enum
+    if (typeof property !== "string" || !property) {
+      return null;
     }
-    return null;
+    if (typeof condition !== "string") {
+      return null;
+    }
+
+    return { property, condition, value } as WhereNode;
   }
 
   if (typeof node !== "object" || node === null) {
@@ -126,6 +135,7 @@ const filterValidator = (value: unknown): WhereNode[] | null => {
 
 /**
  * Transform URL sort format to code format.
+ * Permissive: drops invalid entries instead of failing entire array.
  *
  * URL format: ["property", "asc"|"desc"]
  * Code format: { property, direction: "asc" | "desc" }
@@ -135,42 +145,43 @@ const sortValidator = (value: unknown): SortQuery[] | null => {
     return null;
   }
 
-  const result: SortQuery[] = [];
+  return value
+    .map((item) => {
+      if (!Array.isArray(item) || item.length !== 2) {
+        return null;
+      }
 
-  for (const item of value) {
-    // Expect positional array: [property, direction]
-    if (!Array.isArray(item) || item.length !== 2) {
-      return null;
-    }
+      const [property, direction] = item;
+      // Only structural checks - let tRPC validate direction enum
+      if (typeof property !== "string" || typeof direction !== "string") {
+        return null;
+      }
 
-    const [property, direction] = item;
-    if (
-      typeof property !== "string" ||
-      (direction !== "asc" && direction !== "desc")
-    ) {
-      return null;
-    }
-
-    result.push({ property, direction });
-  }
-
-  return result;
+      return { property, direction: direction as "asc" | "desc" };
+    })
+    .filter((s): s is SortQuery => s !== null);
 };
 
+/**
+ * Cursor validator - structural check only, tRPC validates shape.
+ */
 const cursorValidator = (value: unknown): CursorValue | null => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return null;
   }
-  const result = cursorValueSchema.safeParse(value);
-  return result.success ? result.data : null;
+  // Just pass through - tRPC validates the shape
+  return value as CursorValue;
 };
 
+/**
+ * Cursors validator - structural check only, tRPC validates shape.
+ */
 const cursorsValidator = (value: unknown): Cursors | null => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return null;
   }
-  const result = cursorsSchema.safeParse(value);
-  return result.success ? result.data : null;
+  // Just pass through - tRPC validates the shape
+  return value as Cursors;
 };
 
 const expandedValidator = (value: unknown): string[] | null => {
@@ -195,20 +206,32 @@ const sortEntrySchema = z.object({
 
 /**
  * Creates a Zod schema for TRPC input validation.
- * Sort property validation is runtime-based, not schema-bound.
+ * This is the single source of truth for semantic validation.
+ * Uses .catch() for graceful degradation - invalid values fall back to defaults.
  */
 export const createSearchParamsSchema = <T extends z.ZodRawShape>(
   _schema: z.ZodObject<T>
 ) => {
   return z.object({
-    cursor: z.union([cursorValueSchema, z.string()]).nullish(),
-    limit: z.number().int().min(1).max(200).default(DEFAULT_LIMIT),
-    search: searchQuerySchema.nullish(),
+    cursor: z.union([cursorValueSchema, z.string()]).nullish().catch(null),
+    limit: z
+      .number()
+      .int()
+      .min(1)
+      .max(200)
+      .catch(DEFAULT_LIMIT)
+      .default(DEFAULT_LIMIT),
+    search: searchQuerySchema.nullish().catch(null),
     filter: z
       .array(whereNodeSchema)
       .nullish()
+      .catch(null)
       .transform((f) => (f ? validateFilter(f) : null)),
-    sort: z.array(sortEntrySchema).default([]).transform(validateSort),
+    sort: z
+      .array(sortEntrySchema)
+      .catch([])
+      .default([])
+      .transform(validateSort),
   });
 };
 

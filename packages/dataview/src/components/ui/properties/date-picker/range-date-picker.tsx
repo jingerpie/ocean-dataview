@@ -23,13 +23,15 @@ function formatNumericDate(date: Date): string {
   return format(date, "M/d/yyyy");
 }
 
-interface DateRangeValue {
-  from?: string;
-  to?: string;
-}
+/**
+ * Date range value as positional array: [from, to]
+ * - from: start date (YYYY-MM-DD) or null
+ * - to: end date (YYYY-MM-DD) or null
+ */
+type DateRangeValue = [string | null, string | null];
 
 interface RangeDatePickerProps {
-  /** Current value with from/to dates */
+  /** Current value as [from, to] array */
   value: DateRangeValue | undefined;
   /** Callback when value changes */
   onChange: (value: DateRangeValue) => void;
@@ -50,9 +52,9 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
   const [fromValid, setFromValid] = useState(true);
   const [toValid, setToValid] = useState(true);
 
-  // Parse values to Date
-  const fromDate = parseValue(value?.from);
-  const toDate = parseValue(value?.to);
+  // Parse values to Date (value is [from, to] array)
+  const fromDate = parseValue(value?.[0] ?? undefined);
+  const toDate = parseValue(value?.[1] ?? undefined);
 
   // Display values
   const fromDisplay =
@@ -82,7 +84,7 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
       const formatted = formatNumericDate(parsed);
       setFromDraft(formatted);
       setFromValid(true);
-      onChange({ ...value, from: toDateOnlyString(parsed) });
+      onChange([toDateOnlyString(parsed), value?.[1] ?? null]);
     } else {
       setFromValid(false);
     }
@@ -99,7 +101,7 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
       const formatted = formatNumericDate(parsed);
       setToDraft(formatted);
       setToValid(true);
-      onChange({ ...value, to: toDateOnlyString(parsed) });
+      onChange([value?.[0] ?? null, toDateOnlyString(parsed)]);
     } else {
       setToValid(false);
     }
@@ -124,10 +126,10 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
     setToDraft(null);
     setFromValid(true);
     setToValid(true);
-    onChange({
-      from: range?.from ? toDateOnlyString(range.from) : undefined,
-      to: range?.to ? toDateOnlyString(range.to) : undefined,
-    });
+    onChange([
+      range?.from ? toDateOnlyString(range.from) : null,
+      range?.to ? toDateOnlyString(range.to) : null,
+    ]);
   };
 
   return (
@@ -181,8 +183,8 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
 function RangeDatePicker({ value, onChange }: RangeDatePickerProps) {
   const [open, setOpen] = useState(false);
 
-  const fromDate = parseValue(value?.from);
-  const toDate = parseValue(value?.to);
+  const fromDate = parseValue(value?.[0] ?? undefined);
+  const toDate = parseValue(value?.[1] ?? undefined);
 
   // Format display text
   const displayText =

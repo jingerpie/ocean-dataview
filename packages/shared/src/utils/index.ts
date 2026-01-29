@@ -36,7 +36,10 @@ export {
   wrapInGroup,
 } from "./filter-builder";
 export { validateFilter } from "./filter-validation";
-export { getFilterVariantFromPropertyType } from "./filter-variant";
+export {
+  getFilterVariantFromPropertyType,
+  transformValueForCondition,
+} from "./filter-variant";
 export { combineGroupFilter } from "./group-filter";
 export { buildSearchFilter } from "./search";
 export { validateSort } from "./sort-validation";
