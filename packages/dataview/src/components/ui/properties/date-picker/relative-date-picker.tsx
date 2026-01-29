@@ -10,31 +10,11 @@ import {
   SelectValue,
 } from "@ocean-dataview/dataview/components/ui/select";
 import {
-  addDays,
-  addMonths,
-  addWeeks,
-  addYears,
-  endOfDay,
-  endOfMonth,
-  endOfWeek,
-  endOfYear,
-  startOfDay,
-  startOfMonth,
-  startOfWeek,
-  startOfYear,
-  subDays,
-  subMonths,
-  subWeeks,
-  subYears,
-} from "date-fns";
-
-type RelativeDirection = "past" | "this" | "next";
-type RelativeUnit = "day" | "week" | "month" | "year";
-
-/**
- * Relative date value as positional array: [direction, count, unit]
- */
-type RelativeToTodayValue = [RelativeDirection, number, RelativeUnit];
+  getRelativeDateRange,
+  type RelativeDirection,
+  type RelativeToTodayValue,
+  type RelativeUnit,
+} from "@ocean-dataview/shared/utils";
 
 interface RelativeDatePickerProps {
   /** Current value as [direction, count, unit] array */
@@ -55,89 +35,6 @@ const unitItems = [
   { label: "month", value: "month" },
   { label: "year", value: "year" },
 ];
-
-/**
- * Calculate date range for relative date filter.
- * Returns start and end dates for the given direction, count, and unit.
- */
-function getRelativeDateRange(
-  now: Date,
-  direction: RelativeDirection,
-  count: number,
-  unit: RelativeUnit
-): { start: Date; end: Date } {
-  // For "this" direction, count is always 1
-  const n = direction === "this" ? 1 : count;
-
-  switch (unit) {
-    case "day":
-      if (direction === "past") {
-        return {
-          start: startOfDay(subDays(now, n)),
-          end: endOfDay(subDays(now, 1)),
-        };
-      }
-      if (direction === "next") {
-        return {
-          start: startOfDay(addDays(now, 1)),
-          end: endOfDay(addDays(now, n)),
-        };
-      }
-      // this
-      return { start: startOfDay(now), end: endOfDay(now) };
-
-    case "week":
-      if (direction === "past") {
-        return {
-          start: startOfWeek(subWeeks(now, n)),
-          end: endOfWeek(subWeeks(now, 1)),
-        };
-      }
-      if (direction === "next") {
-        return {
-          start: startOfWeek(addWeeks(now, 1)),
-          end: endOfWeek(addWeeks(now, n)),
-        };
-      }
-      // this
-      return { start: startOfWeek(now), end: endOfWeek(now) };
-
-    case "month":
-      if (direction === "past") {
-        return {
-          start: startOfMonth(subMonths(now, n)),
-          end: endOfMonth(subMonths(now, 1)),
-        };
-      }
-      if (direction === "next") {
-        return {
-          start: startOfMonth(addMonths(now, 1)),
-          end: endOfMonth(addMonths(now, n)),
-        };
-      }
-      // this
-      return { start: startOfMonth(now), end: endOfMonth(now) };
-
-    case "year":
-      if (direction === "past") {
-        return {
-          start: startOfYear(subYears(now, n)),
-          end: endOfYear(subYears(now, 1)),
-        };
-      }
-      if (direction === "next") {
-        return {
-          start: startOfYear(addYears(now, 1)),
-          end: endOfYear(addYears(now, n)),
-        };
-      }
-      // this
-      return { start: startOfYear(now), end: endOfYear(now) };
-
-    default:
-      return { start: startOfDay(now), end: endOfDay(now) };
-  }
-}
 
 // ============================================================================
 // Shared dropdowns component
@@ -189,7 +86,7 @@ function RelativeDateDropdowns({
         onValueChange={handleDirectionChange}
         value={direction}
       >
-        <SelectTrigger className="w-full">
+        <SelectTrigger className="w-0 flex-1">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -201,10 +98,10 @@ function RelativeDateDropdowns({
         </SelectContent>
       </Select>
 
-      {/* Count input - only show for past/next */}
+      {/* Count input - only show for past/next, fixed width */}
       {showCount && (
         <Input
-          className="w-fit"
+          className="w-16"
           min={1}
           onChange={handleCountChange}
           type="number"
@@ -213,7 +110,7 @@ function RelativeDateDropdowns({
       )}
 
       <Select items={unitItems} onValueChange={handleUnitChange} value={unit}>
-        <SelectTrigger className="w-full">
+        <SelectTrigger className="w-0 flex-1">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -247,7 +144,10 @@ function RelativeDatePickerContent({
 
   // Calculate date range for calendar display
   const now = new Date();
-  const dateRange = getRelativeDateRange(now, direction, count, unit);
+  const dateRange = getRelativeDateRange(now, direction, count, unit) ?? {
+    start: now,
+    end: now,
+  };
 
   return (
     <div className="flex flex-col items-center">
@@ -280,5 +180,6 @@ function RelativeDatePicker({ value, onChange }: RelativeDatePickerProps) {
   return <RelativeDateDropdowns onChange={onChange} value={value} />;
 }
 
-export type { RelativeDatePickerProps, RelativeToTodayValue };
+export type { RelativeDatePickerProps };
+export type { RelativeToTodayValue } from "@ocean-dataview/shared/utils";
 export { RelativeDatePicker, RelativeDatePickerContent };

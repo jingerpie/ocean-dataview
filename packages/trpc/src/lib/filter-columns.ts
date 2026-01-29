@@ -3,25 +3,8 @@ import {
   type WhereNode,
   type WhereRule,
 } from "@ocean-dataview/shared/types";
-import {
-  addDays,
-  addMonths,
-  addWeeks,
-  addYears,
-  endOfDay,
-  endOfMonth,
-  endOfWeek,
-  endOfYear,
-  parseISO,
-  startOfDay,
-  startOfMonth,
-  startOfWeek,
-  startOfYear,
-  subDays,
-  subMonths,
-  subWeeks,
-  subYears,
-} from "date-fns";
+import { getRelativeDateRange } from "@ocean-dataview/shared/utils";
+import { addDays, parseISO, startOfDay } from "date-fns";
 import {
   type AnyColumn,
   and,
@@ -331,87 +314,4 @@ function isTextColumn<T extends Table>(table: T, columnKey: keyof T): boolean {
     columnType === "PgVarchar" ||
     columnType === "PgChar"
   );
-}
-
-/**
- * Gets the date range for relative date filters.
- * Supports direction (past/this/next), count, and unit (day/week/month/year).
- */
-function getRelativeDateRange(
-  now: Date,
-  direction: "past" | "this" | "next",
-  count: number,
-  unit: "day" | "week" | "month" | "year"
-): { start: Date; end: Date } | undefined {
-  // For "this" direction, count is always 1
-  const n = direction === "this" ? 1 : count;
-
-  switch (unit) {
-    case "day":
-      if (direction === "past") {
-        return {
-          start: startOfDay(subDays(now, n)),
-          end: endOfDay(subDays(now, 1)),
-        };
-      }
-      if (direction === "next") {
-        return {
-          start: startOfDay(addDays(now, 1)),
-          end: endOfDay(addDays(now, n)),
-        };
-      }
-      // this
-      return { start: startOfDay(now), end: endOfDay(now) };
-
-    case "week":
-      if (direction === "past") {
-        return {
-          start: startOfWeek(subWeeks(now, n)),
-          end: endOfWeek(subWeeks(now, 1)),
-        };
-      }
-      if (direction === "next") {
-        return {
-          start: startOfWeek(addWeeks(now, 1)),
-          end: endOfWeek(addWeeks(now, n)),
-        };
-      }
-      // this
-      return { start: startOfWeek(now), end: endOfWeek(now) };
-
-    case "month":
-      if (direction === "past") {
-        return {
-          start: startOfMonth(subMonths(now, n)),
-          end: endOfMonth(subMonths(now, 1)),
-        };
-      }
-      if (direction === "next") {
-        return {
-          start: startOfMonth(addMonths(now, 1)),
-          end: endOfMonth(addMonths(now, n)),
-        };
-      }
-      // this
-      return { start: startOfMonth(now), end: endOfMonth(now) };
-
-    case "year":
-      if (direction === "past") {
-        return {
-          start: startOfYear(subYears(now, n)),
-          end: endOfYear(subYears(now, 1)),
-        };
-      }
-      if (direction === "next") {
-        return {
-          start: startOfYear(addYears(now, 1)),
-          end: endOfYear(addYears(now, n)),
-        };
-      }
-      // this
-      return { start: startOfYear(now), end: endOfYear(now) };
-
-    default:
-      return undefined;
-  }
 }

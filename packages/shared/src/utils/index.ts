@@ -40,6 +40,12 @@ export {
   getFilterVariantFromPropertyType,
   transformValueForCondition,
 } from "./filter-variant";
+export {
+  getRelativeDateRange,
+  type RelativeDirection,
+  type RelativeToTodayValue,
+  type RelativeUnit,
+} from "./get-relative-date-range";
 export { combineGroupFilter } from "./group-filter";
 export { buildSearchFilter } from "./search";
 export { validateSort } from "./sort-validation";

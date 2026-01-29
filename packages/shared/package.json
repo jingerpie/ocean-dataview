@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@ocean-dataview/db": "workspace:*",
+    "date-fns": "catalog:",
     "drizzle-orm": "catalog:",
     "drizzle-zod": "catalog:",
     "nuqs": "catalog:",
