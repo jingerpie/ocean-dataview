@@ -37,6 +37,9 @@ export {
 } from "./filter-builder";
 export { validateFilter } from "./filter-validation";
 export {
+  applyConditionChange,
+  createRuleFromProperty,
+  extractSelectValues,
   getFilterVariantFromPropertyType,
   transformValueForCondition,
 } from "./filter-variant";

@@ -25,6 +25,7 @@ import {
   formatDateForDisplay,
   parseDate,
   parseValue,
+  toDateOnlyString,
 } from "@ocean-dataview/dataview/lib/utils";
 import {
   addDays,
@@ -93,6 +94,36 @@ function getDateFromPreset(preset: DatePreset): Date | null {
   }
 }
 
+/**
+ * Check if a date matches any preset (comparing date-only, ignoring time).
+ * Returns the matching preset or "custom" if no match.
+ */
+function getPresetFromDate(date: Date | undefined): DatePreset {
+  if (!date) {
+    return "custom";
+  }
+
+  const dateStr = toDateOnlyString(date);
+  const presets: DatePreset[] = [
+    "today",
+    "tomorrow",
+    "yesterday",
+    "one_week_ago",
+    "one_week_from_now",
+    "one_month_ago",
+    "one_month_from_now",
+  ];
+
+  for (const preset of presets) {
+    const presetDate = getDateFromPreset(preset);
+    if (presetDate && toDateOnlyString(presetDate) === dateStr) {
+      return preset;
+    }
+  }
+
+  return "custom";
+}
+
 // ============================================================================
 // SingleDatePickerContent - For filter chips (select dropdown + inline calendar)
 // ============================================================================
@@ -116,12 +147,12 @@ function SingleDatePickerContent({ value, onChange }: SingleDatePickerProps) {
     }
     const date = getDateFromPreset(preset as DatePreset);
     if (date) {
-      onChange(date.toISOString());
+      onChange(toDateOnlyString(date));
     }
   };
 
   const handleCalendarSelect = (date: Date | undefined) => {
-    onChange(date?.toISOString() ?? "");
+    onChange(date ? toDateOnlyString(date) : "");
   };
 
   return (
@@ -168,7 +199,6 @@ function SingleDatePickerContent({ value, onChange }: SingleDatePickerProps) {
  */
 function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [isCustomMode, setIsCustomMode] = useState(false);
   const [draft, setDraft] = useState<string | null>(null);
   const [isValid, setIsValid] = useState(true);
 
@@ -176,20 +206,23 @@ function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
   const displayValue =
     draft ?? (dateValue ? formatDateForDisplay(dateValue) : "");
 
+  // Derive current preset from value (or "custom" if no match)
+  const currentPreset = getPresetFromDate(dateValue);
+  const isCustomMode = currentPreset === "custom";
+
   const handlePresetChange = (preset: string | null) => {
     if (!preset) {
       return;
     }
 
     if (preset === "custom") {
-      setIsCustomMode(true);
+      // Open calendar for custom date selection
       setCalendarOpen(true);
     } else {
-      setIsCustomMode(false);
       setCalendarOpen(false);
       const date = getDateFromPreset(preset as DatePreset);
       if (date) {
-        onChange(date.toISOString());
+        onChange(toDateOnlyString(date));
       }
     }
   };
@@ -197,7 +230,7 @@ function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
   const handleCalendarSelect = (date: Date | undefined) => {
     setDraft(null);
     setIsValid(true);
-    onChange(date?.toISOString() ?? "");
+    onChange(date ? toDateOnlyString(date) : "");
     setCalendarOpen(false);
   };
 
@@ -216,7 +249,7 @@ function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
       const formatted = formatDateForDisplay(parsed);
       setDraft(formatted);
       setIsValid(true);
-      onChange(parsed.toISOString());
+      onChange(toDateOnlyString(parsed));
     } else {
       setIsValid(false);
     }
@@ -240,7 +273,7 @@ function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
       <Select
         items={DATE_PRESET_ITEMS}
         onValueChange={handlePresetChange}
-        value={isCustomMode ? "custom" : "today"}
+        value={currentPreset}
       >
         <SelectTrigger size="sm">
           <SelectValue />

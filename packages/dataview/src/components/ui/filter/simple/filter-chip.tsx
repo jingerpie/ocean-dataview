@@ -24,8 +24,9 @@ import type {
 } from "@ocean-dataview/dataview/types";
 import type { FilterCondition, WhereRule } from "@ocean-dataview/shared/types";
 import {
+  applyConditionChange,
+  extractSelectValues,
   getFilterVariantFromPropertyType,
-  transformValueForCondition,
 } from "@ocean-dataview/shared/utils";
 import { ChevronDownIcon } from "lucide-react";
 import { getFilterPreview } from "../../../../lib/filter-preview";
@@ -104,16 +105,7 @@ export function FilterChip({
       : "";
 
   const handleConditionChange = (newCondition: FilterCondition) => {
-    const newValue = transformValueForCondition(
-      rule.condition,
-      newCondition,
-      rule.value
-    );
-    onRuleChange({
-      ...rule,
-      condition: newCondition,
-      value: newValue,
-    });
+    onRuleChange(applyConditionChange(rule, newCondition));
   };
 
   const handleValueChange = (value: unknown) => {
@@ -248,16 +240,7 @@ function FilterChipValue({
           ? (property.config as SelectConfig | undefined)
           : undefined;
       const options: SelectOption[] = selectConfig?.options ?? [];
-
-      let selectedValues: string[];
-      if (Array.isArray(rule.value)) {
-        selectedValues = rule.value as string[];
-      } else if (rule.value) {
-        selectedValues = [rule.value as string];
-      } else {
-        selectedValues = [];
-      }
-
+      const selectedValues = extractSelectValues(rule.value);
       const selectedOptions = options.filter((o) =>
         selectedValues.includes(o.value)
       );

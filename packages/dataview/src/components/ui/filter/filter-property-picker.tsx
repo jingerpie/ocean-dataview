@@ -20,11 +20,7 @@ import {
 } from "@ocean-dataview/dataview/hooks";
 import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import { isWhereExpression, isWhereRule } from "@ocean-dataview/shared/types";
-import {
-  createDefaultCondition,
-  getDefaultFilterCondition,
-  getFilterVariantFromPropertyType,
-} from "@ocean-dataview/shared/utils";
+import { createRuleFromProperty } from "@ocean-dataview/shared/utils";
 import { ListFilterIcon, PlusIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -137,10 +133,7 @@ function FilterPropertyPicker({
       return;
     }
 
-    // Get the correct default condition based on property type
-    const filterVariant = getFilterVariantFromPropertyType(property.type);
-    const defaultCondition = getDefaultFilterCondition(filterVariant);
-    const rule = createDefaultCondition(String(property.id), defaultCondition);
+    const rule = createRuleFromProperty(property);
 
     // Add to existing filter or create new
     if (filter) {
@@ -162,14 +155,14 @@ function FilterPropertyPicker({
     // Create advanced filter structure if it doesn't exist
     const firstProperty = properties[0];
     if (firstProperty && !hasAdvancedFilter) {
-      const defaultCondition = createDefaultCondition(String(firstProperty.id));
+      const rule = createRuleFromProperty(firstProperty);
 
       if (filter) {
         // Has existing simple filters, add advanced filter alongside
-        setFilter([...filter, { and: [defaultCondition] }]);
+        setFilter([...filter, { and: [rule] }]);
       } else {
         // No filter exists, create new with advanced filter structure
-        setFilter([{ and: [defaultCondition] }]);
+        setFilter([{ and: [rule] }]);
       }
     }
 

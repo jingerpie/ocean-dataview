@@ -205,7 +205,7 @@ function SingleDateCalendar({ value, onChange }: SingleDateCalendarProps) {
 
   return (
     <div className="flex flex-col items-center">
-      <InputGroup className={cn(!isValid && "border-destructive")}>
+      <InputGroup className={cn("h-8", !isValid && "border-destructive")}>
         <InputGroupInput
           className="disabled:opacity-100"
           disabled={isPresetMode}

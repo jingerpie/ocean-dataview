@@ -14,9 +14,10 @@ import type {
   WhereRule,
 } from "@ocean-dataview/shared/types";
 import {
-  getDefaultFilterCondition,
+  applyConditionChange,
+  createRuleFromProperty,
+  extractSelectValues,
   getFilterVariantFromPropertyType,
-  transformValueForCondition,
 } from "@ocean-dataview/shared/utils";
 import { useDebouncer } from "@tanstack/react-pacer";
 import { useEffect, useState } from "react";
@@ -158,25 +159,12 @@ export function FilterRule({
 
   // Handle property selection
   const handlePropertySelect = (newProperty: PropertyMeta) => {
-    const propVariant = getFilterVariantFromPropertyType(newProperty.type);
-    updateRule({
-      property: String(newProperty.id),
-      condition: getDefaultFilterCondition(propVariant),
-      value: undefined,
-    });
+    onRuleChange(createRuleFromProperty(newProperty));
   };
 
   // Handle condition change
   const handleConditionChange = (newCondition: FilterCondition) => {
-    const newValue = transformValueForCondition(
-      rule.condition,
-      newCondition,
-      rule.value
-    );
-    updateRule({
-      condition: newCondition,
-      value: newValue,
-    });
+    onRuleChange(applyConditionChange(rule, newCondition));
   };
 
   return (
@@ -270,7 +258,6 @@ interface ValueInputProps {
   onShowSelectorChange: (show: boolean) => void;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Switch statement handling different filter variant types
 function ValueInput({
   rule,
   property,
@@ -311,15 +298,6 @@ function ValueInput({
       const selectConfig = property.config as SelectConfig | undefined;
       const options: SelectOption[] = selectConfig?.options ?? [];
 
-      let selectedValues: string[];
-      if (Array.isArray(rule.value)) {
-        selectedValues = rule.value as string[];
-      } else if (rule.value) {
-        selectedValues = [rule.value as string];
-      } else {
-        selectedValues = [];
-      }
-
       return (
         <SelectPicker
           onChange={onValueChange}
@@ -327,7 +305,7 @@ function ValueInput({
           open={showSelector}
           options={options}
           placeholder="Select an option"
-          value={selectedValues}
+          value={extractSelectValues(rule.value)}
         />
       );
     }
@@ -338,15 +316,6 @@ function ValueInput({
         | undefined;
       const options: SelectOption[] = multiSelectConfig?.options ?? [];
 
-      let selectedValues: string[];
-      if (Array.isArray(rule.value)) {
-        selectedValues = rule.value as string[];
-      } else if (rule.value) {
-        selectedValues = [rule.value as string];
-      } else {
-        selectedValues = [];
-      }
-
       return (
         <SelectPicker
           onChange={onValueChange}
@@ -354,7 +323,7 @@ function ValueInput({
           open={showSelector}
           options={options}
           placeholder="Select..."
-          value={selectedValues}
+          value={extractSelectValues(rule.value)}
         />
       );
     }

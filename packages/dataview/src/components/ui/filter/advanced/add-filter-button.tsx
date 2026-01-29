@@ -9,11 +9,7 @@ import {
 } from "@ocean-dataview/dataview/components/ui/dropdown-menu";
 import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type { WhereRule } from "@ocean-dataview/shared/types";
-import {
-  createDefaultCondition,
-  getDefaultFilterCondition,
-  getFilterVariantFromPropertyType,
-} from "@ocean-dataview/shared/utils";
+import { createRuleFromProperty } from "@ocean-dataview/shared/utils";
 import { ChevronDownIcon, CopyPlusIcon, PlusIcon } from "lucide-react";
 import { cn } from "../../../../lib/utils";
 
@@ -51,14 +47,7 @@ export function AddFilterButton({
       return;
     }
 
-    const filterVariant = getFilterVariantFromPropertyType(firstProperty.type);
-    const defaultCondition = getDefaultFilterCondition(filterVariant);
-    const rule = createDefaultCondition(
-      String(firstProperty.id),
-      defaultCondition
-    );
-
-    onAddRule(rule);
+    onAddRule(createRuleFromProperty(firstProperty));
   };
 
   // When can add group, show dropdown with two options
