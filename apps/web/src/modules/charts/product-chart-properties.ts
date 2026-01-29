@@ -23,14 +23,14 @@ export const productTypeProperty = {
   type: "select",
   config: {
     options: [
-      { value: "Burger", label: "Burger", color: "red" },
-      { value: "Chicken", label: "Chicken", color: "yellow" },
-      { value: "Breakfast", label: "Breakfast", color: "teal" },
-      { value: "Side", label: "Side", color: "green" },
-      { value: "Beverage", label: "Beverage", color: "blue" },
-      { value: "McCafe", label: "McCafe", color: "purple" },
-      { value: "Dessert", label: "Dessert", color: "pink" },
-      { value: "Condiment", label: "Condiment", color: "gray" },
+      { value: "Burger", color: "red" },
+      { value: "Chicken", color: "yellow" },
+      { value: "Breakfast", color: "teal" },
+      { value: "Side", color: "green" },
+      { value: "Beverage", color: "blue" },
+      { value: "McCafe", color: "purple" },
+      { value: "Dessert", color: "pink" },
+      { value: "Condiment", color: "gray" },
     ],
   },
 } as const satisfies DataViewProperty<Product>;
@@ -41,11 +41,11 @@ export const productTagProperty = {
   type: "select",
   config: {
     options: [
-      { value: "Featured", label: "Featured", color: "blue" },
-      { value: "Limited Time", label: "Limited Time", color: "red" },
-      { value: "Value", label: "Value", color: "green" },
-      { value: "Premium", label: "Premium", color: "purple" },
-      { value: "Seasonal", label: "Seasonal", color: "yellow" },
+      { value: "Featured", color: "blue" },
+      { value: "Limited Time", color: "red" },
+      { value: "Value", color: "green" },
+      { value: "Premium", color: "purple" },
+      { value: "Seasonal", color: "yellow" },
     ],
   },
 } as const satisfies DataViewProperty<Product>;

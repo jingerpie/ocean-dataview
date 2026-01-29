@@ -473,10 +473,8 @@ export function BoardView<
       }
     }
 
-    // Find the option by value or label
-    const option = groupOptions.find(
-      (opt) => opt.value === groupName || opt.label === groupName
-    );
+    // Find the option by value
+    const option = groupOptions.find((opt) => opt.value === groupName);
 
     if (!option) {
       return getBgClass("gray");

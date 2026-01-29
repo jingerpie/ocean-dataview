@@ -86,15 +86,6 @@ export function FilterChip({
   const filterVariant = getFilterVariantFromPropertyType(property.type);
   const label = property.label ?? String(property.id);
 
-  // Get select options for preview (if applicable)
-  const selectConfig =
-    property.type === "select" ||
-    property.type === "status" ||
-    property.type === "multiSelect"
-      ? (property.config as SelectConfig | undefined)
-      : undefined;
-  const options: SelectOption[] = selectConfig?.options ?? [];
-
   // Compute preview for detailed variant
   const preview =
     chipVariant === "detailed"
@@ -109,7 +100,6 @@ export function FilterChip({
             | "boolean"
             | "select"
             | "multiSelect",
-          options,
         })
       : "";
 
@@ -293,7 +283,7 @@ function FilterChipValue({
             {(option: SelectOption) => (
               <ComboboxItem key={option.value} value={option}>
                 <Badge variant={getBadgeVariant(option.color)}>
-                  {option.label}
+                  {option.value}
                 </Badge>
               </ComboboxItem>
             )}

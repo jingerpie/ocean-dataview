@@ -85,7 +85,7 @@ export function StatusProperty<T>({ value, property }: StatusPropertyProps<T>) {
       render={<div className={`h-2 w-2 rounded-full ${dotColor}`} />}
       variant={variant}
     >
-      {option.label}
+      {option.value}
     </Badge>
   );
 }

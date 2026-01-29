@@ -80,7 +80,7 @@ function handleDateGrouping(
  */
 function handleStatusGroupGrouping(
   value: unknown,
-  config?: { options: Array<{ value: string; label: string; group: string }> },
+  config?: { options: Array<{ value: string; group: string }> },
   emptyLabel?: string
 ): GroupResult {
   const statusValue = String(value);
@@ -104,7 +104,7 @@ function handleStatusGroupGrouping(
  */
 function handleStatusOptionGrouping(
   value: unknown,
-  config?: { options: Array<{ value: string; label: string; group: string }> },
+  config?: { options: Array<{ value: string; group: string }> },
   emptyLabel?: string
 ): GroupResult {
   const statusValue = String(value);
@@ -115,7 +115,7 @@ function handleStatusOptionGrouping(
     const groupIndex = STATUS_GROUP_ORDER[group] ?? 999;
     const optionIndex = config.options.indexOf(option);
     return {
-      groupKey: option.label || statusValue,
+      groupKey: option.value,
       sortValue: groupIndex * 1000 + optionIndex,
     };
   }
@@ -158,7 +158,7 @@ function getGroupKeyAndSortValue<TData>(
   // Handle status grouping by group
   if (property?.type === "status" && showAs === "group" && value) {
     const config = property.config as {
-      options: Array<{ value: string; label: string; group: string }>;
+      options: Array<{ value: string; group: string }>;
     };
     return handleStatusGroupGrouping(value, config, emptyGroupLabel);
   }
@@ -166,7 +166,7 @@ function getGroupKeyAndSortValue<TData>(
   // Handle status grouping by option
   if (property?.type === "status" && value) {
     const config = property.config as {
-      options: Array<{ value: string; label: string; group: string }>;
+      options: Array<{ value: string; group: string }>;
     };
     return handleStatusOptionGrouping(value, config, emptyGroupLabel);
   }

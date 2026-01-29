@@ -49,7 +49,7 @@ function SelectPickerContent({
         {(option: SelectOption) => (
           <ComboboxItem key={option.value} value={option}>
             <Badge variant={getBadgeVariant(option.color)}>
-              {option.label}
+              {option.value}
             </Badge>
           </ComboboxItem>
         )}
@@ -67,8 +67,6 @@ interface SelectPickerTriggerProps {
   selectedValues: string[];
   /** Selected options with full data */
   selectedOptions: SelectOption[];
-  /** Labels of selected options */
-  selectedLabels: string[];
   /** Number of selected items */
   selectedCount: number;
   /** Placeholder text when nothing selected */
@@ -120,13 +118,11 @@ function SelectPicker({
 
   // Get selected options as objects for the Combobox value prop
   const selectedOptions = options.filter((o) => value.includes(o.value));
-  const selectedLabels = selectedOptions.map((o) => o.label);
 
   // Trigger props for custom trigger render
   const triggerProps: SelectPickerTriggerProps = {
     selectedValues: value,
     selectedOptions,
-    selectedLabels,
     selectedCount: value.length,
     placeholder,
   };
@@ -138,7 +134,7 @@ function SelectPicker({
   } else if (value.length > 1) {
     triggerText = `${value.length} selected`;
   } else {
-    triggerText = selectedLabels[0] ?? value[0] ?? placeholder;
+    triggerText = value[0] ?? placeholder;
   }
   const defaultTriggerContent = <span className="truncate">{triggerText}</span>;
 

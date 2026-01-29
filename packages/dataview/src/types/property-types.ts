@@ -90,7 +90,6 @@ export interface NumberConfig {
 
 export interface SelectOption {
   value: string;
-  label: string;
   color?:
     | "gray"
     | "blue"
@@ -113,7 +112,6 @@ export interface MultiSelectConfig {
 
 export interface StatusOption {
   value: string;
-  label: string;
   group: "todo" | "inProgress" | "complete" | "canceled";
 }
 

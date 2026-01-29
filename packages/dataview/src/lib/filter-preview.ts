@@ -16,14 +16,6 @@ type RelativeToTodayValue = [
 ];
 
 /**
- * Select option for select/multi-select values
- */
-interface SelectOption {
-  value: string;
-  label: string;
-}
-
-/**
  * Filter variant determines how conditions are displayed
  */
 type FilterVariant =
@@ -39,8 +31,6 @@ interface GetFilterPreviewOptions {
   condition: FilterCondition;
   value: unknown;
   variant: FilterVariant;
-  /** For select/multi-select, provide options to get labels */
-  options?: SelectOption[];
 }
 
 /**
@@ -74,12 +64,10 @@ function formatRelativeDate(value: RelativeToTodayValue): string {
 }
 
 /**
- * Get label for select value(s) from options
+ * Get display text for select value(s)
+ * Since SelectOption no longer has label, value is used directly
  */
-function getSelectLabels(
-  value: unknown,
-  options?: SelectOption[]
-): string | null {
+function getSelectDisplayText(value: unknown): string | null {
   if (!value) {
     return null;
   }
@@ -89,16 +77,7 @@ function getSelectLabels(
     return null;
   }
 
-  if (!options || options.length === 0) {
-    return values.join(", ");
-  }
-
-  const labels = values.map((v) => {
-    const option = options.find((o) => o.value === v);
-    return option?.label ?? v;
-  });
-
-  return labels.join(", ");
+  return values.join(", ");
 }
 
 /**
@@ -178,25 +157,21 @@ function getDatePreview(condition: FilterCondition, value: unknown): string {
  * Get preview for select variant
  * Includes ": " prefix
  */
-function getSelectPreview(
-  condition: FilterCondition,
-  value: unknown,
-  options?: SelectOption[]
-): string {
-  const label = getSelectLabels(value, options);
-  if (!label) {
+function getSelectPreview(condition: FilterCondition, value: unknown): string {
+  const displayText = getSelectDisplayText(value);
+  if (!displayText) {
     return "";
   }
 
   switch (condition) {
     case "eq":
     case "inArray":
-      return `: ${label}`;
+      return `: ${displayText}`;
     case "ne":
     case "notInArray":
-      return `: Not ${label}`;
+      return `: Not ${displayText}`;
     default:
-      return `: ${label}`;
+      return `: ${displayText}`;
   }
 }
 
@@ -206,21 +181,20 @@ function getSelectPreview(
  */
 function getMultiSelectPreview(
   condition: FilterCondition,
-  value: unknown,
-  options?: SelectOption[]
+  value: unknown
 ): string {
-  const label = getSelectLabels(value, options);
-  if (!label) {
+  const displayText = getSelectDisplayText(value);
+  if (!displayText) {
     return "";
   }
 
   switch (condition) {
     case "inArray":
-      return `: ${label}`;
+      return `: ${displayText}`;
     case "notInArray":
-      return `: Not ${label}`;
+      return `: Not ${displayText}`;
     default:
-      return `: ${label}`;
+      return `: ${displayText}`;
   }
 }
 
@@ -257,7 +231,6 @@ export function getFilterPreview({
   condition,
   value,
   variant,
-  options,
 }: GetFilterPreviewOptions): string {
   // Empty conditions - same for all variants, with colon
   if (condition === "isEmpty") {
@@ -276,9 +249,9 @@ export function getFilterPreview({
     case "dateRange":
       return getDatePreview(condition, value);
     case "select":
-      return getSelectPreview(condition, value, options);
+      return getSelectPreview(condition, value);
     case "multiSelect":
-      return getMultiSelectPreview(condition, value, options);
+      return getMultiSelectPreview(condition, value);
     default:
       return getTextPreview(condition, value);
   }

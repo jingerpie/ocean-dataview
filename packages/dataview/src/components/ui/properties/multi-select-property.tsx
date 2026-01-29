@@ -44,7 +44,7 @@ export function MultiSelectProperty<T>({
 
         return (
           <Badge key={option.value} variant={variant}>
-            {option.label}
+            {option.value}
           </Badge>
         );
       })}
