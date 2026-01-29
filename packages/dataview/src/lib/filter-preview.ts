@@ -103,75 +103,80 @@ function getSelectLabels(
 
 /**
  * Get preview for boolean (checkbox) variant
+ * Includes ": " prefix
  */
 function getBooleanPreview(value: unknown): string {
   if (value === true) {
-    return "Checked";
+    return ": Checked";
   }
   if (value === false) {
-    return "Unchecked";
+    return ": Unchecked";
   }
   return "";
 }
 
 /**
  * Get preview for number variant
+ * Uses operators as separator (space + operator), no colon
  */
 function getNumberPreview(condition: FilterCondition, value: unknown): string {
   const numValue = value != null ? String(value) : "";
   switch (condition) {
     case "eq":
-      return `= ${numValue}`;
+      return ` = ${numValue}`;
     case "ne":
-      return `≠ ${numValue}`;
+      return ` ≠ ${numValue}`;
     case "gt":
-      return `> ${numValue}`;
+      return ` > ${numValue}`;
     case "lt":
-      return `< ${numValue}`;
+      return ` < ${numValue}`;
     case "gte":
-      return `≥ ${numValue}`;
+      return ` ≥ ${numValue}`;
     case "lte":
-      return `≤ ${numValue}`;
+      return ` ≤ ${numValue}`;
     default:
-      return numValue;
+      return numValue ? ` = ${numValue}` : "";
   }
 }
 
 /**
  * Get preview for date variant
+ * Includes ": " prefix
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Date conditions require explicit handling
 function getDatePreview(condition: FilterCondition, value: unknown): string {
   if (condition === "isRelativeToToday" && value) {
-    return formatRelativeDate(value as RelativeToTodayValue);
+    return `: ${formatRelativeDate(value as RelativeToTodayValue)}`;
   }
 
   if (condition === "isBetween" && value) {
     const range = value as DateRangeValue;
     const from = range[0] ? formatDateShort(range[0]) : "?";
     const to = range[1] ? formatDateShort(range[1]) : "?";
-    return `${from} → ${to}`;
+    return `: ${from} → ${to}`;
   }
 
   const dateStr = value ? formatDateShort(value as string) : "";
 
   switch (condition) {
     case "eq":
-      return dateStr;
+      return dateStr ? `: ${dateStr}` : "";
     case "lt":
-      return `Before ${dateStr}`;
+      return dateStr ? `: Before ${dateStr}` : "";
     case "gt":
-      return `After ${dateStr}`;
+      return dateStr ? `: After ${dateStr}` : "";
     case "lte":
-      return `On or before ${dateStr}`;
+      return dateStr ? `: On or before ${dateStr}` : "";
     case "gte":
-      return `On or after ${dateStr}`;
+      return dateStr ? `: On or after ${dateStr}` : "";
     default:
-      return dateStr;
+      return dateStr ? `: ${dateStr}` : "";
   }
 }
 
 /**
  * Get preview for select variant
+ * Includes ": " prefix
  */
 function getSelectPreview(
   condition: FilterCondition,
@@ -186,17 +191,18 @@ function getSelectPreview(
   switch (condition) {
     case "eq":
     case "inArray":
-      return label;
+      return `: ${label}`;
     case "ne":
     case "notInArray":
-      return `Not ${label}`;
+      return `: Not ${label}`;
     default:
-      return label;
+      return `: ${label}`;
   }
 }
 
 /**
  * Get preview for multi-select variant
+ * Includes ": " prefix
  */
 function getMultiSelectPreview(
   condition: FilterCondition,
@@ -210,16 +216,17 @@ function getMultiSelectPreview(
 
   switch (condition) {
     case "inArray":
-      return label;
+      return `: ${label}`;
     case "notInArray":
-      return `Not ${label}`;
+      return `: Not ${label}`;
     default:
-      return label;
+      return `: ${label}`;
   }
 }
 
 /**
  * Get preview for text variant
+ * Includes ": " prefix
  */
 function getTextPreview(condition: FilterCondition, value: unknown): string {
   const textValue = value != null ? String(value) : "";
@@ -227,21 +234,24 @@ function getTextPreview(condition: FilterCondition, value: unknown): string {
   switch (condition) {
     case "eq":
     case "iLike":
-      return textValue;
+      return textValue ? `: ${textValue}` : "";
     case "ne":
     case "notILike":
-      return textValue ? `Not ${textValue}` : "";
+      return textValue ? `: Not ${textValue}` : "";
     case "startsWith":
-      return textValue ? `Starts with ${textValue}` : "";
+      return textValue ? `: Starts with ${textValue}` : "";
     case "endsWith":
-      return textValue ? `Ends with ${textValue}` : "";
+      return textValue ? `: Ends with ${textValue}` : "";
     default:
-      return textValue;
+      return textValue ? `: ${textValue}` : "";
   }
 }
 
 /**
- * Generate preview string for a filter condition
+ * Generate preview string for a filter condition.
+ * Returns string with appropriate separator prefix:
+ * - ": value" for most conditions
+ * - " = value" for number operators (no colon)
  */
 export function getFilterPreview({
   condition,
@@ -249,12 +259,12 @@ export function getFilterPreview({
   variant,
   options,
 }: GetFilterPreviewOptions): string {
-  // Empty conditions - same for all variants
+  // Empty conditions - same for all variants, with colon
   if (condition === "isEmpty") {
-    return "Is empty";
+    return ": Is empty";
   }
   if (condition === "isNotEmpty") {
-    return "Is not empty";
+    return ": Is not empty";
   }
 
   switch (variant) {

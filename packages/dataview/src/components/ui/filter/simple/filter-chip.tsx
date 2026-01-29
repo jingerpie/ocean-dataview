@@ -136,13 +136,14 @@ export function FilterChip({
   const close = () => setOpen(null);
 
   // Build trigger content based on variant
+  // Preview already includes separator (: or space) from getFilterPreview
   const triggerContent =
     chipVariant === "detailed" ? (
       <>
         <PropertyIcon type={property.type} />
         <span className="truncate">
           {label}
-          {preview ? `: ${preview}` : ""}
+          {preview}
         </span>
         <ChevronDownIcon className="size-3 shrink-0 opacity-50" />
       </>
