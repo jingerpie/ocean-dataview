@@ -49,9 +49,10 @@ function PropertyDisplayComponent<T>({
       if (!(valueFn && allProperties)) {
         return null;
       }
-      // Formula API: value(propertyRenderer, data) => ReactNode
+      // Formula API: value(property) => ReactNode
+      // property(id) renders, property.raw(id) returns raw data
       const renderer = createPropertyRenderer(item, allProperties);
-      return <>{valueFn(renderer, item)}</>;
+      return <>{valueFn(renderer)}</>;
     }
 
     case "text":

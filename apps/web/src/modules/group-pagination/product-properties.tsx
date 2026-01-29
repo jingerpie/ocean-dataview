@@ -12,16 +12,17 @@ export const productProperties = [
     id: "name",
     label: "Name",
     type: "text",
+    // text type is searchable by default, no need for allowSearch: true
   },
   {
     id: "tag",
     label: "Tag",
-    type: "text",
+    type: "select",
   },
   {
     id: "type",
     label: "Type",
-    type: "text",
+    type: "select",
   },
   {
     id: "familyGroup",
@@ -45,11 +46,26 @@ export const productProperties = [
   {
     id: "image",
     label: "Image",
-    type: "filesMedia",
-    value: (item) =>
-      item.image
-        ? `https://us-prod5-digitalasset-v2.s3.amazonaws.com/${item.image.replace(".jpg", "_270.jpg")}`
-        : null,
+    type: "text",
+    visibility: false, // Hidden - used by imageDisplay formula
+    search: false,
+    filter: false,
+    sort: false,
+  },
+  {
+    id: "imageDisplay",
+    label: "Image",
+    type: "formula",
+    value: (property) => {
+      const image = property.raw("image");
+      if (!image) {
+        return null;
+      }
+      const url = `https://us-prod5-digitalasset-v2.s3.amazonaws.com/${image.replace(".jpg", "_270.jpg")}`;
+      // biome-ignore lint/performance/noImgElement: Demo file using external image URL
+      // biome-ignore lint/correctness/useImageSize: Demo file with CSS dimensions
+      return <img alt="" className="h-8 w-8 rounded object-cover" src={url} />;
+    },
   },
   {
     id: "minCalories",
@@ -60,16 +76,5 @@ export const productProperties = [
     id: "maxCalories",
     label: "Max Calories",
     type: "number",
-  },
-  {
-    id: "createdAt",
-    label: "Created At",
-    type: "date",
-  },
-  {
-    id: "hasType",
-    label: "Has Type",
-    type: "checkbox",
-    value: (item) => item.type !== "UNDEFINED",
   },
 ] as DataViewProperty<Product>[];

@@ -6,12 +6,12 @@ import type { DataViewProperty } from "../../types/property-types";
 export type TransformedData = Record<string, unknown>;
 
 /**
- * Transforms raw data to only include property-defined fields
- * This reduces memory footprint and improves React render performance
+ * Transforms raw data to only include property-defined fields.
+ * This reduces memory footprint and improves React render performance.
  *
  * For each property:
- * - If property has a value function: Calls it with full item, stores result
- * - If property has no value function: Auto-maps item[property.id] to transformed[property.id]
+ * - Formula properties: Set to null (rendered in PropertyDisplay with full context)
+ * - Other properties: Auto-maps item[property.id] to transformed[property.id]
  *
  * All other fields from raw data are dropped.
  *
@@ -22,12 +22,12 @@ export type TransformedData = Record<string, unknown>;
  * @example
  * const rawData = [{ id: 123, name: "Item", price: 100, internal: "hidden" }];
  * const properties = [
- *   { id: "id", type: "text" },  // Auto-maps to item.id
- *   { id: "displayName", type: "text", value: (item) => item.name.toUpperCase() },
+ *   { id: "id", type: "text" },    // Auto-maps to item.id
+ *   { id: "name", type: "text" },  // Auto-maps to item.name
  * ];
  * const transformed = transformData(rawData, properties);
- * // Result: [{ id: 123, displayName: "ITEM" }]
- * // Note: name, price, and internal fields are dropped
+ * // Result: [{ id: 123, name: "Item" }]
+ * // Note: price and internal fields are dropped
  */
 export function transformData<TData>(
   rawData: readonly TData[],
@@ -40,11 +40,8 @@ export function transformData<TData>(
       if (property.type === "formula") {
         // Formula properties are rendered in PropertyDisplay with full context
         transformed[property.id] = null;
-      } else if (property.value) {
-        // Transform: Call value function with full item, store result
-        transformed[property.id] = property.value(item);
       } else {
-        // Pass: Auto-map property.id to field name
+        // Auto-map property.id to field name
         transformed[property.id] = (item as Record<string, unknown>)[
           property.id
         ];

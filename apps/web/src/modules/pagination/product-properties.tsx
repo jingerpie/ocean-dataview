@@ -1,3 +1,4 @@
+import { Property } from "@ocean-dataview/dataview/components/ui/properties/formula-property";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type { AppRouter } from "@ocean-dataview/trpc/routers/index";
 import type { inferRouterOutputs } from "@trpc/server";
@@ -12,17 +13,16 @@ export const productProperties = [
     id: "name",
     label: "Name",
     type: "text",
-    // text type is searchable by default, no need for allowSearch: true
   },
   {
     id: "tag",
     label: "Tag",
-    type: "select",
+    type: "text",
   },
   {
     id: "type",
     label: "Type",
-    type: "select",
+    type: "text",
   },
   {
     id: "familyGroup",
@@ -46,11 +46,24 @@ export const productProperties = [
   {
     id: "image",
     label: "Image",
-    type: "filesMedia",
-    value: (item) =>
-      item.image
-        ? `https://us-prod5-digitalasset-v2.s3.amazonaws.com/${item.image.replace(".jpg", "_270.jpg")}`
-        : null,
+    type: "text",
+    visibility: false, // Hidden - used by imageDisplay formula
+    search: false,
+    filter: false,
+    sort: false,
+  },
+  {
+    id: "imageDisplay",
+    label: "Image",
+    type: "formula",
+    value: (property) => {
+      const image = property.raw("image");
+      if (!image) {
+        return null;
+      }
+      const url = `https://us-prod5-digitalasset-v2.s3.amazonaws.com/${image.replace(".jpg", "_270.jpg")}`;
+      return <Property.FilesMedia value={url} />;
+    },
   },
   {
     id: "minCalories",
@@ -61,5 +74,10 @@ export const productProperties = [
     id: "maxCalories",
     label: "Max Calories",
     type: "number",
+  },
+  {
+    id: "createdAt",
+    label: "Created At",
+    type: "date",
   },
 ] as DataViewProperty<Product>[];

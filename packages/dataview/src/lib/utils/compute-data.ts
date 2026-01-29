@@ -202,16 +202,13 @@ export function groupByProperty<TData>(
   const sortValues: Record<string, string | number> = {};
 
   for (const item of data) {
-    // Extract value using property transformation
+    // Extract value from item
     let value: unknown;
     if (property?.type === "formula") {
       // Formula properties can't be grouped - skip value extraction
       value = null;
-    } else if (property?.value) {
-      // Use transformation function if defined
-      value = property.value(item);
     } else {
-      // Fallback: read from item[propertyId]
+      // Read from item[propertyId]
       value = (item as Record<string, unknown>)[propertyId];
     }
 
@@ -384,7 +381,7 @@ export function computeData<TData>(
   // Find the property definition for value extraction
   const property = properties?.find((p) => p.id === propertyId);
 
-  // Helper to extract value from item using property transformation
+  // Helper to extract value from item
   const extractValue = (item: TData): unknown => {
     if (!propertyId) {
       return undefined;
@@ -395,11 +392,7 @@ export function computeData<TData>(
       return null;
     }
 
-    if (property?.value) {
-      // Use transformation function if defined
-      return property.value(item);
-    }
-    // Fallback: read from item[propertyId]
+    // Read from item[propertyId]
     return (item as Record<string, unknown>)[propertyId];
   };
 

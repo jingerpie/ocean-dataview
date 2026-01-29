@@ -13,26 +13,28 @@ import { TextProperty } from "../../components/ui/properties/text-property";
 import { UrlProperty } from "../../components/ui/properties/url-property";
 import type {
   DataViewProperty,
-  PropertyRenderer,
+  PropertyFunction,
 } from "../../types/property-types";
 
 /**
- * Creates a PropertyRenderer function for use in formula properties.
+ * Creates a PropertyFunction for use in formula properties.
  *
- * The returned function takes a property ID and renders that property's value
- * using its full configuration (colors, formats, etc.).
+ * The returned function has two modes:
+ * - `property(id)` - Renders the property with its full config (colors, formats, etc.)
+ * - `property.raw(id)` - Returns the typed raw data value for that property
  *
  * @param data - The raw data item containing property values
  * @param properties - All property definitions for looking up configs
- * @returns A PropertyRenderer function that renders properties by ID
+ * @returns A PropertyFunction that renders properties and provides type-safe raw data access
  *
  * @example
  * ```tsx
  * // Inside formula property:
- * value: (property, data) => (
+ * value: (property) => (
  *   <div>
  *     {property("name")}        // Renders name as text
  *     {property("familyGroup")} // Renders with select colors
+ *     {property.raw("minCalories") > 500 && <span>High cal</span>}
  *   </div>
  * )
  * ```
@@ -40,25 +42,32 @@ import type {
 export function createPropertyRenderer<TData>(
   data: TData,
   properties: readonly DataViewProperty<TData>[]
-): PropertyRenderer {
-  return (id: string) => {
+): PropertyFunction<TData> {
+  // Internal helper to get raw value (uses string for internal rendering)
+  const getValueInternal = (id: string): unknown => {
+    return (data as Record<string, unknown>)[id];
+  };
+
+  // Type-safe raw value accessor for public API
+  const getRawValue = <K extends keyof TData>(id: K): TData[K] => {
+    return data[id];
+  };
+
+  // Render function
+  const render = (id: string) => {
     // Find the property definition
     const property = properties.find((p) => p.id === id);
     if (!property) {
       return null;
     }
 
-    // Get the value for this property
-    let value: unknown;
+    // Formulas can't be nested - return null
     if (property.type === "formula") {
-      // Formulas can't be nested - return null
       return null;
     }
-    if (property.value) {
-      value = property.value(data);
-    } else {
-      value = (data as Record<string, unknown>)[id];
-    }
+
+    // Get raw value from data (internal, untyped)
+    const value = getValueInternal(id);
 
     // Render based on property type
     switch (property.type) {
@@ -104,4 +113,9 @@ export function createPropertyRenderer<TData>(
         );
     }
   };
+
+  // Attach raw method to the render function
+  render.raw = getRawValue;
+
+  return render;
 }

@@ -30,10 +30,10 @@ const EMPTY_ID = "" as keyof EmptyObject;
  * {
  *   id: "summary",
  *   type: "formula",
- *   value: (_, data) => (
+ *   value: (property) => (
  *     <div className="flex gap-2">
- *       <Property.Text value={data.title} />
- *       <Property.Number value={data.price} config={{ numberFormat: "dollar" }} />
+ *       <Property.Text value={property.raw("title")} />
+ *       <Property.Number value={property.raw("price")} config={{ numberFormat: "dollar" }} />
  *     </div>
  *   )
  * }
