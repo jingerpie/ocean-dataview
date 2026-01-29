@@ -28,7 +28,7 @@ import {
   subMonths,
   subWeeks,
 } from "date-fns";
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 /** Get the first day of the month for calendar display */
@@ -176,6 +176,13 @@ function SingleDateCalendar({ value, onChange }: SingleDateCalendarProps) {
     onChange(date ? toDateOnlyString(date) : "");
   };
 
+  const handleClear = () => {
+    setPreset(null);
+    setDraft(null);
+    setIsValid(true);
+    onChange("");
+  };
+
   const presetMenuContent = (
     <DropdownMenuContent align="start" className="w-auto">
       {DATE_PRESETS.map((presetOption) => (
@@ -206,10 +213,19 @@ function SingleDateCalendar({ value, onChange }: SingleDateCalendarProps) {
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder="Select or type a date..."
-          type="search"
           value={displayValue}
         />
-        <InputGroupAddon align="inline-end">
+        <InputGroupAddon align="inline-end" className="gap-0">
+          {displayValue && (
+            <InputGroupButton
+              aria-label="Clear date"
+              onClick={handleClear}
+              size="icon-xs"
+              variant="ghost"
+            >
+              <XIcon />
+            </InputGroupButton>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger
               render={

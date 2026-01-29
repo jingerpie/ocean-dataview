@@ -235,7 +235,7 @@ function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
   };
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1.5">
       {/* Preset Select */}
       <Select
         items={DATE_PRESET_ITEMS}
@@ -262,10 +262,8 @@ function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
               {dateValue ? formatDateForDisplay(dateValue) : "Select a date"}
             </span>
           </PopoverTrigger>
-          <PopoverContent align="start" className="w-auto p-3">
-            <InputGroup
-              className={cn("mb-2", !isValid && "border-destructive")}
-            >
+          <PopoverContent align="start" className="w-auto gap-0 p-3">
+            <InputGroup className={cn(!isValid && "border-destructive")}>
               <InputGroupInput
                 onBlur={handleInputBlur}
                 onChange={handleInputChange}
@@ -273,11 +271,13 @@ function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
                 placeholder="Select or type a date..."
                 value={displayValue}
               />
-              <InputGroupAddon align="inline-end">
-                <InputGroupButton onClick={handleClear} size="icon-sm">
-                  <XIcon className="size-3.5" />
-                </InputGroupButton>
-              </InputGroupAddon>
+              {displayValue && (
+                <InputGroupAddon align="inline-end">
+                  <InputGroupButton onClick={handleClear} size="icon-sm">
+                    <XIcon />
+                  </InputGroupButton>
+                </InputGroupAddon>
+              )}
             </InputGroup>
             <Calendar
               mode="single"

@@ -250,7 +250,7 @@ function RelativeDatePickerContent({
   const dateRange = getRelativeDateRange(now, direction, count, unit);
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center">
       {/* Dropdowns and count input */}
       <RelativeDateDropdowns onChange={onChange} value={value} />
 
