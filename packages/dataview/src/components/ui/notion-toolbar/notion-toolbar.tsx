@@ -108,7 +108,7 @@ export function NotionToolbar({
           {/* Filter - single picker with conditional onClick */}
           {enableFilter && (
             <FilterPropertyPicker
-              onClick={filter !== null ? toggleRow2 : undefined}
+              onClick={filter && filter.length > 0 ? toggleRow2 : undefined}
               properties={properties}
               variant="icon"
             />

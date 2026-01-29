@@ -53,8 +53,9 @@ export function useToolbarState({
   // Analyze filter structure using shared utility
   const filterAnalysis = useMemo(() => analyzeFilter(filter), [filter]);
 
-  // Derived state
-  const hasActiveControls = filter !== null || sorts.length > 0;
+  // Derived state - empty arrays are considered "no filter/sort"
+  const hasActiveControls =
+    (filter !== null && filter.length > 0) || sorts.length > 0;
 
   // Track previous hasActiveControls to detect when controls become active
   const prevHasActiveControls = useRef(hasActiveControls);
