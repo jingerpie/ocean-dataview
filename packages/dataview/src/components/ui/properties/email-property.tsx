@@ -1,6 +1,5 @@
 "use client";
 
-import { Mail } from "lucide-react";
 import type { EmailPropertyType } from "../../../types/property-types";
 
 interface EmailPropertyProps<T> {
@@ -22,11 +21,10 @@ export function EmailProperty<T>({ value, property }: EmailPropertyProps<T>) {
 
   return (
     <a
-      className="inline-flex items-center gap-1 text-blue-600 text-sm hover:text-blue-800 hover:underline"
+      className="inline-flex items-center gap-1 text-sm hover:underline"
       href={`mailto:${email}`}
       onClick={(e) => e.stopPropagation()}
     >
-      <Mail className="h-3 w-3 flex-shrink-0" />
       <span className="truncate">{email}</span>
     </a>
   );

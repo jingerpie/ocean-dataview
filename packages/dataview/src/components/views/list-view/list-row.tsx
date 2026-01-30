@@ -73,7 +73,7 @@ export function ListRow<TData>({
                   <div
                     className={cn(
                       "flex items-center",
-                      isFirst ? "flex-1 font-medium" : "flex-shrink-0"
+                      isFirst ? "flex-1 font-medium" : "shrink-0"
                     )}
                     key={String(property.id)}
                   >

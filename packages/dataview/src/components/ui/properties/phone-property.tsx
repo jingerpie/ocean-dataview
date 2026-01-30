@@ -1,6 +1,5 @@
 "use client";
 
-import { Phone } from "lucide-react";
 import type { PhonePropertyType } from "../../../types/property-types";
 
 interface PhonePropertyProps<T> {
@@ -39,11 +38,10 @@ export function PhoneProperty<T>({ value, property }: PhonePropertyProps<T>) {
 
   return (
     <a
-      className="inline-flex items-center gap-1 text-blue-600 text-sm hover:text-blue-800 hover:underline"
+      className="inline-flex items-center gap-1 text-sm hover:underline"
       href={`tel:${phone}`}
       onClick={(e) => e.stopPropagation()}
     >
-      <Phone className="h-3 w-3 flex-shrink-0" />
       <span className="truncate">{formattedPhone}</span>
     </a>
   );

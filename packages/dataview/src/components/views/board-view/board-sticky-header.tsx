@@ -275,7 +275,7 @@ export function BoardStickyHeader({
           {groups.map((group) => (
             <div
               className={cn(
-                "flex-shrink-0 pb-3",
+                "shrink-0 pb-3",
                 getColumnBgClass?.(group.key) || "bg-muted/30"
               )}
               key={group.key}

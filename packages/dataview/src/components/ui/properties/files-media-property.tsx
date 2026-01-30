@@ -42,7 +42,7 @@ export function FilesMediaProperty<T>({
     return (
       <div className={wrap ? "flex flex-wrap gap-2" : "flex gap-2"}>
         {value.map((url) => (
-          <div className="flex-shrink-0" key={url}>
+          <div className="shrink-0" key={url}>
             {renderFile(url)}
           </div>
         ))}

@@ -270,7 +270,7 @@ export function BoardRowLayout<
             {groups.map((group) => (
               <div
                 className={cn(
-                  "flex-shrink-0 pb-3",
+                  "shrink-0 pb-3",
                   getColumnBgClass?.(group.key) || "bg-muted/30"
                 )}
                 key={group.key}
@@ -336,7 +336,7 @@ export function BoardRowLayout<
                       return (
                         <div
                           className={cn(
-                            "flex-shrink-0 rounded-lg",
+                            "shrink-0 rounded-lg",
                             columnBgClass || "bg-muted/10"
                           )}
                           key={group.key}
@@ -368,7 +368,7 @@ export function BoardRowLayout<
             <div className="mt-4 flex gap-3">
               {groups.map((group) => (
                 <div
-                  className="flex-shrink-0"
+                  className="shrink-0"
                   key={group.key}
                   style={{ width: columnWidthPx }}
                 >
