@@ -16,23 +16,7 @@ import { getQueryClient, trpc } from "@/utils/trpc/server";
  * These are applied server-side before prefetch and passed to client.
  */
 const VIEW_DEFAULTS: { filter: WhereNode[] } = {
-  filter: [
-    {
-      property: "type",
-      condition: "eq",
-      value: "ITEM",
-    },
-    {
-      property: "name",
-      condition: "iLike",
-      value: "Toy",
-    },
-    {
-      property: "minCalories",
-      condition: "eq",
-      value: "0",
-    },
-  ],
+  filter: [],
 };
 
 interface PageProps {

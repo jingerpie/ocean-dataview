@@ -8,7 +8,13 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "us-prod5-digitalasset-v2.s3.amazonaws.com",
+        hostname: "*.shopifycdn.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.shopify.com",
         port: "",
         pathname: "/**",
       },

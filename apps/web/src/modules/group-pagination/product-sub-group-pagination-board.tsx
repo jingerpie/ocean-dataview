@@ -48,7 +48,7 @@ export function ProductSubGroupPaginationBoard({
 
   // 1. Fetch group counts (suspends until data is ready)
   const { data: groupCounts } = useSuspenseQuery(
-    trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" })
+    trpc.product.getGroup.queryOptions({ groupBy: "category" })
   );
 
   // 2. Get all group keys - all columns are always visible in BoardView
@@ -64,7 +64,7 @@ export function ProductSubGroupPaginationBoard({
     limit,
     createQueryOptions: (groupKey, cursor) =>
       trpc.product.getMany.queryOptions({
-        filter: combineGroupFilter("familyGroup", groupKey, filter),
+        filter: combineGroupFilter("category", groupKey, filter),
         search: searchQuery,
         sort,
         cursor,
@@ -94,10 +94,14 @@ export function ProductSubGroupPaginationBoard({
 
         <BoardView
           counts={groupCounts}
+          layout={{
+            cardPreview: "productImage",
+            cardSize: "medium",
+          }}
           pagination="page"
           view={{
-            group: { groupBy: "familyGroup", showAggregation: true },
-            subGroup: { subGroupBy: "tag" },
+            group: { groupBy: "category", showAggregation: true },
+            subGroup: { subGroupBy: "availability" },
           }}
         />
       </DataViewProvider>

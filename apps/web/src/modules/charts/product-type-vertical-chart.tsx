@@ -7,11 +7,11 @@ import { Suspense } from "react";
 
 import { useTRPC } from "@/utils/trpc/client";
 
-import { productTypeProperty } from "./product-chart-properties";
+import { categoryProperty } from "./product-chart-properties";
 
-const productProperties = [productTypeProperty] as const;
+const productProperties = [categoryProperty] as const;
 
-function ProductTypeChart() {
+function ProductCategoryChart() {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(
     trpc.product.getMany.queryOptions({ limit: 200 })
@@ -22,7 +22,7 @@ function ProductTypeChart() {
       <VerticalBarChartView
         config={{
           xAxis: {
-            whatToShow: { property: "type" },
+            whatToShow: { property: "category" },
             sortBy: "countDescending",
           },
           yAxis: {
@@ -34,7 +34,7 @@ function ProductTypeChart() {
             gridLine: "horizontal",
             axisName: "both",
             dataLabels: true,
-            caption: "Product Count by Type",
+            caption: "Product Count by Category",
             showLegend: false,
           },
         }}
@@ -52,7 +52,7 @@ export function ProductTypeVerticalChart() {
         </div>
       }
     >
-      <ProductTypeChart />
+      <ProductCategoryChart />
     </Suspense>
   );
 }

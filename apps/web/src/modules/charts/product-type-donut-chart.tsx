@@ -7,11 +7,11 @@ import { Suspense } from "react";
 
 import { useTRPC } from "@/utils/trpc/client";
 
-import { productTypeProperty } from "./product-chart-properties";
+import { categoryProperty } from "./product-chart-properties";
 
-const productProperties = [productTypeProperty] as const;
+const productProperties = [categoryProperty] as const;
 
-function ProductTypeDonut() {
+function ProductCategoryDonut() {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(
     trpc.product.getMany.queryOptions({ limit: 200 })
@@ -22,14 +22,14 @@ function ProductTypeDonut() {
       <DonutChartView
         config={{
           data: {
-            whatToShow: { property: "type" },
+            whatToShow: { property: "category" },
             showAs: "count",
             sortBy: "countDescending",
           },
           style: {
             color: "colorful",
             height: "medium",
-            caption: "Product Distribution by Type",
+            caption: "Product Distribution by Category",
             showLegend: true,
           },
         }}
@@ -47,7 +47,7 @@ export function ProductTypeDonutChart() {
         </div>
       }
     >
-      <ProductTypeDonut />
+      <ProductCategoryDonut />
     </Suspense>
   );
 }

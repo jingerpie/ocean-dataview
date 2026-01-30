@@ -1,7 +1,7 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
-import { CaloriesByTypeChart } from "@/modules/charts/calories-by-type-chart";
-import { CaloriesTrendAreaChart } from "@/modules/charts/calories-trend-area-chart";
+import { PriceByCategoryChart } from "@/modules/charts/calories-by-type-chart";
+import { PriceTrendAreaChart } from "@/modules/charts/calories-trend-area-chart";
 import { FamilyGroupHorizontalChart } from "@/modules/charts/family-group-horizontal-chart";
 import { ProductTagDonutChart } from "@/modules/charts/product-tag-donut-chart";
 import { ProductTypeDonutChart } from "@/modules/charts/product-type-donut-chart";
@@ -23,7 +23,7 @@ export default async function ChartsPage() {
         <div>
           <h1 className="font-bold text-2xl">Product Analytics Dashboard</h1>
           <p className="text-muted-foreground">
-            Visual insights into product distribution, nutrition, and categories
+            Visual insights into product distribution, pricing, and categories
           </p>
         </div>
 
@@ -41,7 +41,7 @@ export default async function ChartsPage() {
 
           {/* Regular card */}
           <div>
-            <CaloriesByTypeChart />
+            <PriceByCategoryChart />
           </div>
 
           {/* Regular card */}
@@ -61,7 +61,7 @@ export default async function ChartsPage() {
 
           {/* Area chart */}
           <div>
-            <CaloriesTrendAreaChart />
+            <PriceTrendAreaChart />
           </div>
         </div>
       </div>

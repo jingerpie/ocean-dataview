@@ -8,11 +8,11 @@ import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 
 import {
+  categoryProperty,
   createdAtProperty,
-  productTypeProperty,
 } from "./product-chart-properties";
 
-const productProperties = [createdAtProperty, productTypeProperty] as const;
+const productProperties = [createdAtProperty, categoryProperty] as const;
 
 function ProductsOverTimeLine() {
   const trpc = useTRPC();
@@ -30,7 +30,7 @@ function ProductsOverTimeLine() {
           },
           yAxis: {
             whatToShow: "count",
-            groupBy: { property: "type" },
+            groupBy: { property: "category" },
           },
           style: {
             color: "colorful",
@@ -40,7 +40,7 @@ function ProductsOverTimeLine() {
             smoothLine: true,
             showLegend: true,
             showDots: true,
-            caption: "Products Added Over Time by Type",
+            caption: "Products Added Over Time by Category",
           },
         }}
       />

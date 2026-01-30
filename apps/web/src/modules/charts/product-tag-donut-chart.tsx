@@ -7,16 +7,11 @@ import { Suspense } from "react";
 
 import { useTRPC } from "@/utils/trpc/client";
 
-// Use text property to show all tag values dynamically
-const tagProperty = {
-  id: "tag",
-  label: "Product Tag",
-  type: "text",
-} as const;
+import { availabilityProperty } from "./product-chart-properties";
 
-const productProperties = [tagProperty] as const;
+const productProperties = [availabilityProperty] as const;
 
-function ProductTagDonut() {
+function ProductAvailabilityDonut() {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(
     trpc.product.getMany.queryOptions({ limit: 200 })
@@ -27,7 +22,7 @@ function ProductTagDonut() {
       <DonutChartView
         config={{
           data: {
-            whatToShow: { property: "tag" },
+            whatToShow: { property: "availability" },
             showAs: "count",
             sortBy: "countDescending",
             omitZeroValues: true,
@@ -35,7 +30,7 @@ function ProductTagDonut() {
           style: {
             color: "colorful",
             height: "medium",
-            caption: "Product Distribution by Tag",
+            caption: "Product Distribution by Availability",
             showLegend: true,
             dataLabelFormat: "nameAndValue",
           },
@@ -54,7 +49,7 @@ export function ProductTagDonutChart() {
         </div>
       }
     >
-      <ProductTagDonut />
+      <ProductAvailabilityDonut />
     </Suspense>
   );
 }

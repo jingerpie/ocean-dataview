@@ -89,7 +89,7 @@ export function ProductPaginationGallery({
         ) : (
           <GalleryView
             layout={{
-              cardPreview: "image",
+              cardPreview: "productImage",
               cardSize: "medium",
               fitImage: true,
             }}

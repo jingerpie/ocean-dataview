@@ -7,14 +7,11 @@ import { Suspense } from "react";
 
 import { useTRPC } from "@/utils/trpc/client";
 
-import {
-  maxCaloriesProperty,
-  productTypeProperty,
-} from "./product-chart-properties";
+import { categoryProperty, priceProperty } from "./product-chart-properties";
 
-const productProperties = [productTypeProperty, maxCaloriesProperty] as const;
+const productProperties = [categoryProperty, priceProperty] as const;
 
-function CaloriesTrendArea() {
+function PriceTrendArea() {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(
     trpc.product.getMany.queryOptions({ limit: 200 })
@@ -25,11 +22,11 @@ function CaloriesTrendArea() {
       <AreaChartView
         config={{
           xAxis: {
-            whatToShow: { property: "type" },
+            whatToShow: { property: "category" },
             sortBy: "countDescending",
           },
           yAxis: {
-            whatToShow: { property: "maxCalories", showAs: "average" },
+            whatToShow: { property: "price", showAs: "average" },
           },
           style: {
             color: "purple",
@@ -39,7 +36,7 @@ function CaloriesTrendArea() {
             smoothLine: true,
             showLegend: false,
             showDots: true,
-            caption: "Average Calories Trend by Type",
+            caption: "Average Price Trend by Category",
           },
         }}
       />
@@ -47,7 +44,7 @@ function CaloriesTrendArea() {
   );
 }
 
-export function CaloriesTrendAreaChart() {
+export function PriceTrendAreaChart() {
   return (
     <Suspense
       fallback={
@@ -56,7 +53,7 @@ export function CaloriesTrendAreaChart() {
         </div>
       }
     >
-      <CaloriesTrendArea />
+      <PriceTrendArea />
     </Suspense>
   );
 }

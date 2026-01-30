@@ -9,72 +9,104 @@ export type Product = ProductWithVariants;
 
 export const productProperties = [
   {
-    id: "name",
-    label: "Name",
+    id: "productName",
+    label: "Product Name",
     type: "text",
-    // text type is searchable by default, no need for allowSearch: true
   },
   {
-    id: "tag",
-    label: "Tag",
-    type: "select",
+    id: "price",
+    label: "Price",
+    type: "number",
   },
   {
-    id: "type",
-    label: "Type",
-    type: "select",
+    id: "stockLevel",
+    label: "Stock Level",
+    type: "number",
   },
   {
-    id: "familyGroup",
-    label: "Family Group",
+    id: "rating",
+    label: "Rating",
+    type: "number",
+  },
+  {
+    id: "category",
+    label: "Category",
     type: "select",
     config: {
       options: [
-        { value: "REGULAR_DRINK", color: "blue" },
-        { value: "REGULAR_ENTREE", color: "red" },
-        { value: "SHAKES", color: "purple" },
-        { value: "BREAKFAST_ENTREE", color: "red" },
-        { value: "DESSERT", color: "pink" },
-        { value: "NON_PRODUCT", color: "gray" },
-        { value: "FRIES", color: "yellow" },
-        { value: "BREAKFAST_DRINK", color: "teal" },
-        { value: "UNDEFINED", color: "gray" },
-        { value: "BREAKFAST_SIDE", color: "green" },
+        { value: "Accessories", color: "blue" },
+        { value: "Bottoms", color: "purple" },
+        { value: "Dresses", color: "pink" },
+        { value: "Footwear", color: "orange" },
+        { value: "Garden", color: "green" },
+        { value: "Home", color: "teal" },
+        { value: "Jewelry", color: "yellow" },
+        { value: "Lingerie", color: "red" },
+        { value: "Outerwear", color: "gray" },
+        { value: "Tops", color: "cyan" },
       ],
     },
   },
   {
-    id: "image",
-    label: "Image",
-    type: "text",
-    hidden: true, // Hidden - used by imageDisplay formula
-    enableSearch: false,
-    enableFilter: false,
-    enableSort: false,
-  },
-  {
-    id: "imageDisplay",
-    label: "Image",
-    type: "formula",
-    value: (property) => {
-      const image = property.raw("image");
-      if (!image) {
-        return null;
-      }
-      const url = `https://us-prod5-digitalasset-v2.s3.amazonaws.com/${image.replace(".jpg", "_270.jpg")}`;
-      // biome-ignore lint/performance/noImgElement: Demo file using external image URL
-      // biome-ignore lint/correctness/useImageSize: Demo file with CSS dimensions
-      return <img alt="" className="h-8 w-8 rounded object-cover" src={url} />;
+    id: "tags",
+    label: "Tags",
+    type: "multiSelect",
+    config: {
+      options: [
+        { value: "Bestseller", color: "yellow" },
+        { value: "Eco-friendly", color: "green" },
+        { value: "Limited Edition", color: "purple" },
+        { value: "New Arrival", color: "blue" },
+        { value: "On Sale", color: "red" },
+        { value: "Seasonal", color: "orange" },
+      ],
     },
   },
   {
-    id: "minCalories",
-    label: "Min Calories",
-    type: "number",
+    id: "availability",
+    label: "Availability",
+    type: "select",
+    config: {
+      options: [
+        { value: "In stock", color: "green" },
+        { value: "Low stock", color: "yellow" },
+        { value: "Out of stock", color: "red" },
+      ],
+    },
   },
   {
-    id: "maxCalories",
-    label: "Max Calories",
-    type: "number",
+    id: "lastRestocked",
+    label: "Last Restocked",
+    type: "date",
+  },
+  {
+    id: "featured",
+    label: "Featured",
+    type: "checkbox",
+  },
+  {
+    id: "productImage",
+    label: "Product Image",
+    type: "filesMedia",
+  },
+  {
+    id: "productLink",
+    label: "Product Link",
+    type: "url",
+  },
+  {
+    id: "supplierPhone",
+    label: "Supplier Phone",
+    type: "phone",
+  },
+  {
+    id: "supplierEmail",
+    label: "Supplier Email",
+    type: "email",
+  },
+  {
+    id: "createdAt",
+    label: "Created At",
+    type: "date",
   },
 ] as DataViewProperty<Product>[];

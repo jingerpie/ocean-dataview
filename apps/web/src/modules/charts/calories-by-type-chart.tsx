@@ -7,14 +7,11 @@ import { Suspense } from "react";
 
 import { useTRPC } from "@/utils/trpc/client";
 
-import {
-  maxCaloriesProperty,
-  productTypeProperty,
-} from "./product-chart-properties";
+import { categoryProperty, priceProperty } from "./product-chart-properties";
 
-const productProperties = [productTypeProperty, maxCaloriesProperty] as const;
+const productProperties = [categoryProperty, priceProperty] as const;
 
-function CaloriesByType() {
+function PriceByCategory() {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(
     trpc.product.getMany.queryOptions({ limit: 200 })
@@ -25,11 +22,11 @@ function CaloriesByType() {
       <VerticalBarChartView
         config={{
           xAxis: {
-            whatToShow: { property: "type" },
+            whatToShow: { property: "category" },
             sortBy: "countDescending",
           },
           yAxis: {
-            whatToShow: { property: "maxCalories", showAs: "average" },
+            whatToShow: { property: "price", showAs: "average" },
           },
           style: {
             color: "orange",
@@ -37,7 +34,7 @@ function CaloriesByType() {
             gridLine: "horizontal",
             axisName: "both",
             dataLabels: true,
-            caption: "Average Calories by Product Type",
+            caption: "Average Price by Category",
             showLegend: false,
           },
         }}
@@ -46,7 +43,7 @@ function CaloriesByType() {
   );
 }
 
-export function CaloriesByTypeChart() {
+export function PriceByCategoryChart() {
   return (
     <Suspense
       fallback={
@@ -55,7 +52,7 @@ export function CaloriesByTypeChart() {
         </div>
       }
     >
-      <CaloriesByType />
+      <PriceByCategory />
     </Suspense>
   );
 }

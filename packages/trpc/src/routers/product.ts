@@ -85,8 +85,8 @@ export const productRouter = router({
     .input(
       z.object({
         channelId: z.string().optional(),
-        groupBy: z.enum(["type", "familyGroup"]),
-        subGroupBy: z.enum(["type", "familyGroup", "tag"]).optional(),
+        groupBy: z.enum(["category", "availability"]),
+        subGroupBy: z.enum(["category", "availability"]).optional(),
       })
     )
     .query(async ({ input }) => {

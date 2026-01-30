@@ -55,7 +55,7 @@ export function ProductGroupPaginationTable({
 
   // 1. Group counts (Suspense OK - matches server prefetch)
   const { data: groupCounts } = useSuspenseQuery(
-    trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" })
+    trpc.product.getGroup.queryOptions({ groupBy: "category" })
   );
 
   // 2. Apply default on client
@@ -74,7 +74,7 @@ export function ProductGroupPaginationTable({
     limit,
     createQueryOptions: (groupKey, cursor) =>
       trpc.product.getMany.queryOptions({
-        filter: combineGroupFilter("familyGroup", groupKey, filter),
+        filter: combineGroupFilter("category", groupKey, filter),
         search: searchQuery,
         sort,
         cursor,
@@ -107,7 +107,7 @@ export function ProductGroupPaginationTable({
           pagination="page"
           view={{
             group: {
-              groupBy: "familyGroup",
+              groupBy: "category",
               showAggregation: true,
               expandedGroups: expanded,
               onExpandedChange: handleAccordionChange,

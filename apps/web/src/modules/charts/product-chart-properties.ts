@@ -5,72 +5,78 @@ import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 // Product type from database
 export interface Product {
   id: number;
-  name: string | null;
-  tag: string | null;
-  type: string | null;
-  familyGroup: string | null;
-  image: string | null;
-  minCalories: number | null;
-  maxCalories: number | null;
+  productName: string | null;
+  price: number | null;
+  stockLevel: number | null;
+  rating: number | null;
+  category: string | null;
+  tags: string[] | null;
+  availability: string | null;
+  lastRestocked: string | null;
+  featured: boolean | null;
+  productLink: string | null;
+  productImage: string | null;
+  supplierPhone: string | null;
+  supplierEmail: string | null;
   createdAt: string | null;
   updatedAt: string | null;
 }
 
 // Property definitions for charts
-export const productTypeProperty = {
-  id: "type",
-  label: "Product Type",
+export const categoryProperty = {
+  id: "category",
+  label: "Category",
   type: "select",
   config: {
     options: [
-      { value: "Burger", color: "red" },
-      { value: "Chicken", color: "yellow" },
-      { value: "Breakfast", color: "teal" },
-      { value: "Side", color: "green" },
-      { value: "Beverage", color: "blue" },
-      { value: "McCafe", color: "purple" },
-      { value: "Dessert", color: "pink" },
-      { value: "Condiment", color: "gray" },
+      { value: "Accessories", color: "blue" },
+      { value: "Bottoms", color: "purple" },
+      { value: "Dresses", color: "pink" },
+      { value: "Footwear", color: "orange" },
+      { value: "Garden", color: "green" },
+      { value: "Home", color: "teal" },
+      { value: "Jewelry", color: "yellow" },
+      { value: "Lingerie", color: "red" },
+      { value: "Outerwear", color: "gray" },
+      { value: "Tops", color: "cyan" },
     ],
   },
 } as const satisfies DataViewProperty<Product>;
 
-export const productTagProperty = {
-  id: "tag",
-  label: "Product Tag",
+export const availabilityProperty = {
+  id: "availability",
+  label: "Availability",
   type: "select",
   config: {
     options: [
-      { value: "Featured", color: "blue" },
-      { value: "Limited Time", color: "red" },
-      { value: "Value", color: "green" },
-      { value: "Premium", color: "purple" },
-      { value: "Seasonal", color: "yellow" },
+      { value: "In stock", color: "green" },
+      { value: "Low stock", color: "yellow" },
+      { value: "Out of stock", color: "red" },
     ],
   },
 } as const satisfies DataViewProperty<Product>;
 
-export const familyGroupProperty = {
-  id: "familyGroup",
-  label: "Family Group",
-  type: "text",
-} as const satisfies DataViewProperty<Product>;
-
-export const maxCaloriesProperty = {
-  id: "maxCalories",
-  label: "Max Calories",
+export const priceProperty = {
+  id: "price",
+  label: "Price",
   type: "number",
 } as const satisfies DataViewProperty<Product>;
 
-export const minCaloriesProperty = {
-  id: "minCalories",
-  label: "Min Calories",
+export const stockLevelProperty = {
+  id: "stockLevel",
+  label: "Stock Level",
   type: "number",
 } as const satisfies DataViewProperty<Product>;
 
-export const nameProperty = {
-  id: "name",
-  label: "Name",
+export const ratingProperty = {
+  id: "rating",
+  label: "Rating",
+  type: "number",
+} as const satisfies DataViewProperty<Product>;
+
+export const productNameProperty = {
+  id: "productName",
+  label: "Product Name",
   type: "text",
 } as const satisfies DataViewProperty<Product>;
 

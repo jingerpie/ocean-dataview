@@ -48,7 +48,7 @@ export function ProductGroupPaginationBoard({
 
   // 1. Fetch group counts
   const { data: groupCounts } = useSuspenseQuery(
-    trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" })
+    trpc.product.getGroup.queryOptions({ groupBy: "category" })
   );
 
   // 2. Get all group keys
@@ -63,7 +63,7 @@ export function ProductGroupPaginationBoard({
     createQueryOptions: (groupKey) =>
       trpc.product.getMany.infiniteQueryOptions(
         {
-          filter: combineGroupFilter("familyGroup", groupKey, filter),
+          filter: combineGroupFilter("category", groupKey, filter),
           search,
           sort,
           limit,
@@ -97,9 +97,13 @@ export function ProductGroupPaginationBoard({
         ) : (
           <BoardView
             counts={groupCounts}
+            layout={{
+              cardPreview: "productImage",
+              cardSize: "medium",
+            }}
             pagination="loadMore"
             view={{
-              group: { groupBy: "familyGroup", showAggregation: true },
+              group: { groupBy: "category", showAggregation: true },
             }}
           />
         )}

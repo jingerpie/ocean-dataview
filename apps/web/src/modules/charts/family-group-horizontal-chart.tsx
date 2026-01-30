@@ -7,11 +7,11 @@ import { Suspense } from "react";
 
 import { useTRPC } from "@/utils/trpc/client";
 
-import { familyGroupProperty } from "./product-chart-properties";
+import { categoryProperty } from "./product-chart-properties";
 
-const productProperties = [familyGroupProperty] as const;
+const productProperties = [categoryProperty] as const;
 
-function FamilyGroupHorizontal() {
+function CategoryHorizontal() {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(
     trpc.product.getMany.queryOptions({ limit: 200 })
@@ -25,7 +25,7 @@ function FamilyGroupHorizontal() {
             whatToShow: "count",
           },
           yAxis: {
-            whatToShow: { property: "familyGroup" },
+            whatToShow: { property: "category" },
             sortBy: "countDescending",
           },
           style: {
@@ -34,7 +34,7 @@ function FamilyGroupHorizontal() {
             gridLine: "vertical",
             axisName: "none",
             dataLabels: true,
-            caption: "Product Count by Family Group",
+            caption: "Product Count by Category",
             showLegend: false,
           },
         }}
@@ -52,7 +52,7 @@ export function FamilyGroupHorizontalChart() {
         </div>
       }
     >
-      <FamilyGroupHorizontal />
+      <CategoryHorizontal />
     </Suspense>
   );
 }

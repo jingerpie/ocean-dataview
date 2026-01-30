@@ -33,7 +33,7 @@ export default async function GroupPaginationPage(props: PageProps) {
   const queryClient = getQueryClient();
 
   await queryClient.prefetchQuery(
-    trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" })
+    trpc.product.getGroup.queryOptions({ groupBy: "category" })
   );
 
   return (
