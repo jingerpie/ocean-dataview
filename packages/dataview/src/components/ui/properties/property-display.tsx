@@ -56,45 +56,39 @@ function PropertyDisplayComponent<T>({
     }
 
     case "text":
-      return (
-        <TextProperty property={property} value={displayValue} wrap={wrap} />
-      );
+      return <TextProperty value={displayValue} wrap={wrap} />;
 
     case "number":
-      return <NumberProperty property={property} value={displayValue} />;
+      return <NumberProperty config={property.config} value={displayValue} />;
 
     case "select":
-      return <SelectProperty property={property} value={displayValue} />;
+      return <SelectProperty config={property.config} value={displayValue} />;
 
     case "multiSelect":
-      return <MultiSelectProperty property={property} value={displayValue} />;
+      return (
+        <MultiSelectProperty config={property.config} value={displayValue} />
+      );
 
     case "status":
-      return <StatusProperty property={property} value={displayValue} />;
+      return <StatusProperty config={property.config} value={displayValue} />;
 
     case "date":
-      return <DateProperty property={property} value={displayValue} />;
+      return <DateProperty config={property.config} value={displayValue} />;
 
     case "checkbox":
-      return <CheckboxProperty property={property} value={displayValue} />;
+      return <CheckboxProperty value={displayValue} />;
 
     case "url":
-      return <UrlProperty property={property} value={displayValue} />;
+      return <UrlProperty config={property.config} value={displayValue} />;
 
     case "email":
-      return <EmailProperty property={property} value={displayValue} />;
+      return <EmailProperty config={property.config} value={displayValue} />;
 
     case "phone":
-      return <PhoneProperty property={property} value={displayValue} />;
+      return <PhoneProperty config={property.config} value={displayValue} />;
 
     case "filesMedia":
-      return (
-        <FilesMediaProperty
-          property={property}
-          value={displayValue}
-          wrap={wrap}
-        />
-      );
+      return <FilesMediaProperty value={displayValue} wrap={wrap} />;
 
     default:
       // Fallback for unknown types

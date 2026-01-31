@@ -2,29 +2,27 @@
 
 import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
 import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
-import type { SelectPropertyType } from "../../../types/property-types";
+import type { SelectConfig } from "../../../types/property-types";
 
-interface SelectPropertyProps<T> {
+interface SelectPropertyProps {
   value: unknown;
-  property: SelectPropertyType<T>;
+  config?: SelectConfig;
 }
 
 /**
  * Displays single-select values as styled badges
  * Automatically generates badge colors from config options
  * @param value - The selected value
- * @param property - Property configuration with select options
+ * @param config - Select configuration with options
  * @returns Colored badge with option label
  */
-export function SelectProperty<T>({ value, property }: SelectPropertyProps<T>) {
+export function SelectProperty({ value, config }: SelectPropertyProps) {
   if (!value) {
     return <span className="text-muted-foreground text-sm">-</span>;
   }
 
   const stringValue = String(value);
-  const option = property.config?.options?.find(
-    (opt) => opt.value === stringValue
-  );
+  const option = config?.options?.find((opt) => opt.value === stringValue);
 
   // If option not found, still render as badge with gray color
   if (!option) {

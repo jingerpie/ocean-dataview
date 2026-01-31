@@ -72,39 +72,37 @@ export function createPropertyRenderer<TData>(
     // Render based on property type
     switch (property.type) {
       case "text":
-        return <TextProperty property={property} value={value} wrap={false} />;
+        return <TextProperty value={value} wrap={false} />;
 
       case "number":
-        return <NumberProperty property={property} value={value} />;
+        return <NumberProperty config={property.config} value={value} />;
 
       case "select":
-        return <SelectProperty property={property} value={value} />;
+        return <SelectProperty config={property.config} value={value} />;
 
       case "multiSelect":
-        return <MultiSelectProperty property={property} value={value} />;
+        return <MultiSelectProperty config={property.config} value={value} />;
 
       case "status":
-        return <StatusProperty property={property} value={value} />;
+        return <StatusProperty config={property.config} value={value} />;
 
       case "date":
-        return <DateProperty property={property} value={value} />;
+        return <DateProperty config={property.config} value={value} />;
 
       case "checkbox":
-        return <CheckboxProperty property={property} value={value} />;
+        return <CheckboxProperty value={value} />;
 
       case "url":
-        return <UrlProperty property={property} value={value} />;
+        return <UrlProperty config={property.config} value={value} />;
 
       case "email":
-        return <EmailProperty property={property} value={value} />;
+        return <EmailProperty config={property.config} value={value} />;
 
       case "phone":
-        return <PhoneProperty property={property} value={value} />;
+        return <PhoneProperty config={property.config} value={value} />;
 
       case "filesMedia":
-        return (
-          <FilesMediaProperty property={property} value={value} wrap={false} />
-        );
+        return <FilesMediaProperty value={value} wrap={false} />;
 
       default:
         // Fallback for unknown types

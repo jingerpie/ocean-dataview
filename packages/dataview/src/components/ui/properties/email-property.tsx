@@ -1,19 +1,21 @@
 "use client";
 
-import type { EmailPropertyType } from "../../../types/property-types";
+import type { EmailConfig } from "../../../types/property-types";
 
-interface EmailPropertyProps<T> {
+interface EmailPropertyProps {
   value: unknown;
-  property: EmailPropertyType<T>;
+  config?: EmailConfig;
 }
 
-export function EmailProperty<T>({ value, property }: EmailPropertyProps<T>) {
+export function EmailProperty({
+  value,
+  config: { showAsLink = true } = {},
+}: EmailPropertyProps) {
   if (!value) {
     return <span className="text-muted-foreground text-sm">-</span>;
   }
 
   const email = String(value);
-  const showAsLink = property.config?.showAsLink ?? true;
 
   if (!showAsLink) {
     return <span className="text-sm">{email}</span>;

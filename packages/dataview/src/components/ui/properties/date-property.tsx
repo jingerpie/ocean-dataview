@@ -6,7 +6,7 @@ import { format, formatDistanceToNow, parseISO } from "date-fns";
 import * as locales from "date-fns/locale";
 import { useMemo } from "react";
 import { getUserLocale } from "../../../lib/utils/locale-helpers";
-import type { DatePropertyType } from "../../../types/property-types";
+import type { DateConfig } from "../../../types/property-types";
 
 /**
  * Get the date-fns locale object for a given locale string
@@ -35,19 +35,22 @@ function getDateFnsLocale(localeString: string): Locale {
   return locales.enUS;
 }
 
-interface DatePropertyProps<T> {
+interface DatePropertyProps {
   value: unknown;
-  property: DatePropertyType<T>;
+  config?: DateConfig;
 }
 
 /**
  * Displays date values with locale-aware formatting
  * Supports various date formats and relative time display
  * @param value - Date as Date object, ISO string, or timestamp
- * @param property - Property configuration with date/time format settings
+ * @param config - Date configuration with date/time format settings
  * @returns Formatted date string or empty value
  */
-export function DateProperty<T>({ value, property }: DatePropertyProps<T>) {
+export function DateProperty({
+  value,
+  config: { dateFormat = "full", timeFormat = "12hour" } = {},
+}: DatePropertyProps) {
   // Parse date value - must be called unconditionally
   const date = useMemo(() => {
     if (!value) {
@@ -70,10 +73,6 @@ export function DateProperty<T>({ value, property }: DatePropertyProps<T>) {
     }
   }, [value]);
 
-  // Get config and locale - must be called unconditionally
-  const config = property.config;
-  const dateFormat = config?.dateFormat ?? "short";
-  const timeFormat = config?.timeFormat ?? "hidden";
   const userLocale = getUserLocale();
   const dateFnsLocale = getDateFnsLocale(userLocale);
 

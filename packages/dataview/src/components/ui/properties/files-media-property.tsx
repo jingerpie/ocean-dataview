@@ -2,7 +2,6 @@
 
 import { FileIcon } from "lucide-react";
 import Image from "next/image";
-import type { FilesMediaPropertyType } from "../../../types/property-types";
 
 // Regex patterns compiled at module level for performance
 const IMAGE_EXTENSION_REGEX = /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?|#|$)/i;
@@ -13,16 +12,15 @@ const ANY_EXTENSION_REGEX = /\.\w+(\?|#|$)/;
 // Thumbnail dimensions for different contexts
 const THUMBNAIL_SIZE = 26; // Standard thumbnail size for compact display
 
-interface FilesMediaPropertyProps<T> {
+interface FilesMediaPropertyProps {
   value: unknown;
-  property: FilesMediaPropertyType<T>;
   wrap?: boolean;
 }
 
-export function FilesMediaProperty<T>({
+export function FilesMediaProperty({
   value,
   wrap = false,
-}: FilesMediaPropertyProps<T>) {
+}: FilesMediaPropertyProps) {
   if (!value) {
     return <span className="text-muted-foreground text-sm">-</span>;
   }

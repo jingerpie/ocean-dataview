@@ -1,10 +1,7 @@
 "use client";
 
-import type { TextPropertyType } from "../../../types/property-types";
-
-interface TextPropertyProps<T> {
+interface TextPropertyProps {
   value: unknown;
-  property: TextPropertyType<T>;
   wrap?: boolean;
 }
 
@@ -14,7 +11,7 @@ interface TextPropertyProps<T> {
  * @param wrap - Whether to wrap text (default: false, truncates with ellipsis)
  * @returns Rendered text or empty value indicator
  */
-export function TextProperty<T>({ value, wrap = false }: TextPropertyProps<T>) {
+export function TextProperty({ value, wrap = false }: TextPropertyProps) {
   const text = value != null ? String(value) : "";
 
   if (!text) {

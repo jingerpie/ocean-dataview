@@ -77,7 +77,7 @@ export interface NumberConfig {
         type: "bar" | "ring";
         color: string;
         divideBy: number;
-        showNumber: boolean;
+        showNumber?: boolean;
       };
 }
 

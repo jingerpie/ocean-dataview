@@ -1,20 +1,21 @@
 "use client";
 
-import type { PhonePropertyType } from "../../../types/property-types";
+import type { PhoneConfig } from "../../../types/property-types";
 
-interface PhonePropertyProps<T> {
+interface PhonePropertyProps {
   value: unknown;
-  property: PhonePropertyType<T>;
+  config?: PhoneConfig;
 }
 
-export function PhoneProperty<T>({ value, property }: PhonePropertyProps<T>) {
+export function PhoneProperty({
+  value,
+  config: { showAsLink = true, format = "none" } = {},
+}: PhonePropertyProps) {
   if (!value) {
     return <span className="text-muted-foreground text-sm">-</span>;
   }
 
   const phone = String(value);
-  const showAsLink = property.config?.showAsLink ?? true;
-  const format = property.config?.format ?? "none";
 
   let formattedPhone = phone;
 

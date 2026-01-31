@@ -2,23 +2,23 @@
 
 import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
 import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
-import type { MultiSelectPropertyType } from "../../../types/property-types";
+import type { MultiSelectConfig } from "../../../types/property-types";
 
-interface MultiSelectPropertyProps<T> {
+interface MultiSelectPropertyProps {
   value: unknown;
-  property: MultiSelectPropertyType<T>;
+  config?: MultiSelectConfig;
 }
 
-export function MultiSelectProperty<T>({
+export function MultiSelectProperty({
   value,
-  property,
-}: MultiSelectPropertyProps<T>) {
+  config,
+}: MultiSelectPropertyProps) {
   if (!value || (Array.isArray(value) && value.length === 0)) {
     return <span className="text-muted-foreground text-sm">-</span>;
   }
 
+  const displayLimit = config?.displayLimit ?? 2;
   const values = Array.isArray(value) ? value : [value];
-  const displayLimit = property.config?.displayLimit ?? 2;
 
   const visibleValues = values.slice(0, displayLimit);
   const remainingCount = values.length - displayLimit;
@@ -27,7 +27,7 @@ export function MultiSelectProperty<T>({
     <div className="flex flex-wrap gap-1">
       {visibleValues.map((val) => {
         const stringValue = String(val);
-        const option = property.config?.options?.find(
+        const option = config?.options?.find(
           (opt) => opt.value === stringValue
         );
 

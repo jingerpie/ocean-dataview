@@ -1,19 +1,21 @@
 "use client";
 
-import type { UrlPropertyType } from "../../../types/property-types";
+import type { UrlConfig } from "../../../types/property-types";
 
-interface UrlPropertyProps<T> {
+interface UrlPropertyProps {
   value: unknown;
-  property: UrlPropertyType<T>;
+  config?: UrlConfig;
 }
 
-export function UrlProperty<T>({ value, property }: UrlPropertyProps<T>) {
+export function UrlProperty({
+  value,
+  config: { showFullUrl = false } = {},
+}: UrlPropertyProps) {
   if (!value) {
     return <span className="text-muted-foreground text-sm">-</span>;
   }
 
   const url = String(value);
-  const showFullUrl = property.config?.showFullUrl ?? false;
 
   let displayText = url;
   if (!showFullUrl) {

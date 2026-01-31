@@ -5,11 +5,11 @@ import {
   STATUS_LABEL_TO_GROUP,
   type StatusGroup,
 } from "../../../lib/utils/status-constants";
-import type { StatusPropertyType } from "../../../types/property-types";
+import type { StatusConfig } from "../../../types/property-types";
 
-interface StatusPropertyProps<T> {
+interface StatusPropertyProps {
   value: unknown;
-  property: StatusPropertyType<T>;
+  config?: StatusConfig;
 }
 
 // Group badge configuration extracted for performance
@@ -38,7 +38,7 @@ const GROUP_BADGE_CONFIG: Record<
   },
 };
 
-export function StatusProperty<T>({ value, property }: StatusPropertyProps<T>) {
+export function StatusProperty({ value, config }: StatusPropertyProps) {
   if (!value) {
     return <span className="text-muted-foreground text-sm">-</span>;
   }
@@ -50,41 +50,33 @@ export function StatusProperty<T>({ value, property }: StatusPropertyProps<T>) {
     const group = STATUS_LABEL_TO_GROUP[stringValue];
     const { variant, dotColor } = GROUP_BADGE_CONFIG[group];
     return (
-      <Badge
-        render={<div className={`h-2 w-2 rounded-full ${dotColor}`} />}
-        variant={variant}
-      >
+      <Badge variant={variant}>
+        <div className={`h-2 w-2 rounded-full ${dotColor}`} />
         {stringValue}
       </Badge>
     );
   }
 
   // Try to find option by value
-  const option = property.config?.options?.find(
-    (opt) => opt.value === stringValue
-  );
+  const option = config?.options?.find((opt) => opt.value === stringValue);
 
   // If option not found, still render as badge with gray color (default todo group)
   if (!option) {
     const { variant, dotColor } = GROUP_BADGE_CONFIG.todo;
     return (
-      <Badge
-        render={<div className={`h-2 w-2 rounded-full ${dotColor}`} />}
-        variant={variant}
-      >
+      <Badge variant={variant}>
+        <div className={`h-2 w-2 rounded-full ${dotColor}`} />
         {stringValue}
       </Badge>
     );
   }
 
-  // Default to 'todo' if no group is defined
+  // Get group from option, validating it exists in config
   const { variant, dotColor } = GROUP_BADGE_CONFIG[option.group || "todo"];
 
   return (
-    <Badge
-      render={<div className={`h-2 w-2 rounded-full ${dotColor}`} />}
-      variant={variant}
-    >
+    <Badge variant={variant}>
+      <div className={`h-2 w-2 rounded-full ${dotColor}`} />
       {option.value}
     </Badge>
   );

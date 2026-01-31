@@ -1,18 +1,16 @@
 "use client";
 
 import { Checkbox } from "@ocean-dataview/dataview/components/ui/checkbox";
-import type { CheckboxPropertyType } from "../../../types/property-types";
 
-interface CheckboxPropertyProps<T> {
+interface CheckboxPropertyProps {
   value: unknown;
-  property: CheckboxPropertyType<T>;
   readOnly?: boolean;
 }
 
-export function CheckboxProperty<T>({
+export function CheckboxProperty({
   value,
   readOnly = true,
-}: CheckboxPropertyProps<T>) {
+}: CheckboxPropertyProps) {
   const isChecked = Boolean(value);
 
   return (
