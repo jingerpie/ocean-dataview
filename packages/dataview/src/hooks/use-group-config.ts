@@ -4,7 +4,7 @@ import {
   groupByProperty,
   validateGroupConfig,
 } from "../lib/utils";
-import type { DataViewProperty } from "../types/property-types";
+import type { DataViewProperty } from "../types/property.type";
 
 export interface GroupConfig {
   groupBy: string;

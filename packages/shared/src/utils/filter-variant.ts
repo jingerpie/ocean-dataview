@@ -1,8 +1,8 @@
 import type {
   FilterCondition,
-  FilterVariant,
+  PropertyType,
   WhereRule,
-} from "../types/data-table.type";
+} from "../types/filter.type";
 import { getDefaultFilterCondition } from "./filter";
 import { createDefaultCondition } from "./filter-builder";
 
@@ -56,63 +56,6 @@ export function transformValueForCondition(
 }
 
 // ============================================================================
-// Property Type to Filter Variant Mapping
-// ============================================================================
-
-/**
- * Property type values that can be mapped to filter variants.
- * This mirrors the PropertyType from @ocean-dataview/dataview/types
- * but is defined here to avoid circular dependencies.
- */
-type PropertyTypeValue =
-  | "text"
-  | "number"
-  | "select"
-  | "multiSelect"
-  | "status"
-  | "date"
-  | "filesMedia"
-  | "checkbox"
-  | "url"
-  | "email"
-  | "phone"
-  | "formula";
-
-/**
- * Maps property type to the appropriate filter variant.
- * Used by filter UI components to determine which conditions and inputs to show.
- *
- * @param type - The property type (from DataViewProperty)
- * @returns The corresponding FilterVariant for filter UI
- */
-export function getFilterVariantFromPropertyType(
-  type: PropertyTypeValue | string
-): FilterVariant {
-  switch (type) {
-    case "text":
-    case "url":
-    case "email":
-    case "phone":
-      return "text";
-    case "number":
-      return "number";
-    case "select":
-    case "status":
-      return "select";
-    case "multiSelect":
-      return "multiSelect";
-    case "date":
-      return "date";
-    case "checkbox":
-      return "boolean";
-    case "filesMedia":
-      return "files";
-    default:
-      return "text";
-  }
-}
-
-// ============================================================================
 // Rule Creation & Modification Utilities
 // ============================================================================
 
@@ -122,12 +65,12 @@ export function getFilterVariantFromPropertyType(
  */
 interface PropertyForFilter {
   id: string;
-  type: string;
+  type: PropertyType;
 }
 
 /**
  * Creates a default filter rule from a property.
- * Combines property type → filter variant → default condition → rule creation.
+ * Uses property type directly to determine the default condition.
  *
  * @param property - Property with id and type
  * @returns A new WhereRule with default condition for the property type
@@ -140,8 +83,7 @@ interface PropertyForFilter {
  * // { property: "createdAt", condition: "isRelativeToToday" }
  */
 export function createRuleFromProperty(property: PropertyForFilter): WhereRule {
-  const filterVariant = getFilterVariantFromPropertyType(property.type);
-  const defaultCondition = getDefaultFilterCondition(filterVariant);
+  const defaultCondition = getDefaultFilterCondition(property.type);
   return createDefaultCondition(String(property.id), defaultCondition);
 }
 

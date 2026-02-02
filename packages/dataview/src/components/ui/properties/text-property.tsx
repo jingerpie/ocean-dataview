@@ -2,13 +2,17 @@
 
 interface TextPropertyProps {
   value: unknown;
+  /**
+   * Whether to wrap text instead of truncating
+   * @default false
+   */
   wrap?: boolean;
 }
 
 /**
- * Displays text values with optional wrapping
+ * Displays text values with optional truncation or wrapping
  * @param value - The text value to display
- * @param wrap - Whether to wrap text (default: false, truncates with ellipsis)
+ * @param wrap - Whether to wrap text (default: false, truncates)
  * @returns Rendered text or empty value indicator
  */
 export function TextProperty({ value, wrap = false }: TextPropertyProps) {
@@ -18,10 +22,8 @@ export function TextProperty({ value, wrap = false }: TextPropertyProps) {
     return <span className="text-muted-foreground text-sm">-</span>;
   }
 
-  const className = wrap ? "text-sm break-words" : "text-sm truncate";
-
   return (
-    <span className={className} title={text}>
+    <span className={wrap ? "text-sm" : "truncate text-sm"} title={text}>
       {text}
     </span>
   );

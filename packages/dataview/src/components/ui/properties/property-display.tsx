@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import { createPropertyRenderer } from "../../../lib/utils/create-property-renderer";
-import type { DataViewProperty } from "../../../types/property-types";
+import type { DataViewProperty } from "../../../types/property.type";
 import { CheckboxProperty } from "./checkbox-property";
 import { DateProperty } from "./date-property";
 import { EmailProperty } from "./email-property";
@@ -82,13 +82,13 @@ function PropertyDisplayComponent<T>({
       return <UrlProperty config={property.config} value={displayValue} />;
 
     case "email":
-      return <EmailProperty config={property.config} value={displayValue} />;
+      return <EmailProperty value={displayValue} />;
 
     case "phone":
-      return <PhoneProperty config={property.config} value={displayValue} />;
+      return <PhoneProperty value={displayValue} />;
 
     case "filesMedia":
-      return <FilesMediaProperty value={displayValue} wrap={wrap} />;
+      return <FilesMediaProperty value={displayValue} />;
 
     default:
       // Fallback for unknown types

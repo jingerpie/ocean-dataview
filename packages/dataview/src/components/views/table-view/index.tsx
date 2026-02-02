@@ -205,7 +205,6 @@ export function TableView<
             item={row.original}
             property={property}
             value={getValue()}
-            wrap={wrapAllColumns}
           />
         ),
       })

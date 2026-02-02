@@ -3,7 +3,7 @@
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { useMemo } from "react";
 import { getUserLocale } from "../../../lib/utils/locale-helpers";
-import type { NumberConfig } from "../../../types/property-types";
+import type { NumberConfig } from "../../../types/property.type";
 
 interface NumberPropertyProps {
   value: unknown;
@@ -22,7 +22,12 @@ export function NumberProperty({
   config: {
     decimalPlaces = 0,
     numberFormat = "number",
-    showAs = "number",
+    showAs: {
+      type: showAsType = "number",
+      color = "green",
+      divideBy = 100,
+      showNumber = true,
+    } = {},
   } = {},
 }: NumberPropertyProps) {
   // Parse numeric value - must be called unconditionally
@@ -69,72 +74,74 @@ export function NumberProperty({
     return <span className="text-muted-foreground text-sm">-</span>;
   }
 
-  // If showAs is a bar or ring
-  if (typeof showAs === "object") {
-    const { type, color, divideBy, showNumber = true } = showAs;
+  const cssColor = `var(--badge-${color}-subtle-foreground)`;
+
+  // Bar visualization
+  if (showAsType === "bar") {
     const percentage = (numValue / divideBy) * 100;
     const clampedPercentage = Math.min(100, Math.max(0, percentage));
 
-    if (type === "bar") {
-      return (
-        <div className="flex w-full items-center gap-2">
-          {showNumber && (
-            <span className="whitespace-nowrap text-sm">{formattedValue}</span>
-          )}
-          <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full transition-all"
-              style={{
-                width: `${clampedPercentage}%`,
-                backgroundColor: color,
-              }}
-            />
-          </div>
+    return (
+      <div className="flex w-full items-center gap-2">
+        {showNumber && (
+          <span className="whitespace-nowrap text-sm">{formattedValue}</span>
+        )}
+        <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full transition-all"
+            style={{
+              width: `${clampedPercentage}%`,
+              backgroundColor: cssColor,
+            }}
+          />
         </div>
-      );
-    }
+      </div>
+    );
+  }
 
-    if (type === "ring") {
-      const radius = 8;
-      const circumference = 2 * Math.PI * radius;
-      const strokeDashoffset =
-        circumference - (clampedPercentage / 100) * circumference;
+  // Ring visualization
+  if (showAsType === "ring") {
+    const percentage = (numValue / divideBy) * 100;
+    const clampedPercentage = Math.min(100, Math.max(0, percentage));
+    const radius = 8;
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset =
+      circumference - (clampedPercentage / 100) * circumference;
 
-      return (
-        <div className="flex items-center gap-2">
-          {showNumber && <span className="text-sm">{formattedValue}</span>}
-          <svg
-            aria-label={`Progress: ${clampedPercentage}%`}
-            className="-rotate-90 transform"
-            height="22"
-            role="img"
-            width="22"
-          >
-            <title>{`Progress: ${clampedPercentage}%`}</title>
-            <circle
-              className="text-muted"
-              cx="11"
-              cy="11"
-              fill="none"
-              r={radius}
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <circle
-              cx="11"
-              cy="11"
-              fill="none"
-              r={radius}
-              stroke={color}
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              strokeWidth="3"
-            />
-          </svg>
-        </div>
-      );
-    }
+    return (
+      <div className="flex items-center gap-2">
+        {showNumber && <span className="text-sm">{formattedValue}</span>}
+        <svg
+          aria-label={`Progress: ${clampedPercentage}%`}
+          className="-rotate-90 transform"
+          height="22"
+          role="img"
+          width="22"
+        >
+          <title>{`Progress: ${clampedPercentage}%`}</title>
+          <circle
+            className="text-muted"
+            cx="11"
+            cy="11"
+            fill="none"
+            r={radius}
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <circle
+            cx="11"
+            cy="11"
+            fill="none"
+            r={radius}
+            stroke={cssColor}
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            strokeWidth="3"
+          />
+        </svg>
+      </div>
+    );
   }
 
   // Default number display

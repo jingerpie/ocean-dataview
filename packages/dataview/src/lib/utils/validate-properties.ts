@@ -1,4 +1,4 @@
-import type { DataViewProperty } from "../../types/property-types";
+import type { DataViewProperty } from "../../types/property.type";
 
 /**
  * Validates that all property IDs are unique

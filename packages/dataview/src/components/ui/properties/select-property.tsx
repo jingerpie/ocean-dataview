@@ -2,7 +2,7 @@
 
 import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
 import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
-import type { SelectConfig } from "../../../types/property-types";
+import type { SelectConfig } from "../../../types/property.type";
 
 interface SelectPropertyProps {
   value: unknown;

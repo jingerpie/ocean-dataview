@@ -9,16 +9,15 @@ import {
   SelectValue,
 } from "@ocean-dataview/dataview/components/ui/select";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
-import type {
-  FilterCondition,
-  FilterVariant,
-} from "@ocean-dataview/shared/types";
+import type { FilterCondition } from "@ocean-dataview/shared/types";
 import { getFilterConditions } from "@ocean-dataview/shared/utils";
+import type { PropertyType } from "../../../types";
 
 interface ConditionPickerProps {
   condition: FilterCondition;
   onConditionChange: (condition: FilterCondition) => void;
-  variant: FilterVariant;
+  /** Property type determines available conditions */
+  propertyType: PropertyType;
   /** Inline style (no border, transparent) for filter chips */
   inline?: boolean;
   className?: string;
@@ -27,11 +26,11 @@ interface ConditionPickerProps {
 export function ConditionPicker({
   condition,
   onConditionChange,
-  variant,
+  propertyType,
   inline,
   className,
 }: ConditionPickerProps) {
-  const items = getFilterConditions(variant);
+  const items = getFilterConditions(propertyType);
 
   return (
     <Select

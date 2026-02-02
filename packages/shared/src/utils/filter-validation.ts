@@ -3,7 +3,7 @@ import {
   isWhereRule,
   type WhereNode,
   type WhereRule,
-} from "../types/data-table.type";
+} from "../types/filter.type";
 import {
   createCompoundFilter,
   getFilterItems,

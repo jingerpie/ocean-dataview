@@ -7,17 +7,13 @@ import type {
   PropertyMeta,
   SelectConfig,
   SelectOption,
+  StatusConfig,
 } from "@ocean-dataview/dataview/types";
-import type {
-  FilterCondition,
-  FilterVariant,
-  WhereRule,
-} from "@ocean-dataview/shared/types";
+import type { FilterCondition, WhereRule } from "@ocean-dataview/shared/types";
 import {
   applyConditionChange,
   createRuleFromProperty,
   extractSelectValues,
-  getFilterVariantFromPropertyType,
 } from "@ocean-dataview/shared/utils";
 import { useDebouncer } from "@tanstack/react-pacer";
 import { useEffect, useState } from "react";
@@ -94,6 +90,7 @@ import {
   SingleDatePicker,
 } from "../../properties/date-picker";
 import { SelectPicker } from "../../properties/select-picker";
+import { StatusPicker } from "../../properties/status-picker";
 import { ConditionPicker } from "../condition-picker";
 import { FilterPropertyPicker } from "../filter-property-picker";
 import { FilterActions } from "./filter-actions";
@@ -148,9 +145,6 @@ export function FilterRule({
 
   // Find the property for this rule
   const property = properties.find((p) => String(p.id) === rule.property);
-  const variant = property
-    ? getFilterVariantFromPropertyType(property.type)
-    : "text";
 
   // Update helper that maintains type safety
   const updateRule = (updates: Partial<WhereRule>) => {
@@ -187,11 +181,13 @@ export function FilterRule({
       />
 
       {/* Condition Picker */}
-      <ConditionPicker
-        condition={rule.condition}
-        onConditionChange={handleConditionChange}
-        variant={variant}
-      />
+      {property && (
+        <ConditionPicker
+          condition={rule.condition}
+          onConditionChange={handleConditionChange}
+          propertyType={property.type}
+        />
+      )}
 
       {/* Value Input */}
       {property && (
@@ -201,7 +197,6 @@ export function FilterRule({
           property={property}
           rule={rule}
           showSelector={showValueSelector}
-          variant={variant}
         />
       )}
 
@@ -222,14 +217,12 @@ export function FilterRule({
 interface FilterValueProps {
   rule: WhereRule;
   property: PropertyMeta;
-  variant: FilterVariant;
   onValueChange: (value: unknown) => void;
 }
 
 export function FilterValue({
   rule,
   property,
-  variant,
   onValueChange,
 }: FilterValueProps) {
   const [showSelector, setShowSelector] = useState(false);
@@ -240,7 +233,6 @@ export function FilterValue({
       property={property}
       rule={rule}
       showSelector={showSelector}
-      variant={variant}
     />
   );
 }
@@ -252,7 +244,6 @@ export function FilterValue({
 interface ValueInputProps {
   rule: WhereRule;
   property: PropertyMeta;
-  variant: FilterVariant;
   onValueChange: (value: unknown) => void;
   showSelector: boolean;
   onShowSelectorChange: (show: boolean) => void;
@@ -261,7 +252,6 @@ interface ValueInputProps {
 function ValueInput({
   rule,
   property,
-  variant,
   onValueChange,
   showSelector,
   onShowSelectorChange,
@@ -271,22 +261,34 @@ function ValueInput({
     return null;
   }
 
-  switch (variant) {
+  switch (property.type) {
     case "text":
-    case "number":
-    case "range":
+    case "url":
+    case "email":
+    case "phone":
       return (
         <DebouncedTextInput
           className="h-8"
-          inputMode={variant === "text" ? undefined : "numeric"}
           onChange={(value) => onValueChange(value)}
           placeholder="Enter value..."
-          type={variant === "text" ? "text" : "number"}
+          type="text"
           value={rule.value != null ? String(rule.value) : ""}
         />
       );
 
-    case "boolean":
+    case "number":
+      return (
+        <DebouncedTextInput
+          className="h-8"
+          inputMode="numeric"
+          onChange={(value) => onValueChange(value)}
+          placeholder="Enter value..."
+          type="number"
+          value={rule.value != null ? String(rule.value) : ""}
+        />
+      );
+
+    case "checkbox":
       return (
         <CheckboxPicker
           onChange={onValueChange}
@@ -295,8 +297,8 @@ function ValueInput({
       );
 
     case "select": {
-      const selectConfig = property.config as SelectConfig | undefined;
-      const options: SelectOption[] = selectConfig?.options ?? [];
+      const config = property.config as SelectConfig | undefined;
+      const options: SelectOption[] = config?.options ?? [];
 
       return (
         <SelectPicker
@@ -311,10 +313,8 @@ function ValueInput({
     }
 
     case "multiSelect": {
-      const multiSelectConfig = property.config as
-        | MultiSelectConfig
-        | undefined;
-      const options: SelectOption[] = multiSelectConfig?.options ?? [];
+      const config = property.config as MultiSelectConfig | undefined;
+      const options: SelectOption[] = config?.options ?? [];
 
       return (
         <SelectPicker
@@ -328,8 +328,18 @@ function ValueInput({
       );
     }
 
-    case "date":
-    case "dateRange":
+    case "status": {
+      const config = property.config as StatusConfig | undefined;
+      return (
+        <StatusPicker
+          config={config ?? { groups: [] }}
+          onValueChange={onValueChange}
+          value={extractSelectValues(rule.value)}
+        />
+      );
+    }
+
+    case "date": {
       if (rule.condition === "isBetween") {
         return (
           <RangeDatePicker
@@ -352,6 +362,12 @@ function ValueInput({
           value={rule.value as string | undefined}
         />
       );
+    }
+
+    case "filesMedia":
+    case "formula":
+      // Only support isEmpty/isNotEmpty (handled above)
+      return null;
 
     default:
       return null;

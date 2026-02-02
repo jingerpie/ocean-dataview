@@ -14,13 +14,9 @@ const THUMBNAIL_SIZE = 26; // Standard thumbnail size for compact display
 
 interface FilesMediaPropertyProps {
   value: unknown;
-  wrap?: boolean;
 }
 
-export function FilesMediaProperty({
-  value,
-  wrap = false,
-}: FilesMediaPropertyProps) {
+export function FilesMediaProperty({ value }: FilesMediaPropertyProps) {
   if (!value) {
     return <span className="text-muted-foreground text-sm">-</span>;
   }
@@ -36,9 +32,8 @@ export function FilesMediaProperty({
       return <span className="text-muted-foreground text-sm">-</span>;
     }
 
-    // In table/list context, show all files - wrap if wrap prop is true, otherwise inline
     return (
-      <div className={wrap ? "flex flex-wrap gap-2" : "flex gap-2"}>
+      <div className="flex gap-2">
         {value.map((url) => (
           <div className="shrink-0" key={url}>
             {renderFile(url)}

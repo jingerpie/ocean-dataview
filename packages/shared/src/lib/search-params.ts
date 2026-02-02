@@ -12,7 +12,7 @@ import {
   searchQuerySchema,
   type WhereNode,
   whereNodeSchema,
-} from "../types/data-table.type";
+} from "../types/filter.type";
 import {
   type Cursors,
   type CursorValue,

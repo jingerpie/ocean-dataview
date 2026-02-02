@@ -34,8 +34,8 @@ import { UrlProperty } from "./url-property";
  * }
  */
 export const Property = {
-  Text: ({ value, wrap = false }: PropertyComponentProps<"text">) => (
-    <TextProperty value={value} wrap={wrap} />
+  Text: ({ value }: PropertyComponentProps<"text">) => (
+    <TextProperty value={value} />
   ),
 
   Number: ({ value, config }: PropertyComponentProps<"number">) => (
@@ -66,18 +66,15 @@ export const Property = {
     <UrlProperty config={config} value={value} />
   ),
 
-  Email: ({ value, config }: PropertyComponentProps<"email">) => (
-    <EmailProperty config={config} value={value} />
+  Email: ({ value }: PropertyComponentProps<"email">) => (
+    <EmailProperty value={value} />
   ),
 
-  Phone: ({ value, config }: PropertyComponentProps<"phone">) => (
-    <PhoneProperty config={config} value={value} />
+  Phone: ({ value }: PropertyComponentProps<"phone">) => (
+    <PhoneProperty value={value} />
   ),
 
-  FilesMedia: ({
-    value,
-    wrap = false,
-  }: PropertyComponentProps<"filesMedia">) => (
-    <FilesMediaProperty value={value} wrap={wrap} />
+  FilesMedia: ({ value }: PropertyComponentProps<"filesMedia">) => (
+    <FilesMediaProperty value={value} />
   ),
 };

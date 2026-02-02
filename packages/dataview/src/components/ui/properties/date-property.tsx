@@ -6,7 +6,7 @@ import { format, formatDistanceToNow, parseISO } from "date-fns";
 import * as locales from "date-fns/locale";
 import { useMemo } from "react";
 import { getUserLocale } from "../../../lib/utils/locale-helpers";
-import type { DateConfig } from "../../../types/property-types";
+import type { DateConfig } from "../../../types/property.type";
 
 /**
  * Get the date-fns locale object for a given locale string

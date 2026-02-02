@@ -348,11 +348,16 @@ export function BoardView<
       return [];
     }
 
-    if (
-      groupByProperty.type === "select" ||
-      groupByProperty.type === "status"
-    ) {
+    if (groupByProperty.type === "select") {
       return groupByProperty.config?.options || [];
+    }
+
+    if (groupByProperty.type === "status") {
+      // Status config uses groups structure - flatten all options with their group colors
+      const groups = groupByProperty.config?.groups || [];
+      return groups.flatMap((group) =>
+        group.options.map((value) => ({ value, color: group.color }))
+      );
     }
 
     if (groupByProperty.type === "multiSelect") {
@@ -480,25 +485,9 @@ export function BoardView<
       return getBgClass("gray");
     }
 
-    // For select and multi-select types - use color if defined
-    if ("color" in option) {
-      const color = option.color || "gray";
-      return getBgClass(color);
-    }
-
-    // For status type (when showAs: "option")
-    if ("group" in option) {
-      const colorMap: Record<string, string> = {
-        todo: "gray",
-        inProgress: "blue",
-        complete: "green",
-        canceled: "red",
-      };
-      const color = colorMap[option.group] || "gray";
-      return getBgClass(color);
-    }
-
-    return getBgClass("gray");
+    // Use color from option if defined (select, multi-select, or status)
+    const color = ("color" in option ? option.color : undefined) || "gray";
+    return getBgClass(color);
   };
 
   // Get column header content using property-based rendering

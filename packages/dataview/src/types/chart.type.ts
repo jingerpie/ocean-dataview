@@ -1,5 +1,5 @@
 import type { ComputationType } from "../lib/utils/compute-data";
-import type { DataViewProperty } from "./property-types";
+import type { DataViewProperty } from "./property.type";
 
 export type ChartType = "verticalBar" | "horizontalBar" | "line" | "donut";
 

@@ -1,10 +1,5 @@
 import type { DataViewProperty } from "../../types";
 import { getUserLocale } from "./locale-helpers";
-import {
-  STATUS_GROUP_LABELS,
-  STATUS_GROUP_ORDER,
-  type StatusGroup,
-} from "./status-constants";
 
 export type ComputationType =
   | "count"
@@ -75,27 +70,37 @@ function handleDateGrouping(
   }
 }
 
+// New StatusConfig type: { groups: Array<{ label: string; color: string; options: string[] }> }
+interface StatusConfigNew {
+  groups?: Array<{ label: string; color: string; options: string[] }>;
+}
+
 /**
- * Handle status property grouping by group (todo/inProgress/complete/canceled)
+ * Handle status property grouping by group (using group labels)
  */
 function handleStatusGroupGrouping(
   value: unknown,
-  config?: { options: Array<{ value: string; group: string }> },
+  config?: StatusConfigNew,
   emptyLabel?: string
 ): GroupResult {
   const statusValue = String(value);
-  const option = config?.options.find((opt) => opt.value === statusValue);
 
-  if (option?.group && option.group in STATUS_GROUP_LABELS) {
-    const group = option.group as StatusGroup;
-    const groupKey = STATUS_GROUP_LABELS[group] || option.group;
-    const sortValue = STATUS_GROUP_ORDER[group] ?? 999;
-    return { groupKey, sortValue };
+  // Find which group this option belongs to
+  if (config?.groups) {
+    for (let groupIndex = 0; groupIndex < config.groups.length; groupIndex++) {
+      const group = config.groups[groupIndex];
+      if (group?.options.includes(statusValue)) {
+        return {
+          groupKey: group.label,
+          sortValue: groupIndex,
+        };
+      }
+    }
   }
 
   return {
     groupKey: emptyLabel || String(value),
-    sortValue: emptyLabel || String(value),
+    sortValue: Number.MAX_SAFE_INTEGER,
   };
 }
 
@@ -104,25 +109,28 @@ function handleStatusGroupGrouping(
  */
 function handleStatusOptionGrouping(
   value: unknown,
-  config?: { options: Array<{ value: string; group: string }> },
+  config?: StatusConfigNew,
   emptyLabel?: string
 ): GroupResult {
   const statusValue = String(value);
-  const option = config?.options.find((opt) => opt.value === statusValue);
 
-  if (option?.group && option.group in STATUS_GROUP_ORDER && config) {
-    const group = option.group as StatusGroup;
-    const groupIndex = STATUS_GROUP_ORDER[group] ?? 999;
-    const optionIndex = config.options.indexOf(option);
-    return {
-      groupKey: option.value,
-      sortValue: groupIndex * 1000 + optionIndex,
-    };
+  // Find which group this option belongs to and its position
+  if (config?.groups) {
+    for (let groupIndex = 0; groupIndex < config.groups.length; groupIndex++) {
+      const group = config.groups[groupIndex];
+      const optionIndex = group?.options.indexOf(statusValue) ?? -1;
+      if (optionIndex !== -1) {
+        return {
+          groupKey: statusValue,
+          sortValue: groupIndex * 1000 + optionIndex,
+        };
+      }
+    }
   }
 
   return {
     groupKey: emptyLabel || String(value),
-    sortValue: emptyLabel || String(value),
+    sortValue: Number.MAX_SAFE_INTEGER,
   };
 }
 
@@ -157,17 +165,13 @@ function getGroupKeyAndSortValue<TData>(
 
   // Handle status grouping by group
   if (property?.type === "status" && showAs === "group" && value) {
-    const config = property.config as {
-      options: Array<{ value: string; group: string }>;
-    };
+    const config = property.config as StatusConfigNew;
     return handleStatusGroupGrouping(value, config, emptyGroupLabel);
   }
 
   // Handle status grouping by option
   if (property?.type === "status" && value) {
-    const config = property.config as {
-      options: Array<{ value: string; group: string }>;
-    };
+    const config = property.config as StatusConfigNew;
     return handleStatusOptionGrouping(value, config, emptyGroupLabel);
   }
 

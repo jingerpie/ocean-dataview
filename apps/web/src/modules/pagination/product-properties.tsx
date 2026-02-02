@@ -29,7 +29,7 @@ export const productProperties = [
     config: {
       showAs: {
         type: "bar",
-        color: "green",
+        color: "red",
         divideBy: 100,
       },
     },
@@ -85,10 +85,10 @@ export const productProperties = [
     label: "Availability",
     type: "status",
     config: {
-      options: [
-        { value: "In stock", group: "todo" },
-        { value: "Low stock", group: "inProgress" },
-        { value: "Out of stock", group: "complete" },
+      groups: [
+        { label: "Available", color: "green", options: ["In stock"] },
+        { label: "Warning", color: "yellow", options: ["Low stock"] },
+        { label: "Unavailable", color: "red", options: ["Out of stock"] },
       ],
     },
   },

@@ -62,6 +62,16 @@ export interface BaseProperty<_T> {
 }
 
 // Type-specific configurations
+export type BadgeColor =
+  | "gray"
+  | "blue"
+  | "purple"
+  | "yellow"
+  | "red"
+  | "pink"
+  | "green"
+  | "teal";
+
 export interface NumberConfig {
   numberFormat?:
     | "number"
@@ -71,27 +81,17 @@ export interface NumberConfig {
     | "euro"
     | "pound";
   decimalPlaces?: number; // 0-10
-  showAs?:
-    | "number"
-    | {
-        type: "bar" | "ring";
-        color: string;
-        divideBy: number;
-        showNumber?: boolean;
-      };
+  showAs?: {
+    type?: "number" | "bar" | "ring"; // default: "number"
+    color?: BadgeColor; // default: "green" (only used for bar/ring)
+    divideBy?: number; // default: 100 (only used for bar/ring)
+    showNumber?: boolean; // default: true (only used for bar/ring)
+  };
 }
 
 export interface SelectOption {
   value: string;
-  color?:
-    | "gray"
-    | "blue"
-    | "purple"
-    | "yellow"
-    | "red"
-    | "pink"
-    | "green"
-    | "teal";
+  color?: BadgeColor;
 }
 
 export interface SelectConfig {
@@ -100,16 +100,16 @@ export interface SelectConfig {
 
 export interface MultiSelectConfig {
   options: SelectOption[];
-  displayLimit?: number;
 }
 
-export interface StatusOption {
-  value: string;
-  group: "todo" | "inProgress" | "complete" | "canceled";
+export interface StatusGroup {
+  label: string;
+  color: BadgeColor;
+  options: string[];
 }
 
 export interface StatusConfig {
-  options: StatusOption[];
+  groups: StatusGroup[];
 }
 
 export interface DateConfig {
@@ -119,19 +119,6 @@ export interface DateConfig {
 
 export interface UrlConfig {
   showFullUrl?: boolean;
-}
-
-export interface EmailConfig {
-  showAsLink?: boolean;
-}
-
-export interface PhoneConfig {
-  showAsLink?: boolean;
-  format?: "US" | "international" | "none";
-}
-
-export interface FilesMediaConfig {
-  displayAs?: "thumbnail" | "list" | "gallery";
 }
 
 /**
@@ -144,10 +131,7 @@ export type PropertyConfig =
   | MultiSelectConfig
   | StatusConfig
   | DateConfig
-  | UrlConfig
-  | EmailConfig
-  | PhoneConfig
-  | FilesMediaConfig;
+  | UrlConfig;
 
 // ============================================================================
 // PropertyMeta - Covariant Property Type for UI Components
@@ -246,7 +230,7 @@ export type DatePropertyType<T> = BaseProperty<T> & {
 
 export type FilesMediaPropertyType<T> = BaseProperty<T> & {
   type: "filesMedia";
-  config?: FilesMediaConfig;
+  config?: never;
 };
 
 export type CheckboxPropertyType<T> = BaseProperty<T> & {
@@ -261,12 +245,12 @@ export type UrlPropertyType<T> = BaseProperty<T> & {
 
 export type EmailPropertyType<T> = BaseProperty<T> & {
   type: "email";
-  config?: EmailConfig;
+  config?: never;
 };
 
 export type PhonePropertyType<T> = BaseProperty<T> & {
   type: "phone";
-  config?: PhoneConfig;
+  config?: never;
 };
 
 /**
@@ -382,7 +366,6 @@ export type PropertyKeys<T extends readonly DataViewProperty<any>[]> =
 // Re-export filter types from shared package for unified system
 export type {
   FilterCondition,
-  FilterVariant,
   SearchQuery,
   SortQuery,
   WhereExpression,

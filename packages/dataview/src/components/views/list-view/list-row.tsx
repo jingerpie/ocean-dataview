@@ -81,7 +81,6 @@ export function ListRow<TData>({
                       item={item}
                       property={property}
                       value={value}
-                      wrap={false}
                     />
                   </div>
                 );

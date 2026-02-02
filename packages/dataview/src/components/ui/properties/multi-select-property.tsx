@@ -2,7 +2,7 @@
 
 import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
 import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
-import type { MultiSelectConfig } from "../../../types/property-types";
+import type { MultiSelectConfig } from "../../../types/property.type";
 
 interface MultiSelectPropertyProps {
   value: unknown;
@@ -17,19 +17,14 @@ export function MultiSelectProperty({
     return <span className="text-muted-foreground text-sm">-</span>;
   }
 
-  const displayLimit = config?.displayLimit ?? 2;
   const values = Array.isArray(value) ? value : [value];
-
-  const visibleValues = values.slice(0, displayLimit);
-  const remainingCount = values.length - displayLimit;
+  const options = config?.options ?? [];
 
   return (
     <div className="flex flex-wrap gap-1">
-      {visibleValues.map((val) => {
+      {values.map((val) => {
         const stringValue = String(val);
-        const option = config?.options?.find(
-          (opt) => opt.value === stringValue
-        );
+        const option = options.find((opt) => opt.value === stringValue);
 
         // If option not found, still render as badge with gray color
         if (!option) {
@@ -48,7 +43,6 @@ export function MultiSelectProperty({
           </Badge>
         );
       })}
-      {remainingCount > 0 && <Badge variant="outline">+{remainingCount}</Badge>}
     </div>
   );
 }

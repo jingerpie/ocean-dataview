@@ -1,5 +1,6 @@
 import type { FilterCondition } from "@ocean-dataview/shared/types";
 import { format, parseISO } from "date-fns";
+import type { PropertyType } from "../types";
 
 /**
  * Date range value for isBetween condition: [from, to]
@@ -15,22 +16,10 @@ type RelativeToTodayValue = [
   "day" | "week" | "month" | "year",
 ];
 
-/**
- * Filter variant determines how conditions are displayed
- */
-type FilterVariant =
-  | "text"
-  | "number"
-  | "date"
-  | "dateRange"
-  | "boolean"
-  | "select"
-  | "multiSelect";
-
 interface GetFilterPreviewOptions {
   condition: FilterCondition;
   value: unknown;
-  variant: FilterVariant;
+  propertyType: PropertyType;
 }
 
 /**
@@ -230,9 +219,9 @@ function getTextPreview(condition: FilterCondition, value: unknown): string {
 export function getFilterPreview({
   condition,
   value,
-  variant,
+  propertyType,
 }: GetFilterPreviewOptions): string {
-  // Empty conditions - same for all variants, with colon
+  // Empty conditions - same for all property types, with colon
   if (condition === "isEmpty") {
     return ": Is empty";
   }
@@ -240,18 +229,35 @@ export function getFilterPreview({
     return ": Is not empty";
   }
 
-  switch (variant) {
-    case "boolean":
+  switch (propertyType) {
+    case "checkbox":
       return getBooleanPreview(value);
+
     case "number":
       return getNumberPreview(condition, value);
+
     case "date":
-    case "dateRange":
       return getDatePreview(condition, value);
+
     case "select":
+    case "status":
       return getSelectPreview(condition, value);
+
     case "multiSelect":
       return getMultiSelectPreview(condition, value);
+
+    // Text-like types
+    case "text":
+    case "url":
+    case "email":
+    case "phone":
+      return getTextPreview(condition, value);
+
+    case "filesMedia":
+    case "formula":
+      // Only isEmpty/isNotEmpty (handled above)
+      return "";
+
     default:
       return getTextPreview(condition, value);
   }

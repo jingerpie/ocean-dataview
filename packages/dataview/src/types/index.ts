@@ -13,7 +13,7 @@ export type {
   GroupCounts,
   InferItemsFromQueryOptions,
 } from "./pagination-types";
-export * from "./property-types";
+export * from "./property.type";
 
 // Pagination result interface
 export interface PaginationResult<T> {

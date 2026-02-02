@@ -1,22 +1,18 @@
 import type {
   DateConfig,
-  EmailConfig,
-  FilesMediaConfig,
   MultiSelectConfig,
   NumberConfig,
-  PhoneConfig,
   PropertyType,
   SelectConfig,
   StatusConfig,
   UrlConfig,
-} from "./property-types";
+} from "./property.type";
 
 /**
  * Base props that all property components share
  */
 export interface BasePropertyComponentProps {
   className?: string;
-  wrap?: boolean;
 }
 
 /**
@@ -68,19 +64,16 @@ export interface UrlPropertyComponentProps extends BasePropertyComponentProps {
 export interface EmailPropertyComponentProps
   extends BasePropertyComponentProps {
   value: unknown;
-  config?: EmailConfig;
 }
 
 export interface PhonePropertyComponentProps
   extends BasePropertyComponentProps {
   value: unknown;
-  config?: PhoneConfig;
 }
 
 export interface FilesMediaPropertyComponentProps
   extends BasePropertyComponentProps {
   value: unknown;
-  config?: FilesMediaConfig;
 }
 
 /**

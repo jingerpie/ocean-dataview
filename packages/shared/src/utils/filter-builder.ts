@@ -2,8 +2,8 @@ import type {
   WhereExpression,
   WhereNode,
   WhereRule,
-} from "../types/data-table.type";
-import { isWhereExpression, isWhereRule } from "../types/data-table.type";
+} from "../types/filter.type";
+import { isWhereExpression, isWhereRule } from "../types/filter.type";
 
 // ============================================================================
 // Basic Helpers

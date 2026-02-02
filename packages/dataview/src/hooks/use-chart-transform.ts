@@ -13,7 +13,7 @@ import {
 import { transformData } from "../lib/utils/transform-data";
 import { validateChartConfig } from "../lib/utils/validate-chart-config";
 import type { ChartType, DateGroupingType } from "../types/chart.type";
-import type { DataViewProperty } from "../types/property-types";
+import type { DataViewProperty } from "../types/property.type";
 
 // Helper: Check if showAs value is a date/status grouping type
 function isDateGroupingType(

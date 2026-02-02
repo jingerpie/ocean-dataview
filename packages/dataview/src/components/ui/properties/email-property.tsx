@@ -1,25 +1,15 @@
 "use client";
 
-import type { EmailConfig } from "../../../types/property-types";
-
 interface EmailPropertyProps {
   value: unknown;
-  config?: EmailConfig;
 }
 
-export function EmailProperty({
-  value,
-  config: { showAsLink = true } = {},
-}: EmailPropertyProps) {
+export function EmailProperty({ value }: EmailPropertyProps) {
   if (!value) {
     return <span className="text-muted-foreground text-sm">-</span>;
   }
 
   const email = String(value);
-
-  if (!showAsLink) {
-    return <span className="text-sm">{email}</span>;
-  }
 
   return (
     <a

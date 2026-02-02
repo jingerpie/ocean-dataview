@@ -1,4 +1,4 @@
-import type { SortQuery } from "../types/data-table.type";
+import type { SortQuery } from "../types/filter.type";
 
 /**
  * Validate and clean sort array.

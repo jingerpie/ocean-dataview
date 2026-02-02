@@ -14,7 +14,7 @@ import { UrlProperty } from "../../components/ui/properties/url-property";
 import type {
   DataViewProperty,
   PropertyFunction,
-} from "../../types/property-types";
+} from "../../types/property.type";
 
 /**
  * Creates a PropertyFunction for use in formula properties.
@@ -72,7 +72,7 @@ export function createPropertyRenderer<TData>(
     // Render based on property type
     switch (property.type) {
       case "text":
-        return <TextProperty value={value} wrap={false} />;
+        return <TextProperty value={value} />;
 
       case "number":
         return <NumberProperty config={property.config} value={value} />;
@@ -96,13 +96,13 @@ export function createPropertyRenderer<TData>(
         return <UrlProperty config={property.config} value={value} />;
 
       case "email":
-        return <EmailProperty config={property.config} value={value} />;
+        return <EmailProperty value={value} />;
 
       case "phone":
-        return <PhoneProperty config={property.config} value={value} />;
+        return <PhoneProperty value={value} />;
 
       case "filesMedia":
-        return <FilesMediaProperty value={value} wrap={false} />;
+        return <FilesMediaProperty value={value} />;
 
       default:
         // Fallback for unknown types

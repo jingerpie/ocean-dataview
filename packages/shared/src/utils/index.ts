@@ -2,7 +2,7 @@
 export {
   getDefaultFilterCondition,
   getFilterConditions,
-  isValidConditionForVariant,
+  isValidConditionForPropertyType,
 } from "./filter";
 export {
   // Mutations
@@ -40,7 +40,6 @@ export {
   applyConditionChange,
   createRuleFromProperty,
   extractSelectValues,
-  getFilterVariantFromPropertyType,
   transformValueForCondition,
 } from "./filter-variant";
 export {

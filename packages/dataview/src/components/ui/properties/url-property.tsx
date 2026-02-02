@@ -1,6 +1,6 @@
 "use client";
 
-import type { UrlConfig } from "../../../types/property-types";
+import type { UrlConfig } from "../../../types/property.type";
 
 interface UrlPropertyProps {
   value: unknown;

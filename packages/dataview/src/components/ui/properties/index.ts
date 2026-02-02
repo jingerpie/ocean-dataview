@@ -32,6 +32,7 @@ export type {
 } from "./select-picker";
 export { SelectPicker, SelectPickerContent } from "./select-picker";
 export { SelectProperty } from "./select-property";
+export { StatusPicker } from "./status-picker";
 export { StatusProperty } from "./status-property";
 export { TextProperty } from "./text-property";
 export { UrlProperty } from "./url-property";

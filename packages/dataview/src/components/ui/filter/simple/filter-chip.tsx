@@ -21,12 +21,12 @@ import type {
   PropertyMeta,
   SelectConfig,
   SelectOption,
+  StatusConfig,
 } from "@ocean-dataview/dataview/types";
 import type { FilterCondition, WhereRule } from "@ocean-dataview/shared/types";
 import {
   applyConditionChange,
   extractSelectValues,
-  getFilterVariantFromPropertyType,
 } from "@ocean-dataview/shared/utils";
 import { ChevronDownIcon } from "lucide-react";
 import { getFilterPreview } from "../../../../lib/filter-preview";
@@ -39,6 +39,7 @@ import {
   type RelativeToTodayValue,
   SingleDateCalendar,
 } from "../../properties/date-picker";
+import { StatusPicker } from "../../properties/status-picker";
 import { ConditionPicker } from "../condition-picker";
 import { FilterActions } from "./filter-actions";
 
@@ -84,7 +85,6 @@ export function FilterChip({
     setOpen(open ? rule.property : null);
   };
 
-  const filterVariant = getFilterVariantFromPropertyType(property.type);
   const label = property.label ?? String(property.id);
 
   // Compute preview for detailed variant
@@ -93,14 +93,7 @@ export function FilterChip({
       ? getFilterPreview({
           condition: rule.condition,
           value: rule.value,
-          variant: filterVariant as
-            | "text"
-            | "number"
-            | "date"
-            | "dateRange"
-            | "boolean"
-            | "select"
-            | "multiSelect",
+          propertyType: property.type,
         })
       : "";
 
@@ -156,7 +149,7 @@ export function FilterChip({
               condition={rule.condition}
               inline
               onConditionChange={handleConditionChange}
-              variant={filterVariant}
+              propertyType={property.type}
             />
           </div>
           <FilterActions
@@ -180,7 +173,6 @@ export function FilterChip({
           onValueChange={handleValueChange}
           property={property}
           rule={rule}
-          variant={filterVariant}
         />
       </PopoverContent>
     </Popover>
@@ -194,14 +186,12 @@ export function FilterChip({
 interface FilterChipValueProps {
   rule: WhereRule;
   property: PropertyMeta;
-  variant: string;
   onValueChange: (value: unknown) => void;
 }
 
 function FilterChipValue({
   rule,
   property,
-  variant,
   onValueChange,
 }: FilterChipValueProps) {
   // Empty/Not Empty conditions don't need value input
@@ -209,21 +199,32 @@ function FilterChipValue({
     return null;
   }
 
-  switch (variant) {
+  switch (property.type) {
     case "text":
-    case "number":
-    case "range":
+    case "url":
+    case "email":
+    case "phone":
       return (
         <Input
-          inputMode={variant === "text" ? undefined : "numeric"}
           onChange={(e) => onValueChange(e.target.value)}
           placeholder="Enter value..."
-          type={variant === "text" ? "text" : "number"}
+          type="text"
           value={rule.value != null ? String(rule.value) : ""}
         />
       );
 
-    case "boolean":
+    case "number":
+      return (
+        <Input
+          inputMode="numeric"
+          onChange={(e) => onValueChange(e.target.value)}
+          placeholder="Enter value..."
+          type="number"
+          value={rule.value != null ? String(rule.value) : ""}
+        />
+      );
+
+    case "checkbox":
       return (
         <CheckboxPickerContent
           onChange={onValueChange}
@@ -231,15 +232,9 @@ function FilterChipValue({
         />
       );
 
-    case "select":
-    case "multiSelect": {
-      const selectConfig =
-        property.type === "select" ||
-        property.type === "status" ||
-        property.type === "multiSelect"
-          ? (property.config as SelectConfig | undefined)
-          : undefined;
-      const options: SelectOption[] = selectConfig?.options ?? [];
+    case "select": {
+      const config = property.config as SelectConfig | undefined;
+      const options: SelectOption[] = config?.options ?? [];
       const selectedValues = extractSelectValues(rule.value);
       const selectedOptions = options.filter((o) =>
         selectedValues.includes(o.value)
@@ -275,8 +270,56 @@ function FilterChipValue({
       );
     }
 
-    case "date":
-    case "dateRange":
+    case "multiSelect": {
+      const config = property.config as SelectConfig | undefined;
+      const options: SelectOption[] = config?.options ?? [];
+      const selectedValues = extractSelectValues(rule.value);
+      const selectedOptions = options.filter((o) =>
+        selectedValues.includes(o.value)
+      );
+
+      return (
+        <Combobox
+          items={options}
+          multiple
+          onValueChange={(newValues) => {
+            const values = (newValues as SelectOption[]).map((o) => o.value);
+            onValueChange(values);
+          }}
+          open
+          value={selectedOptions}
+        >
+          <ComboboxInput
+            className="h-8"
+            placeholder="Search options..."
+            showTrigger={false}
+          />
+          <ComboboxEmpty>No options found.</ComboboxEmpty>
+          <ComboboxList className="max-h-48">
+            {(option: SelectOption) => (
+              <ComboboxItem key={option.value} value={option}>
+                <Badge variant={getBadgeVariant(option.color)}>
+                  {option.value}
+                </Badge>
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </Combobox>
+      );
+    }
+
+    case "status": {
+      const config = property.config as StatusConfig | undefined;
+      return (
+        <StatusPicker
+          config={config ?? { groups: [] }}
+          onValueChange={onValueChange}
+          value={extractSelectValues(rule.value)}
+        />
+      );
+    }
+
+    case "date": {
       if (rule.condition === "isBetween") {
         return (
           <RangeDatePickerContent
@@ -299,6 +342,12 @@ function FilterChipValue({
           value={rule.value as string | undefined}
         />
       );
+    }
+
+    case "filesMedia":
+    case "formula":
+      // Only support isEmpty/isNotEmpty (handled above)
+      return null;
 
     default:
       return null;

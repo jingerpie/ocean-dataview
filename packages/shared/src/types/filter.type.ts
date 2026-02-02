@@ -41,6 +41,8 @@ export type FilterCondition = DataTableConfig["conditionalOperators"][number];
 export interface SortQuery {
   property: string;
   direction: "asc" | "desc";
+  /** Custom sort order for status/select properties - pre-computed by client */
+  customOrder?: string[];
 }
 
 // ============================================================================
@@ -155,16 +157,22 @@ export function isWhereRule(node: WhereNode): node is WhereRule {
 }
 
 // ============================================================================
-// Filter Variant - Maps property types to UI input types
+// Property Type
 // ============================================================================
 
-export type FilterVariant =
+/**
+ * Property types supported by the filter system.
+ */
+export type PropertyType =
   | "text"
   | "number"
-  | "range"
-  | "date"
-  | "dateRange"
-  | "boolean"
   | "select"
   | "multiSelect"
-  | "files";
+  | "status"
+  | "date"
+  | "checkbox"
+  | "url"
+  | "email"
+  | "phone"
+  | "filesMedia"
+  | "formula";
