@@ -273,6 +273,6 @@ export { DataViewProvider as GalleryProvider } from "../../../lib/providers/data
 export {
   DataViewOptions,
   type DataViewOptionsProps,
-} from "../../ui/visibility";
+} from "../../ui/toolbar/property-visibility";
 // Skeleton
 export { GallerySkeleton } from "./gallery-skeleton";

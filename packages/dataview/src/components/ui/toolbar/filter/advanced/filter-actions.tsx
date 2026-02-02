@@ -1,13 +1,13 @@
 "use client";
 
 import { CopyIcon, MoreHorizontalIcon, Repeat2, TrashIcon } from "lucide-react";
-import { Button } from "../../button";
+import { Button } from "../../../button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../../dropdown-menu";
+} from "../../../dropdown-menu";
 
 interface FilterActionsProps {
   /** Callback to remove this item */

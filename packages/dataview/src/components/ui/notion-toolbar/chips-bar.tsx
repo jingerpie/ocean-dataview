@@ -13,8 +13,8 @@ import {
   AdvancedFilterChip,
   FilterChip,
   FilterPropertyPicker,
-} from "../filter";
-import { SortChip } from "../sort";
+} from "../toolbar/filter";
+import { SortChip } from "../toolbar/sort";
 
 interface ChipsBarProps {
   /** Current sorts (multiple sorts supported) */

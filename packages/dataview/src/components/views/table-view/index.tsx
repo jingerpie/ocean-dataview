@@ -494,6 +494,6 @@ export { DataViewProvider as TableProvider } from "../../../lib/providers/data-v
 export {
   DataViewOptions,
   type DataViewOptionsProps,
-} from "../../ui/visibility";
+} from "../../ui/toolbar/property-visibility";
 // Skeleton
 export { TableSkeleton } from "./table-skeleton";

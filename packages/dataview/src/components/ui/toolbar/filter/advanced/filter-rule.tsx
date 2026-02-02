@@ -81,16 +81,16 @@ function DebouncedTextInput({
   );
 }
 
-import { CheckboxPicker } from "../../properties/checkbox-picker";
+import { CheckboxPicker } from "../../../properties/checkbox-picker";
 import {
   type DateRangeValue,
   RangeDatePicker,
   RelativeDatePicker,
   type RelativeToTodayValue,
   SingleDatePicker,
-} from "../../properties/date-picker";
-import { SelectPicker } from "../../properties/select-picker";
-import { StatusPicker } from "../../properties/status-picker";
+} from "../../../properties/date-picker";
+import { SelectPicker } from "../../../properties/select-picker";
+import { StatusPicker } from "../../../properties/status-picker";
 import { ConditionPicker } from "../condition-picker";
 import { FilterPropertyPicker } from "../filter-property-picker";
 import { FilterActions } from "./filter-actions";

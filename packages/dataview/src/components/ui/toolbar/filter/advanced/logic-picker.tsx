@@ -14,7 +14,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../select";
+} from "../../../select";
 
 const LOGIC_OPTIONS = [
   { value: "and", label: "And", description: "All filters must match" },

@@ -14,7 +14,7 @@ import {
   ComboboxValue,
 } from "@ocean-dataview/dataview/components/ui/combobox";
 import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-icon";
-import { DirectionPicker } from "@ocean-dataview/dataview/components/ui/sort/direction-picker";
+import { DirectionPicker } from "@ocean-dataview/dataview/components/ui/toolbar/sort/direction-picker";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type { SortQuery } from "@ocean-dataview/shared/types";

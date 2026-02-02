@@ -21,8 +21,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@ocean-dataview/dataview/components/ui/popover";
-import { AddSortButton } from "@ocean-dataview/dataview/components/ui/sort/add-sort-button";
-import { SortRule } from "@ocean-dataview/dataview/components/ui/sort/sort-rule";
+import { AddSortButton } from "@ocean-dataview/dataview/components/ui/toolbar/sort/add-sort-button";
+import { SortRule } from "@ocean-dataview/dataview/components/ui/toolbar/sort/sort-rule";
 import { useSortBuilder } from "@ocean-dataview/dataview/hooks";
 import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type { SortQuery } from "@ocean-dataview/shared/types";

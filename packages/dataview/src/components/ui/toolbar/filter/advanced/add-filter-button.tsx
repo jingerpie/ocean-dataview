@@ -11,7 +11,7 @@ import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type { WhereRule } from "@ocean-dataview/shared/types";
 import { createRuleFromProperty } from "@ocean-dataview/shared/utils";
 import { ChevronDownIcon, CopyPlusIcon, PlusIcon } from "lucide-react";
-import { cn } from "../../../../lib/utils";
+import { cn } from "../../../../../lib/utils";
 
 interface AddFilterButtonProps {
   /** Available properties to filter on */

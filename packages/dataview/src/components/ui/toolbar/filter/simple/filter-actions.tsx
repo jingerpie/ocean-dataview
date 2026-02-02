@@ -2,13 +2,13 @@
 
 import { useAdvanceFilterBuilder } from "@ocean-dataview/dataview/hooks/use-advance-filter-builder";
 import { ListFilterIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
-import { Button } from "../../button";
+import { Button } from "../../../button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../../dropdown-menu";
+} from "../../../dropdown-menu";
 
 interface FilterActionsProps {
   /** Callback to remove this filter */

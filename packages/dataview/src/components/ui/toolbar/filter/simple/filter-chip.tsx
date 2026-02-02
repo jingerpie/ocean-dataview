@@ -29,17 +29,17 @@ import {
   extractSelectValues,
 } from "@ocean-dataview/shared/utils";
 import { ChevronDownIcon } from "lucide-react";
-import { getFilterPreview } from "../../../../lib/filter-preview";
-import { getBadgeVariant } from "../../../../lib/utils/get-badge-variant";
-import { CheckboxPickerContent } from "../../properties/checkbox-picker";
+import { getFilterPreview } from "../../../../../lib/filter-preview";
+import { getBadgeVariant } from "../../../../../lib/utils/get-badge-variant";
+import { CheckboxPickerContent } from "../../../properties/checkbox-picker";
 import {
   type DateRangeValue,
   RangeDatePickerContent,
   RelativeDatePickerContent,
   type RelativeToTodayValue,
   SingleDateCalendar,
-} from "../../properties/date-picker";
-import { StatusPicker } from "../../properties/status-picker";
+} from "../../../properties/date-picker";
+import { StatusPicker } from "../../../properties/status-picker";
 import { ConditionPicker } from "../condition-picker";
 import { FilterActions } from "./filter-actions";
 

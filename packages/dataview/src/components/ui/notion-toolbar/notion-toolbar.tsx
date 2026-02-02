@@ -9,11 +9,11 @@ import { useDataViewContext } from "@ocean-dataview/dataview/lib/providers";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type { ComponentProps, ReactNode } from "react";
-import { FilterPropertyPicker } from "../filter";
-import { SearchInput } from "../search";
-import { SortPropertyPicker } from "../sort";
 import { useToolbarState } from "../toolbar";
-import { DataViewOptions } from "../visibility";
+import { FilterPropertyPicker } from "../toolbar/filter";
+import { DataViewOptions } from "../toolbar/property-visibility";
+import { SearchInput } from "../toolbar/search";
+import { SortPropertyPicker } from "../toolbar/sort";
 import { ChipsBar } from "./chips-bar";
 
 interface NotionToolbarProps extends ComponentProps<"div"> {

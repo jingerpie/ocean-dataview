@@ -245,6 +245,6 @@ export { DataViewProvider as ListProvider } from "../../../lib/providers/data-vi
 export {
   DataViewOptions,
   type DataViewOptionsProps,
-} from "../../ui/visibility";
+} from "../../ui/toolbar/property-visibility";
 // Skeleton
 export { ListSkeleton } from "./list-skeleton";

@@ -10,7 +10,7 @@ import { useAdvanceFilterBuilder } from "@ocean-dataview/dataview/hooks";
 import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type { WhereExpression, WhereNode } from "@ocean-dataview/shared/types";
 import { ChevronDownIcon, ListFilterIcon, TrashIcon } from "lucide-react";
-import { Separator } from "../../separator";
+import { Separator } from "../../../separator";
 import { FilterGroup } from "./filter-group";
 
 interface AdvancedFilterChipProps {

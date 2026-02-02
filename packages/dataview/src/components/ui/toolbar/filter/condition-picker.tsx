@@ -11,7 +11,7 @@ import {
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { FilterCondition } from "@ocean-dataview/shared/types";
 import { getFilterConditions } from "@ocean-dataview/shared/utils";
-import type { PropertyType } from "../../../types";
+import type { PropertyType } from "../../../../types";
 
 interface ConditionPickerProps {
   condition: FilterCondition;
