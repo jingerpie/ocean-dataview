@@ -1,20 +1,20 @@
 "use client";
 
-import { Calendar } from "@ocean-dataview/dataview/components/ui/calendar";
-import { Input } from "@ocean-dataview/dataview/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@ocean-dataview/dataview/components/ui/select";
 import {
   getRelativeDateRange,
   type RelativeDirection,
   type RelativeToTodayValue,
   type RelativeUnit,
 } from "@ocean-dataview/shared/utils";
+import { Calendar } from "../../calendar";
+import { Input } from "../../input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../select";
 
 interface RelativeDatePickerProps {
   /** Current value as [direction, count, unit] array */

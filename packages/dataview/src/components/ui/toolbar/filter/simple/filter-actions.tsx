@@ -1,7 +1,7 @@
 "use client";
 
-import { useAdvanceFilterBuilder } from "@ocean-dataview/dataview/hooks/use-advance-filter-builder";
 import { ListFilterIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
+import { useAdvanceFilterBuilder } from "../../../../../hooks/use-advance-filter-builder";
 import { Button } from "../../../button";
 import {
   DropdownMenu,

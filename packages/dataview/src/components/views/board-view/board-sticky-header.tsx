@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { useDebouncer, useThrottler } from "@tanstack/react-pacer";
 import {
   type ReactNode,
@@ -10,6 +9,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { cn } from "../../../lib/utils";
 
 const SCROLL_THROTTLE_MS = 16; // 60fps
 const RESIZE_DEBOUNCE_MS = 150;

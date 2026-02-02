@@ -1,15 +1,10 @@
 "use client";
 
-import {
-  Table,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@ocean-dataview/dataview/components/ui/table";
 import { useDebouncer, useThrottler } from "@tanstack/react-pacer";
 import { flexRender, type Table as TanstackTable } from "@tanstack/react-table";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { Table, TableHead, TableHeader, TableRow } from "../../ui/table";
 
 const SCROLL_THROTTLE_MS = 16; // 60fps
 const RESIZE_DEBOUNCE_MS = 150;

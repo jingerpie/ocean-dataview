@@ -1,14 +1,14 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
-import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type {
   SortQuery,
   WhereExpression,
   WhereNode,
   WhereRule,
 } from "@ocean-dataview/shared/types";
+import { cn } from "../../../lib/utils";
+import type { PropertyMeta } from "../../../types";
+import { Button } from "../button";
 import {
   AdvancedFilterChip,
   FilterChip,

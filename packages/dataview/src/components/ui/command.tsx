@@ -1,20 +1,17 @@
 "use client";
 
+import { Command as CommandPrimitive } from "cmdk";
+import { CheckIcon, SearchIcon } from "lucide-react";
+import type * as React from "react";
+import { cn } from "../../lib/utils";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@ocean-dataview/dataview/components/ui/dialog";
-import {
-  InputGroup,
-  InputGroupAddon,
-} from "@ocean-dataview/dataview/components/ui/input-group";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
-import { Command as CommandPrimitive } from "cmdk";
-import { CheckIcon, SearchIcon } from "lucide-react";
-import type * as React from "react";
+} from "./dialog";
+import { InputGroup, InputGroupAddon } from "./input-group";
 
 function Command({
   className,

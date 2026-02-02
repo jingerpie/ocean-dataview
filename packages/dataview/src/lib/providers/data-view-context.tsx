@@ -1,11 +1,5 @@
 "use client";
 
-import type {
-  DataViewProperty,
-  PropertyMeta,
-  SortQuery,
-  WhereNode,
-} from "@ocean-dataview/dataview/types";
 import { createContext, useContext } from "react";
 import type {
   GroupInfinitePaginationState,
@@ -13,6 +7,12 @@ import type {
   InfinitePaginationState,
   PagePaginationResult,
 } from "../../hooks";
+import type {
+  DataViewProperty,
+  PropertyMeta,
+  SortQuery,
+  WhereNode,
+} from "../../types";
 
 /**
  * Union type for pagination - supports flat, grouped, and infinite pagination

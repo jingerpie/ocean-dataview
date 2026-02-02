@@ -1,7 +1,9 @@
 "use client";
 
-import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
+import type { SortQuery } from "@ocean-dataview/shared/types";
+import { ArrowDown, ArrowUp, ArrowUpDown, X } from "lucide-react";
+import { Badge } from "../../badge";
+import { Button } from "../../button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,9 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@ocean-dataview/dataview/components/ui/dropdown-menu";
-import type { SortQuery } from "@ocean-dataview/shared/types";
-import { ArrowDown, ArrowUp, ArrowUpDown, X } from "lucide-react";
+} from "../../dropdown-menu";
 
 export interface SortOption {
   field: string;

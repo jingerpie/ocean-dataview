@@ -1,8 +1,8 @@
 "use client";
 
-import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
 import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
 import type { StatusConfig } from "../../../types/property.type";
+import { Badge } from "../badge";
 
 interface StatusPropertyProps {
   value: string | null;

@@ -1,13 +1,9 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@ocean-dataview/dataview/components/ui/popover";
 import { ChevronDownIcon } from "lucide-react";
 import type * as React from "react";
+import { Button } from "../button";
+import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 
 interface ToolbarButtonProps {
   /** Icon to display */

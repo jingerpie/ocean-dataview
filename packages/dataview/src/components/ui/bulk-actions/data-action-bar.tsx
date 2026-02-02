@@ -1,9 +1,9 @@
 "use client";
 
-import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { Table } from "@tanstack/react-table";
 import { type ReactNode, useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { cn } from "../../../lib/utils";
 
 interface DataActionBarProps<TData> {
   /**

@@ -1,14 +1,14 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
+import { CheckIcon } from "lucide-react";
+import { Button } from "../button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@ocean-dataview/dataview/components/ui/select";
-import { CheckIcon } from "lucide-react";
+} from "../select";
 
 interface CheckboxPickerProps {
   value: boolean | undefined;

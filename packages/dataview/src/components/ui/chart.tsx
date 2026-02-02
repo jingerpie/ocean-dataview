@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "@ocean-dataview/dataview/lib/utils";
 import {
   type ComponentProps,
   type CSSProperties,
@@ -18,7 +17,6 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-
 import type {
   NameType,
   Payload,
@@ -26,6 +24,7 @@ import type {
 } from "recharts/types/component/DefaultTooltipContent";
 import type { Props as LegendProps } from "recharts/types/component/Legend";
 import type { TooltipContentProps } from "recharts/types/component/Tooltip";
+import { cn } from "../../lib/utils";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;

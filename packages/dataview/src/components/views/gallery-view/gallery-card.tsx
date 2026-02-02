@@ -1,10 +1,10 @@
 "use client";
 
-import { Card, CardContent } from "@ocean-dataview/dataview/components/ui/card";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { ImageIcon } from "lucide-react";
 import Image from "next/image";
+import { cn } from "../../../lib/utils";
+import type { DataViewProperty } from "../../../types";
+import { Card, CardContent } from "../../ui/card";
 import { DataCell } from "../data-cell";
 
 export interface GalleryCardProps<TData> {

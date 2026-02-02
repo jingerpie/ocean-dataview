@@ -1,7 +1,10 @@
 "use client";
 
-import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
+import { type ReactNode, useState } from "react";
+import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
+import type { SelectOption } from "../../../types";
+import { Badge } from "../badge";
+import { Button } from "../button";
 import {
   Combobox,
   ComboboxContent,
@@ -10,10 +13,7 @@ import {
   ComboboxItem,
   ComboboxList,
   ComboboxTrigger,
-} from "@ocean-dataview/dataview/components/ui/combobox";
-import type { SelectOption } from "@ocean-dataview/dataview/types";
-import { type ReactNode, useState } from "react";
-import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
+} from "../combobox";
 
 // ============================================================================
 // SelectPickerContent - Reusable dropdown content

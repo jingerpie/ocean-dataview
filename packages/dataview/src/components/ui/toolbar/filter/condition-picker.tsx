@@ -1,5 +1,9 @@
 "use client";
 
+import type { FilterCondition } from "@ocean-dataview/shared/types";
+import { getFilterConditions } from "@ocean-dataview/shared/utils";
+import { cn } from "../../../../lib/utils";
+import type { PropertyType } from "../../../../types";
 import {
   Select,
   SelectContent,
@@ -7,11 +11,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@ocean-dataview/dataview/components/ui/select";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
-import type { FilterCondition } from "@ocean-dataview/shared/types";
-import { getFilterConditions } from "@ocean-dataview/shared/utils";
-import type { PropertyType } from "../../../../types";
+} from "../../select";
 
 interface ConditionPickerProps {
   condition: FilterCondition;

@@ -1,14 +1,5 @@
 "use client";
 
-import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
-import { Card, CardContent } from "@ocean-dataview/dataview/components/ui/card";
-import {
-  buildPaginationContext,
-  cn,
-  transformData,
-  validatePropertyKeys,
-} from "@ocean-dataview/dataview/lib/utils";
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { AlertCircle, Columns3 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useRef } from "react";
@@ -19,7 +10,16 @@ import type {
 } from "../../../hooks";
 import { useDisplayProperties, useGroupConfig } from "../../../hooks";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
+import {
+  buildPaginationContext,
+  cn,
+  transformData,
+  validatePropertyKeys,
+} from "../../../lib/utils";
 import { getBoardCardDimensions } from "../../../lib/utils/get-card-sizes";
+import type { DataViewProperty } from "../../../types";
+import { Badge } from "../../ui/badge";
+import { Card, CardContent } from "../../ui/card";
 import { EmptyState } from "../../ui/empty-state";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
 import { DataCell } from "../data-cell";

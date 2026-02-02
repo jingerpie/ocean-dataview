@@ -1,14 +1,14 @@
 "use client";
 
+import type { ComponentProps, ReactNode } from "react";
 import {
   useFilterParams,
   useSearchParams,
   useSortParams,
-} from "@ocean-dataview/dataview/hooks";
-import { useDataViewContext } from "@ocean-dataview/dataview/lib/providers";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
-import type { PropertyMeta } from "@ocean-dataview/dataview/types";
-import type { ComponentProps, ReactNode } from "react";
+} from "../../../hooks";
+import { useDataViewContext } from "../../../lib/providers";
+import { cn } from "../../../lib/utils";
+import type { PropertyMeta } from "../../../types";
 import { useToolbarState } from "../toolbar";
 import { FilterPropertyPicker } from "../toolbar/filter";
 import { DataViewOptions } from "../toolbar/property-visibility";

@@ -1,14 +1,5 @@
 "use client";
 
-import { Input } from "@ocean-dataview/dataview/components/ui/input";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
-import type {
-  MultiSelectConfig,
-  PropertyMeta,
-  SelectConfig,
-  SelectOption,
-  StatusConfig,
-} from "@ocean-dataview/dataview/types";
 import type { FilterCondition, WhereRule } from "@ocean-dataview/shared/types";
 import {
   applyConditionChange,
@@ -17,6 +8,15 @@ import {
 } from "@ocean-dataview/shared/utils";
 import { useDebouncer } from "@tanstack/react-pacer";
 import { useEffect, useState } from "react";
+import { cn } from "../../../../../lib/utils";
+import type {
+  MultiSelectConfig,
+  PropertyMeta,
+  SelectConfig,
+  SelectOption,
+  StatusConfig,
+} from "../../../../../types";
+import { Input } from "../../../input";
 
 const FILTER_INPUT_DEBOUNCE_MS = 150;
 

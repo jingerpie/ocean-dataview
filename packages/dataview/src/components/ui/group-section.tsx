@@ -1,8 +1,8 @@
 "use client";
 
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { Loader2 } from "lucide-react";
 import type * as React from "react";
+import type { DataViewProperty } from "../../types";
 import { DataCell } from "../views/data-cell";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "./accordion";
 

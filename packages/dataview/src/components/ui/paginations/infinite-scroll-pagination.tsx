@@ -1,9 +1,9 @@
 "use client";
 
-import type { PaginationContext } from "@ocean-dataview/dataview/types";
 import { useThrottler } from "@tanstack/react-pacer";
 import { Loader2 } from "lucide-react";
 import { useEffect, useRef } from "react";
+import type { PaginationContext } from "../../../types";
 
 const THROTTLE_MS = 200;
 

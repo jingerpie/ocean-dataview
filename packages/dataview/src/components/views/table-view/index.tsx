@@ -1,12 +1,5 @@
 "use client";
 
-import { Checkbox } from "@ocean-dataview/dataview/components/ui/checkbox";
-import { buildPaginationContext } from "@ocean-dataview/dataview/lib/utils";
-import type {
-  Action,
-  DataViewProperty,
-  PaginationContext,
-} from "@ocean-dataview/dataview/types";
 import type {
   ColumnDef,
   RowSelectionState,
@@ -21,12 +14,19 @@ import type {
 } from "../../../hooks";
 import { useDisplayProperties, useViewSetup } from "../../../hooks";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
+import { buildPaginationContext } from "../../../lib/utils";
+import type {
+  Action,
+  DataViewProperty,
+  PaginationContext,
+} from "../../../types";
 import { Accordion } from "../../ui/accordion";
 import {
   DataActionBar,
   DataActionBarAction,
   DataActionBarSelection,
 } from "../../ui/bulk-actions";
+import { Checkbox } from "../../ui/checkbox";
 import { GroupSection } from "../../ui/group-section";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
 import { SplitButton } from "../../ui/split-button";

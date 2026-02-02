@@ -1,6 +1,11 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
+import type { SortQuery } from "@ocean-dataview/shared/types";
+import { SortAscIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useSortParams } from "../../../../hooks";
+import type { PropertyMeta } from "../../../../types";
+import { Button } from "../../button";
 import {
   Combobox,
   ComboboxContent,
@@ -9,13 +14,8 @@ import {
   ComboboxItem,
   ComboboxList,
   ComboboxTrigger,
-} from "@ocean-dataview/dataview/components/ui/combobox";
-import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-icon";
-import { useSortParams } from "@ocean-dataview/dataview/hooks";
-import type { PropertyMeta } from "@ocean-dataview/dataview/types";
-import type { SortQuery } from "@ocean-dataview/shared/types";
-import { SortAscIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+} from "../../combobox";
+import { PropertyIcon } from "../../property-icon";
 
 interface SortPropertyPickerProps {
   /** Available properties to sort by */

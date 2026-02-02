@@ -1,6 +1,6 @@
 "use client";
 
-import { Checkbox } from "@ocean-dataview/dataview/components/ui/checkbox";
+import { Checkbox } from "../checkbox";
 
 interface CheckboxPropertyProps {
   value: boolean | null;

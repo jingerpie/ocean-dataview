@@ -15,19 +15,15 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@ocean-dataview/dataview/components/ui/popover";
-import { AddSortButton } from "@ocean-dataview/dataview/components/ui/toolbar/sort/add-sort-button";
-import { SortRule } from "@ocean-dataview/dataview/components/ui/toolbar/sort/sort-rule";
-import { useSortBuilder } from "@ocean-dataview/dataview/hooks";
-import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type { SortQuery } from "@ocean-dataview/shared/types";
 import { ChevronDownIcon, SortAscIcon, Trash2Icon } from "lucide-react";
 import { useCallback, useMemo } from "react";
+import { useSortBuilder } from "../../../../hooks";
+import type { PropertyMeta } from "../../../../types";
+import { Button } from "../../button";
+import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
+import { AddSortButton } from "./add-sort-button";
+import { SortRule } from "./sort-rule";
 
 interface SortChipProps {
   /** Current sort rules */

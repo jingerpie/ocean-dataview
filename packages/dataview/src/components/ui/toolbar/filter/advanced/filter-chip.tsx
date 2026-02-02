@@ -1,15 +1,11 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@ocean-dataview/dataview/components/ui/popover";
-import { useAdvanceFilterBuilder } from "@ocean-dataview/dataview/hooks";
-import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type { WhereExpression, WhereNode } from "@ocean-dataview/shared/types";
 import { ChevronDownIcon, ListFilterIcon, TrashIcon } from "lucide-react";
+import { useAdvanceFilterBuilder } from "../../../../../hooks";
+import type { PropertyMeta } from "../../../../../types";
+import { Button } from "../../../button";
+import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
 import { Separator } from "../../../separator";
 import { FilterGroup } from "./filter-group";
 

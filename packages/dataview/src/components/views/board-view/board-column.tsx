@@ -1,8 +1,8 @@
 "use client";
 
-import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { ReactNode } from "react";
+import { cn } from "../../../lib/utils";
+import { Badge } from "../../ui/badge";
 
 interface BoardColumnProps<TData> {
   groupName: string;

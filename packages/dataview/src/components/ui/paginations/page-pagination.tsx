@@ -1,15 +1,15 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { PaginationContext } from "../../../types";
+import { Button } from "../button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@ocean-dataview/dataview/components/ui/select";
-import type { PaginationContext } from "@ocean-dataview/dataview/types";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+} from "../select";
 
 type PagePaginationProps = Partial<PaginationContext>;
 

@@ -1,36 +1,31 @@
 "use client";
 
-import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
-import {
-  Combobox,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@ocean-dataview/dataview/components/ui/combobox";
-import { Input } from "@ocean-dataview/dataview/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@ocean-dataview/dataview/components/ui/popover";
-import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-icon";
-import { useSimpleFilterChip } from "@ocean-dataview/dataview/hooks";
-import type {
-  PropertyMeta,
-  SelectConfig,
-  SelectOption,
-  StatusConfig,
-} from "@ocean-dataview/dataview/types";
 import type { FilterCondition, WhereRule } from "@ocean-dataview/shared/types";
 import {
   applyConditionChange,
   extractSelectValues,
 } from "@ocean-dataview/shared/utils";
 import { ChevronDownIcon } from "lucide-react";
+import { useSimpleFilterChip } from "../../../../../hooks";
 import { getFilterPreview } from "../../../../../lib/filter-preview";
 import { getBadgeVariant } from "../../../../../lib/utils/get-badge-variant";
+import type {
+  PropertyMeta,
+  SelectConfig,
+  SelectOption,
+  StatusConfig,
+} from "../../../../../types";
+import { Badge } from "../../../badge";
+import { Button } from "../../../button";
+import {
+  Combobox,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "../../../combobox";
+import { Input } from "../../../input";
+import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
 import { CheckboxPickerContent } from "../../../properties/checkbox-picker";
 import {
   type DateRangeValue,
@@ -40,6 +35,7 @@ import {
   SingleDateCalendar,
 } from "../../../properties/date-picker";
 import { StatusPicker } from "../../../properties/status-picker";
+import { PropertyIcon } from "../../../property-icon";
 import { ConditionPicker } from "../condition-picker";
 import { FilterActions } from "./filter-actions";
 

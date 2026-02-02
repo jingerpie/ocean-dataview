@@ -1,7 +1,7 @@
 "use client";
 
-import { Skeleton } from "@ocean-dataview/dataview/components/ui/skeleton";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
+import { cn } from "../../../lib/utils";
+import { Skeleton } from "../../ui/skeleton";
 
 interface ListSkeletonProps extends React.ComponentProps<"div"> {
   /**

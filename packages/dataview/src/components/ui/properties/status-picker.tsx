@@ -1,9 +1,9 @@
 "use client";
 
-import { Badge } from "@ocean-dataview/dataview/components/ui/badge";
-import { Checkbox } from "@ocean-dataview/dataview/components/ui/checkbox";
 import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
 import type { BadgeColor, StatusConfig } from "../../../types/property.type";
+import { Badge } from "../badge";
+import { Checkbox } from "../checkbox";
 
 interface StatusPickerProps {
   config: StatusConfig;

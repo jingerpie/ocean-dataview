@@ -1,11 +1,11 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
-import { Input } from "@ocean-dataview/dataview/components/ui/input";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { useDebouncer } from "@tanstack/react-pacer";
 import { SearchIcon, XIcon } from "lucide-react";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
+import { cn } from "../../../../lib/utils";
+import { Button } from "../../button";
+import { Input } from "../../input";
 
 const SEARCH_DEBOUNCE_MS = 150;
 

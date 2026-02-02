@@ -1,10 +1,10 @@
 "use client";
 
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { XIcon } from "lucide-react";
 import type * as React from "react";
+import { cn } from "../../lib/utils";
+import { Button } from "./button";
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;

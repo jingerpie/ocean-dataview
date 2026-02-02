@@ -1,6 +1,6 @@
 "use client";
 
-import { NotionToolbar } from "@ocean-dataview/dataview/components/ui";
+import { NotionToolbar } from "@ocean-dataview/dataview/components/ui/notion-toolbar";
 import {
   ListSkeleton,
   ListView,

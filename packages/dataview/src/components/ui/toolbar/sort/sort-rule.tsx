@@ -2,7 +2,12 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
+import type { SortQuery } from "@ocean-dataview/shared/types";
+import { GripVerticalIcon, X } from "lucide-react";
+import { useState } from "react";
+import { cn } from "../../../../lib/utils";
+import type { PropertyMeta } from "../../../../types";
+import { Button } from "../../button";
 import {
   Combobox,
   ComboboxContent,
@@ -12,14 +17,9 @@ import {
   ComboboxList,
   ComboboxTrigger,
   ComboboxValue,
-} from "@ocean-dataview/dataview/components/ui/combobox";
-import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-icon";
-import { DirectionPicker } from "@ocean-dataview/dataview/components/ui/toolbar/sort/direction-picker";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
-import type { PropertyMeta } from "@ocean-dataview/dataview/types";
-import type { SortQuery } from "@ocean-dataview/shared/types";
-import { GripVerticalIcon, X } from "lucide-react";
-import { useState } from "react";
+} from "../../combobox";
+import { PropertyIcon } from "../../property-icon";
+import { DirectionPicker } from "./direction-picker";
 
 interface SortRuleProps {
   /** The sort rule */

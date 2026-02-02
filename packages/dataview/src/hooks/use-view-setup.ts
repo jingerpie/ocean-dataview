@@ -1,6 +1,6 @@
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { useEffect, useMemo, useRef } from "react";
 import { transformData, validatePropertyKeys } from "../lib/utils";
+import type { DataViewProperty } from "../types";
 import type { GroupedDataItem } from "./use-group-config";
 import { useGroupConfig } from "./use-group-config";
 import type { GroupInfiniteInfo } from "./use-group-infinite-pagination";

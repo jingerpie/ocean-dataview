@@ -1,7 +1,5 @@
 "use client";
 
-import { cn } from "@ocean-dataview/dataview/lib/utils";
-import type { PropertyMeta } from "@ocean-dataview/dataview/types";
 import type {
   WhereExpression,
   WhereNode,
@@ -19,6 +17,8 @@ import {
   updateCondition,
   wrapInGroup,
 } from "@ocean-dataview/shared/utils";
+import { cn } from "../../../../../lib/utils";
+import type { PropertyMeta } from "../../../../../types";
 import { AddFilterButton } from "./add-filter-button";
 import { FilterActions } from "./filter-actions";
 import { FilterRule } from "./filter-rule";

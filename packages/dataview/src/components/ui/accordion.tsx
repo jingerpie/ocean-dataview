@@ -1,9 +1,8 @@
 "use client";
 
 import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
-
-import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { ChevronRightIcon } from "lucide-react";
+import { cn } from "../../lib/utils";
 
 function Accordion({ className, ...props }: AccordionPrimitive.Root.Props) {
   return (

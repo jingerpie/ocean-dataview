@@ -1,12 +1,9 @@
 "use client";
 
-import { cn } from "@ocean-dataview/dataview/lib/utils";
-import {
-  type DataViewProperty,
-  toPropertyMetaArray,
-} from "@ocean-dataview/dataview/types";
 import type { ReactNode } from "react";
 import { useCallback, useMemo, useState } from "react";
+import { type DataViewProperty, toPropertyMetaArray } from "../../types";
+import { cn } from "../utils";
 import {
   DataViewContext,
   type DataViewContextValue,

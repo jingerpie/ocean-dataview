@@ -1,15 +1,11 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
-import { Separator } from "@ocean-dataview/dataview/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@ocean-dataview/dataview/components/ui/tooltip";
 import type { Table } from "@tanstack/react-table";
 import { X } from "lucide-react";
 import { useCallback } from "react";
+import { Button } from "../button";
+import { Separator } from "../separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
 
 interface DataActionBarSelectionProps<TData> {
   /**

@@ -1,15 +1,6 @@
 "use client";
 
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@ocean-dataview/dataview/components/ui/table";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
-import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
@@ -19,6 +10,15 @@ import {
 } from "@tanstack/react-table";
 import type * as React from "react";
 import { useRef } from "react";
+import { cn } from "../../../lib/utils";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../ui/table";
 import { DataTableStickyHeader } from "./data-table-sticky-header";
 
 interface HeaderConfig {

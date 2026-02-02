@@ -1,6 +1,9 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
+import { Settings2 } from "lucide-react";
+import { useDataViewContext } from "../../../lib/providers/data-view-context";
+import type { PropertyMeta } from "../../../types";
+import { Button } from "../button";
 import {
   Combobox,
   ComboboxContent,
@@ -9,10 +12,7 @@ import {
   ComboboxItem,
   ComboboxList,
   ComboboxTrigger,
-} from "@ocean-dataview/dataview/components/ui/combobox";
-import type { PropertyMeta } from "@ocean-dataview/dataview/types";
-import { Settings2 } from "lucide-react";
-import { useDataViewContext } from "../../../lib/providers/data-view-context";
+} from "../combobox";
 
 export interface DataViewOptionsProps {
   /**

@@ -1,6 +1,6 @@
 "use client";
 
-import type { PaginationContext } from "@ocean-dataview/dataview/types";
+import type { PaginationContext } from "../../../types";
 import { InfiniteScrollPagination } from "./infinite-scroll-pagination";
 import { LoadMorePagination } from "./load-more-pagination";
 import { PagePagination } from "./page-pagination";

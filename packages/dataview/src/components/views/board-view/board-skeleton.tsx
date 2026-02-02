@@ -1,9 +1,9 @@
 "use client";
 
-import { Card, CardContent } from "@ocean-dataview/dataview/components/ui/card";
-import { Skeleton } from "@ocean-dataview/dataview/components/ui/skeleton";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
+import { cn } from "../../../lib/utils";
 import { getBoardCardDimensions } from "../../../lib/utils/get-card-sizes";
+import { Card, CardContent } from "../../ui/card";
+import { Skeleton } from "../../ui/skeleton";
 
 interface BoardSkeletonProps extends React.ComponentProps<"div"> {
   /**

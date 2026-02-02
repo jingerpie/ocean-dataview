@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
-import type { PaginationContext } from "@ocean-dataview/dataview/types";
 import { ArrowDown, Loader2 } from "lucide-react";
+import type { PaginationContext } from "../../../types";
+import { Button } from "../button";
 
 type LoadMorePaginationProps = Partial<PaginationContext>;
 

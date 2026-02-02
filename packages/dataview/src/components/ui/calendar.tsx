@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "@ocean-dataview/dataview/lib/utils";
 import {
   ChevronDownIcon,
   ChevronLeftIcon,
@@ -12,6 +11,7 @@ import {
   DayPicker,
   getDefaultClassNames,
 } from "react-day-picker";
+import { cn } from "../../lib/utils";
 import { Button, buttonVariants } from "./button";
 
 function Calendar({

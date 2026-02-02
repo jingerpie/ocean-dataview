@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { ReactNode } from "react";
+import { cn } from "../../../lib/utils";
 import { BoardColumn } from "./board-column";
 
 export interface BoardColumnCardProps<TData> {

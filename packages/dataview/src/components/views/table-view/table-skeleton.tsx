@@ -1,6 +1,7 @@
 "use client";
 
-import { Skeleton } from "@ocean-dataview/dataview/components/ui/skeleton";
+import { cn } from "../../../lib/utils";
+import { Skeleton } from "../../ui/skeleton";
 import {
   Table,
   TableBody,
@@ -8,8 +9,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@ocean-dataview/dataview/components/ui/table";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
+} from "../../ui/table";
 
 interface TableSkeletonProps extends React.ComponentProps<"div"> {
   /**

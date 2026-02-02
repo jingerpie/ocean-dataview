@@ -1,8 +1,8 @@
 "use client";
 
-import { getPropertyIcon } from "@ocean-dataview/dataview/lib/property-icons";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
-import type { PropertyType } from "@ocean-dataview/dataview/types";
+import { getPropertyIcon } from "../../lib/property-icons";
+import { cn } from "../../lib/utils";
+import type { PropertyType } from "../../types";
 
 interface PropertyIconProps {
   /** The property type to display icon for */

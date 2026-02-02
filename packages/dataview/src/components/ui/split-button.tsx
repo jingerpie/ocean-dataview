@@ -1,15 +1,15 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
+import { MoreVertical } from "lucide-react";
+import { type ReactNode, useState } from "react";
+import { cn } from "../../lib/utils";
+import { Button } from "./button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@ocean-dataview/dataview/components/ui/dropdown-menu";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
-import { MoreVertical } from "lucide-react";
-import { type ReactNode, useState } from "react";
+} from "./dropdown-menu";
 
 export interface DropdownAction {
   label: string;

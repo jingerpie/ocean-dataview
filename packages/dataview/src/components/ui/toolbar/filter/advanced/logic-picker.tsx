@@ -1,12 +1,7 @@
 "use client";
 
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemTitle,
-} from "@ocean-dataview/dataview/components/ui/item";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
+import { cn } from "../../../../../lib/utils";
+import { Item, ItemContent, ItemDescription, ItemTitle } from "../../../item";
 import {
   Select,
   SelectContent,

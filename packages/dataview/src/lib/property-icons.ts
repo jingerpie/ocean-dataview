@@ -1,4 +1,3 @@
-import type { PropertyType } from "@ocean-dataview/dataview/types";
 import {
   ALargeSmallIcon,
   AtSignIcon,
@@ -14,6 +13,7 @@ import {
   type LucideIcon,
   PhoneIcon,
 } from "lucide-react";
+import type { PropertyType } from "../types";
 
 /**
  * Mapping of property types to their corresponding Lucide icons.

@@ -1,6 +1,16 @@
 "use client";
 
-import { Button } from "@ocean-dataview/dataview/components/ui/button";
+import { isWhereExpression, isWhereRule } from "@ocean-dataview/shared/types";
+import { createRuleFromProperty } from "@ocean-dataview/shared/utils";
+import { ListFilterIcon, PlusIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  useAdvanceFilterBuilder,
+  useFilterParams,
+  useSimpleFilterChip,
+} from "../../../../hooks";
+import type { PropertyMeta } from "../../../../types";
+import { Button } from "../../button";
 import {
   Combobox,
   ComboboxContent,
@@ -11,18 +21,8 @@ import {
   ComboboxSeparator,
   ComboboxTrigger,
   ComboboxValue,
-} from "@ocean-dataview/dataview/components/ui/combobox";
-import { PropertyIcon } from "@ocean-dataview/dataview/components/ui/property-icon";
-import {
-  useAdvanceFilterBuilder,
-  useFilterParams,
-  useSimpleFilterChip,
-} from "@ocean-dataview/dataview/hooks";
-import type { PropertyMeta } from "@ocean-dataview/dataview/types";
-import { isWhereExpression, isWhereRule } from "@ocean-dataview/shared/types";
-import { createRuleFromProperty } from "@ocean-dataview/shared/utils";
-import { ListFilterIcon, PlusIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+} from "../../combobox";
+import { PropertyIcon } from "../../property-icon";
 
 interface FilterPropertyPickerProps {
   /** Available properties to filter by */

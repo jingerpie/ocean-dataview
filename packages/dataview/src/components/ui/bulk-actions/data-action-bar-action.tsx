@@ -1,16 +1,9 @@
 "use client";
 
-import {
-  Button,
-  type ButtonProps,
-} from "@ocean-dataview/dataview/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@ocean-dataview/dataview/components/ui/tooltip";
-import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { Loader } from "lucide-react";
+import { cn } from "../../../lib/utils";
+import { Button, type ButtonProps } from "../button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
 
 type DataActionBarActionProps = ButtonProps & {
   /**

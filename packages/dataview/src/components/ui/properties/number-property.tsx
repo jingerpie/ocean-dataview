@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@ocean-dataview/dataview/lib/utils";
 import { useMemo } from "react";
+import { cn } from "../../../lib/utils";
 import { getUserLocale } from "../../../lib/utils/locale-helpers";
 import type { NumberConfig } from "../../../types/property.type";
 
