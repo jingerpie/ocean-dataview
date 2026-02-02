@@ -5,7 +5,7 @@ import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
 import type { SelectConfig } from "../../../types/property.type";
 
 interface SelectPropertyProps {
-  value: unknown;
+  value: string | null;
   config?: SelectConfig;
 }
 

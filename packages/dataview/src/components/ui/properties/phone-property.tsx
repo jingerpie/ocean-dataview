@@ -1,7 +1,7 @@
 "use client";
 
 interface PhonePropertyProps {
-  value: unknown;
+  value: string | null;
 }
 
 export function PhoneProperty({ value }: PhonePropertyProps) {

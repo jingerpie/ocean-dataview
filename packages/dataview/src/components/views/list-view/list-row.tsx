@@ -3,7 +3,7 @@
 import { Separator } from "@ocean-dataview/dataview/components/ui/separator";
 import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
-import { PropertyDisplay } from "../../ui/properties";
+import { DataCell } from "../data-cell";
 
 export interface ListRowProps<TData> {
   /**
@@ -77,11 +77,7 @@ export function ListRow<TData>({
                     )}
                     key={String(property.id)}
                   >
-                    <PropertyDisplay
-                      item={item}
-                      property={property}
-                      value={value}
-                    />
+                    <DataCell item={item} property={property} value={value} />
                   </div>
                 );
               })}

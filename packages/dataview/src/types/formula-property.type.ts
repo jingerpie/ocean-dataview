@@ -19,61 +19,61 @@ export interface BasePropertyComponentProps {
  * Individual property component prop interfaces
  */
 export interface TextPropertyComponentProps extends BasePropertyComponentProps {
-  value: unknown;
+  value: string | null;
 }
 
 export interface NumberPropertyComponentProps
   extends BasePropertyComponentProps {
-  value: unknown;
+  value: number | null;
   config?: NumberConfig;
 }
 
 export interface SelectPropertyComponentProps
   extends BasePropertyComponentProps {
-  value: unknown;
+  value: string | null;
   config?: SelectConfig;
 }
 
 export interface MultiSelectPropertyComponentProps
   extends BasePropertyComponentProps {
-  value: unknown;
+  value: string[];
   config?: MultiSelectConfig;
 }
 
 export interface StatusPropertyComponentProps
   extends BasePropertyComponentProps {
-  value: unknown;
+  value: string | null;
   config?: StatusConfig;
 }
 
 export interface DatePropertyComponentProps extends BasePropertyComponentProps {
-  value: unknown;
+  value: Date | null;
   config?: DateConfig;
 }
 
 export interface CheckboxPropertyComponentProps
   extends BasePropertyComponentProps {
-  value: unknown;
+  value: boolean | null;
 }
 
 export interface UrlPropertyComponentProps extends BasePropertyComponentProps {
-  value: unknown;
+  value: string | null;
   config?: UrlConfig;
 }
 
 export interface EmailPropertyComponentProps
   extends BasePropertyComponentProps {
-  value: unknown;
+  value: string | null;
 }
 
 export interface PhonePropertyComponentProps
   extends BasePropertyComponentProps {
-  value: unknown;
+  value: string | null;
 }
 
 export interface FilesMediaPropertyComponentProps
   extends BasePropertyComponentProps {
-  value: unknown;
+  value: string[];
 }
 
 /**

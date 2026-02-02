@@ -3,7 +3,7 @@
 import { Checkbox } from "@ocean-dataview/dataview/components/ui/checkbox";
 
 interface CheckboxPropertyProps {
-  value: unknown;
+  value: boolean | null;
 }
 
 export function CheckboxProperty({ value }: CheckboxPropertyProps) {

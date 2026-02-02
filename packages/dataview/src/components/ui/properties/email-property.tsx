@@ -1,7 +1,7 @@
 "use client";
 
 interface EmailPropertyProps {
-  value: unknown;
+  value: string | null;
 }
 
 export function EmailProperty({ value }: EmailPropertyProps) {

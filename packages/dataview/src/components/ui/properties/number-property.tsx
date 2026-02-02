@@ -6,7 +6,7 @@ import { getUserLocale } from "../../../lib/utils/locale-helpers";
 import type { NumberConfig } from "../../../types/property.type";
 
 interface NumberPropertyProps {
-  value: unknown;
+  value: number | null;
   config?: NumberConfig;
 }
 

@@ -12,7 +12,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../../ui/accordion";
-import { PropertyDisplay } from "../../ui/properties";
+import { DataCell } from "../data-cell";
 import { BoardStickyHeader } from "./board-sticky-header";
 
 /** Regex to extract width number from Tailwind class (e.g., "w-80" -> "80") */
@@ -306,7 +306,7 @@ export function BoardRowLayout<
                 <AccordionTrigger className="flex-initial py-2 hover:no-underline">
                   <div className="flex items-center gap-2">
                     {subGroupByPropertyDef ? (
-                      <PropertyDisplay
+                      <DataCell
                         item={
                           { [subGroupByPropertyDef.id]: subGroup.key } as TData
                         }

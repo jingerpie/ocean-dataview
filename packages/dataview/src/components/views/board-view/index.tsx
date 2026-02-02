@@ -22,7 +22,7 @@ import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import { getBoardCardDimensions } from "../../../lib/utils/get-card-sizes";
 import { EmptyState } from "../../ui/empty-state";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
-import { PropertyDisplay } from "../../ui/properties";
+import { DataCell } from "../data-cell";
 import { BoardColumnCard } from "./board-column-card";
 import { BoardRowLayout } from "./board-row-layout";
 
@@ -434,7 +434,7 @@ export function BoardView<
                     {property.label ?? String(property.id)}
                   </span>
                 )}
-                <PropertyDisplay
+                <DataCell
                   item={item}
                   property={property}
                   value={value}
@@ -498,7 +498,7 @@ export function BoardView<
     return (
       <div className="flex items-center gap-2">
         {groupByProperty ? (
-          <PropertyDisplay
+          <DataCell
             item={{} as TData}
             property={groupByProperty}
             value={groupName}

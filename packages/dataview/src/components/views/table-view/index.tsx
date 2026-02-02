@@ -29,8 +29,8 @@ import {
 } from "../../ui/bulk-actions";
 import { GroupSection } from "../../ui/group-section";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
-import { PropertyDisplay } from "../../ui/properties";
 import { SplitButton } from "../../ui/split-button";
+import { DataCell } from "../data-cell";
 import { DataTable } from "./data-table";
 
 export interface TableViewProps<
@@ -200,7 +200,7 @@ export function TableView<
         accessorKey: String(property.id),
         header: property.label ?? String(property.id),
         cell: ({ getValue, row }) => (
-          <PropertyDisplay
+          <DataCell
             allProperties={properties}
             item={row.original}
             property={property}
@@ -491,7 +491,6 @@ export type { DataViewContextValue as TableContextValue } from "../../../lib/pro
 export { useDataViewContext as useTableContext } from "../../../lib/providers/data-view-context";
 export type { DataViewProviderProps as TableProviderProps } from "../../../lib/providers/data-view-provider";
 export { DataViewProvider as TableProvider } from "../../../lib/providers/data-view-provider";
-export { Property } from "../../ui/properties";
 export {
   DataViewOptions,
   type DataViewOptionsProps,

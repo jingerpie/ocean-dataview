@@ -13,7 +13,7 @@ const ANY_EXTENSION_REGEX = /\.\w+(\?|#|$)/;
 const THUMBNAIL_SIZE = 26; // Standard thumbnail size for compact display
 
 interface FilesMediaPropertyProps {
-  value: unknown;
+  value: string[];
 }
 
 export function FilesMediaProperty({ value }: FilesMediaPropertyProps) {

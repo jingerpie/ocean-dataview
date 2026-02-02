@@ -1,3 +1,4 @@
+import { NumberProperty } from "@ocean-dataview/dataview/components/ui/properties/number-property";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import type { AppRouter } from "@ocean-dataview/trpc/routers/index";
 import type { inferRouterOutputs } from "@trpc/server";
@@ -27,6 +28,20 @@ export const productProperties = [
     id: "rating",
     label: "Rating",
     type: "number",
+  },
+  {
+    id: "_totalWorth",
+    label: "Total Worth",
+    type: "formula",
+    value: (property) => (
+      <NumberProperty
+        config={{
+          numberFormat: "dollar",
+          decimalPlaces: 2,
+        }}
+        value={(property.raw("price") ?? 0) * (property.raw("stockLevel") ?? 0)}
+      />
+    ),
   },
   {
     id: "category",

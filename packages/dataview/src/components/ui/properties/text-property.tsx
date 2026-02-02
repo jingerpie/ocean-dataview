@@ -1,7 +1,7 @@
 "use client";
 
 interface TextPropertyProps {
-  value: unknown;
+  value: string | null;
   /**
    * Whether to wrap text instead of truncating
    * @default false

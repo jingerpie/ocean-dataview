@@ -5,7 +5,7 @@ import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
 import type { MultiSelectConfig } from "../../../types/property.type";
 
 interface MultiSelectPropertyProps {
-  value: unknown;
+  value: string[];
   config?: MultiSelectConfig;
 }
 

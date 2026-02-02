@@ -3,8 +3,8 @@
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { Loader2 } from "lucide-react";
 import type * as React from "react";
+import { DataCell } from "../views/data-cell";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "./accordion";
-import { PropertyDisplay } from "./properties";
 
 interface GroupSectionProps<TData> {
   /**
@@ -48,7 +48,7 @@ interface GroupSectionProps<TData> {
 /**
  * GroupSection - Reusable group component for all view types
  * Renders a collapsible group header with the group content
- * Uses PropertyDisplay for consistent styling across all property types
+ * Uses DataCell for consistent styling across all property types
  */
 export function GroupSection<TData>({
   group,
@@ -63,7 +63,7 @@ export function GroupSection<TData>({
       <AccordionTrigger className="py-3 hover:no-underline">
         <div className="flex items-center gap-2">
           {groupByPropertyDef ? (
-            <PropertyDisplay
+            <DataCell
               item={
                 group.items[0] ??
                 ({ [groupByPropertyDef.id]: group.key } as TData)

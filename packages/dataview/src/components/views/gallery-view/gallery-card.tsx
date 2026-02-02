@@ -5,7 +5,7 @@ import { cn } from "@ocean-dataview/dataview/lib/utils";
 import type { DataViewProperty } from "@ocean-dataview/dataview/types";
 import { ImageIcon } from "lucide-react";
 import Image from "next/image";
-import { PropertyDisplay } from "../../ui/properties";
+import { DataCell } from "../data-cell";
 
 export interface GalleryCardProps<TData> {
   /**
@@ -150,7 +150,7 @@ export function GalleryCard<TData>({
                         {property.label ?? String(property.id)}
                       </span>
                     )}
-                    <PropertyDisplay
+                    <DataCell
                       item={item}
                       property={property}
                       value={value}

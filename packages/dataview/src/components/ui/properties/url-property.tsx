@@ -3,7 +3,7 @@
 import type { UrlConfig } from "../../../types/property.type";
 
 interface UrlPropertyProps {
-  value: unknown;
+  value: string | null;
   config?: UrlConfig;
 }
 

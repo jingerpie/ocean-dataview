@@ -303,14 +303,15 @@ export type PropertyRenderer = PropertyFunction<any>;
  *   ),
  * }
  *
- * // Using Property components for manual composition
+ * // Using property components directly for manual composition
+ * // import { TextProperty, NumberProperty } from "@ocean-dataview/dataview/components/ui/properties";
  * {
  *   id: "summary",
  *   type: "formula",
  *   value: (property) => (
  *     <div className="flex gap-2">
- *       <Property.Text value={property.raw("title")} />
- *       <Property.Number value={property.raw("price")} config={{ numberFormat: "dollar" }} />
+ *       <TextProperty value={property.raw("title")} />
+ *       <NumberProperty value={property.raw("price")} config={{ numberFormat: "dollar" }} />
  *     </div>
  *   ),
  * }

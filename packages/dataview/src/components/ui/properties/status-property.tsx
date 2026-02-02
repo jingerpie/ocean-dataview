@@ -5,7 +5,7 @@ import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
 import type { StatusConfig } from "../../../types/property.type";
 
 interface StatusPropertyProps {
-  value: unknown;
+  value: string | null;
   config?: StatusConfig;
 }
 

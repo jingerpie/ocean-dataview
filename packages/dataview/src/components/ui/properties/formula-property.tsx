@@ -1,80 +1,49 @@
 "use client";
 
-import type { PropertyComponentProps } from "../../../types/formula-property.type";
-import { CheckboxProperty } from "./checkbox-property";
-import { DateProperty } from "./date-property";
-import { EmailProperty } from "./email-property";
-import { FilesMediaProperty } from "./files-media-property";
-import { MultiSelectProperty } from "./multi-select-property";
-import { NumberProperty } from "./number-property";
-import { PhoneProperty } from "./phone-property";
-import { SelectProperty } from "./select-property";
-import { StatusProperty } from "./status-property";
-import { TextProperty } from "./text-property";
-import { UrlProperty } from "./url-property";
+import type {
+  DataViewProperty,
+  PropertyFunction,
+} from "../../../types/property.type";
+import { DataCell } from "../../views/data-cell";
 
 /**
- * Property component namespace for manual composition in formula properties.
- * Use these when you need direct control over rendering with custom configs.
+ * Creates a renderer function for formula properties.
+ * - `property(id)` renders a property with its config
+ * - `property.raw(id)` returns the raw data value
  *
- * For automatic config application, use the `property(id)` renderer instead.
- *
- * @example
- * import { Property } from "@ocean-dataview/dataview/data-views";
- *
- * {
- *   id: "summary",
- *   type: "formula",
- *   value: (property) => (
- *     <div className="flex gap-2">
- *       <Property.Text value={property.raw("title")} />
- *       <Property.Number value={property.raw("price")} config={{ numberFormat: "dollar" }} />
- *     </div>
- *   )
- * }
+ * Supports nested formulas with cycle detection.
+ * Circular references return null to prevent infinite recursion.
  */
-export const Property = {
-  Text: ({ value }: PropertyComponentProps<"text">) => (
-    <TextProperty value={value} />
-  ),
+export function createFormulaRenderer<T>(
+  data: T,
+  properties: readonly DataViewProperty<T>[],
+  renderedProperties: Set<string> = new Set()
+): PropertyFunction<T> {
+  const render = (id: string) => {
+    const prop = properties.find((p) => p.id === id);
+    if (!prop) {
+      return null;
+    }
 
-  Number: ({ value, config }: PropertyComponentProps<"number">) => (
-    <NumberProperty config={config} value={value} />
-  ),
+    // Cycle detection for formulas
+    if (prop.type === "formula" && renderedProperties.has(id)) {
+      return null; // Circular reference detected
+    }
 
-  Select: ({ value, config }: PropertyComponentProps<"select">) => (
-    <SelectProperty config={config} value={value} />
-  ),
+    const value = (data as Record<string, unknown>)[id];
 
-  MultiSelect: ({ value, config }: PropertyComponentProps<"multiSelect">) => (
-    <MultiSelectProperty config={config} value={value} />
-  ),
+    return (
+      <DataCell
+        allProperties={properties}
+        item={data}
+        property={prop}
+        renderedProperties={new Set(renderedProperties).add(id)}
+        value={value}
+      />
+    );
+  };
 
-  Status: ({ value, config }: PropertyComponentProps<"status">) => (
-    <StatusProperty config={config} value={value} />
-  ),
+  render.raw = <K extends keyof T>(id: K): T[K] => data[id];
 
-  Date: ({ value, config }: PropertyComponentProps<"date">) => (
-    <DateProperty config={config} value={value} />
-  ),
-
-  Checkbox: ({ value }: PropertyComponentProps<"checkbox">) => (
-    <CheckboxProperty value={value} />
-  ),
-
-  Url: ({ value, config }: PropertyComponentProps<"url">) => (
-    <UrlProperty config={config} value={value} />
-  ),
-
-  Email: ({ value }: PropertyComponentProps<"email">) => (
-    <EmailProperty value={value} />
-  ),
-
-  Phone: ({ value }: PropertyComponentProps<"phone">) => (
-    <PhoneProperty value={value} />
-  ),
-
-  FilesMedia: ({ value }: PropertyComponentProps<"filesMedia">) => (
-    <FilesMediaProperty value={value} />
-  ),
-};
+  return render;
+}
