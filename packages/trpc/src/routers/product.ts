@@ -26,14 +26,15 @@ export const productRouter = router({
       const isBackward = !!before;
       const cursorId = before || after;
 
-      // Prepare sort with tiebreaker (uses last field's direction)
+      // Prepare sort with tiebreaker (matches primary sort direction for consistent cursor pagination)
+      const primaryDirection = sort?.[0]?.direction ?? "desc";
       const sortWithTiebreaker: typeof sort =
         sort && sort.length > 0
           ? [
               ...sort,
               {
                 property: "id",
-                direction: "desc",
+                direction: primaryDirection,
               },
             ]
           : [

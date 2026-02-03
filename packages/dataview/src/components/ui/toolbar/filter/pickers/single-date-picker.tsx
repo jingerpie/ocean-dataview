@@ -197,26 +197,32 @@ function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [draft, setDraft] = useState<string | null>(null);
   const [isValid, setIsValid] = useState(true);
+  // Track preset selection in state (not derived from value)
+  // Initialize from value, but user selection takes precedence
+  const [selectedPreset, setSelectedPreset] = useState<DatePreset>(() =>
+    getPresetFromDate(parseValue(value))
+  );
 
   const dateValue = parseValue(value);
   const displayValue =
     draft ?? (dateValue ? formatDateForDisplay(dateValue) : "");
 
-  // Derive current preset from value (or "custom" if no match)
-  const currentPreset = getPresetFromDate(dateValue);
-  const isCustomMode = currentPreset === "custom";
+  const isCustomMode = selectedPreset === "custom";
 
   const handlePresetChange = (preset: string | null) => {
     if (!preset) {
       return;
     }
 
-    if (preset === "custom") {
+    const presetValue = preset as DatePreset;
+    setSelectedPreset(presetValue);
+
+    if (presetValue === "custom") {
       // Open calendar for custom date selection
       setCalendarOpen(true);
     } else {
       setCalendarOpen(false);
-      const date = getDateFromPreset(preset as DatePreset);
+      const date = getDateFromPreset(presetValue);
       if (date) {
         onChange(toDateOnlyString(date));
       }
@@ -269,7 +275,7 @@ function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
       <Select
         items={DATE_PRESET_ITEMS}
         onValueChange={handlePresetChange}
-        value={currentPreset}
+        value={selectedPreset}
       >
         <SelectTrigger size="sm">
           <SelectValue />

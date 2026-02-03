@@ -1,10 +1,14 @@
 import type { SortQuery } from "@sparkyidea/shared/types";
-import { asc, desc, type SQL, sql, type Table } from "drizzle-orm";
+import { type SQL, sql, type Table } from "drizzle-orm";
 import { getColumn } from "./filter-columns";
 
 /**
  * Converts sort array to Drizzle orderBy.
  * Silently skips invalid columns (consistent with buildWhere).
+ *
+ * NULL handling (matches Notion behavior):
+ * - ASC: NULLS FIRST (empty values first, then sorted ascending)
+ * - DESC: NULLS LAST (sorted descending, then empty values at end)
  *
  * @param table - Drizzle table schema
  * @param sort - Array of sort entries
@@ -25,7 +29,11 @@ export function buildSort<T extends Table>(
       }
       const isDesc = s.direction === "desc";
       const effectiveDesc = reverse ? !isDesc : isDesc;
-      return effectiveDesc ? desc(column) : asc(column);
+      // ASC: NULLS FIRST (empty first), DESC: NULLS LAST (empty last)
+      // Use raw SQL for NULLS handling since drizzle doesn't support it natively on SQL type
+      return effectiveDesc
+        ? sql`${column} DESC NULLS LAST`
+        : sql`${column} ASC NULLS FIRST`;
     })
     .filter((col): col is SQL => col !== null);
 }

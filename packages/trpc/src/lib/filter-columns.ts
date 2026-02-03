@@ -203,12 +203,36 @@ function buildCondition<T extends Table>(
 
     // ============================================
     // Array conditions
+    // For scalar columns: SQL IN / NOT IN
+    // For array columns: PostgreSQL && (overlap) operator
     // ============================================
     case "inArray":
-      return Array.isArray(value) ? inArray(column, value) : undefined;
+      if (!Array.isArray(value) || value.length === 0) {
+        return undefined;
+      }
+      // PostgreSQL array columns need overlap operator (&&)
+      if (isArrayColumn(table, property as keyof T)) {
+        const arrayLiteral = sql.join(
+          value.map((v) => sql`${v}`),
+          sql`, `
+        );
+        return sql`${column} && ARRAY[${arrayLiteral}]`;
+      }
+      return inArray(column, value);
 
     case "notInArray":
-      return Array.isArray(value) ? notInArray(column, value) : undefined;
+      if (!Array.isArray(value) || value.length === 0) {
+        return undefined;
+      }
+      // PostgreSQL array columns need NOT overlap
+      if (isArrayColumn(table, property as keyof T)) {
+        const arrayLiteral = sql.join(
+          value.map((v) => sql`${v}`),
+          sql`, `
+        );
+        return sql`NOT (${column} && ARRAY[${arrayLiteral}])`;
+      }
+      return notInArray(column, value);
 
     // ============================================
     // Range condition (with date-only midnight boundary support)
@@ -268,12 +292,20 @@ function buildCondition<T extends Table>(
       if (isTextColumn(table, property as keyof T)) {
         return or(isNull(column), eq(column, ""));
       }
+      // For array columns, empty array '{}' is also considered empty
+      if (isArrayColumn(table, property as keyof T)) {
+        return or(isNull(column), sql`${column} = '{}'`);
+      }
       return isNull(column);
 
     case "isNotEmpty":
       // For text columns, empty string '' is also considered empty
       if (isTextColumn(table, property as keyof T)) {
         return and(isNotNull(column), ne(column, ""));
+      }
+      // For array columns, empty array '{}' is also considered empty
+      if (isArrayColumn(table, property as keyof T)) {
+        return and(isNotNull(column), sql`${column} != '{}'`);
       }
       return isNotNull(column);
 
@@ -314,4 +346,18 @@ function isTextColumn<T extends Table>(table: T, columnKey: keyof T): boolean {
     columnType === "PgVarchar" ||
     columnType === "PgChar"
   );
+}
+
+/**
+ * Check if a column is a PostgreSQL array type.
+ * Used for inArray/notInArray to use array overlap operators instead of SQL IN.
+ */
+function isArrayColumn<T extends Table>(table: T, columnKey: keyof T): boolean {
+  const column = table[columnKey] as AnyColumn;
+  if (!column) {
+    return false;
+  }
+
+  const columnType = (column as { columnType?: string }).columnType;
+  return columnType === "PgArray";
 }

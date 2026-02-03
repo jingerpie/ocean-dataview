@@ -55,11 +55,16 @@ function SortPropertyPicker({
   const { sort: sorts, setSort } = useSortParams();
 
   // Filter out formula properties (can't sort computed values) and properties with enableSort: false
-  const sortableProperties = useMemo(
-    () =>
-      properties.filter((p) => p.type !== "formula" && p.enableSort !== false),
-    [properties]
-  );
+  // Then sort alphabetically by label (like Notion)
+  const sortableProperties = useMemo(() => {
+    const filtered = properties.filter(
+      (p) => p.type !== "formula" && p.enableSort !== false
+    );
+    // Sort alphabetically by label (like Notion)
+    return [...filtered].sort((a, b) =>
+      (a.label ?? String(a.id)).localeCompare(b.label ?? String(b.id))
+    );
+  }, [properties]);
 
   // Handle property selection - adds new sort
   const handleSelect = (property: PropertyMeta) => {

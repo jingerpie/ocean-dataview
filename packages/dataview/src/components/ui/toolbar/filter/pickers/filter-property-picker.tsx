@@ -105,17 +105,22 @@ function FilterPropertyPicker({
   // 1. Formula properties (can't filter computed values at database level)
   // 2. Properties with enableFilter: false
   // 3. Already-used properties (only when not in advance mode)
+  // Then sort alphabetically by label (like Notion)
   const availableProperties = useMemo(() => {
     // First, filter out formula properties and properties with enableFilter: false
     const filterableProperties = properties.filter(
       (p) => p.type !== "formula" && p.enableFilter !== false
     );
 
-    if (advance) {
-      return filterableProperties;
-    }
-    return filterableProperties.filter(
-      (p) => !usedPropertyIds.includes(String(p.id))
+    const filtered = advance
+      ? filterableProperties
+      : filterableProperties.filter(
+          (p) => !usedPropertyIds.includes(String(p.id))
+        );
+
+    // Sort alphabetically by label (like Notion)
+    return [...filtered].sort((a, b) =>
+      (a.label ?? String(a.id)).localeCompare(b.label ?? String(b.id))
     );
   }, [advance, properties, usedPropertyIds]);
 
