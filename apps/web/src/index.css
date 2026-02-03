@@ -1,8 +1,8 @@
 /* Import UI base styles and theme */
-@import "@ocean-dataview/ui/globals.css";
+@import "@sparkyidea/ui/globals.css";
 
 /* Import dataview styles (adds @source for dataview components) */
-@import "@ocean-dataview/dataview/globals.css";
+@import "@sparkyidea/dataview/globals.css";
 
 /* Import shadcn tailwind utilities (accordion animations, custom variants) */
 @import "shadcn/tailwind.css";

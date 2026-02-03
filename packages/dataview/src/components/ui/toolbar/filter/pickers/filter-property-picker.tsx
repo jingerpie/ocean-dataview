@@ -1,16 +1,16 @@
 "use client";
 
-import { isWhereExpression, isWhereRule } from "@ocean-dataview/shared/types";
-import { createRuleFromProperty } from "@ocean-dataview/shared/utils";
+import { isWhereExpression, isWhereRule } from "@sparkyidea/shared/types";
+import { createRuleFromProperty } from "@sparkyidea/shared/utils";
 import { ListFilterIcon, PlusIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   useAdvanceFilterBuilder,
   useFilterParams,
   useSimpleFilterChip,
-} from "../../../../hooks";
-import type { PropertyMeta } from "../../../../types";
-import { Button } from "../../button";
+} from "../../../../../hooks";
+import type { PropertyMeta } from "../../../../../types";
+import { Button } from "../../../button";
 import {
   Combobox,
   ComboboxContent,
@@ -21,8 +21,8 @@ import {
   ComboboxSeparator,
   ComboboxTrigger,
   ComboboxValue,
-} from "../../combobox";
-import { PropertyIcon } from "../../property-icon";
+} from "../../../combobox";
+import { PropertyIcon } from "../../../property-icon";
 
 interface FilterPropertyPickerProps {
   /** Available properties to filter by */

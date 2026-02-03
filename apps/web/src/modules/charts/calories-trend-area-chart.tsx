@@ -1,7 +1,7 @@
 "use client";
 
-import { AreaChartView } from "@ocean-dataview/dataview/components/views/area-chart-view";
-import { ChartViewProvider } from "@ocean-dataview/dataview/lib/providers";
+import { ChartViewProvider } from "@sparkyidea/dataview/providers";
+import { AreaChartView } from "@sparkyidea/dataview/views/area-chart-view";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 

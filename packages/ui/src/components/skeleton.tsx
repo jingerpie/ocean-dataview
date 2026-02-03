@@ -1,4 +1,4 @@
-import { cn } from "@ocean-dataview/ui/lib/utils";
+import { cn } from "@sparkyidea/ui/lib/utils";
 
 function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (

@@ -1,7 +1,7 @@
 "use client";
 
-import { parseAsCursor } from "@ocean-dataview/shared/lib";
-import type { CursorValue } from "@ocean-dataview/shared/types";
+import { parseAsCursor } from "@sparkyidea/shared/lib";
+import type { CursorValue } from "@sparkyidea/shared/types";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useCallback, useTransition } from "react";
 import type { BidirectionalPaginatedResponse } from "../types/pagination-types";

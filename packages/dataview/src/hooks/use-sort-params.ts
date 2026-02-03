@@ -1,7 +1,7 @@
 "use client";
 
-import { parseAsSort } from "@ocean-dataview/shared/lib";
-import type { SortQuery } from "@ocean-dataview/shared/types";
+import { parseAsSort } from "@sparkyidea/shared/lib";
+import type { SortQuery } from "@sparkyidea/shared/types";
 import { useDebouncer } from "@tanstack/react-pacer";
 import { useQueryState } from "nuqs";
 import { useEffect, useState } from "react";

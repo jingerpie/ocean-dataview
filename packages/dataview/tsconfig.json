@@ -1,9 +1,9 @@
 {
-  "extends": "@ocean-dataview/config/tsconfig.base.json",
+  "extends": "@sparkyidea/config/tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@ocean-dataview/dataview/*": ["./src/*"]
+      "@sparkyidea/dataview/*": ["./src/*"]
     },
     "declaration": true,
     "declarationMap": true,

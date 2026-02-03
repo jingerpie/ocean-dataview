@@ -1,7 +1,7 @@
 "use client";
 
 import { Slider as SliderPrimitive } from "@base-ui/react/slider";
-import { cn } from "@ocean-dataview/ui/lib/utils";
+import { cn } from "@sparkyidea/ui/lib/utils";
 import { useMemo } from "react";
 
 function Slider({

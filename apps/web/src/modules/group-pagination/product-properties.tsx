@@ -1,6 +1,6 @@
-import { NumberProperty } from "@ocean-dataview/dataview/components/ui/properties/number-property";
-import type { DataViewProperty } from "@ocean-dataview/dataview/types";
-import type { AppRouter } from "@ocean-dataview/trpc/routers/index";
+import { NumberProperty } from "@sparkyidea/dataview/properties";
+import type { DataViewProperty } from "@sparkyidea/dataview/types";
+import type { AppRouter } from "@sparkyidea/trpc/routers/index";
 import type { inferRouterOutputs } from "@trpc/server";
 
 type RouterOutput = inferRouterOutputs<AppRouter>;

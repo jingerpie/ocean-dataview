@@ -1,14 +1,14 @@
 "use client";
 
 import { CheckIcon } from "lucide-react";
-import { Button } from "../button";
+import { Button } from "../../../button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../select";
+} from "../../../select";
 
 interface CheckboxPickerProps {
   value: boolean | undefined;

@@ -1,4 +1,4 @@
-import type { SortQuery } from "@ocean-dataview/shared/types";
+import type { SortQuery } from "@sparkyidea/shared/types";
 import { asc, desc, type SQL, sql, type Table } from "drizzle-orm";
 import { getColumn } from "./filter-columns";
 

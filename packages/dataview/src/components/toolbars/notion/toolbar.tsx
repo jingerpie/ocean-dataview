@@ -6,14 +6,14 @@ import {
   useSearchParams,
   useSortParams,
 } from "../../../hooks";
+import { useToolbarState } from "../../../hooks/use-toolbar-state";
 import { useDataViewContext } from "../../../lib/providers";
 import { cn } from "../../../lib/utils";
 import type { PropertyMeta } from "../../../types";
-import { useToolbarState } from "../toolbar";
-import { FilterPropertyPicker } from "../toolbar/filter";
-import { DataViewOptions } from "../toolbar/property-visibility";
-import { SearchInput } from "../toolbar/search";
-import { SortPropertyPicker } from "../toolbar/sort";
+import { FilterPropertyPicker } from "../../ui/toolbar/filter/pickers/filter-property-picker";
+import { SearchInput } from "../../ui/toolbar/search/search-input";
+import { SortPropertyPicker } from "../../ui/toolbar/sort/sort-property-picker";
+import { Visibility } from "../../ui/toolbar/visibility";
 import { ChipsBar } from "./chips-bar";
 
 interface NotionToolbarProps extends ComponentProps<"div"> {
@@ -134,7 +134,7 @@ export function NotionToolbar({
           )}
 
           {/* Properties Visibility */}
-          {enableProperties && <DataViewOptions variant="icon" />}
+          {enableProperties && <Visibility variant="icon" />}
         </div>
       </div>
 

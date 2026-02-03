@@ -1,5 +1,5 @@
 {
-  "name": "@ocean-dataview/trpc",
+  "name": "@sparkyidea/trpc",
   "type": "module",
   "exports": {
     ".": {
@@ -11,9 +11,9 @@
   },
   "scripts": {},
   "dependencies": {
-    "@ocean-dataview/db": "workspace:*",
-    "@ocean-dataview/env": "workspace:*",
-    "@ocean-dataview/shared": "workspace:*",
+    "@sparkyidea/db": "workspace:*",
+    "@sparkyidea/env": "workspace:*",
+    "@sparkyidea/shared": "workspace:*",
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
     "date-fns": "catalog:",
@@ -25,7 +25,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@ocean-dataview/config": "workspace:*",
+    "@sparkyidea/config": "workspace:*",
     "typescript": "catalog:"
   }
 }

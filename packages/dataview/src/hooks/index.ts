@@ -16,6 +16,11 @@ export { useSimpleFilterChip } from "./use-simple-filter-chip";
 export { useSortBuilder } from "./use-sort-builder";
 export { useSortParams } from "./use-sort-params";
 export type {
+  UseToolbarStateOptions,
+  UseToolbarStateReturn,
+} from "./use-toolbar-state";
+export { useToolbarState } from "./use-toolbar-state";
+export type {
   UseViewSetupOptions,
   UseViewSetupResult,
   ViewGroupConfig,

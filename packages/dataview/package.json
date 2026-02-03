@@ -1,16 +1,14 @@
 {
-  "name": "@ocean-dataview/dataview",
+  "name": "@sparkyidea/dataview",
   "type": "module",
   "exports": {
     "./globals.css": "./src/styles/globals.css",
     "./postcss.config": "./postcss.config.mjs",
-    "./lib/utils": "./src/lib/utils/index.ts",
-    "./lib/providers": "./src/lib/providers/index.ts",
-    "./components/views/*": "./src/components/views/*/index.tsx",
-    "./components/ui/notion-toolbar": "./src/components/ui/notion-toolbar/index.ts",
-    "./components/ui/properties": "./src/components/ui/properties/index.ts",
-    "./components/ui/properties/*": "./src/components/ui/properties/*.tsx",
-    "./components/ui/*": "./src/components/ui/*.tsx",
+    "./utils": "./src/lib/utils/index.ts",
+    "./providers": "./src/lib/providers/index.ts",
+    "./views/*": "./src/components/views/*/index.tsx",
+    "./toolbars/*": "./src/components/toolbars/*/index.ts",
+    "./properties": "./src/components/ui/properties/index.ts",
     "./hooks": "./src/hooks/index.ts",
     "./types": "./src/types/index.ts"
   },
@@ -21,7 +19,7 @@
     "@dnd-kit/sortable": "catalog:",
     "@dnd-kit/utilities": "catalog:",
     "@hookform/resolvers": "catalog:",
-    "@ocean-dataview/shared": "workspace:*",
+    "@sparkyidea/shared": "workspace:*",
     "@tanstack/react-pacer": "catalog:",
     "@tanstack/react-query": "catalog:",
     "@tanstack/react-table": "catalog:",
@@ -51,7 +49,7 @@
     "zustand": "catalog:"
   },
   "devDependencies": {
-    "@ocean-dataview/config": "workspace:*",
+    "@sparkyidea/config": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@turbo/gen": "catalog:",
     "@types/node": "catalog:",

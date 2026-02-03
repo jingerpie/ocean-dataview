@@ -1,8 +1,8 @@
 "use client";
 
-import { Label } from "@ocean-dataview/ui/components/label";
-import { Separator } from "@ocean-dataview/ui/components/separator";
-import { cn } from "@ocean-dataview/ui/lib/utils";
+import { Label } from "@sparkyidea/ui/components/label";
+import { Separator } from "@sparkyidea/ui/components/separator";
+import { cn } from "@sparkyidea/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { useMemo } from "react";
 

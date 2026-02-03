@@ -271,8 +271,8 @@ export { useDataViewContext as useGalleryContext } from "../../../lib/providers/
 export type { DataViewProviderProps as GalleryProviderProps } from "../../../lib/providers/data-view-provider";
 export { DataViewProvider as GalleryProvider } from "../../../lib/providers/data-view-provider";
 export {
-  DataViewOptions,
-  type DataViewOptionsProps,
-} from "../../ui/toolbar/property-visibility";
+  Visibility,
+  type VisibilityProps,
+} from "../../ui/toolbar/visibility";
 // Skeleton
 export { GallerySkeleton } from "./gallery-skeleton";

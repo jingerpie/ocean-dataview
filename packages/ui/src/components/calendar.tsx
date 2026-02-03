@@ -1,7 +1,7 @@
 "use client";
 
-import { Button, buttonVariants } from "@ocean-dataview/ui/components/button";
-import { cn } from "@ocean-dataview/ui/lib/utils";
+import { Button, buttonVariants } from "@sparkyidea/ui/components/button";
+import { cn } from "@sparkyidea/ui/lib/utils";
 import {
   ChevronDownIcon,
   ChevronLeftIcon,

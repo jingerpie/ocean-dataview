@@ -1,7 +1,7 @@
-import { getSearchableProperties } from "@ocean-dataview/dataview/types";
-import { groupPaginationParams } from "@ocean-dataview/shared/lib";
-import { buildSearchFilter } from "@ocean-dataview/shared/utils";
-import { Tabs, TabsContent } from "@ocean-dataview/ui/components/tabs";
+import { getSearchableProperties } from "@sparkyidea/dataview/types";
+import { groupPaginationParams } from "@sparkyidea/shared/lib";
+import { buildSearchFilter } from "@sparkyidea/shared/utils";
+import { Tabs, TabsContent } from "@sparkyidea/ui/components/tabs";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ProductGroupPaginationGallery } from "@/modules/group-pagination/product-group-pagination-gallery";
 import { ProductGroupPaginationList } from "@/modules/group-pagination/product-group-pagination-list";

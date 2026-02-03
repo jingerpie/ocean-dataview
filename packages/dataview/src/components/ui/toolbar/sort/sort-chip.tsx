@@ -15,7 +15,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import type { SortQuery } from "@ocean-dataview/shared/types";
+import type { SortQuery } from "@sparkyidea/shared/types";
 import { ChevronDownIcon, SortAscIcon, Trash2Icon } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { useSortBuilder } from "../../../../hooks";

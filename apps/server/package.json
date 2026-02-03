@@ -11,16 +11,16 @@
   },
   "dependencies": {
     "@hono/trpc-server": "catalog:",
-    "@ocean-dataview/trpc": "workspace:*",
-    "@ocean-dataview/db": "workspace:*",
-    "@ocean-dataview/env": "workspace:*",
+    "@sparkyidea/trpc": "workspace:*",
+    "@sparkyidea/db": "workspace:*",
+    "@sparkyidea/env": "workspace:*",
     "@trpc/server": "catalog:",
     "dotenv": "catalog:",
     "hono": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@ocean-dataview/config": "workspace:*",
+    "@sparkyidea/config": "workspace:*",
     "@types/bun": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:"

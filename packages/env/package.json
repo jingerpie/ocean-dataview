@@ -1,5 +1,5 @@
 {
-  "name": "@ocean-dataview/env",
+  "name": "@sparkyidea/env",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -14,7 +14,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@ocean-dataview/config": "workspace:*",
+    "@sparkyidea/config": "workspace:*",
     "@types/bun": "catalog:",
     "typescript": "catalog:"
   }

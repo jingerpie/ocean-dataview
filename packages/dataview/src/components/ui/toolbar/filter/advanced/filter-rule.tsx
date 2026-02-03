@@ -1,11 +1,11 @@
 "use client";
 
-import type { FilterCondition, WhereRule } from "@ocean-dataview/shared/types";
+import type { FilterCondition, WhereRule } from "@sparkyidea/shared/types";
 import {
   applyConditionChange,
   createRuleFromProperty,
   extractSelectValues,
-} from "@ocean-dataview/shared/utils";
+} from "@sparkyidea/shared/utils";
 import { useDebouncer } from "@tanstack/react-pacer";
 import { useEffect, useState } from "react";
 import { cn } from "../../../../../lib/utils";
@@ -81,20 +81,18 @@ function DebouncedTextInput({
   );
 }
 
-import { CheckboxPicker } from "../../../properties/checkbox-picker";
-import {
-  type DateRangeValue,
-  RangeDatePicker,
-  RelativeDatePicker,
-  type RelativeToTodayValue,
-  SingleDatePicker,
-} from "../../../properties/date-picker";
-import { SelectPicker } from "../../../properties/select-picker";
-import { StatusPicker } from "../../../properties/status-picker";
-import { ConditionPicker } from "../condition-picker";
-import { FilterPropertyPicker } from "../filter-property-picker";
+import { CheckboxPicker } from "../pickers/checkbox-picker";
+import { ConditionPicker } from "../pickers/condition-picker";
+import { FilterPropertyPicker } from "../pickers/filter-property-picker";
+import { LogicPicker } from "../pickers/logic-picker";
+import type { DateRangeValue } from "../pickers/range-date-picker";
+import { RangeDatePicker } from "../pickers/range-date-picker";
+import type { RelativeToTodayValue } from "../pickers/relative-date-picker";
+import { RelativeDatePicker } from "../pickers/relative-date-picker";
+import { SelectPicker } from "../pickers/select-picker";
+import { SingleDatePicker } from "../pickers/single-date-picker";
+import { StatusPicker } from "../pickers/status-picker";
 import { FilterActions } from "./filter-actions";
-import { LogicPicker } from "./logic-picker";
 
 interface FilterRuleProps {
   /** The filter rule */

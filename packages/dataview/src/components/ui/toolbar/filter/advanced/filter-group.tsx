@@ -4,8 +4,8 @@ import type {
   WhereExpression,
   WhereNode,
   WhereRule,
-} from "@ocean-dataview/shared/types";
-import { isWhereRule } from "@ocean-dataview/shared/types";
+} from "@sparkyidea/shared/types";
+import { isWhereRule } from "@sparkyidea/shared/types";
 import {
   addCondition,
   addGroup,
@@ -16,13 +16,13 @@ import {
   removeItem,
   updateCondition,
   wrapInGroup,
-} from "@ocean-dataview/shared/utils";
+} from "@sparkyidea/shared/utils";
 import { cn } from "../../../../../lib/utils";
 import type { PropertyMeta } from "../../../../../types";
+import { LogicPicker } from "../pickers/logic-picker";
 import { AddFilterButton } from "./add-filter-button";
 import { FilterActions } from "./filter-actions";
 import { FilterRule } from "./filter-rule";
-import { LogicPicker } from "./logic-picker";
 
 interface FilterGroupProps {
   /** The compound filter (AND/OR group) */

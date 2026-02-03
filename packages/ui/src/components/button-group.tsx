@@ -1,7 +1,7 @@
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import { Separator } from "@ocean-dataview/ui/components/separator";
-import { cn } from "@ocean-dataview/ui/lib/utils";
+import { Separator } from "@sparkyidea/ui/components/separator";
+import { cn } from "@sparkyidea/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const buttonGroupVariants = cva(

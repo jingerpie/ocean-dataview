@@ -1,10 +1,10 @@
 "use client";
 
-import type { FilterCondition, WhereRule } from "@ocean-dataview/shared/types";
+import type { FilterCondition, WhereRule } from "@sparkyidea/shared/types";
 import {
   applyConditionChange,
   extractSelectValues,
-} from "@ocean-dataview/shared/utils";
+} from "@sparkyidea/shared/utils";
 import { ChevronDownIcon } from "lucide-react";
 import { useSimpleFilterChip } from "../../../../../hooks";
 import { getFilterPreview } from "../../../../../lib/filter-preview";
@@ -26,17 +26,15 @@ import {
 } from "../../../combobox";
 import { Input } from "../../../input";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
-import { CheckboxPickerContent } from "../../../properties/checkbox-picker";
-import {
-  type DateRangeValue,
-  RangeDatePickerContent,
-  RelativeDatePickerContent,
-  type RelativeToTodayValue,
-  SingleDateCalendar,
-} from "../../../properties/date-picker";
-import { StatusPicker } from "../../../properties/status-picker";
 import { PropertyIcon } from "../../../property-icon";
-import { ConditionPicker } from "../condition-picker";
+import { CheckboxPickerContent } from "../pickers/checkbox-picker";
+import { ConditionPicker } from "../pickers/condition-picker";
+import type { DateRangeValue } from "../pickers/range-date-picker";
+import { RangeDatePickerContent } from "../pickers/range-date-picker";
+import type { RelativeToTodayValue } from "../pickers/relative-date-picker";
+import { RelativeDatePickerContent } from "../pickers/relative-date-picker";
+import { SingleDateCalendar } from "../pickers/single-date-calendar";
+import { StatusPicker } from "../pickers/status-picker";
 import { FilterActions } from "./filter-actions";
 
 interface FilterChipProps {

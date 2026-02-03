@@ -11,10 +11,10 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@ocean-dataview/ui/components",
-    "utils": "@ocean-dataview/ui/lib/utils",
-    "hooks": "@ocean-dataview/ui/hooks",
-    "lib": "@ocean-dataview/ui/lib",
-    "ui": "@ocean-dataview/ui/components"
+    "components": "@sparkyidea/ui/components",
+    "utils": "@sparkyidea/ui/lib/utils",
+    "hooks": "@sparkyidea/ui/hooks",
+    "lib": "@sparkyidea/ui/lib",
+    "ui": "@sparkyidea/ui/components"
   }
 }

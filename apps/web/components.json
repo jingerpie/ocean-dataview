@@ -14,7 +14,7 @@
     "components": "@/components",
     "hooks": "@/hooks",
     "lib": "@/lib",
-    "utils": "@ocean-dataview/ui/lib/utils",
-    "ui": "@ocean-dataview/ui/components"
+    "utils": "@sparkyidea/ui/lib/utils",
+    "ui": "@sparkyidea/ui/components"
   }
 }

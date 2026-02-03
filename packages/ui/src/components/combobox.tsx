@@ -1,14 +1,14 @@
 "use client";
 
 import { Combobox as ComboboxPrimitive } from "@base-ui/react";
-import { Button } from "@ocean-dataview/ui/components/button";
+import { Button } from "@sparkyidea/ui/components/button";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-} from "@ocean-dataview/ui/components/input-group";
-import { cn } from "@ocean-dataview/ui/lib/utils";
+} from "@sparkyidea/ui/components/input-group";
+import { cn } from "@sparkyidea/ui/lib/utils";
 import { CheckIcon, ChevronDownIcon, XIcon } from "lucide-react";
 import { type ComponentPropsWithRef, useRef } from "react";
 

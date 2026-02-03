@@ -1,7 +1,7 @@
 "use client";
 
-import { parseAsCursors, parseAsExpanded } from "@ocean-dataview/shared/lib";
-import type { Cursors, CursorValue } from "@ocean-dataview/shared/types";
+import { parseAsCursors, parseAsExpanded } from "@sparkyidea/shared/lib";
+import type { Cursors, CursorValue } from "@sparkyidea/shared/types";
 import { useQueries } from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useCallback, useMemo, useTransition } from "react";

@@ -1,18 +1,18 @@
 "use client";
 
-import { NotionToolbar } from "@ocean-dataview/dataview/components/ui/notion-toolbar";
+import { useGroupInfinitePagination } from "@sparkyidea/dataview/hooks";
+import { DataViewProvider } from "@sparkyidea/dataview/providers";
+import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
+import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
   BoardSkeleton,
   BoardView,
-} from "@ocean-dataview/dataview/components/views/board-view";
-import { useGroupInfinitePagination } from "@ocean-dataview/dataview/hooks";
-import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
-import { getSearchableProperties } from "@ocean-dataview/dataview/types";
-import type { SortQuery, WhereNode } from "@ocean-dataview/shared/types";
+} from "@sparkyidea/dataview/views/board-view";
+import type { SortQuery, WhereNode } from "@sparkyidea/shared/types";
 import {
   buildSearchFilter,
   combineGroupFilter,
-} from "@ocean-dataview/shared/utils";
+} from "@sparkyidea/shared/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";

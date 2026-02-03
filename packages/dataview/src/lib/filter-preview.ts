@@ -1,4 +1,4 @@
-import type { FilterCondition } from "@ocean-dataview/shared/types";
+import type { FilterCondition } from "@sparkyidea/shared/types";
 import { format, parseISO } from "date-fns";
 import type { PropertyType } from "../types";
 

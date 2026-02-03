@@ -1,4 +1,4 @@
-import "@ocean-dataview/env/web";
+import "@sparkyidea/env/web";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {

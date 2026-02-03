@@ -1,10 +1,10 @@
 "use client";
 
 import { type ReactNode, useState } from "react";
-import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
-import type { SelectOption } from "../../../types";
-import { Badge } from "../badge";
-import { Button } from "../button";
+import { getBadgeVariant } from "../../../../../lib/utils/get-badge-variant";
+import type { SelectOption } from "../../../../../types";
+import { Badge } from "../../../badge";
+import { Button } from "../../../button";
 import {
   Combobox,
   ComboboxContent,
@@ -13,7 +13,7 @@ import {
   ComboboxItem,
   ComboboxList,
   ComboboxTrigger,
-} from "../combobox";
+} from "../../../combobox";
 
 // ============================================================================
 // SelectPickerContent - Reusable dropdown content

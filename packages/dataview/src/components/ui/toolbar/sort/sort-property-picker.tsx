@@ -1,6 +1,6 @@
 "use client";
 
-import type { SortQuery } from "@ocean-dataview/shared/types";
+import type { SortQuery } from "@sparkyidea/shared/types";
 import { SortAscIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSortParams } from "../../../../hooks";

@@ -81,10 +81,10 @@
     "dev:native": "turbo -F native dev",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F server dev",
-    "db:push": "turbo -F @ocean-dataview/db db:push",
-    "db:studio": "turbo -F @ocean-dataview/db db:studio",
-    "db:generate": "turbo -F @ocean-dataview/db db:generate",
-    "db:migrate": "turbo -F @ocean-dataview/db db:migrate"
+    "db:push": "turbo -F @sparkyidea/db db:push",
+    "db:studio": "turbo -F @sparkyidea/db db:studio",
+    "db:generate": "turbo -F @sparkyidea/db db:generate",
+    "db:migrate": "turbo -F @sparkyidea/db db:migrate"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.11",

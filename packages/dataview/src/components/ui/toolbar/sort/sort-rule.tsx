@@ -2,7 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { SortQuery } from "@ocean-dataview/shared/types";
+import type { SortQuery } from "@sparkyidea/shared/types";
 import { GripVerticalIcon, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "../../../../lib/utils";

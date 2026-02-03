@@ -16,8 +16,8 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@ocean-dataview/ui/components/dropdown-menu";
-import { cn } from "@ocean-dataview/ui/lib/utils";
+} from "@sparkyidea/ui/components/dropdown-menu";
+import { cn } from "@sparkyidea/ui/lib/utils";
 import { CheckIcon } from "lucide-react";
 import type * as React from "react";
 

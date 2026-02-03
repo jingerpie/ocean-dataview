@@ -1,6 +1,6 @@
 "use client";
 
-import { parseAsExpanded } from "@ocean-dataview/shared/lib";
+import { parseAsExpanded } from "@sparkyidea/shared/lib";
 import {
   type InfiniteData,
   type UseInfiniteQueryResult,

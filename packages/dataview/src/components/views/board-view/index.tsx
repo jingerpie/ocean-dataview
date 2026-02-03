@@ -598,9 +598,9 @@ export { useDataViewContext as useBoardContext } from "../../../lib/providers/da
 export type { DataViewProviderProps as BoardProviderProps } from "../../../lib/providers/data-view-provider";
 export { DataViewProvider as BoardProvider } from "../../../lib/providers/data-view-provider";
 export {
-  DataViewOptions,
-  type DataViewOptionsProps,
-} from "../../ui/toolbar/property-visibility";
+  Visibility,
+  type VisibilityProps,
+} from "../../ui/toolbar/visibility";
 // Skeleton
 export { BoardSkeleton } from "./board-skeleton";
 // Note: GroupCounts and GroupCountsWithSubGroups are exported at top of file

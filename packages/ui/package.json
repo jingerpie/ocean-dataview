@@ -1,5 +1,5 @@
 {
-  "name": "@ocean-dataview/ui",
+  "name": "@sparkyidea/ui",
   "type": "module",
   "exports": {
     "./globals.css": "./src/styles/globals.css",
@@ -34,7 +34,7 @@
     "vaul": "catalog:"
   },
   "devDependencies": {
-    "@ocean-dataview/config": "workspace:*",
+    "@sparkyidea/config": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@turbo/gen": "catalog:",
     "@types/node": "catalog:",

@@ -1,4 +1,4 @@
-import { env } from "@ocean-dataview/env/server";
+import { env } from "@sparkyidea/env/server";
 import { drizzle } from "drizzle-orm/node-postgres";
 
 // biome-ignore lint/performance/noNamespaceImport: Drizzle requires all schema exports as a single object

@@ -1,5 +1,5 @@
 {
-  "name": "@ocean-dataview/db",
+  "name": "@sparkyidea/db",
   "type": "module",
   "exports": {
     ".": {
@@ -17,14 +17,14 @@
     "db:seed": "bun src/seed/index.ts"
   },
   "dependencies": {
-    "@ocean-dataview/env": "workspace:*",
+    "@sparkyidea/env": "workspace:*",
     "dotenv": "catalog:",
     "drizzle-orm": "catalog:",
     "pg": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@ocean-dataview/config": "workspace:*",
+    "@sparkyidea/config": "workspace:*",
     "@types/pg": "catalog:",
     "drizzle-kit": "catalog:",
     "typescript": "catalog:"

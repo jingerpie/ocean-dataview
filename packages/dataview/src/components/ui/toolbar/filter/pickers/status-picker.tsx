@@ -1,9 +1,12 @@
 "use client";
 
-import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
-import type { BadgeColor, StatusConfig } from "../../../types/property.type";
-import { Badge } from "../badge";
-import { Checkbox } from "../checkbox";
+import { getBadgeVariant } from "../../../../../lib/utils/get-badge-variant";
+import type {
+  BadgeColor,
+  StatusConfig,
+} from "../../../../../types/property.type";
+import { Badge } from "../../../badge";
+import { Checkbox } from "../../../checkbox";
 
 interface StatusPickerProps {
   config: StatusConfig;

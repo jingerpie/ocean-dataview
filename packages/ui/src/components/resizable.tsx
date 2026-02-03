@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@ocean-dataview/ui/lib/utils";
+import { cn } from "@sparkyidea/ui/lib/utils";
 import type { ComponentProps } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { HorizontalBarChartView } from "@ocean-dataview/dataview/components/views/horizontal-bar-chart-view";
-import { ChartViewProvider } from "@ocean-dataview/dataview/lib/providers";
+import { ChartViewProvider } from "@sparkyidea/dataview/providers";
+import { HorizontalBarChartView } from "@sparkyidea/dataview/views/horizontal-bar-chart-view";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 

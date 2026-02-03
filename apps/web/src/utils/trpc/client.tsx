@@ -1,6 +1,6 @@
 "use client";
-import { env } from "@ocean-dataview/env/web";
-import type { AppRouter } from "@ocean-dataview/trpc/routers/index";
+import { env } from "@sparkyidea/env/web";
+import type { AppRouter } from "@sparkyidea/trpc/routers/index";
 // ^-- to make sure we can mount the Provider from a server component
 import type { QueryClient } from "@tanstack/react-query";
 import { QueryClientProvider } from "@tanstack/react-query";

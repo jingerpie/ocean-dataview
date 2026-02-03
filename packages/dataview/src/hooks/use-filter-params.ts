@@ -1,7 +1,7 @@
 "use client";
 
-import { parseAsFilter } from "@ocean-dataview/shared/lib";
-import type { WhereNode } from "@ocean-dataview/shared/types";
+import { parseAsFilter } from "@sparkyidea/shared/lib";
+import type { WhereNode } from "@sparkyidea/shared/types";
 import { useDebouncer } from "@tanstack/react-pacer";
 import { useQueryState } from "nuqs";
 import { useEffect, useState } from "react";

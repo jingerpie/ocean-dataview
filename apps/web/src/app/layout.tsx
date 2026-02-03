@@ -1,4 +1,4 @@
-import { cn } from "@ocean-dataview/dataview/lib/utils";
+import { cn } from "@sparkyidea/dataview/utils";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import ClientProviders from "@/components/client-providers";

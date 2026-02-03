@@ -1,6 +1,6 @@
 "use client";
 
-import type { WhereExpression, WhereNode } from "@ocean-dataview/shared/types";
+import type { WhereExpression, WhereNode } from "@sparkyidea/shared/types";
 import { ChevronDownIcon, ListFilterIcon, TrashIcon } from "lucide-react";
 import { useAdvanceFilterBuilder } from "../../../../../hooks";
 import type { PropertyMeta } from "../../../../../types";

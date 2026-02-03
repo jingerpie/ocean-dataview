@@ -21,7 +21,7 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@ocean-dataview/ui/*": ["../../packages/ui/src/*"]
+      "@sparkyidea/ui/*": ["../../packages/ui/src/*"]
     }
   },
   "include": [

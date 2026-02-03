@@ -1,8 +1,8 @@
-import { getSearchableProperties } from "@ocean-dataview/dataview/types";
-import { paginationParams } from "@ocean-dataview/shared/lib";
-import type { SearchParams, WhereNode } from "@ocean-dataview/shared/types";
-import { buildSearchFilter } from "@ocean-dataview/shared/utils";
-import { Tabs, TabsContent } from "@ocean-dataview/ui/components/tabs";
+import { getSearchableProperties } from "@sparkyidea/dataview/types";
+import { paginationParams } from "@sparkyidea/shared/lib";
+import type { SearchParams, WhereNode } from "@sparkyidea/shared/types";
+import { buildSearchFilter } from "@sparkyidea/shared/utils";
+import { Tabs, TabsContent } from "@sparkyidea/ui/components/tabs";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ProductGroupPaginationBoard } from "@/modules/pagination/product-group-pagination-board";
 import { ProductPaginationGallery } from "@/modules/pagination/product-pagination-gallery";

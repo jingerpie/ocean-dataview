@@ -492,8 +492,8 @@ export { useDataViewContext as useTableContext } from "../../../lib/providers/da
 export type { DataViewProviderProps as TableProviderProps } from "../../../lib/providers/data-view-provider";
 export { DataViewProvider as TableProvider } from "../../../lib/providers/data-view-provider";
 export {
-  DataViewOptions,
-  type DataViewOptionsProps,
-} from "../../ui/toolbar/property-visibility";
+  Visibility,
+  type VisibilityProps,
+} from "../../ui/toolbar/visibility";
 // Skeleton
 export { TableSkeleton } from "./table-skeleton";

@@ -5,5 +5,5 @@ export default defineConfig({
   format: "esm",
   outDir: "./dist",
   clean: true,
-  noExternal: [/@ocean-dataview\/.*/],
+  noExternal: [/@sparkyidea\/.*/],
 });

@@ -5,16 +5,14 @@ import type {
   WhereExpression,
   WhereNode,
   WhereRule,
-} from "@ocean-dataview/shared/types";
+} from "@sparkyidea/shared/types";
 import { cn } from "../../../lib/utils";
 import type { PropertyMeta } from "../../../types";
-import { Button } from "../button";
-import {
-  AdvancedFilterChip,
-  FilterChip,
-  FilterPropertyPicker,
-} from "../toolbar/filter";
-import { SortChip } from "../toolbar/sort";
+import { Button } from "../../ui/button";
+import { AdvancedFilterChip } from "../../ui/toolbar/filter/advanced/filter-chip";
+import { FilterPropertyPicker } from "../../ui/toolbar/filter/pickers/filter-property-picker";
+import { FilterChip } from "../../ui/toolbar/filter/simple/filter-chip";
+import { SortChip } from "../../ui/toolbar/sort/sort-chip";
 
 interface ChipsBarProps {
   /** Current sorts (multiple sorts supported) */

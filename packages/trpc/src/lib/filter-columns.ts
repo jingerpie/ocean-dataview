@@ -2,8 +2,8 @@ import {
   isWhereExpression,
   type WhereNode,
   type WhereRule,
-} from "@ocean-dataview/shared/types";
-import { getRelativeDateRange } from "@ocean-dataview/shared/utils";
+} from "@sparkyidea/shared/types";
+import { getRelativeDateRange } from "@sparkyidea/shared/utils";
 import { addDays, parseISO, startOfDay } from "date-fns";
 import {
   type AnyColumn,

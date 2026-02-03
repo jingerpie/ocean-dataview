@@ -14,7 +14,7 @@ import {
   ComboboxTrigger,
 } from "../combobox";
 
-export interface DataViewOptionsProps {
+export interface VisibilityProps {
   /**
    * Trigger variant:
    * - `default` - Icon + text, outline button
@@ -30,9 +30,7 @@ export interface DataViewOptionsProps {
  * - `default` - Settings icon with "Properties" label, outline button
  * - `icon` - Settings icon only, ghost button
  */
-export function DataViewOptions({
-  variant = "default",
-}: DataViewOptionsProps = {}) {
+export function Visibility({ variant = "default" }: VisibilityProps = {}) {
   const {
     propertyMetas,
     propertyVisibility,

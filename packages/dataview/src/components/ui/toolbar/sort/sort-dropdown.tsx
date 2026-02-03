@@ -1,6 +1,6 @@
 "use client";
 
-import type { SortQuery } from "@ocean-dataview/shared/types";
+import type { SortQuery } from "@sparkyidea/shared/types";
 import { ArrowDown, ArrowUp, ArrowUpDown, X } from "lucide-react";
 import { Badge } from "../../badge";
 import { Button } from "../../button";

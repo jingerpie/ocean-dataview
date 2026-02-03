@@ -1,7 +1,7 @@
 "use client";
 
-import type { WhereRule } from "@ocean-dataview/shared/types";
-import { createRuleFromProperty } from "@ocean-dataview/shared/utils";
+import type { WhereRule } from "@sparkyidea/shared/types";
+import { createRuleFromProperty } from "@sparkyidea/shared/utils";
 import { ChevronDownIcon, CopyPlusIcon, PlusIcon } from "lucide-react";
 import { cn } from "../../../../../lib/utils";
 import type { PropertyMeta } from "../../../../../types";

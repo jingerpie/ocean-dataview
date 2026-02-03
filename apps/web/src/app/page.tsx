@@ -1,35 +1,9 @@
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@ocean-dataview/dataview/components/ui/select";
-
-export default function SelectBasic() {
-  const items = [
-    { label: "Select a fruit", value: null },
-    { label: "Apple", value: "apple" },
-    { label: "Banana", value: "banana" },
-    { label: "Blueberry", value: "blueberry" },
-    { label: "Grapes", value: "grapes" },
-    { label: "Pineapple", value: "pineapple" },
-  ];
+export default function Home() {
   return (
-    <Select items={items}>
-      <SelectTrigger>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          {items.map((item) => (
-            <SelectItem key={item.value} value={item.value}>
-              {item.label}
-            </SelectItem>
-          ))}
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+    <div className="flex min-h-100 items-center justify-center">
+      <p className="text-muted-foreground">
+        See /pagination or /group-pagination for demos
+      </p>
+    </div>
   );
 }

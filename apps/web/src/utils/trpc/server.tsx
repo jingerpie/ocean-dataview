@@ -1,6 +1,6 @@
 import "server-only"; // <-- ensure this file cannot be imported from the client
-import { createContext } from "@ocean-dataview/trpc";
-import { appRouter } from "@ocean-dataview/trpc/routers/index";
+import { createContext } from "@sparkyidea/trpc";
+import { appRouter } from "@sparkyidea/trpc/routers/index";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import { cache } from "react";
 import { makeQueryClient } from "./query-client";

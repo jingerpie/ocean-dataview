@@ -243,8 +243,8 @@ export { useDataViewContext as useListContext } from "../../../lib/providers/dat
 export type { DataViewProviderProps as ListProviderProps } from "../../../lib/providers/data-view-provider";
 export { DataViewProvider as ListProvider } from "../../../lib/providers/data-view-provider";
 export {
-  DataViewOptions,
-  type DataViewOptionsProps,
-} from "../../ui/toolbar/property-visibility";
+  Visibility,
+  type VisibilityProps,
+} from "../../ui/toolbar/visibility";
 // Skeleton
 export { ListSkeleton } from "./list-skeleton";

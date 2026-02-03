@@ -1,4 +1,4 @@
-import { buttonVariants } from "@ocean-dataview/ui/components/button";
+import { buttonVariants } from "@sparkyidea/ui/components/button";
 import { LayoutGrid } from "lucide-react";
 import Link from "next/link";
 import { ModeToggle } from "@/components/layouts/mode-toggle";

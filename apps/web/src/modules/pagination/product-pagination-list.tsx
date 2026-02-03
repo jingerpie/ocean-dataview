@@ -1,15 +1,12 @@
 "use client";
 
-import { NotionToolbar } from "@ocean-dataview/dataview/components/ui/notion-toolbar";
-import {
-  ListSkeleton,
-  ListView,
-} from "@ocean-dataview/dataview/components/views/list-view";
-import { useInfinitePagination } from "@ocean-dataview/dataview/hooks";
-import { DataViewProvider } from "@ocean-dataview/dataview/lib/providers";
-import { getSearchableProperties } from "@ocean-dataview/dataview/types";
-import type { SortQuery, WhereNode } from "@ocean-dataview/shared/types";
-import { buildSearchFilter } from "@ocean-dataview/shared/utils";
+import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
+import { DataViewProvider } from "@sparkyidea/dataview/providers";
+import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
+import { getSearchableProperties } from "@sparkyidea/dataview/types";
+import { ListSkeleton, ListView } from "@sparkyidea/dataview/views/list-view";
+import type { SortQuery, WhereNode } from "@sparkyidea/shared/types";
+import { buildSearchFilter } from "@sparkyidea/shared/utils";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";

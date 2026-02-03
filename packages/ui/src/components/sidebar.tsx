@@ -2,24 +2,24 @@
 
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import { Button } from "@ocean-dataview/ui/components/button";
-import { Input } from "@ocean-dataview/ui/components/input";
-import { Separator } from "@ocean-dataview/ui/components/separator";
+import { Button } from "@sparkyidea/ui/components/button";
+import { Input } from "@sparkyidea/ui/components/input";
+import { Separator } from "@sparkyidea/ui/components/separator";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@ocean-dataview/ui/components/sheet";
-import { Skeleton } from "@ocean-dataview/ui/components/skeleton";
+} from "@sparkyidea/ui/components/sheet";
+import { Skeleton } from "@sparkyidea/ui/components/skeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@ocean-dataview/ui/components/tooltip";
-import { useIsMobile } from "@ocean-dataview/ui/hooks/use-mobile";
-import { cn } from "@ocean-dataview/ui/lib/utils";
+} from "@sparkyidea/ui/components/tooltip";
+import { useIsMobile } from "@sparkyidea/ui/hooks/use-mobile";
+import { cn } from "@sparkyidea/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
 import {

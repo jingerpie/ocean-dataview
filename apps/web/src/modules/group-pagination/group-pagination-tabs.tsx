@@ -1,4 +1,4 @@
-import { TabsList, TabsTrigger } from "@ocean-dataview/ui/components/tabs";
+import { TabsList, TabsTrigger } from "@sparkyidea/ui/components/tabs";
 
 export const GroupPaginationTabs = () => {
   return (

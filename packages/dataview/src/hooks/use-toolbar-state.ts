@@ -4,8 +4,8 @@ import type {
   WhereExpression,
   WhereNode,
   WhereRule,
-} from "@ocean-dataview/shared/types";
-import { analyzeFilter } from "@ocean-dataview/shared/utils";
+} from "@sparkyidea/shared/types";
+import { analyzeFilter } from "@sparkyidea/shared/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export interface UseToolbarStateOptions {

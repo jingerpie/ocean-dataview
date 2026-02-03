@@ -5,16 +5,16 @@ import {
   type RelativeDirection,
   type RelativeToTodayValue,
   type RelativeUnit,
-} from "@ocean-dataview/shared/utils";
-import { Calendar } from "../../calendar";
-import { Input } from "../../input";
+} from "@sparkyidea/shared/utils";
+import { Calendar } from "../../../calendar";
+import { Input } from "../../../input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../select";
+} from "../../../select";
 
 interface RelativeDatePickerProps {
   /** Current value as [direction, count, unit] array */
@@ -181,5 +181,5 @@ function RelativeDatePicker({ value, onChange }: RelativeDatePickerProps) {
 }
 
 export type { RelativeDatePickerProps };
-export type { RelativeToTodayValue } from "@ocean-dataview/shared/utils";
+export type { RelativeToTodayValue } from "@sparkyidea/shared/utils";
 export { RelativeDatePicker, RelativeDatePickerContent };

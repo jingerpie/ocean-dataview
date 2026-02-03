@@ -1,4 +1,4 @@
-import type { WhereNode } from "@ocean-dataview/shared/types";
+import type { WhereNode } from "@sparkyidea/shared/types";
 
 export type PropertyType =
   | "text"
@@ -304,7 +304,7 @@ export type PropertyRenderer = PropertyFunction<any>;
  * }
  *
  * // Using property components directly for manual composition
- * // import { TextProperty, NumberProperty } from "@ocean-dataview/dataview/components/ui/properties";
+ * // import { TextProperty, NumberProperty } from "@sparkyidea/dataview/components/ui/properties";
  * {
  *   id: "summary",
  *   type: "formula",
@@ -372,7 +372,7 @@ export type {
   WhereExpression,
   WhereNode,
   WhereRule,
-} from "@ocean-dataview/shared/types";
+} from "@sparkyidea/shared/types";
 
 /** Property types excluded from search by default */
 const EXCLUDED_SEARCH_TYPES: PropertyType[] = [

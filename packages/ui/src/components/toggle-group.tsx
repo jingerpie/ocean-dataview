@@ -2,8 +2,8 @@
 
 import { Toggle as TogglePrimitive } from "@base-ui/react/toggle";
 import { ToggleGroup as ToggleGroupPrimitive } from "@base-ui/react/toggle-group";
-import { toggleVariants } from "@ocean-dataview/ui/components/toggle";
-import { cn } from "@ocean-dataview/ui/lib/utils";
+import { toggleVariants } from "@sparkyidea/ui/components/toggle";
+import { cn } from "@sparkyidea/ui/lib/utils";
 import type { VariantProps } from "class-variance-authority";
 import { type CSSProperties, createContext, useContext } from "react";
 

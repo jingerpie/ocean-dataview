@@ -1,9 +1,9 @@
-import { db } from "@ocean-dataview/db";
-import { product } from "@ocean-dataview/db/schema/product";
+import { db } from "@sparkyidea/db";
+import { product } from "@sparkyidea/db/schema/product";
 import {
   getCursorParams,
   productSearchParamsSchema,
-} from "@ocean-dataview/shared/types";
+} from "@sparkyidea/shared/types";
 import { and, count, desc } from "drizzle-orm";
 import { z } from "zod";
 import { publicProcedure, router } from "../index";

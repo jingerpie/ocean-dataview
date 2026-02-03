@@ -1,6 +1,6 @@
 "use client";
 
-import { Toaster } from "@ocean-dataview/ui/components/sonner";
+import { Toaster } from "@sparkyidea/ui/components/sonner";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { TRPCReactProvider } from "@/utils/trpc/client";
 import { ThemeProvider } from "./theme-provider";
