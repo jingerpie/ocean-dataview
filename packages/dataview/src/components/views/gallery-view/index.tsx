@@ -4,7 +4,7 @@ import { AlertCircle } from "lucide-react";
 import type { GroupedDataItem } from "../../../hooks";
 import { useDisplayProperties, useViewSetup } from "../../../hooks";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import { buildPaginationContext } from "../../../lib/utils";
+import { buildPaginationContext, cn } from "../../../lib/utils";
 import { getGalleryCardDimensions } from "../../../lib/utils/get-card-sizes";
 import type { DataViewProperty } from "../../../types";
 import { Accordion } from "../../ui/accordion";
@@ -247,7 +247,7 @@ export function GalleryView<
 
   // STANDARD VIEW: Flat gallery without grouping
   return (
-    <div className={className}>
+    <div className={cn("flex flex-col gap-2", className)}>
       <GalleryCard
         cardPreview={cardPreview}
         cols={cols}

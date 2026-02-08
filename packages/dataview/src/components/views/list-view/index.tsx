@@ -4,7 +4,7 @@ import { AlertCircle } from "lucide-react";
 import type { GroupedDataItem } from "../../../hooks";
 import { useDisplayProperties, useViewSetup } from "../../../hooks";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import { buildPaginationContext } from "../../../lib/utils";
+import { buildPaginationContext, cn } from "../../../lib/utils";
 import type { DataViewProperty } from "../../../types";
 import { Accordion } from "../../ui/accordion";
 import { GroupSection } from "../../ui/group-section";
@@ -16,13 +16,6 @@ export interface ListViewProps<
   TProperties extends
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 > {
-  /**
-   * Layout configuration
-   */
-  layout?: {
-    showDividers?: boolean;
-  };
-
   /**
    * View configuration
    */
@@ -96,7 +89,6 @@ export function ListView<
   TProperties extends
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
-  layout = {},
   view = {},
   onItemClick,
   pagination,
@@ -112,7 +104,6 @@ export function ListView<
     setPropertyVisibility,
   } = useDataViewContext<TData, TProperties>();
 
-  const { showDividers = true } = layout;
   const { propertyVisibility: viewPropertyVisibility, group: groupBy } = view;
 
   // Use shared view setup hook
@@ -197,7 +188,6 @@ export function ListView<
                   data={group.items}
                   displayProperties={displayProperties}
                   onItemClick={onItemClick}
-                  showDividers={showDividers}
                 />
               </GroupSection>
             );
@@ -224,12 +214,11 @@ export function ListView<
 
   // STANDARD VIEW: Flat list without grouping
   return (
-    <div className={className}>
+    <div className={cn("flex flex-col gap-2", className)}>
       <ListRow
         data={transformedFlatData}
         displayProperties={displayProperties}
         onItemClick={onItemClick}
-        showDividers={showDividers}
       />
       {renderPagination(pagination, flatPaginationContext)}
     </div>

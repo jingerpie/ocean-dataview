@@ -32,7 +32,7 @@ export function BoardColumn<TData>({
   return (
     <div
       className={cn(
-        "flex shrink-0 flex-col gap-2 rounded-lg p-2 transition-colors",
+        "flex shrink-0 flex-col gap-2 rounded-lg transition-colors",
         columnWidth,
         columnBgClass || "bg-muted/10"
       )}

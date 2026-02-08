@@ -24,7 +24,7 @@ export function LoadMorePagination({
   }
 
   return (
-    <div className="flex flex-col items-center gap-2 py-4">
+    <div className="flex flex-col items-center gap-2">
       {error && <p className="text-destructive text-sm">Failed to load more</p>}
       {totalLoaded != null && (
         <span className="text-muted-foreground text-sm">

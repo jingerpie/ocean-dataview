@@ -14,7 +14,7 @@ import type {
 } from "../../../hooks";
 import { useDisplayProperties, useViewSetup } from "../../../hooks";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import { buildPaginationContext } from "../../../lib/utils";
+import { buildPaginationContext, cn } from "../../../lib/utils";
 import type {
   Action,
   DataViewProperty,
@@ -466,7 +466,7 @@ export function TableView<
 
   // STANDARD VIEW: Flat table without grouping
   return (
-    <div className={className}>
+    <div className={cn("flex flex-col gap-2", className)}>
       <DataTable
         actionBar={actionBar}
         columns={columns}

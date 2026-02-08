@@ -2,7 +2,6 @@
 
 import { cn } from "../../../lib/utils";
 import type { DataViewProperty } from "../../../types";
-import { Separator } from "../../ui/separator";
 import { DataCell } from "../data-cell";
 
 export interface ListRowProps<TData> {
@@ -15,11 +14,6 @@ export interface ListRowProps<TData> {
    * Property definitions for display (excluding groupBy)
    */
   displayProperties: DataViewProperty<TData>[];
-
-  /**
-   * Show dividers between items
-   */
-  showDividers: boolean;
 
   /**
    * Item click handler
@@ -39,12 +33,11 @@ export interface ListRowProps<TData> {
 export function ListRow<TData>({
   data,
   displayProperties,
-  showDividers,
   onItemClick,
   className,
 }: ListRowProps<TData>) {
   return (
-    <div className={cn("flex flex-col gap-0", className)}>
+    <div className={cn("flex flex-col overflow-x-auto", className)}>
       {data.map((item, index) => {
         // Generate a unique key by combining property values or fallback to index
         const firstProperty = displayProperties[0];
@@ -58,9 +51,9 @@ export function ListRow<TData>({
           <div key={uniqueKey}>
             <RowElement
               className={cn(
-                "flex w-full items-center gap-4 px-3 py-2",
+                "flex w-full items-center gap-4 rounded-md px-2 py-1 transition-colors hover:bg-muted/50",
                 onItemClick &&
-                  "cursor-pointer border-0 bg-transparent text-left transition-colors hover:bg-muted/50"
+                  "cursor-pointer border-0 bg-transparent text-left"
               )}
               onClick={() => onItemClick?.(item)}
               {...(onItemClick && { type: "button" as const })}
@@ -82,7 +75,6 @@ export function ListRow<TData>({
                 );
               })}
             </RowElement>
-            {showDividers && index < data.length - 1 && <Separator />}
           </div>
         );
       })}
