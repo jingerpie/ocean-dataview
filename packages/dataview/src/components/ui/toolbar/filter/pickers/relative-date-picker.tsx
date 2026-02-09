@@ -80,7 +80,7 @@ function RelativeDateDropdowns({
   };
 
   return (
-    <div className="flex w-full gap-2">
+    <div className="flex w-full gap-2 p-1 pb-0">
       <Select
         items={directionItems}
         onValueChange={handleDirectionChange}

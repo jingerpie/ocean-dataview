@@ -9,6 +9,7 @@ import type {
 import { cn } from "../../../lib/utils";
 import type { PropertyMeta } from "../../../types";
 import { Button } from "../../ui/button";
+import { Separator } from "../../ui/separator";
 import { AdvancedFilterChip } from "../../ui/toolbar/filter/advanced/filter-chip";
 import { FilterPropertyPicker } from "../../ui/toolbar/filter/pickers/filter-property-picker";
 import { FilterChip } from "../../ui/toolbar/filter/simple/filter-chip";
@@ -133,60 +134,65 @@ export function ChipsBar({
   };
 
   return (
-    <div
-      className={cn(
-        "flex items-center gap-1.5 overflow-x-auto",
-        "fade-in slide-in-from-top-1 animate-in duration-150",
-        className
-      )}
-    >
-      {/* 1. Sort Chip (multi-sort with drag-and-drop) */}
-      {sorts.length > 0 && (
-        <SortChip
-          onSortsChange={onSortsChange}
-          properties={properties}
-          sorts={sorts}
-        />
-      )}
-
-      {/* 2. Advanced Filter Chip (if exists) */}
-      {advancedFilter && (
-        <AdvancedFilterChip
-          filter={advancedFilter}
-          onFilterChange={handleAdvancedFilterChange}
-          properties={properties}
-          ruleCount={ruleCount}
-        />
-      )}
-
-      {/* 3. Simple Filter Chips (in array order) */}
-      {simpleFilterConditions.map(({ condition, index }) => {
-        const property = properties.find(
-          (p) => String(p.id) === condition.property
-        );
-        if (!property) {
-          return null;
-        }
-
-        return (
-          <FilterChip
-            key={`filter-${condition.property}-${index}`}
-            onAddToAdvanced={() => handleAddToAdvanced(index, condition)}
-            onRemove={() => handleRuleRemove(index)}
-            onRuleChange={(newRule) => handleRuleChange(index, newRule)}
-            property={property}
-            rule={condition}
-            variant="detailed"
+    <div className={cn("flex items-start gap-1.5", className)}>
+      {/* Scrollable chips container */}
+      <div className="flex min-w-0 items-center gap-2 overflow-x-auto">
+        {/* 1. Sort Chip */}
+        {sorts.length > 0 && (
+          <SortChip
+            onSortsChange={onSortsChange}
+            properties={properties}
+            sorts={sorts}
           />
-        );
-      })}
+        )}
 
-      {/* 4. + Filter Button */}
-      <FilterPropertyPicker properties={properties} variant="inline" />
+        {/* Separator between sorts and filters */}
+        {sorts.length > 0 &&
+          (advancedFilter || simpleFilterConditions.length > 0) && (
+            <Separator orientation="vertical" />
+          )}
 
-      {/* 5. Reset Button - Removes filter/sort from URL to restore defaults */}
+        <div className="flex items-center gap-1.5">
+          {/* 2. Advanced Filter Chip */}
+          {advancedFilter && (
+            <AdvancedFilterChip
+              filter={advancedFilter}
+              onFilterChange={handleAdvancedFilterChange}
+              properties={properties}
+              ruleCount={ruleCount}
+            />
+          )}
+
+          {/* 3. Simple Filter Chips */}
+          {simpleFilterConditions.map(({ condition, index }) => {
+            const property = properties.find(
+              (p) => String(p.id) === condition.property
+            );
+            if (!property) {
+              return null;
+            }
+
+            return (
+              <FilterChip
+                key={`filter-${condition.property}-${index}`}
+                onAddToAdvanced={() => handleAddToAdvanced(index, condition)}
+                onRemove={() => handleRuleRemove(index)}
+                onRuleChange={(newRule) => handleRuleChange(index, newRule)}
+                property={property}
+                rule={condition}
+                variant="detailed"
+              />
+            );
+          })}
+
+          {/* 4. + Filter Button */}
+          <FilterPropertyPicker properties={properties} variant="inline" />
+        </div>
+      </div>
+
+      {/* 5. Reset Button - always visible */}
       <Button
-        className="sticky right-0 ml-auto shrink-0 bg-background text-muted-foreground hover:text-foreground"
+        className="ml-auto shrink-0"
         onClick={onReset}
         size="sm"
         variant="ghost"

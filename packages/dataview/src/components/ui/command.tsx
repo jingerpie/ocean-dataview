@@ -1,9 +1,11 @@
 "use client";
 
 import { Command as CommandPrimitive } from "cmdk";
-import { CheckIcon, SearchIcon } from "lucide-react";
+import { CheckIcon, SearchIcon, XIcon } from "lucide-react";
 import type * as React from "react";
+import { useRef } from "react";
 import { cn } from "../../lib/utils";
+import { Button } from "./button";
 import {
   Dialog,
   DialogContent,
@@ -118,7 +120,7 @@ function CommandGroup({
   return (
     <CommandPrimitive.Group
       className={cn(
-        "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:text-xs",
+        "overflow-hidden p-1 text-foreground **:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:py-1.5 **:[[cmdk-group-heading]]:font-medium **:[[cmdk-group-heading]]:text-muted-foreground **:[[cmdk-group-heading]]:text-xs",
         className
       )}
       data-slot="command-group"
@@ -148,14 +150,14 @@ function CommandItem({
   return (
     <CommandPrimitive.Item
       className={cn(
-        "group/command-item relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden data-[disabled=true]:pointer-events-none data-selected:bg-muted data-selected:text-foreground data-[disabled=true]:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0 [[data-slot=dialog-content]_&]:rounded-lg! data-selected:**:[svg]:text-foreground",
+        "group/command-item relative flex cursor-default select-none items-center gap-2 in-data-[slot=dialog-content]:rounded-lg! rounded-sm px-2 py-1.5 text-sm outline-hidden data-[disabled=true]:pointer-events-none data-selected:bg-muted data-selected:text-foreground data-[disabled=true]:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0 data-selected:**:[svg]:text-foreground",
         className
       )}
       data-slot="command-item"
       {...props}
     >
       {children}
-      <CheckIcon className="ml-auto opacity-0 group-has-[[data-slot=command-shortcut]]/command-item:hidden group-data-[checked=true]/command-item:opacity-100" />
+      <CheckIcon className="ml-auto opacity-0 group-has-data-[slot=command-shortcut]/command-item:hidden group-data-[checked=true]/command-item:opacity-100" />
     </CommandPrimitive.Item>
   );
 }
@@ -176,6 +178,100 @@ function CommandShortcut({
   );
 }
 
+function CommandChips({
+  className,
+  children,
+  onClearAll,
+  showClearAll = true,
+  ...props
+}: React.ComponentPropsWithRef<"div"> & {
+  onClearAll?: () => void;
+  showClearAll?: boolean;
+}) {
+  return (
+    <div className="p-1 pb-0" data-slot="command-chips-wrapper">
+      <div
+        className={cn(
+          "flex min-h-8 items-start justify-between rounded-lg border border-input/30 bg-input/30 px-2.5 py-1 text-sm shadow-none has-data-[slot=command-chip]:px-1.5",
+          className
+        )}
+        data-slot="command-chips"
+        {...props}
+      >
+        <div className="flex flex-1 flex-wrap items-center gap-1.5">
+          {children}
+        </div>
+        {showClearAll && onClearAll && (
+          <Button
+            className="size-5.5 text-muted-foreground"
+            data-slot="command-chips-clear"
+            onClick={onClearAll}
+            variant="ghost"
+          >
+            <XIcon className="size-3.5" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CommandChip({
+  className,
+  children,
+  showRemove = true,
+  onRemove,
+  disabled,
+  ...props
+}: React.ComponentPropsWithRef<"div"> & {
+  showRemove?: boolean;
+  onRemove?: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex h-[calc(--spacing(5.5))] w-fit items-center justify-center gap-1 whitespace-nowrap rounded-sm bg-muted px-1.5 font-medium text-foreground text-xs has-data-[slot=command-chip-remove]:pr-0 data-disabled:pointer-events-none data-disabled:cursor-not-allowed data-disabled:opacity-50",
+        className
+      )}
+      data-disabled={disabled || undefined}
+      data-slot="command-chip"
+      {...props}
+    >
+      {children}
+      {showRemove && (
+        <Button
+          className="-ml-1 opacity-50 hover:opacity-100"
+          data-slot="command-chip-remove"
+          disabled={disabled}
+          onClick={onRemove}
+          size="icon-xs"
+          variant="ghost"
+        >
+          <XIcon className="pointer-events-none" />
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function CommandChipsInput({
+  className,
+  ...props
+}: React.ComponentProps<typeof CommandPrimitive.Input>) {
+  return (
+    <CommandPrimitive.Input
+      className={cn("min-w-16 flex-1 outline-none", className)}
+      data-slot="command-chips-input"
+      {...props}
+    />
+  );
+}
+
+function useCommandAnchor() {
+  return useRef<HTMLDivElement | null>(null);
+}
+
 export {
   Command,
   CommandDialog,
@@ -186,4 +282,8 @@ export {
   CommandItem,
   CommandShortcut,
   CommandSeparator,
+  CommandChips,
+  CommandChip,
+  CommandChipsInput,
+  useCommandAnchor,
 };

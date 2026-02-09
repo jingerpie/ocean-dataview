@@ -1,15 +1,16 @@
 "use client";
 
+import { ChevronDownIcon } from "lucide-react";
+import { useState } from "react";
 import { cn } from "../../../../../lib/utils";
-import { Item, ItemContent, ItemDescription, ItemTitle } from "../../../item";
+import { Button } from "../../../button";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../select";
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "../../../command";
+import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
 
 const LOGIC_OPTIONS = [
   { value: "and", label: "And", description: "All filters must match" },
@@ -35,13 +36,15 @@ interface LogicPickerProps {
  * - Second rule shows "And" / "Or" dropdown (can change logic for entire group)
  * - Third+ rules show static "And" / "Or" label
  */
-export function LogicPicker({
+function LogicPicker({
   isFirst,
   isSecond,
   logic,
   onLogicChange,
   className,
 }: LogicPickerProps) {
+  const [open, setOpen] = useState(false);
+
   // First item shows "Where"
   if (isFirst) {
     return (
@@ -70,32 +73,46 @@ export function LogicPicker({
     );
   }
 
-  // Second item shows select
+  const selected = LOGIC_OPTIONS.find((opt) => opt.value === logic);
+
+  const handleSelect = (value: string) => {
+    onLogicChange(value as "and" | "or");
+    setOpen(false);
+  };
+
+  // Second item shows dropdown
   return (
-    <Select
-      items={LOGIC_OPTIONS}
-      onValueChange={(value) => onLogicChange(value as "and" | "or")}
-      value={logic}
-    >
-      <SelectTrigger className="min-w-17" size="sm">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent align="start" className="w-auto">
-        <SelectGroup>
-          {LOGIC_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              <Item className="w-full p-0" size="xs">
-                <ItemContent className="gap-0">
-                  <ItemTitle>{option.label}</ItemTitle>
-                  <ItemDescription className="text-xs">
-                    {option.description}
-                  </ItemDescription>
-                </ItemContent>
-              </Item>
-            </SelectItem>
-          ))}
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+    <Popover onOpenChange={setOpen} open={open}>
+      <PopoverTrigger
+        render={<Button className="min-w-17" size="sm" variant="outline" />}
+      >
+        <span>{selected?.label}</span>
+        <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-auto min-w-48 p-0">
+        <Command value={selected?.label}>
+          <CommandList>
+            <CommandGroup>
+              {LOGIC_OPTIONS.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  onSelect={() => handleSelect(option.value)}
+                  value={option.label}
+                >
+                  <div className="flex flex-col items-start gap-0">
+                    <span className="font-medium">{option.label}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {option.description}
+                    </span>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
+
+export { LogicPicker };

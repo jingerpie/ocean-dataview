@@ -1,10 +1,10 @@
 "use client";
 
-import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { type ChangeEvent, type KeyboardEvent, useState } from "react";
 import {
   cn,
+  formatDateForDisplay,
   parseDate,
   parseValue,
   toDateOnlyString,
@@ -13,11 +13,6 @@ import { Button } from "../../../button";
 import { Calendar } from "../../../calendar";
 import { Input } from "../../../input";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
-
-/** Format date as numeric M/d/yyyy for compact display */
-function formatNumericDate(date: Date): string {
-  return format(date, "M/d/yyyy");
-}
 
 /**
  * Date range value as positional array: [from, to]
@@ -54,8 +49,8 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
 
   // Display values
   const fromDisplay =
-    fromDraft ?? (fromDate ? formatNumericDate(fromDate) : "");
-  const toDisplay = toDraft ?? (toDate ? formatNumericDate(toDate) : "");
+    fromDraft ?? (fromDate ? formatDateForDisplay(fromDate) : "");
+  const toDisplay = toDraft ?? (toDate ? formatDateForDisplay(toDate) : "");
 
   // Handle from input change
   const handleFromChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -77,7 +72,7 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
 
     const parsed = parseDate(fromDraft);
     if (parsed) {
-      const formatted = formatNumericDate(parsed);
+      const formatted = formatDateForDisplay(parsed);
       setFromDraft(formatted);
       setFromValid(true);
       onChange([toDateOnlyString(parsed), value?.[1] ?? null]);
@@ -94,7 +89,7 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
 
     const parsed = parseDate(toDraft);
     if (parsed) {
-      const formatted = formatNumericDate(parsed);
+      const formatted = formatDateForDisplay(parsed);
       setToDraft(formatted);
       setToValid(true);
       onChange([value?.[0] ?? null, toDateOnlyString(parsed)]);
@@ -131,10 +126,10 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
   return (
     <div className="flex flex-col items-center">
       {/* Two inputs side by side */}
-      <div className="flex w-full gap-2">
+      <div className="flex w-full flex-col gap-2 p-1 pb-0">
         <Input
           className={cn(
-            "h-8 w-0 flex-1",
+            "h-8 w-full",
             !fromValid && "border-destructive focus-visible:ring-destructive"
           )}
           onBlur={handleFromBlur}
@@ -146,7 +141,7 @@ function RangeDatePickerContent({ value, onChange }: RangeDatePickerProps) {
         />
         <Input
           className={cn(
-            "h-8 w-0 flex-1",
+            "h-8 w-full",
             !toValid && "border-destructive focus-visible:ring-destructive"
           )}
           onBlur={handleToBlur}
@@ -185,7 +180,7 @@ function RangeDatePicker({ value, onChange }: RangeDatePickerProps) {
   // Format display text
   const displayText =
     fromDate || toDate
-      ? `${fromDate ? formatNumericDate(fromDate) : "..."} - ${toDate ? formatNumericDate(toDate) : "..."}`
+      ? `${fromDate ? formatDateForDisplay(fromDate) : "..."} - ${toDate ? formatDateForDisplay(toDate) : "..."}`
       : "Select a range";
 
   return (

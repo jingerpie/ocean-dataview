@@ -2,16 +2,18 @@
 
 import type { FilterCondition } from "@sparkyidea/shared/types";
 import { getFilterConditions } from "@sparkyidea/shared/utils";
+import { ChevronDownIcon } from "lucide-react";
+import { useState } from "react";
 import { cn } from "../../../../../lib/utils";
 import type { PropertyType } from "../../../../../types";
+import { Button } from "../../../button";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../select";
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "../../../command";
+import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
 
 interface ConditionPickerProps {
   condition: FilterCondition;
@@ -23,45 +25,61 @@ interface ConditionPickerProps {
   className?: string;
 }
 
-export function ConditionPicker({
+function ConditionPicker({
   condition,
   onConditionChange,
   propertyType,
   inline,
   className,
 }: ConditionPickerProps) {
+  const [open, setOpen] = useState(false);
   const items = getFilterConditions(propertyType);
+  const selected = items.find((item) => item.value === condition);
+
+  const handleSelect = (value: string) => {
+    onConditionChange(value as FilterCondition);
+    setOpen(false);
+  };
 
   return (
-    <Select
-      items={items}
-      onValueChange={(val) => {
-        if (val) {
-          onConditionChange(val as FilterCondition);
+    <Popover onOpenChange={setOpen} open={open}>
+      <PopoverTrigger
+        render={
+          <Button
+            className={cn(className)}
+            size={inline ? "xs" : "sm"}
+            variant={inline ? "ghost" : "outline"}
+          />
         }
-      }}
-      value={condition}
-    >
-      <SelectTrigger
-        className={cn(
-          inline && "border-none bg-transparent! pl-2 lowercase",
-          className
-        )}
-        size="sm"
       >
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent align="start" className="w-auto">
-        <SelectGroup>
-          {items.map((item) => (
-            <SelectItem key={item.value} value={item.value}>
-              {item.label}
-            </SelectItem>
-          ))}
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+        <span>{selected?.label ?? condition}</span>
+        <ChevronDownIcon
+          className={cn(
+            "pointer-events-none text-muted-foreground",
+            inline ? "size-3" : "size-4"
+          )}
+        />
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-auto min-w-32 p-0">
+        <Command value={selected?.label}>
+          <CommandList>
+            <CommandGroup>
+              {items.map((item) => (
+                <CommandItem
+                  key={item.value}
+                  onSelect={() => handleSelect(item.value)}
+                  value={item.label}
+                >
+                  {item.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
 
+export { ConditionPicker };
 export type { ConditionPickerProps };

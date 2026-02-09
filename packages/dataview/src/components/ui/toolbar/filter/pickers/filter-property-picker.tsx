@@ -2,7 +2,7 @@
 
 import { isWhereExpression, isWhereRule } from "@sparkyidea/shared/types";
 import { createRuleFromProperty } from "@sparkyidea/shared/utils";
-import { ListFilterIcon, PlusIcon } from "lucide-react";
+import { ChevronDownIcon, ListFilterIcon, PlusIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   useAdvanceFilterBuilder,
@@ -12,16 +12,15 @@ import {
 import type { PropertyMeta } from "../../../../../types";
 import { Button } from "../../../button";
 import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxSeparator,
-  ComboboxTrigger,
-  ComboboxValue,
-} from "../../../combobox";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "../../../command";
+import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
 import { PropertyIcon } from "../../../property-icon";
 
 interface FilterPropertyPickerProps {
@@ -53,7 +52,7 @@ interface FilterPropertyPickerProps {
 }
 
 /**
- * Filter property picker with Combobox.
+ * Filter property picker with Popover + Command.
  *
  * Uses `useFilterParams()` and `useAdvanceFilterBuilder()` internally.
  *
@@ -178,63 +177,50 @@ function FilterPropertyPicker({
   const renderTrigger = () => {
     if (variant === "rule") {
       return (
-        <ComboboxTrigger render={<Button size="sm" variant="outline" />}>
-          <ComboboxValue>
-            {selectedProperty ? (
-              <>
-                <PropertyIcon type={selectedProperty.type} />
-                <span>
-                  {selectedProperty.label ?? String(selectedProperty.id)}
-                </span>
-              </>
-            ) : (
-              "Select property..."
-            )}
-          </ComboboxValue>
-        </ComboboxTrigger>
+        <PopoverTrigger render={<Button size="sm" variant="outline" />}>
+          {selectedProperty ? (
+            <>
+              <PropertyIcon type={selectedProperty.type} />
+              <span>
+                {selectedProperty.label ?? String(selectedProperty.id)}
+              </span>
+            </>
+          ) : (
+            "Select property..."
+          )}
+          <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
+        </PopoverTrigger>
       );
     }
 
     if (variant === "icon") {
       return (
-        <ComboboxTrigger
-          render={<Button size="icon-sm" variant="ghost" />}
-          showChevron={false}
-        >
+        <PopoverTrigger render={<Button size="icon-sm" variant="ghost" />}>
           <ListFilterIcon />
-        </ComboboxTrigger>
+        </PopoverTrigger>
       );
     }
 
     if (variant === "inline") {
       return (
-        <ComboboxTrigger
-          render={<Button size="sm" variant="ghost" />}
-          showChevron={false}
-        >
+        <PopoverTrigger render={<Button size="sm" variant="ghost" />}>
           <PlusIcon />
           <span>Filter</span>
-        </ComboboxTrigger>
+        </PopoverTrigger>
       );
     }
 
     // default variant
     return (
-      <ComboboxTrigger render={<Button size="sm" variant="outline" />}>
+      <PopoverTrigger render={<Button size="sm" variant="outline" />}>
         <ListFilterIcon />
         <span>Filter</span>
-      </ComboboxTrigger>
+      </PopoverTrigger>
     );
   };
 
-  // Compute value - use null instead of undefined to keep component in controlled mode
-  // Type assertion needed because base-ui Combobox has complex generic inference with union types
-  const comboboxValue = (
-    variant === "rule" ? (selectedProperty ?? null) : null
-  ) as never;
-
   // When onClick is provided for non-rule variants, render standalone button
-  // This completely bypasses Combobox behavior - clicking only calls onClick
+  // This completely bypasses Popover behavior - clicking only calls onClick
   if (onClick && variant !== "rule") {
     if (variant === "icon") {
       return (
@@ -253,47 +239,42 @@ function FilterPropertyPicker({
   }
 
   return (
-    <Combobox
-      items={availableProperties}
-      onOpenChange={setOpen}
-      onValueChange={(newValue) => {
-        if (newValue) {
-          handleSelect(newValue as PropertyMeta);
-        }
-      }}
-      open={open}
-      value={comboboxValue}
-    >
+    <Popover onOpenChange={setOpen} open={open}>
       {renderTrigger()}
-      <ComboboxContent align="start" className="flex w-56 flex-col">
-        <ComboboxInput placeholder="Filter by..." showTrigger={false} />
-        <ComboboxEmpty>No properties found.</ComboboxEmpty>
-        <ComboboxList>
-          {(property) => (
-            <ComboboxItem key={String(property.id)} value={property}>
-              <PropertyIcon type={property.type} />
-              <span className="truncate">
-                {property.label ?? String(property.id)}
-              </span>
-            </ComboboxItem>
+      <PopoverContent align="start" className="w-56 p-0">
+        <Command>
+          <CommandInput placeholder="Filter by..." />
+          <CommandList>
+            <CommandEmpty>No properties found.</CommandEmpty>
+            <CommandGroup>
+              {availableProperties.map((property) => (
+                <CommandItem
+                  key={String(property.id)}
+                  onSelect={() => handleSelect(property)}
+                  value={property.label ?? String(property.id)}
+                >
+                  <PropertyIcon type={property.type} />
+                  <span className="truncate">
+                    {property.label ?? String(property.id)}
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+          {!advance && (
+            <>
+              <CommandSeparator />
+              <CommandGroup>
+                <CommandItem onSelect={handleAdvancedFilter}>
+                  <PlusIcon />
+                  <span>Add advanced filter</span>
+                </CommandItem>
+              </CommandGroup>
+            </>
           )}
-        </ComboboxList>
-        {!advance && (
-          <>
-            <ComboboxSeparator className="my-0" />
-            <Button
-              className="my-1 w-full justify-start"
-              onClick={handleAdvancedFilter}
-              size="sm"
-              variant="ghost"
-            >
-              <PlusIcon />
-              <span>Add advanced filter</span>
-            </Button>
-          </>
-        )}
-      </ComboboxContent>
-    </Combobox>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
 

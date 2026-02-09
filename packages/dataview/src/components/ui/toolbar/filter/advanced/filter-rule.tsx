@@ -4,95 +4,22 @@ import type { FilterCondition, WhereRule } from "@sparkyidea/shared/types";
 import {
   applyConditionChange,
   createRuleFromProperty,
-  extractSelectValues,
 } from "@sparkyidea/shared/utils";
-import { useDebouncer } from "@tanstack/react-pacer";
-import { useEffect, useState } from "react";
 import { cn } from "../../../../../lib/utils";
-import type {
-  MultiSelectConfig,
-  PropertyMeta,
-  SelectConfig,
-  SelectOption,
-  StatusConfig,
-} from "../../../../../types";
-import { Input } from "../../../input";
-
-const FILTER_INPUT_DEBOUNCE_MS = 150;
-
-// ============================================================================
-// Debounced Text Input Component
-// ============================================================================
-
-interface DebouncedTextInputProps {
-  value: string;
-  onChange: (value: string) => void;
-  type?: "text" | "number";
-  inputMode?: "numeric";
-  placeholder?: string;
-  className?: string;
-}
-
-function DebouncedTextInput({
-  value,
-  onChange,
-  type = "text",
-  inputMode,
-  placeholder,
-  className,
-}: DebouncedTextInputProps) {
-  const [localValue, setLocalValue] = useState(value);
-
-  // Debounced onChange callback
-  const changeDebouncer = useDebouncer(onChange, {
-    wait: FILTER_INPUT_DEBOUNCE_MS,
-  });
-
-  // Sync local state when prop value changes externally
-  useEffect(() => {
-    setLocalValue(value);
-  }, [value]);
-
-  // Flush on unmount
-  useEffect(() => {
-    return () => changeDebouncer.flush();
-  }, [changeDebouncer]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setLocalValue(newValue);
-    changeDebouncer.maybeExecute(newValue);
-  };
-
-  const handleBlur = () => {
-    changeDebouncer.flush();
-  };
-
-  return (
-    <Input
-      className={className}
-      inputMode={inputMode}
-      onBlur={handleBlur}
-      onChange={handleChange}
-      placeholder={placeholder}
-      type={type}
-      value={localValue}
-    />
-  );
-}
-
-import { CheckboxPicker } from "../pickers/checkbox-picker";
+import type { PropertyMeta } from "../../../../../types";
+import { CheckboxAdvanceFilter } from "../filters/checkbox-filter";
+import { DateAdvanceFilter } from "../filters/date-filter";
+import { SelectAdvanceFilter } from "../filters/select-filter";
+import { StatusAdvanceFilter } from "../filters/status-filter";
+import { TextAdvanceFilter } from "../filters/text-filter";
 import { ConditionPicker } from "../pickers/condition-picker";
 import { FilterPropertyPicker } from "../pickers/filter-property-picker";
 import { LogicPicker } from "../pickers/logic-picker";
-import type { DateRangeValue } from "../pickers/range-date-picker";
-import { RangeDatePicker } from "../pickers/range-date-picker";
-import type { RelativeToTodayValue } from "../pickers/relative-date-picker";
-import { RelativeDatePicker } from "../pickers/relative-date-picker";
-import { SelectPicker } from "../pickers/select-picker";
-import { SingleDatePicker } from "../pickers/single-date-picker";
-import { StatusPicker } from "../pickers/status-picker";
 import { FilterActions } from "./filter-actions";
+
+// ============================================================================
+// FilterRule Component
+// ============================================================================
 
 interface FilterRuleProps {
   /** The filter rule */
@@ -125,7 +52,7 @@ interface FilterRuleProps {
  * Single filter rule row in the filter builder.
  * Contains: LogicPicker, PropertySelector, ConditionPicker, ValueInput, ActionsMenu
  */
-export function FilterRule({
+function FilterRule({
   rule,
   properties,
   isFirst,
@@ -139,8 +66,6 @@ export function FilterRule({
   canWrapInGroup,
   className,
 }: FilterRuleProps) {
-  const [showValueSelector, setShowValueSelector] = useState(false);
-
   // Find the property for this rule
   const property = properties.find((p) => String(p.id) === rule.property);
 
@@ -190,11 +115,9 @@ export function FilterRule({
       {/* Value Input */}
       {property && (
         <ValueInput
-          onShowSelectorChange={setShowValueSelector}
           onValueChange={(value) => updateRule({ value })}
           property={property}
           rule={rule}
-          showSelector={showValueSelector}
         />
       )}
 
@@ -218,42 +141,23 @@ interface FilterValueProps {
   onValueChange: (value: unknown) => void;
 }
 
-export function FilterValue({
-  rule,
-  property,
-  onValueChange,
-}: FilterValueProps) {
-  const [showSelector, setShowSelector] = useState(false);
+function FilterValue({ rule, property, onValueChange }: FilterValueProps) {
   return (
-    <ValueInput
-      onShowSelectorChange={setShowSelector}
-      onValueChange={onValueChange}
-      property={property}
-      rule={rule}
-      showSelector={showSelector}
-    />
+    <ValueInput onValueChange={onValueChange} property={property} rule={rule} />
   );
 }
 
 // ============================================================================
-// Internal Value Input Component
+// Internal Value Input Component - Dispatcher
 // ============================================================================
 
 interface ValueInputProps {
   rule: WhereRule;
   property: PropertyMeta;
   onValueChange: (value: unknown) => void;
-  showSelector: boolean;
-  onShowSelectorChange: (show: boolean) => void;
 }
 
-function ValueInput({
-  rule,
-  property,
-  onValueChange,
-  showSelector,
-  onShowSelectorChange,
-}: ValueInputProps) {
+function ValueInput({ rule, property, onValueChange }: ValueInputProps) {
   // Empty/Not Empty conditions don't need value input
   if (rule.condition === "isEmpty" || rule.condition === "isNotEmpty") {
     return null;
@@ -264,103 +168,51 @@ function ValueInput({
     case "url":
     case "email":
     case "phone":
-      return (
-        <DebouncedTextInput
-          className="h-8"
-          onChange={(value) => onValueChange(value)}
-          placeholder="Enter value..."
-          type="text"
-          value={rule.value != null ? String(rule.value) : ""}
-        />
-      );
-
     case "number":
       return (
-        <DebouncedTextInput
-          className="h-8"
-          inputMode="numeric"
-          onChange={(value) => onValueChange(value)}
-          placeholder="Enter value..."
-          type="number"
-          value={rule.value != null ? String(rule.value) : ""}
+        <TextAdvanceFilter
+          onValueChange={onValueChange}
+          property={property}
+          rule={rule}
         />
       );
 
     case "checkbox":
       return (
-        <CheckboxPicker
-          onChange={onValueChange}
-          value={rule.value as boolean | undefined}
-        />
-      );
-
-    case "select": {
-      const config = property.config as SelectConfig | undefined;
-      const options: SelectOption[] = config?.options ?? [];
-
-      return (
-        <SelectPicker
-          onChange={onValueChange}
-          onOpenChange={onShowSelectorChange}
-          open={showSelector}
-          options={options}
-          placeholder="Select an option"
-          value={extractSelectValues(rule.value)}
-        />
-      );
-    }
-
-    case "multiSelect": {
-      const config = property.config as MultiSelectConfig | undefined;
-      const options: SelectOption[] = config?.options ?? [];
-
-      return (
-        <SelectPicker
-          onChange={onValueChange}
-          onOpenChange={onShowSelectorChange}
-          open={showSelector}
-          options={options}
-          placeholder="Select..."
-          value={extractSelectValues(rule.value)}
-        />
-      );
-    }
-
-    case "status": {
-      const config = property.config as StatusConfig | undefined;
-      return (
-        <StatusPicker
-          config={config ?? { groups: [] }}
+        <CheckboxAdvanceFilter
           onValueChange={onValueChange}
-          value={extractSelectValues(rule.value)}
+          property={property}
+          rule={rule}
         />
       );
-    }
 
-    case "date": {
-      if (rule.condition === "isBetween") {
-        return (
-          <RangeDatePicker
-            onChange={onValueChange}
-            value={rule.value as DateRangeValue | undefined}
-          />
-        );
-      }
-      if (rule.condition === "isRelativeToToday") {
-        return (
-          <RelativeDatePicker
-            onChange={onValueChange}
-            value={rule.value as RelativeToTodayValue | undefined}
-          />
-        );
-      }
+    case "select":
+    case "multiSelect":
       return (
-        <SingleDatePicker
-          onChange={(value) => onValueChange(value)}
-          value={rule.value as string | undefined}
+        <SelectAdvanceFilter
+          onValueChange={onValueChange}
+          property={property}
+          rule={rule}
         />
       );
-    }
+
+    case "status":
+      return (
+        <StatusAdvanceFilter
+          onValueChange={onValueChange}
+          property={property}
+          rule={rule}
+        />
+      );
+
+    case "date":
+      return (
+        <DateAdvanceFilter
+          onValueChange={onValueChange}
+          property={property}
+          rule={rule}
+        />
+      );
 
     case "filesMedia":
     case "formula":
@@ -372,4 +224,5 @@ function ValueInput({
   }
 }
 
-export type { FilterRuleProps };
+export { FilterRule, FilterValue };
+export type { FilterRuleProps, FilterValueProps };

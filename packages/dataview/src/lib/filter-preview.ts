@@ -88,7 +88,11 @@ function getBooleanPreview(value: unknown): string {
  * Uses operators as separator (space + operator), no colon
  */
 function getNumberPreview(condition: FilterCondition, value: unknown): string {
-  const numValue = value != null ? String(value) : "";
+  // Only show preview if value is set (not null, undefined, or empty string)
+  if (value == null || value === "") {
+    return "";
+  }
+  const numValue = String(value);
   switch (condition) {
     case "eq":
       return ` = ${numValue}`;
@@ -103,7 +107,7 @@ function getNumberPreview(condition: FilterCondition, value: unknown): string {
     case "lte":
       return ` ≤ ${numValue}`;
     default:
-      return numValue ? ` = ${numValue}` : "";
+      return ` = ${numValue}`;
   }
 }
 

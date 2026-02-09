@@ -108,10 +108,14 @@ export function SortChip({ sorts, properties, onSortsChange }: SortChipProps) {
 
   return (
     <Popover onOpenChange={setOpen} open={isOpen}>
-      <PopoverTrigger render={<Button size="sm" variant="secondary" />}>
-        <SortAscIcon />
+      <PopoverTrigger
+        render={
+          <Button className="border-dashed" size="sm" variant="outline" />
+        }
+      >
+        <SortAscIcon className="size-4" />
         <span>{sortText}</span>
-        <ChevronDownIcon />
+        <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto p-1">
         <div className="flex flex-col gap-1">

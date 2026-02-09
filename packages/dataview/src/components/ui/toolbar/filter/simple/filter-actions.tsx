@@ -2,6 +2,7 @@
 
 import { ListFilterIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
 import { useAdvanceFilterBuilder } from "../../../../../hooks/use-advance-filter-builder";
+import { cn } from "../../../../../lib/utils";
 import { Button } from "../../../button";
 import {
   DropdownMenu,
@@ -38,7 +39,7 @@ export function FilterActions({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button className={className} size="icon-sm" variant="ghost" />}
+        render={<Button className={cn("size-6", className)} variant="ghost" />}
       >
         <MoreHorizontalIcon />
         <span className="sr-only">Actions</span>

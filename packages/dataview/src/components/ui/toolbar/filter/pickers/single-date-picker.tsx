@@ -8,9 +8,9 @@ import {
   subMonths,
   subWeeks,
 } from "date-fns";
-import { XIcon } from "lucide-react";
+import { ChevronDownIcon, XIcon } from "lucide-react";
 import type * as React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   cn,
   formatDateForDisplay,
@@ -20,6 +20,12 @@ import {
 } from "../../../../../lib/utils";
 import { Button } from "../../../button";
 import { Calendar } from "../../../calendar";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "../../../dropdown-menu";
 import {
   InputGroup,
   InputGroupAddon,
@@ -34,6 +40,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../select";
+
+// ============================================================================
+// Shared Types & Constants
+// ============================================================================
 
 type DatePreset =
   | "today"
@@ -56,6 +66,17 @@ const DATE_PRESET_ITEMS: { value: DatePreset; label: string }[] = [
   { value: "custom", label: "Custom date" },
 ];
 
+/** Preset labels for display in input field */
+const PRESET_LABELS: Record<Exclude<DatePreset, "custom">, string> = {
+  today: "Today",
+  tomorrow: "Tomorrow",
+  yesterday: "Yesterday",
+  one_week_ago: "One week ago",
+  one_week_from_now: "One week from now",
+  one_month_ago: "One month ago",
+  one_month_from_now: "One month from now",
+};
+
 /**
  * SingleDatePicker props shared between filter UI and inline editors.
  */
@@ -64,6 +85,15 @@ interface SingleDatePickerProps {
   value: string | number | undefined;
   /** Callback when value changes (receives ISO string) */
   onChange: (value: string) => void;
+}
+
+// ============================================================================
+// Shared Utilities
+// ============================================================================
+
+/** Get the first day of the month for calendar display */
+function getMonthStart(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
 function getDateFromPreset(preset: DatePreset): Date | null {
@@ -100,7 +130,7 @@ function getPresetFromDate(date: Date | undefined): DatePreset {
   }
 
   const dateStr = toDateOnlyString(date);
-  const presets: DatePreset[] = [
+  const presets: Exclude<DatePreset, "custom">[] = [
     "today",
     "tomorrow",
     "yesterday",
@@ -121,59 +151,169 @@ function getPresetFromDate(date: Date | undefined): DatePreset {
 }
 
 // ============================================================================
-// SingleDatePickerContent - For filter chips (select dropdown + inline calendar)
+// SingleDatePickerContent - For filter chips (input + presets dropdown + calendar)
 // ============================================================================
-
-/** Presets without "custom" option for the dropdown */
-const DATE_PRESET_OPTIONS = DATE_PRESET_ITEMS.filter(
-  (item) => item.value !== "custom"
-);
 
 /**
  * Content component for single date picker.
- * Renders select dropdown (presets) + always-visible calendar.
- * Used inside filter chip popover - matches Notion's filter UI pattern.
+ * Shows an input field (disabled when preset selected) with a dropdown for presets.
+ * Calendar is always visible below.
+ * Used inside filter chip popover.
  */
 function SingleDatePickerContent({ value, onChange }: SingleDatePickerProps) {
-  const dateValue = parseValue(value);
+  const [preset, setPreset] = useState<Exclude<DatePreset, "custom"> | null>(
+    null
+  );
+  const [draft, setDraft] = useState<string | null>(null);
+  const [isValid, setIsValid] = useState(true);
+  const [displayMonth, setDisplayMonth] = useState<Date>(() => new Date());
 
-  const handlePresetChange = (preset: string | null) => {
-    if (!preset) {
+  const dateValue = parseValue(value);
+  const isPresetMode = preset !== null && draft === null;
+  const displayValue = isPresetMode
+    ? PRESET_LABELS[preset]
+    : (draft ?? (dateValue ? formatDateForDisplay(dateValue) : ""));
+
+  // Sync displayMonth when value changes externally
+  useEffect(() => {
+    if (dateValue) {
+      setDisplayMonth(getMonthStart(dateValue));
+    }
+  }, [dateValue]);
+
+  const handlePresetSelect = (
+    selected: Exclude<DatePreset, "custom"> | "custom"
+  ) => {
+    if (selected === "custom") {
+      setPreset(null);
+      setDraft("");
+      setIsValid(true);
+    } else {
+      setPreset(selected);
+      setDraft(null);
+      setIsValid(true);
+      const date = getDateFromPreset(selected);
+      if (date) {
+        setDisplayMonth(getMonthStart(date));
+        onChange(toDateOnlyString(date));
+      }
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const text = e.target.value;
+    setDraft(text);
+    setIsValid(true);
+    setPreset(null);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.currentTarget.blur();
+    }
+  };
+
+  const handleBlur = () => {
+    if (!draft) {
       return;
     }
-    const date = getDateFromPreset(preset as DatePreset);
-    if (date) {
-      onChange(toDateOnlyString(date));
+
+    const parsed = parseDate(draft);
+    if (parsed) {
+      const formatted = formatDateForDisplay(parsed);
+      setDraft(formatted);
+      setIsValid(true);
+      setDisplayMonth(getMonthStart(parsed));
+      onChange(toDateOnlyString(parsed));
+    } else {
+      setIsValid(false);
     }
   };
 
   const handleCalendarSelect = (date: Date | undefined) => {
+    setPreset(null);
+    setDraft(null);
+    setIsValid(true);
+    if (date) {
+      setDisplayMonth(getMonthStart(date));
+    }
     onChange(date ? toDateOnlyString(date) : "");
   };
 
-  return (
-    <div className="flex flex-col gap-2">
-      {/* Select dropdown with presets */}
-      <Select onValueChange={handlePresetChange}>
-        <SelectTrigger>
-          <SelectValue>
-            {dateValue
-              ? formatDateForDisplay(dateValue)
-              : "Select or type a date..."}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          {DATE_PRESET_OPTIONS.map((item) => (
-            <SelectItem key={item.value} value={item.value}>
-              {item.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+  const handleClear = () => {
+    setPreset(null);
+    setDraft(null);
+    setIsValid(true);
+    onChange("");
+  };
 
-      {/* Calendar always visible */}
+  /** Presets without "custom" for dropdown */
+  const presetOptions = DATE_PRESET_ITEMS.filter(
+    (item) => item.value !== "custom"
+  ) as { value: Exclude<DatePreset, "custom">; label: string }[];
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="flex w-full p-1 pb-0">
+        <InputGroup className={cn(!isValid && "border-destructive")}>
+          <InputGroupInput
+            disabled={isPresetMode}
+            onBlur={handleBlur}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Select or type a date..."
+            value={displayValue}
+          />
+          <InputGroupAddon align="inline-end" className="gap-0">
+            {displayValue && (
+              <InputGroupButton
+                aria-label="Clear date"
+                onClick={handleClear}
+                size="icon-xs"
+                variant="ghost"
+              >
+                <XIcon />
+              </InputGroupButton>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <InputGroupButton
+                    aria-label="Select a date"
+                    size="icon-xs"
+                    variant="ghost"
+                  />
+                }
+              >
+                <ChevronDownIcon />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-auto">
+                {presetOptions.map((presetOption) => (
+                  <DropdownMenuCheckboxItem
+                    checked={preset === presetOption.value}
+                    key={presetOption.value}
+                    onCheckedChange={() =>
+                      handlePresetSelect(presetOption.value)
+                    }
+                  >
+                    {presetOption.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+                <DropdownMenuCheckboxItem
+                  checked={preset === null && draft !== null}
+                  onCheckedChange={() => handlePresetSelect("custom")}
+                >
+                  Custom date
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </InputGroupAddon>
+        </InputGroup>
+      </div>
       <Calendar
         mode="single"
+        month={displayMonth}
+        onMonthChange={setDisplayMonth}
         onSelect={handleCalendarSelect}
         selected={dateValue}
       />
@@ -191,7 +331,7 @@ function SingleDatePickerContent({ value, onChange }: SingleDatePickerProps) {
  *
  * Follows Notion UI pattern:
  * - Preset selected: Shows preset dropdown (Today, Tomorrow, etc.)
- * - Custom date selected: Shows "Custom date ▼" + "Select a date ▼" or "January 15, 2026 ▼"
+ * - Custom date selected: Shows "Custom date" + "Select a date" or "January 15, 2026"
  */
 function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);

@@ -49,10 +49,14 @@ export function AdvancedFilterChip({
 
   return (
     <Popover onOpenChange={setOpen} open={isOpen}>
-      <PopoverTrigger render={<Button size="sm" variant="secondary" />}>
-        <ListFilterIcon className="size-3" />
+      <PopoverTrigger
+        render={
+          <Button className="border-dashed" size="sm" variant="outline" />
+        }
+      >
+        <ListFilterIcon className="size-4" />
         <span>{ruleText}</span>
-        <ChevronDownIcon className="size-3" />
+        <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto min-w-64 p-1">
         <div className="flex flex-col gap-1">

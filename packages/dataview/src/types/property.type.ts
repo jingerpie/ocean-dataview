@@ -94,12 +94,24 @@ export interface SelectOption {
   color?: BadgeColor;
 }
 
+/**
+ * How options are ordered in picker dropdowns.
+ * - `"manual"` - Use the order as defined in options array (default)
+ * - `"asc"` - Alphabetically A→Z
+ * - `"desc"` - Alphabetically Z→A
+ */
+export type OptionOrder = "manual" | "asc" | "desc";
+
 export interface SelectConfig {
   options: SelectOption[];
+  /** How options are ordered in picker dropdown @default "manual" */
+  optionOrder?: OptionOrder;
 }
 
 export interface MultiSelectConfig {
   options: SelectOption[];
+  /** How options are ordered in picker dropdown @default "manual" */
+  optionOrder?: OptionOrder;
 }
 
 export interface StatusGroup {
@@ -110,6 +122,8 @@ export interface StatusGroup {
 
 export interface StatusConfig {
   groups: StatusGroup[];
+  /** How groups/options are ordered in picker dropdown @default "manual" */
+  optionOrder?: OptionOrder;
 }
 
 export interface DateConfig {
