@@ -49,10 +49,8 @@ function RelativeDateDropdowns({
   value,
   onChange,
 }: RelativeDateDropdownsProps) {
-  // Default to "this week" if no value (value is [direction, count, unit])
-  const direction = value?.[0] ?? "this";
-  const count = value?.[1] ?? 1;
-  const unit = value?.[2] ?? "week";
+  // Value is [direction, count, unit] - always set by getDefaultValueForCondition
+  const [direction, count, unit] = value ?? ["this", 1, "week"];
 
   // Show count input only for past/next (not "this")
   const showCount = direction !== "this";
@@ -137,10 +135,8 @@ function RelativeDatePickerContent({
   value,
   onChange,
 }: RelativeDatePickerProps) {
-  // Default to "this week" if no value (value is [direction, count, unit])
-  const direction = value?.[0] ?? "this";
-  const count = value?.[1] ?? 1;
-  const unit = value?.[2] ?? "week";
+  // Value is [direction, count, unit] - always set by getDefaultValueForCondition
+  const [direction, count, unit] = value ?? ["this", 1, "week"];
 
   // Calculate date range for calendar display
   const now = new Date();

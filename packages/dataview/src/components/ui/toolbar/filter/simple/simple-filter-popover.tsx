@@ -54,7 +54,7 @@ function SimpleFilterPopover({
       : "";
 
   const handleConditionChange = (newCondition: FilterCondition) => {
-    onRuleChange(applyConditionChange(rule, newCondition));
+    onRuleChange(applyConditionChange(rule, newCondition, property.type));
   };
 
   const close = () => setOpen(null);

@@ -40,6 +40,7 @@ export {
   applyConditionChange,
   createRuleFromProperty,
   extractSelectValues,
+  getDefaultValueForCondition,
   transformValueForCondition,
 } from "./filter-variant";
 export {
