@@ -1,4 +1,5 @@
 import { Button } from "@sparkyidea/ui/components/button";
+
 import { cn } from "@sparkyidea/ui/lib/utils";
 import {
   ChevronLeftIcon,
@@ -24,7 +25,7 @@ function PaginationContent({
 }: React.ComponentProps<"ul">) {
   return (
     <ul
-      className={cn("flex items-center gap-1", className)}
+      className={cn("flex items-center gap-0.5", className)}
       data-slot="pagination-content"
       {...props}
     />
@@ -66,33 +67,35 @@ function PaginationLink({
 
 function PaginationPrevious({
   className,
+  text = "Previous",
   ...props
-}: React.ComponentProps<typeof PaginationLink>) {
+}: React.ComponentProps<typeof PaginationLink> & { text?: string }) {
   return (
     <PaginationLink
       aria-label="Go to previous page"
-      className={cn("pl-2!", className)}
+      className={cn("pl-1.5!", className)}
       size="default"
       {...props}
     >
       <ChevronLeftIcon data-icon="inline-start" />
-      <span className="hidden sm:block">Previous</span>
+      <span className="hidden sm:block">{text}</span>
     </PaginationLink>
   );
 }
 
 function PaginationNext({
   className,
+  text = "Next",
   ...props
-}: React.ComponentProps<typeof PaginationLink>) {
+}: React.ComponentProps<typeof PaginationLink> & { text?: string }) {
   return (
     <PaginationLink
       aria-label="Go to next page"
-      className={cn("pr-2!", className)}
+      className={cn("pr-1.5!", className)}
       size="default"
       {...props}
     >
-      <span className="hidden sm:block">Next</span>
+      <span className="hidden sm:block">{text}</span>
       <ChevronRightIcon data-icon="inline-end" />
     </PaginationLink>
   );
@@ -106,7 +109,7 @@ function PaginationEllipsis({
     <span
       aria-hidden
       className={cn(
-        "flex size-9 items-center items-center justify-center justify-center [&_svg:not([class*='size-'])]:size-4",
+        "flex size-8 items-center justify-center [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       data-slot="pagination-ellipsis"

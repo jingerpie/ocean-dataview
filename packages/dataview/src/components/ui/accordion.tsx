@@ -1,7 +1,7 @@
 "use client";
 
 import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
-import { ChevronRightIcon } from "lucide-react";
+import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 function Accordion({ className, ...props }: AccordionPrimitive.Root.Props) {
@@ -33,15 +33,21 @@ function AccordionTrigger({
     <AccordionPrimitive.Header className="flex">
       <AccordionPrimitive.Trigger
         className={cn(
-          "sticky left-0 z-5",
-          "group/accordion-trigger relative flex flex-1 items-center gap-2 rounded-md border border-transparent py-4 text-left font-medium text-sm outline-none transition-all hover:underline focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:after:border-ring disabled:pointer-events-none disabled:opacity-50 [&[aria-expanded=true]>svg]:rotate-90",
+          "group/accordion-trigger relative flex flex-1 items-start justify-between rounded-lg border border-transparent py-2.5 text-left font-medium text-sm outline-none transition-all hover:underline focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:after:border-ring disabled:pointer-events-none disabled:opacity-50 **:data-[slot=accordion-trigger-icon]:ml-auto **:data-[slot=accordion-trigger-icon]:size-4 **:data-[slot=accordion-trigger-icon]:text-muted-foreground",
           className
         )}
         data-slot="accordion-trigger"
         {...props}
       >
-        <ChevronRightIcon className="pointer-events-none size-4 shrink-0 text-muted-foreground transition-transform duration-200" />
         {children}
+        <ChevronDownIcon
+          className="pointer-events-none shrink-0 group-aria-expanded/accordion-trigger:hidden"
+          data-slot="accordion-trigger-icon"
+        />
+        <ChevronUpIcon
+          className="pointer-events-none hidden shrink-0 group-aria-expanded/accordion-trigger:inline"
+          data-slot="accordion-trigger-icon"
+        />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   );
@@ -60,7 +66,7 @@ function AccordionContent({
     >
       <div
         className={cn(
-          "flex h-(--accordion-panel-height) flex-col gap-3 pt-0 pb-4 data-ending-style:h-0 data-starting-style:h-0 [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground [&_p:not(:last-child)]:mb-4",
+          "h-(--accordion-panel-height) pt-0 pb-2.5 data-ending-style:h-0 data-starting-style:h-0 [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground [&_p:not(:last-child)]:mb-4",
           className
         )}
       >

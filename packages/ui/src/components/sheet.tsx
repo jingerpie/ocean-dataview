@@ -2,6 +2,7 @@
 
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
 import { Button } from "@sparkyidea/ui/components/button";
+
 import { cn } from "@sparkyidea/ui/lib/utils";
 import { XIcon } from "lucide-react";
 import type * as React from "react";
@@ -63,7 +64,7 @@ function SheetContent({
             data-slot="sheet-close"
             render={
               <Button
-                className="absolute top-4 right-4"
+                className="absolute top-3 right-3"
                 size="icon-sm"
                 variant="ghost"
               />
@@ -81,7 +82,7 @@ function SheetContent({
 function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      className={cn("flex flex-col gap-1.5 p-4", className)}
+      className={cn("flex flex-col gap-0.5 p-4", className)}
       data-slot="sheet-header"
       {...props}
     />
@@ -101,7 +102,7 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
 function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
   return (
     <SheetPrimitive.Title
-      className={cn("font-medium text-foreground", className)}
+      className={cn("font-medium text-base text-foreground", className)}
       data-slot="sheet-title"
       {...props}
     />
