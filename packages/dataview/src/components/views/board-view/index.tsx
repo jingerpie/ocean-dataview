@@ -1,7 +1,6 @@
 "use client";
 
 import { AlertCircle, Columns3 } from "lucide-react";
-import Image from "next/image";
 import { useEffect, useMemo, useRef } from "react";
 import type {
   GroupedDataItem,
@@ -12,16 +11,15 @@ import { useDisplayProperties, useGroupConfig } from "../../../hooks";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import {
   buildPaginationContext,
-  cn,
   transformData,
   validatePropertyKeys,
 } from "../../../lib/utils";
 import { getBoardCardDimensions } from "../../../lib/utils/get-card-sizes";
 import type { DataViewProperty } from "../../../types";
 import { Badge } from "../../ui/badge";
-import { Card, CardContent } from "../../ui/card";
 import { EmptyState } from "../../ui/empty-state";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
+import { DataCard } from "../data-card";
 import { DataCell } from "../data-cell";
 import { BoardColumnCard } from "./board-column-card";
 import { BoardRowLayout } from "./board-row-layout";
@@ -381,73 +379,20 @@ export function BoardView<
   // Get card dimensions based on size
   const { imageHeight, columnWidth } = getBoardCardDimensions(cardSize);
 
-  // Get card content
-  const getCardContent = (item: TData) => {
-    // Handle cardPreview - if it's an array, use the first element
-    const previewValue = cardPreview
-      ? (item as Record<string, unknown>)[cardPreview]
-      : null;
-    const imageUrl = Array.isArray(previewValue)
-      ? previewValue[0]
-      : (previewValue as string);
-
-    return (
-      <Card
-        className={cn(
-          "gap-0 overflow-hidden py-0 transition-all hover:shadow-lg",
-          onCardClick && "cursor-pointer"
-        )}
-        onClick={() => onCardClick?.(item)}
-      >
-        {/* Image Preview */}
-        {imageUrl && (
-          <div className="relative bg-muted" style={{ height: imageHeight }}>
-            <Image
-              alt="Preview"
-              className="object-cover"
-              fill
-              loading="lazy"
-              src={imageUrl}
-            />
-          </div>
-        )}
-
-        {/* Card Content */}
-        <CardContent className="flex flex-col gap-2 p-3">
-          {displayProperties.map((property) => {
-            const value = (item as Record<string, unknown>)[property.id];
-
-            return (
-              <div
-                className={cn(
-                  "flex flex-col items-start",
-                  (property.type === "select" ||
-                    property.type === "multiSelect" ||
-                    property.type === "status" ||
-                    property.type === "filesMedia") &&
-                    "gap-1"
-                )}
-                key={String(property.id)}
-              >
-                {showPropertyNames && (
-                  <span className="text-muted-foreground text-xs">
-                    {property.label ?? String(property.id)}
-                  </span>
-                )}
-                <DataCell
-                  allProperties={properties}
-                  item={item}
-                  property={property}
-                  value={value}
-                  wrap={wrapAllProperties}
-                />
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
-    );
-  };
+  // Get card content using shared DataCard component
+  const getCardContent = (item: TData) => (
+    <DataCard
+      allProperties={properties}
+      cardPreview={cardPreview}
+      displayProperties={displayProperties}
+      fitImage={true}
+      imageHeight={imageHeight}
+      item={item}
+      onCardClick={onCardClick}
+      showPropertyNames={showPropertyNames}
+      wrapAllProperties={wrapAllProperties}
+    />
+  );
 
   // Get column background color based on property configuration
   // Returns transparent for non-badge types, colored backgrounds for badge types (select, multi-select, status)

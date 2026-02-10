@@ -17,7 +17,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupPaginationTabs } from "../group-pagination/group-pagination-tabs";
-import { productProperties } from "../group-pagination/product-properties";
+import { productProperties } from "./product-properties";
 
 interface Props {
   limit: number;

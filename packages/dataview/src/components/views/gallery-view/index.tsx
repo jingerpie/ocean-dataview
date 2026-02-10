@@ -10,7 +10,7 @@ import type { DataViewProperty } from "../../../types";
 import { Accordion } from "../../ui/accordion";
 import { GroupSection } from "../../ui/group-section";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
-import { GalleryCard } from "./gallery-card";
+import { DataCard } from "../data-card";
 
 export interface GalleryViewProps<
   TData,
@@ -169,6 +169,33 @@ export function GalleryView<
   // Transform flat data for non-grouped view (must be before early returns)
   const transformedFlatData = transformedData;
 
+  // Helper to render card grid
+  const renderCardGrid = (items: TData[]) => (
+    <div className={cn("grid gap-4", cols)}>
+      {items.map((item, index) => {
+        const firstProperty = displayProperties[0];
+        const uniqueKey = firstProperty
+          ? `card-${String((item as Record<string, unknown>)[firstProperty.id])}-${index}`
+          : `card-${index}`;
+
+        return (
+          <DataCard
+            allProperties={properties}
+            cardPreview={cardPreview}
+            displayProperties={displayProperties}
+            fitImage={fitImage}
+            imageHeight={imageHeight}
+            item={item}
+            key={uniqueKey}
+            onCardClick={onCardClick}
+            showPropertyNames={showPropertyNames}
+            wrapAllProperties={wrapAllProperties}
+          />
+        );
+      })}
+    </div>
+  );
+
   // Error state
   if (validationError || propertyValidationError) {
     return (
@@ -211,18 +238,7 @@ export function GalleryView<
                 renderFooter={renderPagination(pagination, paginationContext)}
                 showAggregation={groupBy?.showAggregation ?? true}
               >
-                <GalleryCard
-                  allProperties={properties}
-                  cardPreview={cardPreview}
-                  cols={cols}
-                  data={group.items}
-                  displayProperties={displayProperties}
-                  fitImage={fitImage}
-                  imageHeight={imageHeight}
-                  onCardClick={onCardClick}
-                  showPropertyNames={showPropertyNames}
-                  wrapAllProperties={wrapAllProperties}
-                />
+                {renderCardGrid(group.items)}
               </GroupSection>
             );
           })}
@@ -249,18 +265,7 @@ export function GalleryView<
   // STANDARD VIEW: Flat gallery without grouping
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      <GalleryCard
-        allProperties={properties}
-        cardPreview={cardPreview}
-        cols={cols}
-        data={transformedFlatData}
-        displayProperties={displayProperties}
-        fitImage={fitImage}
-        imageHeight={imageHeight}
-        onCardClick={onCardClick}
-        showPropertyNames={showPropertyNames}
-        wrapAllProperties={wrapAllProperties}
-      />
+      {renderCardGrid(transformedFlatData)}
       {renderPagination(pagination, flatPaginationContext)}
     </div>
   );
