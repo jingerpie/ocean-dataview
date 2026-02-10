@@ -3,12 +3,16 @@
 import { useGroupPagePagination } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
+import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
   BoardSkeleton,
   BoardView,
 } from "@sparkyidea/dataview/views/board-view";
 import type { Cursors, SortQuery, WhereNode } from "@sparkyidea/shared/types";
-import { combineGroupFilter } from "@sparkyidea/shared/utils";
+import {
+  buildSearchFilter,
+  combineGroupFilter,
+} from "@sparkyidea/shared/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
@@ -22,8 +26,8 @@ interface Props {
   cursors: Cursors;
   limit: number;
   filter?: WhereNode[] | null;
-  /** Search filter (converted from URL ?search=xxx by server page) */
-  search?: WhereNode | null;
+  /** Raw search string from URL (for UI display) */
+  search?: string;
   sort?: SortQuery[];
 }
 
@@ -37,10 +41,14 @@ export function ProductSubGroupPaginationBoard({
   cursors,
   limit,
   filter = null,
-  search: searchQuery = null,
+  search: searchQuery = "",
   sort = [],
 }: Props) {
   const trpc = useTRPC();
+
+  // Build search filter from raw search string
+  const searchableFields = getSearchableProperties(productProperties);
+  const search = buildSearchFilter(searchQuery, searchableFields);
 
   // 1. Fetch group counts (suspends until data is ready)
   const { data: groupCounts } = useSuspenseQuery(
@@ -51,7 +59,6 @@ export function ProductSubGroupPaginationBoard({
   const allGroupKeys = Object.keys(groupCounts);
 
   // 3. Single hook call - creates queries internally using TRPC queryOptions
-  // search is now a Filter (converted from URL param by server)
   const { data, pagination } = useGroupPagePagination({
     allGroupKeys,
     expanded: allGroupKeys, // All columns visible
@@ -61,7 +68,7 @@ export function ProductSubGroupPaginationBoard({
     createQueryOptions: (groupKey, cursor) =>
       trpc.product.getMany.queryOptions({
         filter: combineGroupFilter("category", groupKey, filter),
-        search: searchQuery,
+        search,
         sort,
         cursor,
         limit,
@@ -81,6 +88,11 @@ export function ProductSubGroupPaginationBoard({
     <Suspense fallback={<BoardSkeleton columnCount={4} />}>
       <DataViewProvider
         data={data}
+        defaults={{
+          filter,
+          sort,
+          search: searchQuery,
+        }}
         pagination={pagination}
         properties={productProperties}
       >
