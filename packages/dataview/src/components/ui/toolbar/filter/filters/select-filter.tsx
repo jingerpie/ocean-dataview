@@ -4,7 +4,9 @@ import type { WhereRule } from "@sparkyidea/shared/types";
 import { extractSelectValues } from "@sparkyidea/shared/utils";
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
+import { getBadgeClasses } from "../../../../../lib/utils";
 import type {
+  BadgeColor,
   PropertyMeta,
   SelectConfig,
   SelectOption,
@@ -85,10 +87,10 @@ function SelectBody({
         onClearAll={selectedOptions.length > 0 ? onClearAll : undefined}
       >
         {selectedOptions.map((option) => {
-          const color = option.color ?? "gray";
+          const color = (option.color ?? "gray") as BadgeColor;
           return (
             <CommandChip
-              className={`bg-badge-${color}-subtle text-badge-${color}-subtle-foreground`}
+              className={getBadgeClasses(color)}
               key={option.value}
               onRemove={() => onRemove(option.value)}
             >
@@ -110,7 +112,7 @@ function SelectBody({
         <CommandEmpty>No options found.</CommandEmpty>
         <CommandGroup>
           {filteredOptions.map((option) => {
-            const color = option.color ?? "gray";
+            const color = (option.color ?? "gray") as BadgeColor;
             const isSelected = selectedValues.includes(option.value);
             return (
               <CommandItem
@@ -123,7 +125,7 @@ function SelectBody({
                   className="[&_svg]:text-current!"
                 />
                 <CommandChip
-                  className={`bg-badge-${color}-subtle text-badge-${color}-subtle-foreground`}
+                  className={getBadgeClasses(color)}
                   showRemove={false}
                 >
                   {option.value}
@@ -229,10 +231,10 @@ function SelectAdvanceFilter({
         {selectedOptions.length > 0 ? (
           <div className="flex min-w-0 flex-1 gap-1 overflow-hidden">
             {selectedOptions.map((option) => {
-              const color = option.color ?? "gray";
+              const color = (option.color ?? "gray") as BadgeColor;
               return (
                 <CommandChip
-                  className={`bg-badge-${color}-subtle text-badge-${color}-subtle-foreground`}
+                  className={getBadgeClasses(color)}
                   key={option.value}
                   showRemove={false}
                 >

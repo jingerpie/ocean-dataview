@@ -14,7 +14,7 @@ import { cn } from "../../../lib/utils";
 const SCROLL_THROTTLE_MS = 16; // 60fps
 const RESIZE_DEBOUNCE_MS = 150;
 
-interface BoardStickyHeaderProps {
+interface StickyColumnLabelProps {
   /**
    * Groups to render in the header
    */
@@ -61,10 +61,10 @@ interface BoardStickyHeaderProps {
 }
 
 /**
- * BoardStickyHeader - Portal-based sticky header for board view
+ * StickyColumnLabel - Portal-based sticky header for board column labels
  * Syncs horizontal scroll with the main board content
  */
-export function BoardStickyHeader({
+export function StickyColumnLabel({
   groups,
   columnWidthPx,
   columnHeader,
@@ -73,7 +73,7 @@ export function BoardStickyHeader({
   headerRef,
   containerRef,
   offset = 0,
-}: BoardStickyHeaderProps) {
+}: StickyColumnLabelProps) {
   const stickyHeaderScrollRef = useRef<HTMLDivElement>(null);
   const [showStickyHeader, setShowStickyHeader] = useState(false);
   const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
@@ -275,7 +275,7 @@ export function BoardStickyHeader({
           {groups.map((group) => (
             <div
               className={cn(
-                "shrink-0 pb-3",
+                "shrink-0 rounded-lg p-2",
                 getColumnBgClass?.(group.key) || "bg-muted/30"
               )}
               key={group.key}

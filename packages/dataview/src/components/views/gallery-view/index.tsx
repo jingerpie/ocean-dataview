@@ -237,6 +237,7 @@ export function GalleryView<
                 key={group.key}
                 renderFooter={renderPagination(pagination, paginationContext)}
                 showAggregation={groupBy?.showAggregation ?? true}
+                stickyHeader={{ enabled: true, offset: 56 }}
               >
                 {renderCardGrid(group.items)}
               </GroupSection>

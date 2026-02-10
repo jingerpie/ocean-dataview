@@ -10,7 +10,8 @@ import {
   AccordionTrigger,
 } from "../../ui/accordion";
 import { DataCell } from "../data-cell";
-import { BoardStickyHeader } from "./board-sticky-header";
+import { StickyGroupLabel } from "../sticky-group-label";
+import { StickyColumnLabel } from "./sticky-column-label";
 
 /** Regex to extract width number from Tailwind class (e.g., "w-80" -> "80") */
 const TAILWIND_WIDTH_REGEX = /w-(\d+)/;
@@ -242,10 +243,10 @@ export function BoardRowLayout<
   const columnWidthPx = parseColumnWidth(columnWidth);
 
   return (
-    <div className={cn("overflow-clip", className)}>
-      {/* Portal-based sticky header */}
+    <div className={cn("relative max-w-full overflow-clip", className)}>
+      {/* Portal-based sticky column labels */}
       {stickyHeader?.enabled && (
-        <BoardStickyHeader
+        <StickyColumnLabel
           columnHeader={columnHeader}
           columnWidthPx={columnWidthPx}
           containerRef={containerRef}
@@ -260,14 +261,11 @@ export function BoardRowLayout<
       <div className="overflow-x-auto pb-4" ref={containerRef}>
         <div className="min-w-fit">
           {/* Original column headers */}
-          <div
-            className="sticky top-0 z-10 flex gap-3 bg-background"
-            ref={headerRef}
-          >
+          <div className="flex gap-3 bg-background" ref={headerRef}>
             {groups.map((group) => (
               <div
                 className={cn(
-                  "shrink-0 pb-3",
+                  "shrink-0 rounded-lg p-2",
                   getColumnBgClass?.(group.key) || "bg-muted/30"
                 )}
                 key={group.key}
@@ -295,68 +293,17 @@ export function BoardRowLayout<
             value={subGroupConfig.expandedSubGroups}
           >
             {visibleSubGroups.map((subGroup) => (
-              <AccordionItem
-                className="border-b-0"
+              <SubGroupRow
+                cardContent={cardContent}
+                columnWidthPx={columnWidthPx}
+                getColumnBgClass={getColumnBgClass}
+                getItemsForCell={getItemsForCell}
+                groups={groups}
                 key={subGroup.key}
-                value={subGroup.key}
-              >
-                <AccordionTrigger className="flex-initial py-2 hover:no-underline">
-                  <div className="flex items-center gap-2">
-                    {subGroupByPropertyDef ? (
-                      <DataCell
-                        item={
-                          { [subGroupByPropertyDef.id]: subGroup.key } as TData
-                        }
-                        property={subGroupByPropertyDef}
-                        value={subGroup.key}
-                      />
-                    ) : (
-                      <span className="font-medium text-sm">
-                        {subGroup.key}
-                      </span>
-                    )}
-                    <span className="font-medium text-muted-foreground text-xs">
-                      {subGroup.displayCount}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="gap-0 pb-0">
-                  {/* Card grid for this sub-group */}
-                  <div className="flex gap-3">
-                    {groups.map((group) => {
-                      const cellItems = getItemsForCell(
-                        group.key,
-                        subGroup.key
-                      );
-                      const columnBgClass = getColumnBgClass?.(group.key);
-
-                      return (
-                        <div
-                          className={cn(
-                            "shrink-0 rounded-lg",
-                            columnBgClass || "bg-muted/10"
-                          )}
-                          key={group.key}
-                          style={{ width: columnWidthPx }}
-                        >
-                          {cellItems.length > 0 ? (
-                            <div className="flex flex-col gap-2">
-                              {cellItems.map((item, index) => (
-                                <div key={keyExtractor(item, index)}>
-                                  {cardContent(item, index)}
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            // Empty cell placeholder - maintains column alignment
-                            <div className="min-h-10" />
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                keyExtractor={keyExtractor}
+                subGroup={subGroup}
+                subGroupByPropertyDef={subGroupByPropertyDef}
+              />
             ))}
           </Accordion>
 
@@ -377,5 +324,83 @@ export function BoardRowLayout<
         </div>
       </div>
     </div>
+  );
+}
+
+function SubGroupRow<TData>({
+  subGroup,
+  subGroupByPropertyDef,
+  groups,
+  columnWidthPx,
+  getItemsForCell,
+  keyExtractor,
+  cardContent,
+  getColumnBgClass,
+}: {
+  subGroup: { key: string; displayCount?: string };
+  subGroupByPropertyDef?: DataViewProperty<TData>;
+  groups: { key: string }[];
+  columnWidthPx: number;
+  getItemsForCell: (groupKey: string, subGroupKey: string) => TData[];
+  keyExtractor: (item: TData, index: number) => string;
+  cardContent: (item: TData, index: number) => ReactNode;
+  getColumnBgClass?: (groupName: string) => string | undefined;
+}) {
+  const itemRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <AccordionItem className="border-b-0" ref={itemRef} value={subGroup.key}>
+      <StickyGroupLabel containerRef={itemRef} offset={93}>
+        <AccordionTrigger className="flex-initial py-2 hover:no-underline">
+          <div className="flex items-center gap-2">
+            {subGroupByPropertyDef ? (
+              <DataCell
+                item={{ [subGroupByPropertyDef.id]: subGroup.key } as TData}
+                property={subGroupByPropertyDef}
+                value={subGroup.key}
+              />
+            ) : (
+              <span className="font-medium text-sm">{subGroup.key}</span>
+            )}
+            <span className="font-medium text-muted-foreground text-xs">
+              {subGroup.displayCount}
+            </span>
+          </div>
+        </AccordionTrigger>
+      </StickyGroupLabel>
+      <AccordionContent className="gap-0 pb-0">
+        <div className="flex gap-3">
+          {groups.map((group) => {
+            // Cast to helper to avoid TS complexity if needed, but here generic works?
+            // TData is visible here.
+            const cellItems = getItemsForCell(group.key, subGroup.key);
+            const columnBgClass = getColumnBgClass?.(group.key);
+
+            return (
+              <div
+                className={cn(
+                  "shrink-0 rounded-lg p-2",
+                  columnBgClass || "bg-muted/10"
+                )}
+                key={group.key}
+                style={{ width: columnWidthPx }}
+              >
+                {cellItems.length > 0 ? (
+                  <div className="flex flex-col gap-2">
+                    {cellItems.map((item, index) => (
+                      <div key={keyExtractor(item, index)}>
+                        {cardContent(item, index)}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="min-h-10" />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </AccordionContent>
+    </AccordionItem>
   );
 }

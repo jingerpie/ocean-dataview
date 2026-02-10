@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { cn } from "../../../lib/utils";
+import { cn, getBadgeForegroundVar } from "../../../lib/utils";
 import { getUserLocale } from "../../../lib/utils/locale-helpers";
 import type { NumberConfig } from "../../../types/property.type";
 
@@ -74,7 +74,7 @@ export function NumberProperty({
     return <span className="text-muted-foreground text-sm">-</span>;
   }
 
-  const cssColor = `var(--badge-${color}-subtle-foreground)`;
+  const cssColor = getBadgeForegroundVar(color);
 
   // Bar visualization
   if (showAsType === "bar") {

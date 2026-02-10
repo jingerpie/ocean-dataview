@@ -1,4 +1,12 @@
-// biome-ignore lint/performance/noBarrelFile: Intentional public API barrel file
+// biome-ignore-all lint/performance/noBarrelFile: Intentional public API barrel file
+export {
+  BADGE_BG_CLASSES,
+  BADGE_COLOR_CLASSES,
+  getBadgeBgClass,
+  getBadgeBgTransparentClass,
+  getBadgeClasses,
+  getBadgeForegroundVar,
+} from "./badge-colors";
 export { buildPaginationContext } from "./build-pagination-context";
 export type { GroupedDataWithMeta } from "./compute-data";
 export { getGroupCounts, groupByProperty } from "./compute-data";

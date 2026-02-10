@@ -11,11 +11,12 @@ import { useDisplayProperties, useGroupConfig } from "../../../hooks";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import {
   buildPaginationContext,
+  getBadgeBgTransparentClass,
   transformData,
   validatePropertyKeys,
 } from "../../../lib/utils";
 import { getBoardCardDimensions } from "../../../lib/utils/get-card-sizes";
-import type { DataViewProperty } from "../../../types";
+import type { BadgeColor, DataViewProperty } from "../../../types";
 import { Badge } from "../../ui/badge";
 import { EmptyState } from "../../ui/empty-state";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
@@ -410,11 +411,12 @@ export function BoardView<
     }
 
     // Helper to convert color name to background class
-    const getBgClass = (color: string) => `bg-badge-${color}-subtle/50`;
+    const getBgClass = (color: string) =>
+      getBadgeBgTransparentClass(color as BadgeColor);
 
     // For status properties with showAs: "group"
     if (groupByProperty.type === "status" && groupConfig?.showAs === "group") {
-      const statusGroupMap: Record<string, string> = {
+      const statusGroupMap: Record<string, BadgeColor> = {
         "To Do": "gray",
         "In Progress": "blue",
         Complete: "green",
@@ -434,7 +436,8 @@ export function BoardView<
     }
 
     // Use color from option if defined (select, multi-select, or status)
-    const color = ("color" in option ? option.color : undefined) || "gray";
+    const color = (("color" in option ? option.color : undefined) ||
+      "gray") as BadgeColor;
     return getBgClass(color);
   };
 

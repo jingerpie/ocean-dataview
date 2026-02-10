@@ -5,7 +5,7 @@ import { ModeToggle } from "@/components/layouts/mode-toggle";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-50 w-full border-border/40 border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-border/40 border-b bg-background">
       <div className="container flex h-14 items-center">
         <Button
           className="size-8"
