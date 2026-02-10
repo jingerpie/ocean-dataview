@@ -10,8 +10,8 @@ import { buildSearchFilter } from "@sparkyidea/shared/utils";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
-import { PaginationTabs } from "./pagination-tabs";
 import { productProperties } from "./product-properties";
+import { ViewNav } from "./view-nav";
 
 interface ProductPaginationListProps {
   limit: number;
@@ -76,7 +76,7 @@ export function ProductPaginationList({
         properties={productProperties}
       >
         <NotionToolbar properties={productProperties}>
-          <PaginationTabs />
+          <ViewNav />
         </NotionToolbar>
 
         {items.length === 0 ? (

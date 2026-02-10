@@ -16,8 +16,8 @@ import {
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
-import { GroupPaginationTabs } from "../group-pagination/group-pagination-tabs";
 import { productProperties } from "./product-properties";
+import { ViewNav } from "./view-nav";
 
 interface Props {
   limit: number;
@@ -87,7 +87,7 @@ export function ProductGroupPaginationBoard({
         properties={productProperties}
       >
         <NotionToolbar properties={productProperties}>
-          <GroupPaginationTabs />
+          <ViewNav />
         </NotionToolbar>
 
         {pagination.groups.length === 0 ? (

@@ -17,8 +17,8 @@ import { buildSearchFilter } from "@sparkyidea/shared/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
-import { PaginationTabs } from "./pagination-tabs";
 import { productProperties } from "./product-properties";
+import { ViewNav } from "./view-nav";
 
 /**
  * Props passed from server (with defaults already applied)
@@ -87,7 +87,7 @@ export function ProductPaginationTable(props: PaginationProps) {
         properties={productProperties}
       >
         <NotionToolbar properties={productProperties}>
-          <PaginationTabs />
+          <ViewNav />
         </NotionToolbar>
         <TableView
           layout={{ showVerticalLines: true, wrapAllColumns: false }}

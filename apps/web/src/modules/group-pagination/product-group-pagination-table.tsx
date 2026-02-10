@@ -12,8 +12,8 @@ import { combineGroupFilter } from "@sparkyidea/shared/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
-import { GroupPaginationTabs } from "./group-pagination-tabs";
 import { productProperties } from "./product-properties";
+import { ViewNav } from "./view-nav";
 
 const DEFAULT_EXPANDED: string[] = [];
 
@@ -95,7 +95,7 @@ export function ProductGroupPaginationTable({
         properties={productProperties}
       >
         <NotionToolbar properties={productProperties}>
-          <GroupPaginationTabs />
+          <ViewNav />
         </NotionToolbar>
 
         <TableView
