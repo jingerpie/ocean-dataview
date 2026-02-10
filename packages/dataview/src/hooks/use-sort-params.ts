@@ -2,10 +2,10 @@
 
 import { parseAsSort } from "@sparkyidea/shared/lib";
 import type { SortQuery } from "@sparkyidea/shared/types";
-import { useDebouncer } from "@tanstack/react-pacer";
 import { useQueryState } from "nuqs";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDataViewContext } from "../lib/providers";
+import { useDebouncedCallback } from "./use-debounced-callback";
 
 const SORT_DEBOUNCE_MS = 150;
 
@@ -19,9 +19,7 @@ const EMPTY_SORT: SortQuery[] = [];
  * - Reads from DataViewContext defaults (server props)
  * - Writes to URL via nuqs (triggers server re-render)
  * - Uses empty array `[]` in URL to distinguish "cleared" from "use default"
- *
- * Debouncing: 150ms with leading edge (first click fires immediately,
- * subsequent rapid clicks are batched)
+ * - Uses proper debouncing that always uses the LATEST value
  *
  * @example
  * ```ts
@@ -46,63 +44,88 @@ export function useSortParams() {
   // Local state for immediate UI updates (initialized from server)
   const [localSort, setLocalSort] = useState<SortQuery[]>(serverSort);
 
-  // Debounced URL update with leading: true for responsive first click
-  const urlDebouncer = useDebouncer(
-    (newSort: SortQuery[]) => {
-      setUrlSortState(newSort);
-    },
-    { wait: SORT_DEBOUNCE_MS, leading: true, trailing: true }
-  );
+  // Track if change originated internally
+  const isInternalChange = useRef(false);
+
+  // Debounced URL update - uses proper debounce that resets timer on each call
+  const debouncedUrlUpdate = useDebouncedCallback((newSort: SortQuery[]) => {
+    setUrlSortState(newSort);
+  }, SORT_DEBOUNCE_MS);
 
   // Sync local state when server value changes (navigation, refresh)
+  // Skip sync if we triggered the change ourselves
   useEffect(() => {
-    setLocalSort(serverSort);
+    if (!isInternalChange.current) {
+      setLocalSort(serverSort);
+    }
+    isInternalChange.current = false;
   }, [serverSort]);
 
   // Flush pending updates on unmount
   useEffect(() => {
-    return () => urlDebouncer.flush();
-  }, [urlDebouncer]);
+    return () => debouncedUrlUpdate.flush();
+  }, [debouncedUrlUpdate]);
 
-  const setSort = (newSort: SortQuery[]) => {
-    setLocalSort(newSort);
-    // Always write to URL (even empty array) to track explicit state
-    urlDebouncer.maybeExecute(newSort);
-  };
+  const setSort = useCallback(
+    (newSort: SortQuery[]) => {
+      setLocalSort(newSort);
+      isInternalChange.current = true;
+      // Always write to URL (even empty array) to track explicit state
+      debouncedUrlUpdate(newSort);
+    },
+    [debouncedUrlUpdate]
+  );
 
-  const addSort = (prop: string, direction: "asc" | "desc" = "asc") => {
-    const existing = localSort.find((s) => s.property === prop);
-    if (existing) {
-      // Toggle direction
-      setSort(
-        localSort.map((s) =>
-          s.property === prop
-            ? { ...s, direction: s.direction === "asc" ? "desc" : "asc" }
-            : s
-        )
-      );
-    } else {
-      setSort([...localSort, { property: prop, direction }]);
-    }
-  };
+  const addSort = useCallback(
+    (prop: string, direction: "asc" | "desc" = "asc") => {
+      setLocalSort((currentSort) => {
+        const existing = currentSort.find((s) => s.property === prop);
+        let newSort: SortQuery[];
+        if (existing) {
+          // Toggle direction
+          newSort = currentSort.map((s) =>
+            s.property === prop
+              ? { ...s, direction: s.direction === "asc" ? "desc" : "asc" }
+              : s
+          );
+        } else {
+          newSort = [...currentSort, { property: prop, direction }];
+        }
+        isInternalChange.current = true;
+        debouncedUrlUpdate(newSort);
+        return newSort;
+      });
+    },
+    [debouncedUrlUpdate]
+  );
 
-  const removeSort = (prop: string) => {
-    setSort(localSort.filter((s) => s.property !== prop));
-  };
+  const removeSort = useCallback(
+    (prop: string) => {
+      setLocalSort((currentSort) => {
+        const newSort = currentSort.filter((s) => s.property !== prop);
+        isInternalChange.current = true;
+        debouncedUrlUpdate(newSort);
+        return newSort;
+      });
+    },
+    [debouncedUrlUpdate]
+  );
 
-  const clearSort = () => {
+  const clearSort = useCallback(() => {
     setLocalSort([]);
-    urlDebouncer.cancel();
+    isInternalChange.current = true;
+    debouncedUrlUpdate.cancel();
     // Write empty array to URL to distinguish from "use default"
     setUrlSortState(EMPTY_SORT);
-  };
+  }, [debouncedUrlUpdate, setUrlSortState]);
 
   /** Remove sort param from URL entirely, restoring to server defaults */
-  const resetSort = () => {
+  const resetSort = useCallback(() => {
     setLocalSort(serverSort);
-    urlDebouncer.cancel();
+    isInternalChange.current = true;
+    debouncedUrlUpdate.cancel();
     setUrlSortState(null);
-  };
+  }, [debouncedUrlUpdate, serverSort, setUrlSortState]);
 
   return {
     sort: localSort,
@@ -113,6 +136,6 @@ export function useSortParams() {
     resetSort,
     isSorted: localSort.length > 0,
     /** Immediately apply pending sort to URL */
-    flush: () => urlDebouncer.flush(),
+    flush: debouncedUrlUpdate.flush,
   };
 }

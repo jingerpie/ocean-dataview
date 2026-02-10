@@ -1,17 +1,18 @@
 "use client";
 
-import { useDebouncer } from "@tanstack/react-pacer";
 import { parseAsString, useQueryState } from "nuqs";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDataViewContext } from "../lib/providers";
+import { useDebouncedCallback } from "./use-debounced-callback";
 
-const SEARCH_DEBOUNCE_MS = 150;
+const SEARCH_DEBOUNCE_MS = 300;
 
 /**
- * Hook for managing search term with debouncing (150ms).
+ * Hook for managing search term with debouncing (300ms).
  *
  * - Reads from DataViewContext defaults (server props)
  * - Writes to URL via nuqs (triggers server re-render)
+ * - Uses proper debouncing that always uses the LATEST value
  *
  * @example
  * ```ts
@@ -34,42 +35,47 @@ export function useSearchParams() {
 
   // Local state for immediate UI updates (initialized from server)
   const [localSearch, setLocalSearch] = useState(serverSearch);
-  const [isPending, setIsPending] = useState(false);
 
-  // Debounced URL update
-  const urlDebouncer = useDebouncer(
-    (value: string) => {
-      setUrlSearchState(value);
-      setIsPending(false);
-    },
-    { wait: SEARCH_DEBOUNCE_MS }
-  );
+  // Track if change originated from user typing (internal)
+  const isInternalChange = useRef(false);
+
+  // Debounced URL update - uses proper debounce that resets timer on each call
+  const debouncedUrlUpdate = useDebouncedCallback((value: string) => {
+    setUrlSearchState(value);
+  }, SEARCH_DEBOUNCE_MS);
 
   // Sync local state when server value changes (navigation, refresh)
+  // Skip sync if we triggered the change ourselves
   useEffect(() => {
-    setLocalSearch(serverSearch);
+    if (!isInternalChange.current) {
+      setLocalSearch(serverSearch);
+    }
+    isInternalChange.current = false;
   }, [serverSearch]);
 
   // Flush pending updates on unmount
   useEffect(() => {
-    return () => urlDebouncer.flush();
-  }, [urlDebouncer]);
+    return () => debouncedUrlUpdate.flush();
+  }, [debouncedUrlUpdate]);
 
-  const setSearch = (value: string | null) => {
-    const normalizedValue = value ?? "";
-    setLocalSearch(normalizedValue);
-    setIsPending(true);
-    // Always write to URL (even empty string) to track explicit state
-    urlDebouncer.maybeExecute(normalizedValue);
-  };
+  const setSearch = useCallback(
+    (value: string | null) => {
+      const normalizedValue = value ?? "";
+      setLocalSearch(normalizedValue);
+      isInternalChange.current = true;
+      // Always write to URL (even empty string) to track explicit state
+      debouncedUrlUpdate(normalizedValue);
+    },
+    [debouncedUrlUpdate]
+  );
 
-  const clearSearch = () => {
+  const clearSearch = useCallback(() => {
     setLocalSearch("");
-    setIsPending(false);
-    urlDebouncer.cancel();
+    isInternalChange.current = true;
+    debouncedUrlUpdate.cancel();
     // Write empty string to URL to distinguish from "use default"
     setUrlSearchState("");
-  };
+  }, [debouncedUrlUpdate, setUrlSearchState]);
 
   return {
     search: localSearch,
@@ -77,8 +83,8 @@ export function useSearchParams() {
     clearSearch,
     hasSearch: Boolean(localSearch),
     /** True while debounce is pending (search not yet applied to URL) */
-    isSearching: isPending,
+    isSearching: debouncedUrlUpdate.isPending(),
     /** Immediately apply pending search to URL */
-    flush: () => urlDebouncer.flush(),
+    flush: debouncedUrlUpdate.flush,
   };
 }

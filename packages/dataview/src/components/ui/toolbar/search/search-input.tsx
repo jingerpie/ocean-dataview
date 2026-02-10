@@ -1,18 +1,15 @@
 "use client";
 
-import { useDebouncer } from "@tanstack/react-pacer";
 import { SearchIcon, XIcon } from "lucide-react";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { cn } from "../../../../lib/utils";
 import { Button } from "../../button";
 import { Input } from "../../input";
 
-const SEARCH_DEBOUNCE_MS = 150;
-
 interface SearchInputProps {
-  /** Current search value */
+  /** Current search value (from parent state) */
   value: string;
-  /** Callback when search value changes */
+  /** Callback when search value changes - called immediately on every keystroke */
   onChange: (value: string) => void;
   /** Placeholder text */
   placeholder?: string;
@@ -27,9 +24,13 @@ interface SearchInputProps {
 }
 
 /**
- * Expandable search input with 150ms debounce.
- * - Collapsed: Icon button only
- * - Expanded: Input field with icon + clear button
+ * Expandable search input with local state for responsive typing.
+ *
+ * Architecture (following tablecn pattern):
+ * - Maintains local state for immediate input feedback
+ * - Calls onChange immediately on every keystroke (parent handles debouncing)
+ * - Only syncs from parent value on "external" changes (navigation, clear from outside)
+ *   not on changes triggered by this component's own typing
  */
 export function SearchInput({
   value,
@@ -41,28 +42,17 @@ export function SearchInput({
   const [expanded, setExpanded] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Track if we're the source of the change to prevent feedback loop
+  const isInternalChange = useRef(false);
 
-  // Debounced onChange using TanStack Pacer
-  const changeDebouncer = useDebouncer(onChange, {
-    wait: SEARCH_DEBOUNCE_MS,
-  });
-
-  // Sync local value when external value changes (e.g., back/forward navigation)
+  // Sync from parent value only on external changes (navigation, programmatic updates)
+  // Skip sync if we triggered the change ourselves
   useEffect(() => {
-    setLocalValue(value);
-  }, [value]);
-
-  // Trigger debounced onChange when local value changes
-  useEffect(() => {
-    if (localValue !== value) {
-      changeDebouncer.maybeExecute(localValue);
+    if (!isInternalChange.current) {
+      setLocalValue(value);
     }
-  }, [localValue, changeDebouncer, value]);
-
-  // Flush pending updates on unmount
-  useEffect(() => {
-    return () => changeDebouncer.flush();
-  }, [changeDebouncer]);
+    isInternalChange.current = false;
+  }, [value]);
 
   // Auto-expand when value exists
   useEffect(() => {
@@ -82,9 +72,15 @@ export function SearchInput({
     setExpanded(true);
   };
 
+  const handleChange = (newValue: string) => {
+    setLocalValue(newValue);
+    isInternalChange.current = true;
+    onChange(newValue);
+  };
+
   const handleClear = () => {
     setLocalValue("");
-    changeDebouncer.cancel();
+    isInternalChange.current = true;
     onChange("");
     inputRef.current?.focus();
   };
@@ -145,7 +141,7 @@ export function SearchInput({
       <Input
         className="h-8 pr-8 pl-8"
         onBlur={handleBlur}
-        onChange={(e) => setLocalValue(e.target.value)}
+        onChange={(e) => handleChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         ref={inputRef}

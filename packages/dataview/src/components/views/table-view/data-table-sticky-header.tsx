@@ -1,12 +1,11 @@
 "use client";
 
-import { useDebouncer, useThrottler } from "@tanstack/react-pacer";
 import { flexRender, type Table as TanstackTable } from "@tanstack/react-table";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useDebouncedCallback } from "../../../hooks/use-debounced-callback";
 import { Table, TableHead, TableHeader, TableRow } from "../../ui/table";
 
-const SCROLL_THROTTLE_MS = 16; // 60fps
 const RESIZE_DEBOUNCE_MS = 150;
 
 interface DataTableStickyHeaderProps<TData> {
@@ -76,15 +75,11 @@ export function DataTableStickyHeader<TData>({
     handleScrollLogic();
   }, [tableHeaderRef, tableContainerRef, offset, handleScrollLogic]);
 
-  // Throttled scroll handler for window scroll (16ms = 60fps)
-  const scrollThrottler = useThrottler(handleScrollLogic, {
-    wait: SCROLL_THROTTLE_MS,
-  });
-
   // Debounced resize handler (150ms)
-  const resizeDebouncer = useDebouncer(handleResizeLogic, {
-    wait: RESIZE_DEBOUNCE_MS,
-  });
+  const debouncedResizeHandler = useDebouncedCallback(
+    handleResizeLogic,
+    RESIZE_DEBOUNCE_MS
+  );
 
   useEffect(() => {
     setMounted(true);
@@ -134,7 +129,7 @@ export function DataTableStickyHeader<TData>({
 
     // Update on resize - use debounced handler
     const resizeObserver = new ResizeObserver(() => {
-      resizeDebouncer.maybeExecute();
+      debouncedResizeHandler();
     });
 
     resizeObserver.observe(containerElement);
@@ -144,20 +139,15 @@ export function DataTableStickyHeader<TData>({
       updateScrollPosition(target.scrollLeft);
     };
 
-    const handleWindowScroll = () => {
-      scrollThrottler.maybeExecute();
-    };
-
-    // Add event listeners - use throttled handler for window scroll
-    window.addEventListener("scroll", handleWindowScroll, { passive: true });
+    window.addEventListener("scroll", handleScrollLogic, { passive: true });
     containerElement.addEventListener("scroll", handleTableScroll, {
       passive: true,
     });
 
     return () => {
       resizeObserver.disconnect();
-      resizeDebouncer.cancel();
-      window.removeEventListener("scroll", handleWindowScroll);
+      debouncedResizeHandler.cancel();
+      window.removeEventListener("scroll", handleScrollLogic);
       containerElement.removeEventListener("scroll", handleTableScroll);
     };
   }, [
@@ -165,8 +155,8 @@ export function DataTableStickyHeader<TData>({
     tableHeaderRef,
     tableContainerRef,
     handleResizeLogic,
-    resizeDebouncer,
-    scrollThrottler,
+    handleScrollLogic,
+    debouncedResizeHandler,
   ]);
 
   // Effect for sticky header scroll synchronization

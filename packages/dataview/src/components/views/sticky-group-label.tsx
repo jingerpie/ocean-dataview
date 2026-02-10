@@ -1,6 +1,5 @@
 "use client";
 
-import { useDebouncer, useThrottler } from "@tanstack/react-pacer";
 import {
   type ReactNode,
   useCallback,
@@ -9,9 +8,9 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { useDebouncedCallback } from "../../hooks/use-debounced-callback";
 import { cn } from "../../lib/utils";
 
-const SCROLL_THROTTLE_MS = 16; // 60fps
 const RESIZE_DEBOUNCE_MS = 150;
 
 interface StickyGroupLabelProps {
@@ -65,12 +64,12 @@ export function StickyGroupLabel({
     }
 
     const hRect = headerElement.getBoundingClientRect();
-    const containerRect = containerElement.getBoundingClientRect();
+    const contRect = containerElement.getBoundingClientRect();
 
     // Check if header top is above the sticky threshold
     // and container bottom is still below the threshold + header height
     const shouldShow =
-      hRect.top < offset && containerRect.bottom > offset + hRect.height;
+      hRect.top < offset && contRect.bottom > offset + hRect.height;
 
     setShowStickyHeader(shouldShow);
 
@@ -83,15 +82,11 @@ export function StickyGroupLabel({
     }
   }, [offset, containerRef]);
 
-  // Throttled scroll handler
-  const scrollThrottler = useThrottler(handleScrollLogic, {
-    wait: SCROLL_THROTTLE_MS,
-  });
-
   // Debounced resize handler
-  const resizeDebouncer = useDebouncer(handleScrollLogic, {
-    wait: RESIZE_DEBOUNCE_MS,
-  });
+  const debouncedResizeHandler = useDebouncedCallback(
+    handleScrollLogic,
+    RESIZE_DEBOUNCE_MS
+  );
 
   useEffect(() => {
     setMounted(true);
@@ -107,25 +102,21 @@ export function StickyGroupLabel({
     // Initial check
     handleScrollLogic();
 
-    const handleWindowScroll = () => {
-      scrollThrottler.maybeExecute();
-    };
-
     // Resize observer
     const resizeObserver = new ResizeObserver(() => {
-      resizeDebouncer.maybeExecute();
+      debouncedResizeHandler();
     });
 
     resizeObserver.observe(containerElement);
 
-    window.addEventListener("scroll", handleWindowScroll, { passive: true });
+    window.addEventListener("scroll", handleScrollLogic, { passive: true });
 
     return () => {
       resizeObserver.disconnect();
-      resizeDebouncer.cancel();
-      window.removeEventListener("scroll", handleWindowScroll);
+      debouncedResizeHandler.cancel();
+      window.removeEventListener("scroll", handleScrollLogic);
     };
-  }, [containerRef, handleScrollLogic, resizeDebouncer, scrollThrottler]);
+  }, [containerRef, handleScrollLogic, debouncedResizeHandler]);
 
   // Render the original header in place - sticky left for horizontal scroll
   const originalHeader = (

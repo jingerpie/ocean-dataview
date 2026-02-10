@@ -1,13 +1,13 @@
 "use client";
 
 import type { WhereRule } from "@sparkyidea/shared/types";
-import { useDebouncer } from "@tanstack/react-pacer";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useDebouncedCallback } from "../../../../../hooks/use-debounced-callback";
 import type { PropertyMeta } from "../../../../../types";
 import { Input } from "../../../input";
 import { SimpleFilterPopover } from "../simple/simple-filter-popover";
 
-const FILTER_INPUT_DEBOUNCE_MS = 150;
+const FILTER_INPUT_DEBOUNCE_MS = 300;
 
 // ============================================================================
 // Types
@@ -50,27 +50,35 @@ function DebouncedTextInput({
   className,
 }: DebouncedTextInputProps) {
   const [localValue, setLocalValue] = useState(value);
+  const isInternalChange = useRef(false);
 
-  const changeDebouncer = useDebouncer(onChange, {
-    wait: FILTER_INPUT_DEBOUNCE_MS,
-  });
+  // Proper debounce that resets timer on each call
+  const debouncedOnChange = useDebouncedCallback(
+    onChange,
+    FILTER_INPUT_DEBOUNCE_MS
+  );
 
+  // Sync from parent only on external changes
   useEffect(() => {
-    setLocalValue(value);
+    if (!isInternalChange.current) {
+      setLocalValue(value);
+    }
+    isInternalChange.current = false;
   }, [value]);
 
   useEffect(() => {
-    return () => changeDebouncer.flush();
-  }, [changeDebouncer]);
+    return () => debouncedOnChange.flush();
+  }, [debouncedOnChange]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setLocalValue(newValue);
-    changeDebouncer.maybeExecute(newValue);
+    isInternalChange.current = true;
+    debouncedOnChange(newValue);
   };
 
   const handleBlur = () => {
-    changeDebouncer.flush();
+    debouncedOnChange.flush();
   };
 
   return (

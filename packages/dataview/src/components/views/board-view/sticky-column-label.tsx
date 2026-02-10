@@ -1,6 +1,5 @@
 "use client";
 
-import { useDebouncer, useThrottler } from "@tanstack/react-pacer";
 import {
   type ReactNode,
   useCallback,
@@ -9,9 +8,9 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { useDebouncedCallback } from "../../../hooks/use-debounced-callback";
 import { cn } from "../../../lib/utils";
 
-const SCROLL_THROTTLE_MS = 16; // 60fps
 const RESIZE_DEBOUNCE_MS = 150;
 
 interface StickyColumnLabelProps {
@@ -102,15 +101,11 @@ export function StickyColumnLabel({
     setContainerRect(contRect);
   }, [headerRef, containerRef, offset]);
 
-  // Throttled scroll handler for window scroll (16ms = 60fps)
-  const scrollThrottler = useThrottler(handleScrollLogic, {
-    wait: SCROLL_THROTTLE_MS,
-  });
-
   // Debounced resize handler (150ms)
-  const resizeDebouncer = useDebouncer(handleScrollLogic, {
-    wait: RESIZE_DEBOUNCE_MS,
-  });
+  const debouncedResizeHandler = useDebouncedCallback(
+    handleScrollLogic,
+    RESIZE_DEBOUNCE_MS
+  );
 
   useEffect(() => {
     setMounted(true);
@@ -166,25 +161,20 @@ export function StickyColumnLabel({
 
     // Update on resize - use debounced handler
     const resizeObserver = new ResizeObserver(() => {
-      resizeDebouncer.maybeExecute();
+      debouncedResizeHandler();
     });
 
     resizeObserver.observe(containerElement);
 
-    const handleWindowScroll = () => {
-      scrollThrottler.maybeExecute();
-    };
-
-    // Add event listeners - use throttled handler for window scroll
-    window.addEventListener("scroll", handleWindowScroll, { passive: true });
+    window.addEventListener("scroll", handleScrollLogic, { passive: true });
     containerElement.addEventListener("scroll", handleContainerScroll, {
       passive: true,
     });
 
     return () => {
       resizeObserver.disconnect();
-      resizeDebouncer.cancel();
-      window.removeEventListener("scroll", handleWindowScroll);
+      debouncedResizeHandler.cancel();
+      window.removeEventListener("scroll", handleScrollLogic);
       containerElement.removeEventListener("scroll", handleContainerScroll);
     };
   }, [
@@ -192,8 +182,7 @@ export function StickyColumnLabel({
     headerRef,
     containerRef,
     handleScrollLogic,
-    resizeDebouncer,
-    scrollThrottler,
+    debouncedResizeHandler,
   ]);
 
   // Effect for sticky header scroll synchronization

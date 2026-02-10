@@ -2,12 +2,12 @@
 
 import { parseAsFilter } from "@sparkyidea/shared/lib";
 import type { WhereNode } from "@sparkyidea/shared/types";
-import { useDebouncer } from "@tanstack/react-pacer";
 import { useQueryState } from "nuqs";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDataViewContext } from "../lib/providers";
+import { useDebouncedCallback } from "./use-debounced-callback";
 
-const FILTER_DEBOUNCE_MS = 150;
+const FILTER_DEBOUNCE_MS = 300;
 
 /** Empty filter sentinel - written to URL when user explicitly clears filter */
 const EMPTY_FILTER: WhereNode[] = [];
@@ -18,9 +18,7 @@ const EMPTY_FILTER: WhereNode[] = [];
  * - Reads from DataViewContext defaults (server props)
  * - Writes to URL via nuqs (triggers server re-render)
  * - Uses empty filter `[]` in URL to distinguish "cleared" from "use default"
- *
- * Debouncing: 150ms with leading edge (first click fires immediately,
- * subsequent rapid clicks are batched)
+ * - Uses proper debouncing that always uses the LATEST value
  *
  * @example
  * ```ts
@@ -47,49 +45,59 @@ export function useFilterParams() {
     serverFilter
   );
 
-  // Debounced URL update with leading: true for responsive first click
-  const urlDebouncer = useDebouncer(
-    (filter: WhereNode[]) => {
-      setUrlFilterState(filter);
-    },
-    { wait: FILTER_DEBOUNCE_MS, leading: true, trailing: true }
-  );
+  // Track if change originated internally
+  const isInternalChange = useRef(false);
+
+  // Debounced URL update - uses proper debounce that resets timer on each call
+  const debouncedUrlUpdate = useDebouncedCallback((filter: WhereNode[]) => {
+    setUrlFilterState(filter);
+  }, FILTER_DEBOUNCE_MS);
 
   // Sync local state when server value changes (navigation, refresh)
+  // Skip sync if we triggered the change ourselves
   useEffect(() => {
-    setLocalFilter(serverFilter);
+    if (!isInternalChange.current) {
+      setLocalFilter(serverFilter);
+    }
+    isInternalChange.current = false;
   }, [serverFilter]);
 
   // Flush pending updates on unmount
   useEffect(() => {
-    return () => urlDebouncer.flush();
-  }, [urlDebouncer]);
+    return () => debouncedUrlUpdate.flush();
+  }, [debouncedUrlUpdate]);
 
   // Set the entire filter array (replaces previous filter)
-  const setFilter = (newFilter: WhereNode[] | null) => {
-    setLocalFilter(newFilter);
+  const setFilter = useCallback(
+    (newFilter: WhereNode[] | null) => {
+      setLocalFilter(newFilter);
+      isInternalChange.current = true;
 
-    if (newFilter === null) {
-      // Write empty filter to URL to distinguish from "use default"
-      urlDebouncer.maybeExecute(EMPTY_FILTER);
-      return;
-    }
-    urlDebouncer.maybeExecute(newFilter);
-  };
+      if (newFilter === null) {
+        // Write empty filter to URL to distinguish from "use default"
+        debouncedUrlUpdate(EMPTY_FILTER);
+        return;
+      }
+      debouncedUrlUpdate(newFilter);
+    },
+    [debouncedUrlUpdate]
+  );
 
-  const clearFilter = () => {
+  const clearFilter = useCallback(() => {
     setLocalFilter(null);
-    urlDebouncer.cancel();
+    isInternalChange.current = true;
+    debouncedUrlUpdate.cancel();
     // Write empty filter to URL to distinguish from "use default"
     setUrlFilterState(EMPTY_FILTER);
-  };
+  }, [debouncedUrlUpdate, setUrlFilterState]);
 
   /** Remove filter param from URL entirely, restoring to server defaults */
-  const resetFilter = () => {
+  const resetFilter = useCallback(() => {
     setLocalFilter(serverFilter);
-    urlDebouncer.cancel();
+    isInternalChange.current = true;
+    debouncedUrlUpdate.cancel();
     setUrlFilterState(null);
-  };
+  }, [debouncedUrlUpdate, serverFilter, setUrlFilterState]);
 
   return {
     filter: localFilter,
@@ -98,6 +106,6 @@ export function useFilterParams() {
     resetFilter,
     isFiltered: localFilter !== null && localFilter.length > 0,
     /** Immediately apply pending filter to URL */
-    flush: () => urlDebouncer.flush(),
+    flush: debouncedUrlUpdate.flush,
   };
 }
