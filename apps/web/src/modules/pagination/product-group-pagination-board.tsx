@@ -100,6 +100,8 @@ export function ProductGroupPaginationBoard({
             layout={{
               cardPreview: "productImage",
               cardSize: "medium",
+              colorColumns: true,
+              fitMedia: true,
             }}
             pagination="loadMore"
             view={{

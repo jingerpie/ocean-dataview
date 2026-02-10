@@ -32,7 +32,7 @@ export function BoardColumn<TData>({
   return (
     <div
       className={cn(
-        "flex shrink-0 flex-col gap-2 rounded-lg transition-colors",
+        "flex shrink-0 flex-col gap-2 rounded-lg p-2 transition-colors",
         columnWidth,
         columnBgClass || "bg-muted/10"
       )}
@@ -50,7 +50,7 @@ export function BoardColumn<TData>({
       )}
 
       {/* Cards */}
-      <div className="flex min-h-[200px] flex-1 flex-col gap-2 overflow-y-auto">
+      <div className="flex min-h-[200px] flex-1 flex-col gap-4 overflow-y-auto p-1">
         {items.length === 0 ? (
           <div className="flex h-32 items-center justify-center text-muted-foreground text-sm">
             No items

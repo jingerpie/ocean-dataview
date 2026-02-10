@@ -91,7 +91,7 @@ export function ProductPaginationGallery({
             layout={{
               cardPreview: "productImage",
               cardSize: "medium",
-              fitImage: true,
+              fitMedia: true,
             }}
             pagination="infiniteScroll"
           />

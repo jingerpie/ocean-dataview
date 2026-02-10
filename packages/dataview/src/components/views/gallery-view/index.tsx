@@ -24,7 +24,7 @@ export interface GalleryViewProps<
     /** Property ID for card preview image (references property.id, not data key) */
     cardPreview?: TProperties[number]["id"];
     cardSize?: "small" | "medium" | "large";
-    fitImage?: boolean;
+    fitMedia?: boolean;
     wrapAllProperties?: boolean;
     showPropertyNames?: boolean;
   };
@@ -121,7 +121,7 @@ export function GalleryView<
   const {
     cardPreview,
     cardSize = "medium",
-    fitImage = true,
+    fitMedia = true,
     wrapAllProperties = false,
     showPropertyNames = false,
   } = layout;
@@ -183,7 +183,7 @@ export function GalleryView<
             allProperties={properties}
             cardPreview={cardPreview}
             displayProperties={displayProperties}
-            fitImage={fitImage}
+            fitMedia={fitMedia}
             imageHeight={imageHeight}
             item={item}
             key={uniqueKey}

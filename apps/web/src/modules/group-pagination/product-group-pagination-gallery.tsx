@@ -103,7 +103,7 @@ export function ProductGroupPaginationGallery({
           layout={{
             cardPreview: "productImage",
             cardSize: "medium",
-            fitImage: true,
+            fitMedia: true,
           }}
           pagination="loadMore"
           view={{

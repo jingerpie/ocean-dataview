@@ -37,7 +37,7 @@ export interface DataCardProps<TData> {
    * Fit image (object-cover) or contain (object-contain)
    * @default true
    */
-  fitImage?: boolean;
+  fitMedia?: boolean;
 
   /**
    * Wrap all properties
@@ -70,7 +70,7 @@ export function DataCard<TData>({
   allProperties,
   cardPreview,
   imageHeight,
-  fitImage = true,
+  fitMedia = true,
   wrapAllProperties = false,
   showPropertyNames = false,
   onCardClick,
@@ -101,7 +101,7 @@ export function DataCard<TData>({
               alt="Preview"
               className={cn(
                 "transition-opacity",
-                fitImage ? "object-cover" : "object-contain"
+                fitMedia ? "object-cover" : "object-contain"
               )}
               fill
               loading="lazy"

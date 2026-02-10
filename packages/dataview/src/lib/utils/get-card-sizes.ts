@@ -16,11 +16,12 @@ export interface GalleryCardDimensions {
 
 /**
  * Board view card dimensions by size
+ * Note: imageHeight values match gallery for visual consistency
  */
 export const BOARD_CARD_SIZES: Record<CardSize, BoardCardDimensions> = {
-  small: { imageHeight: 120, columnWidth: "w-64" }, // 256px
-  medium: { imageHeight: 150, columnWidth: "w-80" }, // 320px
-  large: { imageHeight: 200, columnWidth: "w-96" }, // 384px
+  small: { imageHeight: 150, columnWidth: "w-64" }, // 256px
+  medium: { imageHeight: 200, columnWidth: "w-80" }, // 320px
+  large: { imageHeight: 260, columnWidth: "w-96" }, // 384px
 };
 
 /**

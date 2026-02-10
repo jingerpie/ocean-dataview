@@ -58,7 +58,7 @@ export const productProperties = [
         { value: "Jewelry", color: "yellow" },
         { value: "Lingerie", color: "red" },
         { value: "Outerwear", color: "gray" },
-        { value: "Tops", color: "cyan" },
+        { value: "Tops", color: "teal" },
       ],
     },
   },

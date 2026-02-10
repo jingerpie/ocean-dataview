@@ -50,6 +50,7 @@ export interface BoardViewProps<
     /** Property ID for card preview image (references property.id, not data key) */
     cardPreview?: TProperties[number]["id"];
     cardSize?: "small" | "medium" | "large"; // default: 'medium'
+    fitMedia?: boolean; // default: true (object-cover vs object-contain)
     wrapAllProperties?: boolean; // default: false
     colorColumns?: boolean; // default: false
     showPropertyNames?: boolean; // default: false
@@ -194,6 +195,7 @@ export function BoardView<
   const {
     cardPreview,
     cardSize = "medium",
+    fitMedia = true,
     wrapAllProperties = false,
     colorColumns = false,
     showPropertyNames = false,
@@ -385,7 +387,7 @@ export function BoardView<
       allProperties={properties}
       cardPreview={cardPreview}
       displayProperties={displayProperties}
-      fitImage={true}
+      fitMedia={fitMedia}
       imageHeight={imageHeight}
       item={item}
       onCardClick={onCardClick}
@@ -408,7 +410,7 @@ export function BoardView<
     }
 
     // Helper to convert color name to background class
-    const getBgClass = (color: string) => `bg-badge-${color}-subtle/30`;
+    const getBgClass = (color: string) => `bg-badge-${color}-subtle/50`;
 
     // For status properties with showAs: "group"
     if (groupByProperty.type === "status" && groupConfig?.showAs === "group") {

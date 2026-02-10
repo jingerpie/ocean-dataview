@@ -93,6 +93,8 @@ export function ProductSubGroupPaginationBoard({
           layout={{
             cardPreview: "productImage",
             cardSize: "medium",
+            fitMedia: true,
+            colorColumns: true,
           }}
           pagination="page"
           view={{
