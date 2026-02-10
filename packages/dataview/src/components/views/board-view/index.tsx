@@ -435,6 +435,7 @@ export function BoardView<
                   </span>
                 )}
                 <DataCell
+                  allProperties={properties}
                   item={item}
                   property={property}
                   value={value}
@@ -499,6 +500,7 @@ export function BoardView<
       <div className="flex items-center gap-2">
         {groupByProperty ? (
           <DataCell
+            allProperties={properties}
             item={{} as TData}
             property={groupByProperty}
             value={groupName}

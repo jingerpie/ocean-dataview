@@ -47,7 +47,7 @@ function ConditionPicker({
         render={
           <Button
             className={cn(className)}
-            size={inline ? "xs" : "sm"}
+            size={inline ? "sm" : "default"}
             variant={inline ? "ghost" : "outline"}
           />
         }
@@ -61,7 +61,7 @@ function ConditionPicker({
         />
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto min-w-32 p-0">
-        <Command value={selected?.label}>
+        <Command className="p-0" value={selected?.label}>
           <CommandList>
             <CommandGroup>
               {items.map((item) => (

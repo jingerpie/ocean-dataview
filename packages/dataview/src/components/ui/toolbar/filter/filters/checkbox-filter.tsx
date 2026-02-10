@@ -7,6 +7,7 @@ import { Button } from "../../../button";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -47,7 +48,6 @@ function CheckboxBody({ value, onChange }: CheckboxBodyProps) {
       <Button
         className="justify-start"
         onClick={() => onChange(true)}
-        size="sm"
         variant="ghost"
       >
         <span className="flex-1 text-left">Checked</span>
@@ -56,7 +56,6 @@ function CheckboxBody({ value, onChange }: CheckboxBodyProps) {
       <Button
         className="justify-start"
         onClick={() => onChange(false)}
-        size="sm"
         variant="ghost"
       >
         <span className="flex-1 text-left">Unchecked</span>
@@ -125,15 +124,17 @@ function CheckboxAdvanceFilter({
       }}
       value={selectValue}
     >
-      <SelectTrigger size="sm">
+      <SelectTrigger>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {selectItems.map((item) => (
-          <SelectItem key={item.value} value={item.value}>
-            {item.label}
-          </SelectItem>
-        ))}
+        <SelectGroup>
+          {selectItems.map((item) => (
+            <SelectItem key={item.value} value={item.value}>
+              {item.label}
+            </SelectItem>
+          ))}
+        </SelectGroup>
       </SelectContent>
     </Select>
   );

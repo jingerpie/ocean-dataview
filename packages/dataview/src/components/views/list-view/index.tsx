@@ -185,6 +185,7 @@ export function ListView<
                 showAggregation={groupBy?.showAggregation ?? true}
               >
                 <ListRow
+                  allProperties={properties}
                   data={group.items}
                   displayProperties={displayProperties}
                   onItemClick={onItemClick}
@@ -216,6 +217,7 @@ export function ListView<
   return (
     <div className={cn("flex flex-col gap-2", className)}>
       <ListRow
+        allProperties={properties}
         data={transformedFlatData}
         displayProperties={displayProperties}
         onItemClick={onItemClick}

@@ -7,14 +7,14 @@ import { useSortParams } from "../../../../hooks";
 import type { PropertyMeta } from "../../../../types";
 import { Button } from "../../button";
 import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxTrigger,
-} from "../../combobox";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../../command";
+import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 import { PropertyIcon } from "../../property-icon";
 
 interface SortPropertyPickerProps {
@@ -34,7 +34,7 @@ interface SortPropertyPickerProps {
 }
 
 /**
- * Sort property picker with Combobox.
+ * Sort property picker with Popover + Command.
  *
  * Uses `useSortParams()` internally to manage sort state.
  *
@@ -82,37 +82,34 @@ function SortPropertyPicker({
   const renderTrigger = () => {
     if (variant === "icon") {
       return (
-        <ComboboxTrigger
-          render={<Button size="icon-sm" variant="ghost" />}
-          showChevron={false}
-        >
+        <PopoverTrigger render={<Button size="icon" variant="ghost" />}>
           <SortAscIcon />
-        </ComboboxTrigger>
+        </PopoverTrigger>
       );
     }
 
     // default variant
     return (
-      <ComboboxTrigger render={<Button size="sm" variant="outline" />}>
+      <PopoverTrigger render={<Button variant="outline" />}>
         <SortAscIcon />
         <span>Sort</span>
-      </ComboboxTrigger>
+      </PopoverTrigger>
     );
   };
 
   // When onClick is provided, render standalone button
-  // This completely bypasses Combobox behavior - clicking only calls onClick
+  // This completely bypasses Popover behavior - clicking only calls onClick
   if (onClick) {
     if (variant === "icon") {
       return (
-        <Button onClick={onClick} size="icon-sm" variant="ghost">
+        <Button onClick={onClick} size="icon" variant="ghost">
           <SortAscIcon />
         </Button>
       );
     }
     // default variant
     return (
-      <Button onClick={onClick} size="sm" variant="outline">
+      <Button onClick={onClick} variant="outline">
         <SortAscIcon />
         <span>Sort</span>
       </Button>
@@ -120,32 +117,31 @@ function SortPropertyPicker({
   }
 
   return (
-    <Combobox
-      items={sortableProperties}
-      onOpenChange={setOpen}
-      onValueChange={(newValue) => {
-        if (newValue) {
-          handleSelect(newValue as PropertyMeta);
-        }
-      }}
-      open={open}
-    >
+    <Popover onOpenChange={setOpen} open={open}>
       {renderTrigger()}
-      <ComboboxContent align="start" className="w-56">
-        <ComboboxInput placeholder="Sort by..." showTrigger={false} />
-        <ComboboxEmpty>No properties found.</ComboboxEmpty>
-        <ComboboxList>
-          {(property) => (
-            <ComboboxItem key={String(property.id)} value={property}>
-              <PropertyIcon type={property.type} />
-              <span className="truncate">
-                {property.label ?? String(property.id)}
-              </span>
-            </ComboboxItem>
-          )}
-        </ComboboxList>
-      </ComboboxContent>
-    </Combobox>
+      <PopoverContent align="start" className="w-56 p-0">
+        <Command className="p-0">
+          <CommandInput placeholder="Sort by..." />
+          <CommandEmpty>No properties found.</CommandEmpty>
+          <CommandList>
+            <CommandGroup>
+              {sortableProperties.map((property) => (
+                <CommandItem
+                  key={String(property.id)}
+                  onSelect={() => handleSelect(property)}
+                  value={String(property.label ?? property.id)}
+                >
+                  <PropertyIcon type={property.type} />
+                  <span className="truncate">
+                    {property.label ?? String(property.id)}
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
 

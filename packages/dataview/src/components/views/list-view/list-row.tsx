@@ -16,6 +16,11 @@ export interface ListRowProps<TData> {
   displayProperties: DataViewProperty<TData>[];
 
   /**
+   * All property definitions - required for formula properties
+   */
+  allProperties?: readonly DataViewProperty<TData>[];
+
+  /**
    * Item click handler
    */
   onItemClick?: (item: TData) => void;
@@ -33,28 +38,30 @@ export interface ListRowProps<TData> {
 export function ListRow<TData>({
   data,
   displayProperties,
+  allProperties,
   onItemClick,
   className,
 }: ListRowProps<TData>) {
   return (
-    <div className={cn("flex flex-col overflow-x-auto", className)}>
-      {data.map((item, index) => {
-        // Generate a unique key by combining property values or fallback to index
-        const firstProperty = displayProperties[0];
-        const uniqueKey = firstProperty
-          ? `row-${String((item as Record<string, unknown>)[firstProperty.id])}-${index}`
-          : `row-${index}`;
+    <div className={cn("overflow-x-auto", className)}>
+      <div className="flex w-max min-w-full flex-col">
+        {data.map((item, index) => {
+          // Generate a unique key by combining property values or fallback to index
+          const firstProperty = displayProperties[0];
+          const uniqueKey = firstProperty
+            ? `row-${String((item as Record<string, unknown>)[firstProperty.id])}-${index}`
+            : `row-${index}`;
 
-        const RowElement = onItemClick ? "button" : "div";
+          const RowElement = onItemClick ? "button" : "div";
 
-        return (
-          <div key={uniqueKey}>
+          return (
             <RowElement
               className={cn(
-                "flex w-full items-center gap-4 rounded-md px-2 py-1 transition-colors hover:bg-muted/50",
+                "flex items-center gap-4 rounded-md px-2 py-1 transition-colors hover:bg-muted",
                 onItemClick &&
                   "cursor-pointer border-0 bg-transparent text-left"
               )}
+              key={uniqueKey}
               onClick={() => onItemClick?.(item)}
               {...(onItemClick && { type: "button" as const })}
             >
@@ -65,19 +72,24 @@ export function ListRow<TData>({
                 return (
                   <div
                     className={cn(
-                      "flex items-center",
-                      isFirst ? "flex-1 font-medium" : "shrink-0"
+                      "flex shrink-0 items-center",
+                      isFirst && "font-medium"
                     )}
                     key={String(property.id)}
                   >
-                    <DataCell item={item} property={property} value={value} />
+                    <DataCell
+                      allProperties={allProperties}
+                      item={item}
+                      property={property}
+                      value={value}
+                    />
                   </div>
                 );
               })}
             </RowElement>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }

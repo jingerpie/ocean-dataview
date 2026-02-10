@@ -42,7 +42,6 @@ export function PagePagination({
           <Button
             disabled={!hasPrev || isLoading}
             onClick={onPrev}
-            size="icon-sm"
             variant="outline"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -51,7 +50,6 @@ export function PagePagination({
           <Button
             disabled={!hasNext || isLoading}
             onClick={onNext}
-            size="icon-sm"
             variant="outline"
           >
             <ChevronRight className="h-4 w-4" />

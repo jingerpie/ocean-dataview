@@ -84,27 +84,26 @@ function LogicPicker({
   return (
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger
-        render={<Button className="min-w-17" size="sm" variant="outline" />}
+        render={<Button className="min-w-17" variant="outline" />}
       >
         <span>{selected?.label}</span>
         <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto min-w-48 p-0">
-        <Command value={selected?.label}>
+        <Command className="p-0" value={selected?.label}>
           <CommandList>
             <CommandGroup>
               {LOGIC_OPTIONS.map((option) => (
                 <CommandItem
+                  className="flex flex-col items-start gap-0"
                   key={option.value}
                   onSelect={() => handleSelect(option.value)}
                   value={option.label}
                 >
-                  <div className="flex flex-col items-start gap-0">
-                    <span className="font-medium">{option.label}</span>
-                    <span className="text-muted-foreground text-xs">
-                      {option.description}
-                    </span>
-                  </div>
+                  <span className="font-medium">{option.label}</span>
+                  <span className="text-muted-foreground text-xs">
+                    {option.description}
+                  </span>
                 </CommandItem>
               ))}
             </CommandGroup>

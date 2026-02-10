@@ -1,18 +1,19 @@
 "use client";
 
-import { Settings2 } from "lucide-react";
+import { EyeIcon, EyeOffIcon, Settings2 } from "lucide-react";
+import { useState } from "react";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import type { PropertyMeta } from "../../../types";
 import { Button } from "../button";
 import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxTrigger,
-} from "../combobox";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../command";
+import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 
 export interface VisibilityProps {
   /**
@@ -24,13 +25,14 @@ export interface VisibilityProps {
 }
 
 /**
- * Property visibility picker with Combobox.
+ * Property visibility picker with Popover + Command.
  *
  * Trigger Variants:
  * - `default` - Settings icon with "Properties" label, outline button
  * - `icon` - Settings icon only, ghost button
  */
 export function Visibility({ variant = "default" }: VisibilityProps = {}) {
+  const [open, setOpen] = useState(false);
   const {
     propertyMetas,
     propertyVisibility,
@@ -47,54 +49,71 @@ export function Visibility({ variant = "default" }: VisibilityProps = {}) {
       !excludedPropertyIds.some((id) => id === property.id)
   );
 
-  const selectedProperties = availableProperties.filter((property) =>
-    propertyVisibility.some((id) => id === property.id)
-  );
+  // Toggle a property's visibility
+  const toggleProperty = (property: PropertyMeta) => {
+    const propertyId = String(property.id);
+    const isVisible = propertyVisibility.includes(propertyId);
+
+    if (isVisible) {
+      // Remove from visibility
+      setPropertyVisibility(
+        propertyVisibility.filter((id) => id !== propertyId)
+      );
+    } else {
+      // Add to visibility
+      setPropertyVisibility([...propertyVisibility, propertyId]);
+    }
+  };
 
   // Render trigger based on variant
   const renderTrigger = () => {
     if (variant === "icon") {
       return (
-        <ComboboxTrigger
-          render={<Button size="icon-sm" variant="ghost" />}
-          showChevron={false}
-        >
+        <PopoverTrigger render={<Button size="icon" variant="ghost" />}>
           <Settings2 />
-        </ComboboxTrigger>
+        </PopoverTrigger>
       );
     }
 
     // default variant
     return (
-      <ComboboxTrigger render={<Button size="sm" variant="outline" />}>
+      <PopoverTrigger render={<Button variant="outline" />}>
         <Settings2 />
         <span>Properties</span>
-      </ComboboxTrigger>
+      </PopoverTrigger>
     );
   };
 
   return (
-    <Combobox
-      items={availableProperties}
-      multiple
-      onValueChange={(newSelection) => {
-        const newArray = (newSelection ?? []) as PropertyMeta[];
-        setPropertyVisibility(newArray.map((p) => String(p.id)));
-      }}
-      value={selectedProperties}
-    >
+    <Popover onOpenChange={setOpen} open={open}>
       {renderTrigger()}
-      <ComboboxContent align="end" className="w-44">
-        <ComboboxInput placeholder="Search columns..." showTrigger={false} />
-        <ComboboxEmpty>No columns found.</ComboboxEmpty>
-        <ComboboxList>
-          {(property) => (
-            <ComboboxItem key={String(property.id)} value={property}>
-              {property.label ?? String(property.id)}
-            </ComboboxItem>
-          )}
-        </ComboboxList>
-      </ComboboxContent>
-    </Combobox>
+      <PopoverContent align="end" className="w-48 p-0">
+        <Command className="p-0">
+          <CommandInput placeholder="Search columns..." />
+          <CommandEmpty>No columns found.</CommandEmpty>
+          <CommandList>
+            <CommandGroup>
+              {availableProperties.map((property) => {
+                const isChecked = propertyVisibility.includes(
+                  String(property.id)
+                );
+                return (
+                  <CommandItem
+                    key={String(property.id)}
+                    onSelect={() => toggleProperty(property)}
+                    value={String(property.label ?? property.id)}
+                  >
+                    <span className="flex-1 truncate">
+                      {property.label ?? String(property.id)}
+                    </span>
+                    {isChecked ? <EyeIcon /> : <EyeOffIcon />}
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

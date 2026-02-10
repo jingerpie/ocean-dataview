@@ -38,7 +38,7 @@ function DirectionPicker({
       onValueChange={(v) => onValueChange(v as "asc" | "desc")}
       value={value}
     >
-      <SelectTrigger className={cn("w-28", className)} size="sm">
+      <SelectTrigger className={cn("w-28", className)}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

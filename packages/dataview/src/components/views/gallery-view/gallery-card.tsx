@@ -19,6 +19,11 @@ export interface GalleryCardProps<TData> {
   displayProperties: DataViewProperty<TData>[];
 
   /**
+   * All property definitions - required for formula properties
+   */
+  allProperties?: readonly DataViewProperty<TData>[];
+
+  /**
    * Card preview property ID (references property.id, not data key)
    */
   cardPreview?: string;
@@ -66,6 +71,7 @@ export interface GalleryCardProps<TData> {
 export function GalleryCard<TData>({
   data,
   displayProperties,
+  allProperties,
   cardPreview,
   imageHeight,
   cols,
@@ -151,6 +157,7 @@ export function GalleryCard<TData>({
                       </span>
                     )}
                     <DataCell
+                      allProperties={allProperties}
                       item={item}
                       property={property}
                       value={value}

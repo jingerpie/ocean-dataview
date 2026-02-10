@@ -58,7 +58,6 @@ export function AddFilterButton({
           render={
             <Button
               className={cn(className, "text-muted-foreground!")}
-              size="sm"
               variant="ghost"
             >
               <PlusIcon />
@@ -92,7 +91,6 @@ export function AddFilterButton({
     <Button
       className={cn(className, "text-muted-foreground!")}
       onClick={handleAddRule}
-      size="sm"
       variant="ghost"
     >
       <PlusIcon />

@@ -3,21 +3,20 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { SortQuery } from "@sparkyidea/shared/types";
-import { GripVerticalIcon, X } from "lucide-react";
+import { GripVerticalIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 import { cn } from "../../../../lib/utils";
 import type { PropertyMeta } from "../../../../types";
 import { Button } from "../../button";
 import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxTrigger,
-  ComboboxValue,
-} from "../../combobox";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../../command";
+import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 import { PropertyIcon } from "../../property-icon";
 import { DirectionPicker } from "./direction-picker";
 
@@ -98,43 +97,36 @@ function SortRule({
 
       <div className="flex flex-1 items-center gap-2">
         {/* Property Selector */}
-        <Combobox
-          items={properties}
-          onOpenChange={setOpen}
-          onValueChange={(newProperty) => {
-            if (newProperty) {
-              onUpdate({
-                property: String((newProperty as PropertyMeta).id),
-              });
-            }
-          }}
-          open={open}
-          // Type assertion needed due to Combobox generic constraints with union types
-          value={property as never}
-        >
-          <ComboboxTrigger render={<Button size="sm" variant="outline" />}>
-            <ComboboxValue>
-              <PropertyIcon type={property.type} />
-              <span className="truncate">{property.label ?? property.id}</span>
-            </ComboboxValue>
-          </ComboboxTrigger>
-          <ComboboxContent align="start" className="w-48">
-            <ComboboxInput placeholder="Search fields..." showTrigger={false} />
-            <ComboboxEmpty>No fields found.</ComboboxEmpty>
-            <ComboboxList>
-              {(prop) => (
-                <ComboboxItem
-                  data-checked={prop.id === sort.property}
-                  key={String(prop.id)}
-                  value={prop}
-                >
-                  <PropertyIcon type={prop.type} />
-                  <span className="truncate">{prop.label ?? prop.id}</span>
-                </ComboboxItem>
-              )}
-            </ComboboxList>
-          </ComboboxContent>
-        </Combobox>
+        <Popover onOpenChange={setOpen} open={open}>
+          <PopoverTrigger render={<Button variant="outline" />}>
+            <PropertyIcon type={property.type} />
+            <span className="truncate">{property.label ?? property.id}</span>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-48 p-0">
+            <Command className="p-0">
+              <CommandInput placeholder="Search fields..." />
+              <CommandEmpty>No fields found.</CommandEmpty>
+              <CommandList>
+                <CommandGroup>
+                  {properties.map((prop) => (
+                    <CommandItem
+                      data-checked={prop.id === sort.property}
+                      key={String(prop.id)}
+                      onSelect={() => {
+                        onUpdate({ property: String(prop.id) });
+                        setOpen(false);
+                      }}
+                      value={String(prop.label ?? prop.id)}
+                    >
+                      <PropertyIcon type={prop.type} />
+                      <span className="truncate">{prop.label ?? prop.id}</span>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
 
         {/* Direction Picker */}
         <DirectionPicker
@@ -149,7 +141,7 @@ function SortRule({
         size="icon-sm"
         variant="ghost"
       >
-        <X />
+        <XIcon />
       </Button>
     </div>
   );

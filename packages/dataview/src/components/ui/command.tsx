@@ -69,14 +69,14 @@ function CommandInput({
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Input>) {
   return (
-    <div className="p-1 pb-0" data-slot="command-input-wrapper">
+    <div className="p-1.5 pb-1" data-slot="command-input-wrapper">
       <InputGroup className="h-8! rounded-lg! border-input/30 bg-input/30 shadow-none! *:data-[slot=input-group-addon]:pl-2!">
         <CommandPrimitive.Input
           className={cn(
             "w-full text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
             className
           )}
-          data-slot="command-input"
+          data-slot="input-group-control"
           {...props}
         />
         <InputGroupAddon>
@@ -160,7 +160,7 @@ function CommandItem({
       {...props}
     >
       {children}
-      <CheckIcon className="ml-auto opacity-0 group-has-data-[slot=command-shortcut]/command-item:hidden group-data-[checked=true]/command-item:opacity-100" />
+      <CheckIcon className="ml-auto hidden group-data-[checked=true]/command-item:block" />
     </CommandPrimitive.Item>
   );
 }
@@ -192,10 +192,10 @@ function CommandChips({
   showClearAll?: boolean;
 }) {
   return (
-    <div className="p-1 pb-0" data-slot="command-chips-wrapper">
+    <div className="p-1.5 pb-1" data-slot="command-chips-wrapper">
       <div
         className={cn(
-          "flex min-h-8 items-start justify-between rounded-lg border border-input/30 bg-input/30 px-2.5 py-1 text-sm shadow-none has-data-[slot=command-chip]:px-1.5",
+          "flex min-h-8 items-start justify-between rounded-lg border border-input/30 bg-input/30 px-2.5 py-1 text-sm shadow-none transition-colors has-[[data-slot=input-group-control]:focus-visible]:border-ring has-data-[slot=command-chip]:px-1.5 has-[[data-slot=input-group-control]:focus-visible]:ring-3 has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50",
           className
         )}
         data-slot="command-chips"
@@ -260,12 +260,14 @@ function CommandChip({
 
 function CommandChipsInput({
   className,
+  autoFocus = true,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Input>) {
   return (
     <CommandPrimitive.Input
+      autoFocus={autoFocus}
       className={cn("min-w-16 flex-1 outline-none", className)}
-      data-slot="command-chips-input"
+      data-slot="input-group-control"
       {...props}
     />
   );

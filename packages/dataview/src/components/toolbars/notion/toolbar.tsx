@@ -10,6 +10,7 @@ import { useToolbarState } from "../../../hooks/use-toolbar-state";
 import { useDataViewContext } from "../../../lib/providers";
 import { cn } from "../../../lib/utils";
 import type { PropertyMeta } from "../../../types";
+import { Separator } from "../../ui/separator";
 import { FilterPropertyPicker } from "../../ui/toolbar/filter/pickers/filter-property-picker";
 import { SearchInput } from "../../ui/toolbar/search/search-input";
 import { SortPropertyPicker } from "../../ui/toolbar/sort/sort-property-picker";
@@ -104,7 +105,7 @@ export function NotionToolbar({
         {children && <div className="flex flex-1 gap-2">{children}</div>}
 
         {/* Right side: Controls */}
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex items-center">
           {/* Filter - single picker with conditional onClick */}
           {enableFilter && (
             <FilterPropertyPicker
@@ -140,21 +141,24 @@ export function NotionToolbar({
 
       {/* Row 2: Chips Bar (conditional) */}
       {hasActiveControls && row2Visible && (
-        <ChipsBar
-          advancedFilter={advancedFilter}
-          advancedFilterIndex={advancedFilterIndex}
-          filter={filter}
-          onFilterChange={onFilterChange}
-          onReset={() => {
-            resetFilter();
-            resetSort();
-          }}
-          onSortsChange={onSortsChange}
-          properties={properties}
-          ruleCount={ruleCount}
-          simpleFilterConditions={simpleFilterConditions}
-          sorts={sorts}
-        />
+        <>
+          <Separator orientation="horizontal" />
+          <ChipsBar
+            advancedFilter={advancedFilter}
+            advancedFilterIndex={advancedFilterIndex}
+            filter={filter}
+            onFilterChange={onFilterChange}
+            onReset={() => {
+              resetFilter();
+              resetSort();
+            }}
+            onSortsChange={onSortsChange}
+            properties={properties}
+            ruleCount={ruleCount}
+            simpleFilterConditions={simpleFilterConditions}
+            sorts={sorts}
+          />
+        </>
       )}
     </div>
   );

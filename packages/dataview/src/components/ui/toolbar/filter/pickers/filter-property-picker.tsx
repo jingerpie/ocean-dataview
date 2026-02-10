@@ -177,7 +177,7 @@ function FilterPropertyPicker({
   const renderTrigger = () => {
     if (variant === "rule") {
       return (
-        <PopoverTrigger render={<Button size="sm" variant="outline" />}>
+        <PopoverTrigger render={<Button variant="outline" />}>
           {selectedProperty ? (
             <>
               <PropertyIcon type={selectedProperty.type} />
@@ -195,7 +195,7 @@ function FilterPropertyPicker({
 
     if (variant === "icon") {
       return (
-        <PopoverTrigger render={<Button size="icon-sm" variant="ghost" />}>
+        <PopoverTrigger render={<Button size="icon" variant="ghost" />}>
           <ListFilterIcon />
         </PopoverTrigger>
       );
@@ -212,7 +212,7 @@ function FilterPropertyPicker({
 
     // default variant
     return (
-      <PopoverTrigger render={<Button size="sm" variant="outline" />}>
+      <PopoverTrigger render={<Button variant="outline" />}>
         <ListFilterIcon />
         <span>Filter</span>
       </PopoverTrigger>
@@ -224,14 +224,14 @@ function FilterPropertyPicker({
   if (onClick && variant !== "rule") {
     if (variant === "icon") {
       return (
-        <Button onClick={onClick} size="icon-sm" variant="ghost">
+        <Button onClick={onClick} size="icon" variant="ghost">
           <ListFilterIcon />
         </Button>
       );
     }
     // default variant
     return (
-      <Button onClick={onClick} size="sm" variant="outline">
+      <Button onClick={onClick} variant="outline">
         <ListFilterIcon />
         <span>Filter</span>
       </Button>
@@ -242,7 +242,7 @@ function FilterPropertyPicker({
     <Popover onOpenChange={setOpen} open={open}>
       {renderTrigger()}
       <PopoverContent align="start" className="w-56 p-0">
-        <Command>
+        <Command className="p-0">
           <CommandInput placeholder="Filter by..." />
           <CommandList>
             <CommandEmpty>No properties found.</CommandEmpty>

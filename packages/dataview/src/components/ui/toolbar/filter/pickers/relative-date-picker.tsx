@@ -11,6 +11,7 @@ import { Input } from "../../../input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -43,11 +44,13 @@ const unitItems = [
 interface RelativeDateDropdownsProps {
   value: RelativeToTodayValue | undefined;
   onChange: (value: RelativeToTodayValue) => void;
+  className?: string;
 }
 
 function RelativeDateDropdowns({
   value,
   onChange,
+  className,
 }: RelativeDateDropdownsProps) {
   // Value is [direction, count, unit] - always set by getDefaultValueForCondition
   const [direction, count, unit] = value ?? ["this", 1, "week"];
@@ -78,28 +81,30 @@ function RelativeDateDropdowns({
   };
 
   return (
-    <div className="flex w-full gap-2 p-1 pb-0">
+    <div className={`flex w-full gap-2 ${className ?? ""}`}>
       <Select
         items={directionItems}
         onValueChange={handleDirectionChange}
         value={direction}
       >
-        <SelectTrigger className="min-w-22 flex-1" size="sm">
+        <SelectTrigger className="min-w-22 flex-1">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {directionItems.map((item) => (
-            <SelectItem key={item.value} value={item.value}>
-              {item.label}
-            </SelectItem>
-          ))}
+          <SelectGroup>
+            {directionItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
         </SelectContent>
       </Select>
 
       {/* Count input - only show for past/next, fixed width */}
       {showCount && (
         <Input
-          className="h-8 w-16"
+          className="w-16"
           min={1}
           onChange={handleCountChange}
           type="number"
@@ -108,15 +113,17 @@ function RelativeDateDropdowns({
       )}
 
       <Select items={unitItems} onValueChange={handleUnitChange} value={unit}>
-        <SelectTrigger className="min-w-22 flex-1" size="sm">
+        <SelectTrigger className="min-w-22 flex-1">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {unitItems.map((item) => (
-            <SelectItem key={item.value} value={item.value}>
-              {item.label}
-            </SelectItem>
-          ))}
+          <SelectGroup>
+            {unitItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
         </SelectContent>
       </Select>
     </div>
@@ -148,7 +155,11 @@ function RelativeDatePickerContent({
   return (
     <div className="flex flex-col items-center">
       {/* Dropdowns and count input */}
-      <RelativeDateDropdowns onChange={onChange} value={value} />
+      <RelativeDateDropdowns
+        className="p-1 pb-0"
+        onChange={onChange}
+        value={value}
+      />
 
       {/* Calendar - display only, shows computed range */}
       {/* Key forces re-mount when range changes to update displayed month */}

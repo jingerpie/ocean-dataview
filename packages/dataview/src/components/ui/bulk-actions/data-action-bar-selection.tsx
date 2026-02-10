@@ -1,7 +1,7 @@
 "use client";
 
 import type { Table } from "@tanstack/react-table";
-import { X } from "lucide-react";
+import { XIcon } from "lucide-react";
 import { useCallback } from "react";
 import { Button } from "../button";
 import { Separator } from "../separator";
@@ -56,14 +56,13 @@ export function DataActionBarSelection<TData>({
         <TooltipTrigger
           render={
             <Button
-              className="size-6"
               onClick={handleClearSelection}
               size="icon"
               variant="ghost"
             />
           }
         >
-          <X className="size-4" />
+          <XIcon />
         </TooltipTrigger>
         <TooltipContent
           className="flex items-center gap-2 border bg-accent px-2 py-1 font-semibold text-foreground"

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarIcon } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import { type ChangeEvent, type KeyboardEvent, useState } from "react";
 import {
   cn,
@@ -176,20 +176,22 @@ function RangeDatePicker({ value, onChange }: RangeDatePickerProps) {
 
   const fromDate = parseValue(value?.[0] ?? undefined);
   const toDate = parseValue(value?.[1] ?? undefined);
+  const hasValue = fromDate || toDate;
 
   // Format display text
-  const displayText =
-    fromDate || toDate
-      ? `${fromDate ? formatDateForDisplay(fromDate) : "..."} - ${toDate ? formatDateForDisplay(toDate) : "..."}`
-      : "Select a range";
+  const displayText = hasValue
+    ? `${fromDate ? formatDateForDisplay(fromDate) : "..."} - ${toDate ? formatDateForDisplay(toDate) : "..."}`
+    : "Select a range";
 
   return (
     <Popover onOpenChange={setOpen} open={open}>
-      <PopoverTrigger render={<Button size="sm" variant="outline" />}>
-        <CalendarIcon className="mr-2 size-4" />
-        <span>{displayText}</span>
+      <PopoverTrigger render={<Button variant="outline" />}>
+        <span className={hasValue ? undefined : "text-muted-foreground"}>
+          {displayText}
+        </span>
+        <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto p-3">
+      <PopoverContent align="start" className="w-auto p-0">
         <RangeDatePickerContent onChange={onChange} value={value} />
       </PopoverContent>
     </Popover>

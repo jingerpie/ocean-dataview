@@ -114,7 +114,7 @@ export function SearchInput({
         aria-label="Open search"
         className={className}
         onClick={handleExpand}
-        size="icon-sm"
+        size="icon"
         variant="ghost"
       >
         <SearchIcon className="size-4" />
@@ -124,7 +124,6 @@ export function SearchInput({
         aria-label="Open search"
         className={className}
         onClick={handleExpand}
-        size="sm"
         variant="outline"
       >
         <SearchIcon className="size-4" />
@@ -155,14 +154,14 @@ export function SearchInput({
       />
       {localValue && (
         <Button
+          aria-label="Clear search"
           className="absolute right-1"
           onClick={handleClear}
           size="icon-sm"
           type="button"
           variant="ghost"
         >
-          <XIcon className="size-3.5" />
-          <span className="sr-only">Clear search</span>
+          <XIcon />
         </Button>
       )}
     </div>

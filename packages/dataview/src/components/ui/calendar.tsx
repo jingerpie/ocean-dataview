@@ -39,7 +39,7 @@ function Calendar({
     <DayPicker
       captionLayout={captionLayout}
       className={cn(
-        "group/calendar bg-background p-3 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
+        "group/calendar bg-background in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent p-2 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(8)]",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
@@ -47,12 +47,12 @@ function Calendar({
       classNames={{
         root: cn("w-fit", defaultClassNames.root),
         months: cn(
-          "relative flex flex-col gap-4 md:flex-row",
+          "relative flex flex-col gap-2 md:flex-row",
           defaultClassNames.months
         ),
-        month: cn("flex w-full flex-col gap-4", defaultClassNames.month),
+        month: cn("flex w-full flex-col gap-2", defaultClassNames.month),
         nav: cn(
-          "absolute inset-x-0 top-0 flex w-full items-center justify-between gap-1",
+          "absolute inset-x-0 top-0 flex w-full items-center justify-end gap-1",
           defaultClassNames.nav
         ),
         button_previous: cn(
@@ -66,7 +66,7 @@ function Calendar({
           defaultClassNames.button_next
         ),
         month_caption: cn(
-          "flex h-(--cell-size) w-full items-center justify-center px-(--cell-size)",
+          "flex h-(--cell-size) w-full items-center justify-start",
           defaultClassNames.month_caption
         ),
         dropdowns: cn(
@@ -120,10 +120,7 @@ function Calendar({
           "relative isolate -z-0 rounded-r-(--cell-radius) bg-muted after:absolute after:inset-y-0 after:left-0 after:w-4 after:bg-muted",
           defaultClassNames.range_end
         ),
-        today: cn(
-          "rounded-(--cell-radius) bg-muted text-foreground data-[selected=true]:rounded-none",
-          defaultClassNames.today
-        ),
+        today: cn("", defaultClassNames.today),
         outside: cn(
           "text-muted-foreground aria-selected:text-muted-foreground",
           defaultClassNames.outside
@@ -204,6 +201,12 @@ function CalendarDayButton({
     }
   }, [modifiers.focused]);
 
+  const isSelected =
+    modifiers.selected ||
+    modifiers.range_start ||
+    modifiers.range_end ||
+    modifiers.range_middle;
+
   return (
     <Button
       className={cn(
@@ -217,6 +220,10 @@ function CalendarDayButton({
           "group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50",
           "dark:hover:text-foreground [&>span]:text-xs [&>span]:opacity-70",
         ],
+        // Today styling (lower priority than selected)
+        modifiers.today &&
+          !isSelected &&
+          "rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90! hover:text-destructive-foreground!",
         defaultClassNames.day,
         className
       )}
@@ -230,6 +237,7 @@ function CalendarDayButton({
         !modifiers.range_end &&
         !modifiers.range_middle
       }
+      data-today={modifiers.today}
       size="icon"
       variant="ghost"
       {...props}

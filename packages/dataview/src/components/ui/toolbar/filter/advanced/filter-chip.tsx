@@ -76,8 +76,7 @@ export function AdvancedFilterChip({
           <Button
             className="justify-start"
             onClick={handleDeleteFilter}
-            size="sm"
-            variant="ghost-destructive"
+            variant="destructive"
           >
             <TrashIcon />
             <span>Delete filter</span>

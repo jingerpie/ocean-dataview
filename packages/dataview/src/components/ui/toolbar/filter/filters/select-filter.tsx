@@ -114,7 +114,6 @@ function SelectBody({
             const isSelected = selectedValues.includes(option.value);
             return (
               <CommandItem
-                className="px-1.5 py-1"
                 key={option.value}
                 onSelect={() => handleSelect(option.value)}
                 value={option.value}
@@ -225,7 +224,7 @@ function SelectAdvanceFilter({
   return (
     <Popover>
       <PopoverTrigger
-        render={<Button className="max-w-100" size="sm" variant="outline" />}
+        render={<Button className="max-w-100" variant="outline" />}
       >
         {selectedOptions.length > 0 ? (
           <div className="flex min-w-0 flex-1 gap-1 overflow-hidden">

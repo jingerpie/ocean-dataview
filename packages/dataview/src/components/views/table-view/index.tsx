@@ -286,7 +286,6 @@ export function TableView<
             }}
             primaryIcon={primaryAction?.icon}
             primaryLabel={primaryAction?.label}
-            size="sm"
           />
         ),
         enableSorting: false,

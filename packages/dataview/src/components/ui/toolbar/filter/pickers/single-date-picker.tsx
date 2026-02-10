@@ -33,13 +33,7 @@ import {
   InputGroupInput,
 } from "../../../input-group";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../select";
+import { Separator } from "../../../separator";
 
 // ============================================================================
 // Shared Types & Constants
@@ -120,47 +114,24 @@ function getDateFromPreset(preset: DatePreset): Date | null {
   }
 }
 
-/**
- * Check if a date matches any preset (comparing date-only, ignoring time).
- * Returns the matching preset or "custom" if no match.
- */
-function getPresetFromDate(date: Date | undefined): DatePreset {
-  if (!date) {
-    return "custom";
-  }
+// ============================================================================
+// Shared Body Component (input + dropdown + calendar)
+// ============================================================================
 
-  const dateStr = toDateOnlyString(date);
-  const presets: Exclude<DatePreset, "custom">[] = [
-    "today",
-    "tomorrow",
-    "yesterday",
-    "one_week_ago",
-    "one_week_from_now",
-    "one_month_ago",
-    "one_month_from_now",
-  ];
-
-  for (const preset of presets) {
-    const presetDate = getDateFromPreset(preset);
-    if (presetDate && toDateOnlyString(presetDate) === dateStr) {
-      return preset;
-    }
-  }
-
-  return "custom";
+interface SingleDatePickerBodyProps extends SingleDatePickerProps {
+  className?: string;
+  autoFocus?: boolean;
 }
 
-// ============================================================================
-// SingleDatePickerContent - For filter chips (input + presets dropdown + calendar)
-// ============================================================================
-
 /**
- * Content component for single date picker.
- * Shows an input field (disabled when preset selected) with a dropdown for presets.
- * Calendar is always visible below.
- * Used inside filter chip popover.
+ * Shared body component with input, preset dropdown, and calendar.
+ * Used by both simple chip popover and advanced filter popover.
  */
-function SingleDatePickerContent({ value, onChange }: SingleDatePickerProps) {
+function SingleDatePickerBody({
+  value,
+  onChange,
+  className,
+}: SingleDatePickerBodyProps) {
   const [preset, setPreset] = useState<Exclude<DatePreset, "custom"> | null>(
     null
   );
@@ -254,18 +225,19 @@ function SingleDatePickerContent({ value, onChange }: SingleDatePickerProps) {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="flex w-full p-1 pb-0">
+      <div className={cn("flex w-full p-1.5 pb-0.5", className)}>
         <InputGroup className={cn(!isValid && "border-destructive")}>
           <InputGroupInput
-            disabled={isPresetMode}
+            autoFocus={true}
             onBlur={handleBlur}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder="Select or type a date..."
+            readOnly={isPresetMode}
             value={displayValue}
           />
           <InputGroupAddon align="inline-end" className="gap-0">
-            {displayValue && (
+            {displayValue && !isPresetMode && (
               <InputGroupButton
                 aria-label="Clear date"
                 onClick={handleClear}
@@ -275,6 +247,7 @@ function SingleDatePickerContent({ value, onChange }: SingleDatePickerProps) {
                 <XIcon />
               </InputGroupButton>
             )}
+            <Separator orientation="vertical" />
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
@@ -322,147 +295,50 @@ function SingleDatePickerContent({ value, onChange }: SingleDatePickerProps) {
 }
 
 // ============================================================================
-// SingleDatePicker - For advanced filter rules (Select dropdown)
+// SingleDatePickerContent - For filter chips (with padding)
+// ============================================================================
+
+/**
+ * Content component for single date picker.
+ * Shows an input field (disabled when preset selected) with a dropdown for presets.
+ * Calendar is always visible below.
+ * Used inside filter chip popover.
+ */
+function SingleDatePickerContent({ value, onChange }: SingleDatePickerProps) {
+  return (
+    <SingleDatePickerBody
+      className="p-1 pb-0"
+      onChange={onChange}
+      value={value}
+    />
+  );
+}
+
+// ============================================================================
+// SingleDatePicker - For advanced filter rules (popover trigger)
 // ============================================================================
 
 /**
  * Full picker component with trigger.
- * Renders as a Select dropdown - used in advanced filter rules.
- *
- * Follows Notion UI pattern:
- * - Preset selected: Shows preset dropdown (Today, Tomorrow, etc.)
- * - Custom date selected: Shows "Custom date" + "Select a date" or "January 15, 2026"
+ * Renders as a button that opens the picker body in a popover.
+ * Used in advanced filter rules.
  */
 function SingleDatePicker({ value, onChange }: SingleDatePickerProps) {
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [draft, setDraft] = useState<string | null>(null);
-  const [isValid, setIsValid] = useState(true);
-  // Track preset selection in state (not derived from value)
-  // Initialize from value, but user selection takes precedence
-  const [selectedPreset, setSelectedPreset] = useState<DatePreset>(() =>
-    getPresetFromDate(parseValue(value))
-  );
-
+  const [open, setOpen] = useState(false);
   const dateValue = parseValue(value);
-  const displayValue =
-    draft ?? (dateValue ? formatDateForDisplay(dateValue) : "");
-
-  const isCustomMode = selectedPreset === "custom";
-
-  const handlePresetChange = (preset: string | null) => {
-    if (!preset) {
-      return;
-    }
-
-    const presetValue = preset as DatePreset;
-    setSelectedPreset(presetValue);
-
-    if (presetValue === "custom") {
-      // Open calendar for custom date selection
-      setCalendarOpen(true);
-    } else {
-      setCalendarOpen(false);
-      const date = getDateFromPreset(presetValue);
-      if (date) {
-        onChange(toDateOnlyString(date));
-      }
-    }
-  };
-
-  const handleCalendarSelect = (date: Date | undefined) => {
-    setDraft(null);
-    setIsValid(true);
-    onChange(date ? toDateOnlyString(date) : "");
-    setCalendarOpen(false);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDraft(e.target.value);
-    setIsValid(true);
-  };
-
-  const handleInputBlur = () => {
-    if (!draft) {
-      return;
-    }
-
-    const parsed = parseDate(draft);
-    if (parsed) {
-      const formatted = formatDateForDisplay(parsed);
-      setDraft(formatted);
-      setIsValid(true);
-      onChange(toDateOnlyString(parsed));
-    } else {
-      setIsValid(false);
-    }
-  };
-
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.currentTarget.blur();
-    }
-  };
-
-  const handleClear = () => {
-    setDraft(null);
-    setIsValid(true);
-    onChange("");
-  };
 
   return (
-    <div className="flex items-center gap-1.5">
-      {/* Preset Select */}
-      <Select
-        items={DATE_PRESET_ITEMS}
-        onValueChange={handlePresetChange}
-        value={selectedPreset}
-      >
-        <SelectTrigger size="sm">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {DATE_PRESET_ITEMS.map((item) => (
-            <SelectItem key={item.value} value={item.value}>
-              {item.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Date picker button - only when custom mode */}
-      {isCustomMode && (
-        <Popover onOpenChange={setCalendarOpen} open={calendarOpen}>
-          <PopoverTrigger render={<Button size="sm" variant="outline" />}>
-            <span>
-              {dateValue ? formatDateForDisplay(dateValue) : "Select a date"}
-            </span>
-          </PopoverTrigger>
-          <PopoverContent align="start" className="w-auto gap-0 p-3">
-            <InputGroup className={cn(!isValid && "border-destructive")}>
-              <InputGroupInput
-                onBlur={handleInputBlur}
-                onChange={handleInputChange}
-                onKeyDown={handleInputKeyDown}
-                placeholder="Select or type a date..."
-                value={displayValue}
-              />
-              {displayValue && (
-                <InputGroupAddon align="inline-end">
-                  <InputGroupButton onClick={handleClear} size="icon-sm">
-                    <XIcon />
-                  </InputGroupButton>
-                </InputGroupAddon>
-              )}
-            </InputGroup>
-            <Calendar
-              mode="single"
-              onSelect={handleCalendarSelect}
-              selected={dateValue}
-            />
-          </PopoverContent>
-        </Popover>
-      )}
-    </div>
+    <Popover onOpenChange={setOpen} open={open}>
+      <PopoverTrigger render={<Button variant="outline" />}>
+        <span className={dateValue ? undefined : "text-muted-foreground"}>
+          {dateValue ? formatDateForDisplay(dateValue) : "Select a date"}
+        </span>
+        <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-64 p-0">
+        <SingleDatePickerBody onChange={onChange} value={value} />
+      </PopoverContent>
+    </Popover>
   );
 }
 

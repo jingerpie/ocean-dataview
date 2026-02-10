@@ -98,7 +98,6 @@ export function DataRowActions({
         dropdownActions={dropdownActions}
         onPrimaryAction={onPrimaryAction ?? (() => undefined)}
         primaryLabel={primaryLabel}
-        size="sm"
       />
     </div>
   );

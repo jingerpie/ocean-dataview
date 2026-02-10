@@ -212,6 +212,7 @@ export function GalleryView<
                 showAggregation={groupBy?.showAggregation ?? true}
               >
                 <GalleryCard
+                  allProperties={properties}
                   cardPreview={cardPreview}
                   cols={cols}
                   data={group.items}
@@ -249,6 +250,7 @@ export function GalleryView<
   return (
     <div className={cn("flex flex-col gap-2", className)}>
       <GalleryCard
+        allProperties={properties}
         cardPreview={cardPreview}
         cols={cols}
         data={transformedFlatData}

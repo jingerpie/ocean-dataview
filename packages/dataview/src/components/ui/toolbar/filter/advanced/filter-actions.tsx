@@ -36,7 +36,7 @@ export function FilterActions({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button className={className} size="icon-sm" variant="ghost" />}
+        render={<Button className={className} size="icon" variant="ghost" />}
       >
         <MoreHorizontalIcon className="size-4" />
         <span className="sr-only">Actions</span>

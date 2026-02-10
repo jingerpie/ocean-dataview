@@ -3,7 +3,6 @@
 import type { WhereRule } from "@sparkyidea/shared/types";
 import { extractSelectValues } from "@sparkyidea/shared/utils";
 import { ChevronDownIcon } from "lucide-react";
-import { useState } from "react";
 import type {
   BadgeColor,
   PropertyMeta,
@@ -14,14 +13,13 @@ import { Checkbox } from "../../../checkbox";
 import {
   Command,
   CommandChip,
-  CommandChips,
-  CommandChipsInput,
   CommandEmpty,
   CommandGroup,
   CommandItem,
   CommandList,
 } from "../../../command";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
+import { Separator } from "../../../separator";
 import { SimpleFilterPopover } from "../simple/simple-filter-popover";
 
 // ============================================================================
@@ -84,7 +82,7 @@ function flattenStatusOptions(
 }
 
 // ============================================================================
-// StatusBody - Shared content using CommandChipsInput + Command
+// StatusBody - Shared content
 // ============================================================================
 
 interface StatusGroup {
@@ -95,11 +93,9 @@ interface StatusGroup {
 
 interface StatusBodyProps {
   groups: StatusGroup[];
-  options: StatusOption[];
   selectedValues: string[];
   onToggle: (value: string) => void;
   onToggleGroup: (groupOptions: string[], checked: boolean) => void;
-  onRemove: (value: string) => void;
   onClearAll: () => void;
 }
 
@@ -122,69 +118,18 @@ function getGroupCheckState(
 
 function StatusBody({
   groups,
-  options,
   selectedValues,
   onToggle,
   onToggleGroup,
-  onRemove,
   onClearAll,
 }: StatusBodyProps) {
-  const [search, setSearch] = useState("");
-
-  // Preserve insertion order by mapping selectedValues to options
-  const selectedOptions = selectedValues
-    .map((v) => options.find((o) => o.value === v))
-    .filter((o): o is StatusOption => o !== undefined);
-
-  const searchLower = search.toLowerCase();
-
-  const handleSelect = (value: string) => {
-    onToggle(value);
-    setSearch("");
-  };
-
   return (
     <Command className="p-0" shouldFilter={false}>
-      {/* Chips + search input */}
-      <CommandChips
-        onClearAll={selectedOptions.length > 0 ? onClearAll : undefined}
-      >
-        {selectedOptions.map((option) => {
-          const dotClass = DOT_COLOR_CLASSES[option.color];
-          return (
-            <CommandChip
-              className={`bg-badge-${option.color}-subtle text-badge-${option.color}-subtle-foreground`}
-              key={option.value}
-              onRemove={() => onRemove(option.value)}
-            >
-              <div className={`size-2 rounded-full ${dotClass}`} />
-              {option.value}
-            </CommandChip>
-          );
-        })}
-        <CommandChipsInput
-          onValueChange={setSearch}
-          placeholder={
-            selectedOptions.length > 0 ? "" : "Select one or more options..."
-          }
-          value={search}
-        />
-      </CommandChips>
-
       {/* Options list - grouped */}
       <CommandList>
         <CommandEmpty>No options found.</CommandEmpty>
         <CommandGroup>
           {groups.map((group) => {
-            // Filter options in this group by search
-            const filteredGroupOptions = group.options.filter((opt) =>
-              opt.toLowerCase().includes(searchLower)
-            );
-
-            if (filteredGroupOptions.length === 0) {
-              return null;
-            }
-
             const groupCheckState = getGroupCheckState(
               group.options,
               selectedValues
@@ -195,7 +140,6 @@ function StatusBody({
               <div key={group.label}>
                 {/* Group header */}
                 <CommandItem
-                  className="px-1.5 py-1"
                   onSelect={() =>
                     onToggleGroup(group.options, groupCheckState !== true)
                   }
@@ -207,17 +151,19 @@ function StatusBody({
                     indeterminate={groupCheckState === "indeterminate"}
                   />
                   <div className={`size-2 rounded-full ${dotClass}`} />
-                  <span className="font-medium">{group.label}</span>
+                  <span className="font-semibold text-muted-foreground">
+                    {group.label}
+                  </span>
                 </CommandItem>
 
                 {/* Group options */}
-                {filteredGroupOptions.map((optionValue) => {
+                {group.options.map((optionValue) => {
                   const isSelected = selectedValues.includes(optionValue);
                   return (
                     <CommandItem
-                      className="px-1.5 py-1 pl-4"
+                      className="pl-4"
                       key={optionValue}
-                      onSelect={() => handleSelect(optionValue)}
+                      onSelect={() => onToggle(optionValue)}
                       value={optionValue}
                     >
                       <Checkbox
@@ -239,6 +185,20 @@ function StatusBody({
           })}
         </CommandGroup>
       </CommandList>
+
+      {/* Clear selection footer */}
+      {selectedValues.length > 0 && (
+        <div className="sticky bottom-0">
+          <Separator className="mb-1" />
+          <Button
+            className="w-full justify-start"
+            onClick={onClearAll}
+            variant="ghost"
+          >
+            Clear selection
+          </Button>
+        </div>
+      )}
     </Command>
   );
 }
@@ -257,7 +217,6 @@ function StatusSimpleFilter({
 }: StatusFilterChipProps) {
   const config = property.config as StatusConfig | undefined;
   const groups = config?.groups ?? [];
-  const options = flattenStatusOptions(config);
   const selectedValues = extractSelectValues(rule.value);
 
   const handleToggle = (value: string) => {
@@ -277,10 +236,6 @@ function StatusSimpleFilter({
     }
   };
 
-  const handleRemove = (value: string) => {
-    onRuleChange({ ...rule, value: selectedValues.filter((v) => v !== value) });
-  };
-
   const handleClearAll = () => {
     onRuleChange({ ...rule, value: [] });
   };
@@ -297,10 +252,8 @@ function StatusSimpleFilter({
       <StatusBody
         groups={groups}
         onClearAll={handleClearAll}
-        onRemove={handleRemove}
         onToggle={handleToggle}
         onToggleGroup={handleToggleGroup}
-        options={options}
         selectedValues={selectedValues}
       />
     </SimpleFilterPopover>
@@ -343,10 +296,6 @@ function StatusAdvanceFilter({
     }
   };
 
-  const handleRemove = (value: string) => {
-    onValueChange(selectedValues.filter((v) => v !== value));
-  };
-
   const handleClearAll = () => {
     onValueChange([]);
   };
@@ -354,7 +303,7 @@ function StatusAdvanceFilter({
   return (
     <Popover>
       <PopoverTrigger
-        render={<Button className="max-w-100" size="sm" variant="outline" />}
+        render={<Button className="max-w-100" variant="outline" />}
       >
         {selectedOptions.length > 0 ? (
           <div className="flex min-w-0 flex-1 gap-1 overflow-hidden">
@@ -381,10 +330,8 @@ function StatusAdvanceFilter({
         <StatusBody
           groups={groups}
           onClearAll={handleClearAll}
-          onRemove={handleRemove}
           onToggle={handleToggle}
           onToggleGroup={handleToggleGroup}
-          options={options}
           selectedValues={selectedValues}
         />
       </PopoverContent>

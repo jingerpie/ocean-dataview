@@ -113,7 +113,7 @@ export function SortChip({ sorts, properties, onSortsChange }: SortChipProps) {
           <Button className="border-dashed" size="sm" variant="outline" />
         }
       >
-        <SortAscIcon className="size-4" />
+        <SortAscIcon />
         <span>{sortText}</span>
         <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
       </PopoverTrigger>
@@ -170,8 +170,7 @@ export function SortChip({ sorts, properties, onSortsChange }: SortChipProps) {
             <Button
               className="justify-start"
               onClick={handleDeleteSort}
-              size="sm"
-              variant="ghost-destructive"
+              variant="destructive"
             >
               <Trash2Icon />
               <span>Delete sort</span>
