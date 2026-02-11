@@ -162,7 +162,7 @@ export function ListView<
   // data might be empty but we still want to show group headers with counts
   if (groupBy && groupedData) {
     return (
-      <div className={className}>
+      <div className={cn("flex flex-col gap-4", className)}>
         <Accordion
           multiple
           onValueChange={groupBy.onExpandedChange}
