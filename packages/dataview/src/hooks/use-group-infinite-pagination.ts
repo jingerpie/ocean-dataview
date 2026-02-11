@@ -7,7 +7,14 @@ import {
   useInfiniteQuery,
 } from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
-import { useCallback, useMemo, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import type {
   BasePaginatedResponse,
   GroupCounts,
@@ -99,6 +106,8 @@ export interface GroupInfinitePaginationResult<TData> {
   pagination: GroupInfinitePaginationState<TData>;
   /** Handler for accordion expand/collapse */
   handleAccordionChange: (newExpanded: string[]) => void;
+  /** Current expanded groups (local state for optimistic UI) */
+  expandedGroups: string[];
 }
 
 // ============================================================================
@@ -208,7 +217,8 @@ function useGroupInfiniteQueries(
  *   const allGroupKeys = Object.keys(groupCounts);
  *
  *   // Type is inferred from TRPC's infiniteQueryOptions return type
- *   const { data, pagination, handleAccordionChange } = useGroupInfinitePagination({
+ *   // expandedGroups provides local state for optimistic UI (prevents bouncing)
+ *   const { data, pagination, handleAccordionChange, expandedGroups } = useGroupInfinitePagination({
  *     allGroupKeys,
  *     expanded,
  *     groupCounts,
@@ -229,7 +239,7 @@ function useGroupInfiniteQueries(
  *         view={{
  *           group: {
  *             groupBy: "familyGroup",
- *             expandedGroups: expanded,
+ *             expandedGroups, // Use local state from hook, not props
  *             onExpandedChange: handleAccordionChange,
  *           },
  *         }}
@@ -256,6 +266,20 @@ export function useGroupInfinitePagination<
     limitOptions = DEFAULT_LIMIT_OPTIONS,
   } = options;
 
+  // Local state for optimistic accordion UI (prevents bouncing)
+  // Follows tablecn pattern: maintain local state, sync from props only on external changes
+  const [localExpanded, setLocalExpanded] = useState(expanded);
+  const isInternalChange = useRef(false);
+
+  // Sync from props only on external changes (e.g., URL navigation, programmatic updates)
+  // Skip sync if we triggered the change ourselves
+  useEffect(() => {
+    if (!isInternalChange.current) {
+      setLocalExpanded(expanded);
+    }
+    isInternalChange.current = false;
+  }, [expanded]);
+
   const [, startTransition] = useTransition();
 
   // URL state setters - shallow: false for server re-render to update props
@@ -271,18 +295,20 @@ export function useGroupInfinitePagination<
   );
 
   // Create infinite queries internally
+  // Use localExpanded for query enablement (optimistic UI)
   const infiniteQueries = useGroupInfiniteQueries(
     allGroupKeys,
-    expanded,
+    localExpanded,
     maxGroups,
     createQueryOptions
   );
 
   // Build groups array with items and pagination info
+  // Use localExpanded for UI state (optimistic UI)
   const groups = useMemo(() => {
     return allGroupKeys.map((groupKey, index) => {
       const query = infiniteQueries[index];
-      const isExpanded = expanded.includes(groupKey);
+      const isExpanded = localExpanded.includes(groupKey);
       const countInfo = groupCounts[groupKey] ?? { count: 0, hasMore: false };
 
       // Flatten all pages for this group
@@ -316,7 +342,7 @@ export function useGroupInfinitePagination<
 
       return group;
     });
-  }, [allGroupKeys, infiniteQueries, expanded, groupCounts]);
+  }, [allGroupKeys, infiniteQueries, localExpanded, groupCounts]);
 
   // Flatten all items
   const data = useMemo(() => groups.flatMap((g) => g.items), [groups]);
@@ -332,8 +358,13 @@ export function useGroupInfinitePagination<
   );
 
   // Accordion change handler
+  // Immediately updates local state for optimistic UI, then syncs to URL
   const handleAccordionChange = useCallback(
     (newExpanded: string[]) => {
+      // Optimistic UI: update local state immediately
+      setLocalExpanded(newExpanded);
+      isInternalChange.current = true;
+
       startTransition(() => {
         setExpanded(newExpanded.length > 0 ? newExpanded : null);
       });
@@ -354,5 +385,6 @@ export function useGroupInfinitePagination<
       isLoading,
     },
     handleAccordionChange,
+    expandedGroups: localExpanded,
   };
 }

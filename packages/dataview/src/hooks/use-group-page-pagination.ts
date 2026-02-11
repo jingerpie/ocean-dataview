@@ -4,7 +4,14 @@ import { parseAsCursors, parseAsExpanded } from "@sparkyidea/shared/lib";
 import type { Cursors, CursorValue } from "@sparkyidea/shared/types";
 import { useQueries } from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
-import { useCallback, useMemo, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import type {
   BidirectionalPaginatedResponse,
   GroupCounts,
@@ -92,6 +99,8 @@ export interface GroupPagePaginationResult<TData> {
   pagination: GroupPagePaginationState<TData>;
   /** Handler for accordion expand/collapse */
   handleAccordionChange: (newExpanded: string[]) => void;
+  /** Current expanded groups (local state for optimistic UI) */
+  expandedGroups: string[];
 }
 
 // ============================================================================
@@ -128,7 +137,8 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
  *   const allGroupKeys = Object.keys(groupCounts);
  *
  *   // Type is inferred from TRPC's queryOptions return type
- *   const { data, pagination, handleAccordionChange } = useGroupPagePagination({
+ *   // expandedGroups provides local state for optimistic UI (prevents bouncing)
+ *   const { data, pagination, handleAccordionChange, expandedGroups } = useGroupPagePagination({
  *     allGroupKeys,
  *     expanded,
  *     cursors,
@@ -148,7 +158,7 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
  *         view={{
  *           group: {
  *             groupBy: "familyGroup",
- *             expandedGroups: expanded,
+ *             expandedGroups, // Use local state from hook, not props
  *             onExpandedChange: handleAccordionChange,
  *           },
  *         }}
@@ -175,11 +185,26 @@ export function useGroupPagePagination<
     limitOptions = DEFAULT_LIMIT_OPTIONS,
   } = options;
 
+  // Local state for optimistic accordion UI (prevents bouncing)
+  // Follows tablecn pattern: maintain local state, sync from props only on external changes
+  const [localExpanded, setLocalExpanded] = useState(expanded);
+  const isInternalChange = useRef(false);
+
+  // Sync from props only on external changes (e.g., URL navigation, programmatic updates)
+  // Skip sync if we triggered the change ourselves
+  useEffect(() => {
+    if (!isInternalChange.current) {
+      setLocalExpanded(expanded);
+    }
+    isInternalChange.current = false;
+  }, [expanded]);
+
   // Create queries internally using useQueries
+  // Use localExpanded for query enablement (optimistic UI)
   const queries = useQueries({
     queries: allGroupKeys.map((groupKey) => {
       const cursor = cursors[groupKey];
-      const isEnabled = expanded.includes(groupKey);
+      const isEnabled = localExpanded.includes(groupKey);
 
       const queryOpts = createQueryOptions(groupKey, cursor);
 
@@ -210,10 +235,11 @@ export function useGroupPagePagination<
   );
 
   // Build groups array with items and pagination info
+  // Use localExpanded for UI state (optimistic UI)
   const groups = useMemo(() => {
     return allGroupKeys.map((groupKey, index) => {
       const query = queries[index];
-      const isExpanded = expanded.includes(groupKey);
+      const isExpanded = localExpanded.includes(groupKey);
       const countInfo = groupCounts[groupKey] ?? { count: 0, hasMore: false };
       const queryData = query?.data as
         | BidirectionalPaginatedResponse<TData>
@@ -281,7 +307,7 @@ export function useGroupPagePagination<
   }, [
     allGroupKeys,
     queries,
-    expanded,
+    localExpanded,
     cursors,
     groupCounts,
     limit,
@@ -303,9 +329,14 @@ export function useGroupPagePagination<
   );
 
   // Accordion change handler
+  // Immediately updates local state for optimistic UI, then syncs to URL
   const handleAccordionChange = useCallback(
     (newExpanded: string[]) => {
-      const removed = expanded.find((g) => !newExpanded.includes(g));
+      // Optimistic UI: update local state immediately
+      setLocalExpanded(newExpanded);
+      isInternalChange.current = true;
+
+      const removed = localExpanded.find((g) => !newExpanded.includes(g));
 
       startTransition(() => {
         // Clear cursor for collapsed group
@@ -316,7 +347,7 @@ export function useGroupPagePagination<
         setExpanded(newExpanded.length > 0 ? newExpanded : null);
       });
     },
-    [expanded, cursors, setExpanded, setCursors]
+    [localExpanded, cursors, setExpanded, setCursors]
   );
 
   // Check if any group is loading
@@ -332,5 +363,6 @@ export function useGroupPagePagination<
       isLoading,
     },
     handleAccordionChange,
+    expandedGroups: localExpanded,
   };
 }

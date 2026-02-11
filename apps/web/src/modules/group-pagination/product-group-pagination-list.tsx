@@ -62,21 +62,23 @@ export function ProductGroupPaginationList({
   const allGroupKeys = Object.keys(groupCounts);
 
   // 4. Single hook call - creates queries internally using TRPC queryOptions
-  const { data, pagination, handleAccordionChange } = useGroupPagePagination({
-    allGroupKeys,
-    expanded,
-    cursors,
-    groupCounts,
-    limit,
-    createQueryOptions: (groupKey, cursor) =>
-      trpc.product.getMany.queryOptions({
-        filter: combineGroupFilter("category", groupKey, filter),
-        search,
-        sort,
-        cursor,
-        limit,
-      }),
-  });
+  // expandedGroups from hook provides local state for optimistic UI (no bouncing)
+  const { data, pagination, handleAccordionChange, expandedGroups } =
+    useGroupPagePagination({
+      allGroupKeys,
+      expanded,
+      cursors,
+      groupCounts,
+      limit,
+      createQueryOptions: (groupKey, cursor) =>
+        trpc.product.getMany.queryOptions({
+          filter: combineGroupFilter("category", groupKey, filter),
+          search,
+          sort,
+          cursor,
+          limit,
+        }),
+    });
 
   // Empty state
   if (pagination.groups.length === 0) {
@@ -109,7 +111,7 @@ export function ProductGroupPaginationList({
             group: {
               groupBy: "category",
               showAggregation: true,
-              expandedGroups: expanded,
+              expandedGroups,
               onExpandedChange: handleAccordionChange,
             },
           }}

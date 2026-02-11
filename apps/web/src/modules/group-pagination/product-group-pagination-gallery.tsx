@@ -66,7 +66,8 @@ export function ProductGroupPaginationGallery({
   const allGroupKeys = Object.keys(groupCounts);
 
   // 4. Single hook call - creates queries internally using TRPC infiniteQueryOptions
-  const { data, pagination, handleAccordionChange } =
+  // expandedGroups from hook provides local state for optimistic UI (no bouncing)
+  const { data, pagination, handleAccordionChange, expandedGroups } =
     useGroupInfinitePagination({
       allGroupKeys,
       expanded,
@@ -122,7 +123,7 @@ export function ProductGroupPaginationGallery({
             group: {
               groupBy: "category",
               showAggregation: true,
-              expandedGroups: expanded,
+              expandedGroups,
               onExpandedChange: handleAccordionChange,
             },
           }}
