@@ -12,7 +12,7 @@ import { cn } from "../../lib/utils";
 function Accordion({ className, ...props }: AccordionPrimitive.Root.Props) {
   return (
     <AccordionPrimitive.Root
-      className={cn("flex w-full flex-col", className)}
+      className={cn("flex w-full flex-col gap-0.5", className)}
       data-slot="accordion"
       {...props}
     />
