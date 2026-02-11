@@ -265,7 +265,7 @@ export function GalleryView<
 
   // STANDARD VIEW: Flat gallery without grouping
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div className={cn("flex flex-col gap-4", className)}>
       {renderCardGrid(transformedFlatData)}
       {renderPagination(pagination, flatPaginationContext)}
     </div>

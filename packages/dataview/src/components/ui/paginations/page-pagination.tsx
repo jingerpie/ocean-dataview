@@ -1,8 +1,13 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { PaginationContext } from "../../../types";
-import { Button } from "../button";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "../pagination";
 import {
   Select,
   SelectContent,
@@ -36,26 +41,24 @@ export function PagePagination({
 
   return (
     <div className="flex items-center justify-between gap-6 px-2">
-      {/* Item range display */}
+      {/* Navigation and item range */}
       <div className="flex items-center gap-3">
-        <div className="flex gap-1">
-          <Button
-            disabled={!hasPrev || isLoading}
-            onClick={onPrev}
-            variant="outline"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="sr-only">Previous page</span>
-          </Button>
-          <Button
-            disabled={!hasNext || isLoading}
-            onClick={onNext}
-            variant="outline"
-          >
-            <ChevronRight className="h-4 w-4" />
-            <span className="sr-only">Next page</span>
-          </Button>
-        </div>
+        <Pagination className="mx-0 w-auto">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                disabled={!hasPrev || isLoading}
+                onClick={onPrev}
+              />
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationNext
+                disabled={!hasNext || isLoading}
+                onClick={onNext}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
         {displayStart !== undefined && displayEnd !== undefined && (
           <div className="text-muted-foreground text-sm">
             {displayEnd > 0 ? (
@@ -68,13 +71,15 @@ export function PagePagination({
           </div>
         )}
       </div>
+
+      {/* Rows per page */}
       <div className="flex items-center gap-2">
-        <span className="text-muted-foreground text-sm">Rows per page:</span>
+        <span className="text-muted-foreground text-sm">Rows per page</span>
         <Select
           onValueChange={(value) => onLimitChange?.(Number(value))}
           value={String(limit)}
         >
-          <SelectTrigger className="h-8 w-[70px]">
+          <SelectTrigger className="h-8 w-18">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

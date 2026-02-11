@@ -216,7 +216,7 @@ export function ListView<
 
   // STANDARD VIEW: Flat list without grouping
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div className={cn("flex flex-col gap-4", className)}>
       <ListRow
         allProperties={properties}
         data={transformedFlatData}

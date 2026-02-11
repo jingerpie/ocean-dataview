@@ -466,7 +466,7 @@ export function TableView<
 
   // STANDARD VIEW: Flat table without grouping
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div className={cn("flex flex-col gap-4", className)}>
       <DataTable
         actionBar={actionBar}
         columns={columns}
