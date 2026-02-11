@@ -2,6 +2,7 @@ import { NumberProperty } from "@sparkyidea/dataview/properties";
 import type { DataViewProperty } from "@sparkyidea/dataview/types";
 import type { AppRouter } from "@sparkyidea/trpc/routers/index";
 import type { inferRouterOutputs } from "@trpc/server";
+import { AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 
 type RouterOutput = inferRouterOutputs<AppRouter>;
 type ProductWithVariants = RouterOutput["product"]["getMany"]["items"][number];
@@ -106,9 +107,24 @@ export const productProperties = [
     type: "status",
     config: {
       groups: [
-        { label: "Available", color: "green", options: ["In stock"] },
-        { label: "Warning", color: "yellow", options: ["Low stock"] },
-        { label: "Unavailable", color: "red", options: ["Out of stock"] },
+        {
+          label: "Available",
+          color: "green",
+          options: ["In stock"],
+          icon: CheckCircle2,
+        },
+        {
+          label: "Warning",
+          color: "yellow",
+          options: ["Low stock"],
+          icon: AlertCircle,
+        },
+        {
+          label: "Unavailable",
+          color: "red",
+          options: ["Out of stock"],
+          icon: XCircle,
+        },
       ],
     },
   },

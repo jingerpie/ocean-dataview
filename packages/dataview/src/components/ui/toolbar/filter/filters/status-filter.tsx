@@ -2,11 +2,12 @@
 
 import type { WhereRule } from "@sparkyidea/shared/types";
 import { extractSelectValues } from "@sparkyidea/shared/utils";
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon, CircleDashed } from "lucide-react";
 import type {
   BadgeColor,
   PropertyMeta,
   StatusConfig,
+  StatusGroup,
 } from "../../../../../types";
 import { Button } from "../../../button";
 import { Checkbox } from "../../../checkbox";
@@ -45,21 +46,22 @@ interface StatusOption {
   value: string;
   color: BadgeColor;
   group: string;
+  icon?: StatusGroup["icon"];
 }
 
 // ============================================================================
-// Color mapping for status dots
+// Color mapping for status icons
 // ============================================================================
 
-const DOT_COLOR_CLASSES: Record<BadgeColor, string> = {
-  gray: "bg-badge-gray-subtle-foreground",
-  blue: "bg-badge-blue-subtle-foreground",
-  purple: "bg-badge-purple-subtle-foreground",
-  yellow: "bg-badge-yellow-subtle-foreground",
-  red: "bg-badge-red-subtle-foreground",
-  pink: "bg-badge-pink-subtle-foreground",
-  green: "bg-badge-green-subtle-foreground",
-  teal: "bg-badge-teal-subtle-foreground",
+const TEXT_COLOR_CLASSES: Record<BadgeColor, string> = {
+  gray: "!text-badge-gray-subtle-foreground",
+  blue: "!text-badge-blue-subtle-foreground",
+  purple: "!text-badge-purple-subtle-foreground",
+  yellow: "!text-badge-yellow-subtle-foreground",
+  red: "!text-badge-red-subtle-foreground",
+  pink: "!text-badge-pink-subtle-foreground",
+  green: "!text-badge-green-subtle-foreground",
+  teal: "!text-badge-teal-subtle-foreground",
 };
 
 // ============================================================================
@@ -77,6 +79,7 @@ function flattenStatusOptions(
       value,
       color: group.color,
       group: group.label,
+      icon: group.icon,
     }))
   );
 }
@@ -84,12 +87,6 @@ function flattenStatusOptions(
 // ============================================================================
 // StatusBody - Shared content
 // ============================================================================
-
-interface StatusGroup {
-  label: string;
-  color: BadgeColor;
-  options: string[];
-}
 
 interface StatusBodyProps {
   groups: StatusGroup[];
@@ -134,7 +131,8 @@ function StatusBody({
               group.options,
               selectedValues
             );
-            const dotClass = DOT_COLOR_CLASSES[group.color];
+            const textClass = TEXT_COLOR_CLASSES[group.color];
+            const Icon = group.icon ?? CircleDashed;
 
             return (
               <div key={group.label}>
@@ -150,7 +148,7 @@ function StatusBody({
                     className="[&_svg]:text-current!"
                     indeterminate={groupCheckState === "indeterminate"}
                   />
-                  <div className={`size-2 rounded-full ${dotClass}`} />
+                  <Icon className={`size-4 ${textClass}`} />
                   <span className="font-semibold text-muted-foreground">
                     {group.label}
                   </span>
@@ -174,7 +172,7 @@ function StatusBody({
                         className={`bg-badge-${group.color}-subtle text-badge-${group.color}-subtle-foreground`}
                         showRemove={false}
                       >
-                        <div className={`size-2 rounded-full ${dotClass}`} />
+                        <Icon className="size-3 text-current" />
                         {optionValue}
                       </CommandChip>
                     </CommandItem>
@@ -308,14 +306,14 @@ function StatusAdvanceFilter({
         {selectedOptions.length > 0 ? (
           <div className="flex min-w-0 flex-1 gap-1 overflow-hidden">
             {selectedOptions.map((option) => {
-              const dotClass = DOT_COLOR_CLASSES[option.color];
+              const Icon = option.icon ?? CircleDashed;
               return (
                 <CommandChip
                   className={`bg-badge-${option.color}-subtle text-badge-${option.color}-subtle-foreground`}
                   key={option.value}
                   showRemove={false}
                 >
-                  <div className={`size-2 rounded-full ${dotClass}`} />
+                  <Icon className="size-3 text-current" />
                   {option.value}
                 </CommandChip>
               );

@@ -1,4 +1,11 @@
 import type { WhereNode } from "@sparkyidea/shared/types";
+import type { ComponentType, SVGProps } from "react";
+
+/**
+ * Generic icon type that accepts any SVG icon component.
+ * Works with Lucide, Heroicons, or any custom SVG component.
+ */
+export type IconComponent = ComponentType<SVGProps<SVGSVGElement>>;
 
 export type PropertyType =
   | "text"
@@ -118,6 +125,8 @@ export interface StatusGroup {
   label: string;
   color: BadgeColor;
   options: string[];
+  /** Optional icon component to display. Defaults to CircleDashed. */
+  icon?: IconComponent;
 }
 
 export interface StatusConfig {

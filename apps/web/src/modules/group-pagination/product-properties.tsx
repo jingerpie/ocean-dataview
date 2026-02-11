@@ -2,6 +2,7 @@ import { NumberProperty } from "@sparkyidea/dataview/properties";
 import type { DataViewProperty } from "@sparkyidea/dataview/types";
 import type { AppRouter } from "@sparkyidea/trpc/routers/index";
 import type { inferRouterOutputs } from "@trpc/server";
+import { AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 
 type RouterOutput = inferRouterOutputs<AppRouter>;
 type ProductWithVariants = RouterOutput["product"]["getMany"]["items"][number];
@@ -18,29 +19,52 @@ export const productProperties = [
     id: "price",
     label: "Price",
     type: "number",
+    config: {
+      numberFormat: "dollar",
+      decimalPlaces: 2,
+    },
   },
   {
     id: "stockLevel",
     label: "Stock Level",
     type: "number",
+    config: {
+      showAs: {
+        type: "bar",
+        color: "red",
+        divideBy: 100,
+      },
+    },
   },
   {
     id: "rating",
     label: "Rating",
     type: "number",
+    config: {
+      showAs: {
+        type: "ring",
+        color: "green",
+        divideBy: 100,
+      },
+    },
   },
   {
     id: "_totalWorth",
     label: "Total Worth",
     type: "formula",
     value: (property) => (
-      <NumberProperty
-        config={{
-          numberFormat: "dollar",
-          decimalPlaces: 2,
-        }}
-        value={(property.raw("price") ?? 0) * (property.raw("stockLevel") ?? 0)}
-      />
+      <div className="flex flex-col items-center gap-2">
+        <NumberProperty
+          config={{
+            numberFormat: "dollar",
+            decimalPlaces: 2,
+          }}
+          value={
+            (property.raw("price") ?? 0) * (property.raw("stockLevel") ?? 0)
+          }
+        />
+        {property("rating")}
+      </div>
     ),
   },
   {
@@ -52,13 +76,13 @@ export const productProperties = [
         { value: "Accessories", color: "blue" },
         { value: "Bottoms", color: "purple" },
         { value: "Dresses", color: "pink" },
-        { value: "Footwear", color: "orange" },
+        { value: "Footwear", color: "yellow" },
         { value: "Garden", color: "green" },
         { value: "Home", color: "teal" },
-        { value: "Jewelry", color: "yellow" },
+        { value: "Jewelry", color: "gray" },
         { value: "Lingerie", color: "red" },
         { value: "Outerwear", color: "gray" },
-        { value: "Tops", color: "teal" },
+        { value: "Tops", color: "blue" },
       ],
     },
   },
@@ -73,19 +97,34 @@ export const productProperties = [
         { value: "Limited Edition", color: "purple" },
         { value: "New Arrival", color: "blue" },
         { value: "On Sale", color: "red" },
-        { value: "Seasonal", color: "orange" },
+        { value: "Seasonal", color: "pink" },
       ],
     },
   },
   {
     id: "availability",
     label: "Availability",
-    type: "select",
+    type: "status",
     config: {
-      options: [
-        { value: "In stock", color: "green" },
-        { value: "Low stock", color: "yellow" },
-        { value: "Out of stock", color: "red" },
+      groups: [
+        {
+          label: "Available",
+          color: "green",
+          options: ["In stock"],
+          icon: CheckCircle2,
+        },
+        {
+          label: "Warning",
+          color: "yellow",
+          options: ["Low stock"],
+          icon: AlertCircle,
+        },
+        {
+          label: "Unavailable",
+          color: "red",
+          options: ["Out of stock"],
+          icon: XCircle,
+        },
       ],
     },
   },

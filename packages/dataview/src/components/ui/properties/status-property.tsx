@@ -1,5 +1,6 @@
 "use client";
 
+import { CircleDashed } from "lucide-react";
 import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
 import type { StatusConfig } from "../../../types/property.type";
 import { Badge } from "../badge";
@@ -21,23 +22,22 @@ export function StatusProperty({ value, config }: StatusPropertyProps) {
     g.options.includes(stringValue)
   );
 
-  // Fallback: gray badge if no matching group found
+  // Fallback: gray badge with default icon if no matching group found
   if (!groupInfo) {
     return (
       <Badge variant="gray-subtle">
-        <div className="h-2 w-2 rounded-full bg-badge-gray-subtle-foreground" />
+        <CircleDashed className="size-3 text-current" />
         {stringValue}
       </Badge>
     );
   }
 
   const variant = getBadgeVariant(groupInfo.color);
+  const Icon = groupInfo.icon ?? CircleDashed;
 
   return (
     <Badge variant={variant}>
-      <div
-        className={`h-2 w-2 rounded-full bg-badge-${groupInfo.color}-subtle-foreground`}
-      />
+      <Icon className="size-3 text-current" />
       {stringValue}
     </Badge>
   );
