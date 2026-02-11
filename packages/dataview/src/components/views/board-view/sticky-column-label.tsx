@@ -57,6 +57,11 @@ interface StickyColumnLabelProps {
    * Offset from top of viewport (e.g., navbar height)
    */
   offset?: number;
+
+  /**
+   * Additional className for header items (passed via cn)
+   */
+  className?: string;
 }
 
 /**
@@ -72,6 +77,7 @@ export function StickyColumnLabel({
   headerRef,
   containerRef,
   offset = 0,
+  className,
 }: StickyColumnLabelProps) {
   const stickyHeaderScrollRef = useRef<HTMLDivElement>(null);
   const [showStickyHeader, setShowStickyHeader] = useState(false);
@@ -260,11 +266,12 @@ export function StickyColumnLabel({
         className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         ref={stickyHeaderScrollRef}
       >
-        <div className="flex min-w-fit gap-3">
+        <div className="flex min-w-fit gap-4">
           {groups.map((group) => (
             <div
               className={cn(
-                "shrink-0 rounded-lg p-2",
+                "shrink-0 rounded-t-lg p-2",
+                className,
                 getColumnBgClass?.(group.key) || "bg-muted/30"
               )}
               key={group.key}

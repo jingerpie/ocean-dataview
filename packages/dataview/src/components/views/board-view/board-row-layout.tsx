@@ -247,6 +247,7 @@ export function BoardRowLayout<
       {/* Portal-based sticky column labels */}
       {stickyHeader?.enabled && (
         <StickyColumnLabel
+          className="rounded-lg"
           columnHeader={columnHeader}
           columnWidthPx={columnWidthPx}
           containerRef={containerRef}
@@ -261,7 +262,7 @@ export function BoardRowLayout<
       <div className="overflow-x-auto pb-4" ref={containerRef}>
         <div className="min-w-fit">
           {/* Original column headers */}
-          <div className="flex gap-3 bg-background" ref={headerRef}>
+          <div className="flex gap-4 bg-background" ref={headerRef}>
             {groups.map((group) => (
               <div
                 className={cn(
@@ -309,7 +310,7 @@ export function BoardRowLayout<
 
           {/* Column footers (pagination) */}
           {renderColumnFooter && (
-            <div className="mt-4 flex gap-3">
+            <div className="mt-4 flex gap-4">
               {groups.map((group) => (
                 <div
                   className="shrink-0"
@@ -369,7 +370,7 @@ function SubGroupRow<TData>({
         </AccordionTrigger>
       </StickyGroupLabel>
       <AccordionContent className="gap-0 pb-0">
-        <div className="flex gap-3">
+        <div className="flex gap-4">
           {groups.map((group) => {
             // Cast to helper to avoid TS complexity if needed, but here generic works?
             // TData is visible here.

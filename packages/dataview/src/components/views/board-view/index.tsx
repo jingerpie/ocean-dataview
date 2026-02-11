@@ -539,6 +539,10 @@ export function BoardView<
       groups={groups}
       keyExtractor={keyExtractor}
       renderColumnFooter={renderColumnFooter}
+      stickyHeader={{
+        enabled: true,
+        offset: 56,
+      }}
     />
   );
 }

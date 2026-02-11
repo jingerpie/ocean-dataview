@@ -17,6 +17,7 @@ interface BoardColumnProps<TData> {
 
 /**
  * BoardColumn - Single column for flat (non-sub-grouped) boards
+ * Header and content are separate divs for sticky header support
  * For sub-grouped boards, use BoardRowLayout instead
  */
 export function BoardColumn<TData>({
@@ -29,28 +30,31 @@ export function BoardColumn<TData>({
   columnWidth,
   renderFooter,
 }: BoardColumnProps<TData>) {
-  return (
-    <div
-      className={cn(
-        "flex shrink-0 flex-col gap-4 rounded-lg p-2 transition-colors",
-        columnWidth,
-        columnBgClass || "bg-muted/10"
-      )}
-    >
-      {/* Column Header */}
-      {columnHeader ? (
-        columnHeader(groupName, items.length)
-      ) : (
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-sm">{groupName}</h3>
-          <Badge className="ml-2" variant="secondary">
-            {items.length}
-          </Badge>
-        </div>
-      )}
+  const bgClass = columnBgClass || "bg-muted/10";
 
-      {/* Cards */}
-      <div className="flex min-h-50 flex-1 flex-col gap-4 overflow-y-auto p-1">
+  return (
+    <div className={cn("flex shrink-0 flex-col", columnWidth)}>
+      {/* Column Header - rounded top only */}
+      <div className={cn("rounded-t-lg p-2 transition-colors", bgClass)}>
+        {columnHeader ? (
+          columnHeader(groupName, items.length)
+        ) : (
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-sm">{groupName}</h3>
+            <Badge className="ml-2" variant="secondary">
+              {items.length}
+            </Badge>
+          </div>
+        )}
+      </div>
+
+      {/* Cards - rounded bottom only */}
+      <div
+        className={cn(
+          "flex min-h-50 flex-1 flex-col gap-4 overflow-y-auto rounded-b-lg p-2 transition-colors",
+          bgClass
+        )}
+      >
         {items.length === 0 ? (
           <div className="flex h-32 items-center justify-center text-muted-foreground text-sm">
             No items
