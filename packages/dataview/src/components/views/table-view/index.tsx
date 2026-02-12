@@ -142,7 +142,6 @@ export function TableView<
     properties,
     propertyVisibility,
     pagination: contextPagination,
-    setExcludedPropertyIds,
     setPropertyVisibility,
   } = useDataViewContext<TData, TProperties>();
 
@@ -172,7 +171,6 @@ export function TableView<
       : undefined,
     viewPropertyVisibility,
     contextPagination,
-    setExcludedPropertyIds,
     setPropertyVisibility,
   });
 

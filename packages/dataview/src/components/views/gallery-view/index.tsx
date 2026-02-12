@@ -114,7 +114,6 @@ export function GalleryView<
     properties,
     propertyVisibility,
     pagination: contextPagination,
-    setExcludedPropertyIds,
     setPropertyVisibility,
   } = useDataViewContext<TData, TProperties>();
 
@@ -130,7 +129,6 @@ export function GalleryView<
   // Use shared view setup hook
   const {
     transformedData,
-    groupConfig,
     groupedData,
     groupByProperty,
     validationError,
@@ -149,19 +147,14 @@ export function GalleryView<
       : undefined,
     viewPropertyVisibility,
     contextPagination,
-    setExcludedPropertyIds,
     setPropertyVisibility,
   });
 
-  // Use shared hook for display properties filtering (exclude preview and groupBy)
-  const excludeKeys = [
-    cardPreview,
-    ...(groupConfig ? [groupConfig.groupBy] : []),
-  ].filter((key): key is string => key !== undefined);
+  // Use shared hook for display properties filtering
+  // Note: We no longer exclude cardPreview or groupBy here - they should be toggleable in Visibility
   const displayProperties = useDisplayProperties(
     properties,
-    propertyVisibility,
-    excludeKeys
+    propertyVisibility
   );
 
   const { imageHeight, cols } = getGalleryCardDimensions(cardSize);

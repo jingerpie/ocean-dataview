@@ -184,7 +184,6 @@ export function BoardView<
     data,
     properties,
     pagination: contextPagination,
-    setExcludedPropertyIds,
     setPropertyVisibility,
   } = useDataViewContext<TData, TProperties>();
 
@@ -221,22 +220,6 @@ export function BoardView<
 
   // Always use context state (which can be controlled by DataViewOptions)
   const { propertyVisibility } = useDataViewContext<TData, TProperties>();
-
-  // Update excluded properties when groupBy or subGroupBy changes
-  useEffect(() => {
-    const excluded: TProperties[number]["id"][] = [];
-    if (groupConfig?.groupBy) {
-      excluded.push(groupConfig.groupBy);
-    }
-    if (subGroupConfig?.subGroupBy) {
-      excluded.push(subGroupConfig.subGroupBy);
-    }
-    setExcludedPropertyIds(excluded);
-  }, [
-    groupConfig?.groupBy,
-    subGroupConfig?.subGroupBy,
-    setExcludedPropertyIds,
-  ]);
 
   // Validate property keys
   const propertyValidationError = useMemo(
@@ -368,15 +351,11 @@ export function BoardView<
     return [];
   }, [groupByProperty]);
 
-  // Use shared hook for display properties filtering (exclude groupBy and preview)
-  const activeGroupBy = groupByProperty?.id;
-  const excludeKeys = [cardPreview, activeGroupBy].filter(
-    (key): key is string => key !== undefined
-  );
+  // Use shared hook for display properties filtering
+  // Note: We no longer exclude cardPreview, groupBy, or subGroupBy here - they should be toggleable in Visibility
   const displayProperties = useDisplayProperties(
     properties,
-    propertyVisibility,
-    excludeKeys
+    propertyVisibility
   );
 
   // Get card dimensions based on size

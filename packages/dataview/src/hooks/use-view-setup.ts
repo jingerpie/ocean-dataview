@@ -41,8 +41,6 @@ export interface UseViewSetupOptions<
   contextPropertyVisibility?: string[];
   /** Context pagination state */
   contextPagination?: unknown;
-  /** Setter for excluded property IDs */
-  setExcludedPropertyIds: (ids: string[]) => void;
   /** Setter for property visibility */
   setPropertyVisibility: (visibility: string[]) => void;
   /** Additional property IDs to exclude (e.g., cardPreview) */
@@ -94,7 +92,6 @@ export function useViewSetup<
   groupBy,
   viewPropertyVisibility,
   contextPagination,
-  setExcludedPropertyIds,
   setPropertyVisibility,
 }: UseViewSetupOptions<TData, TProperties>): UseViewSetupResult<
   TData,
@@ -108,15 +105,6 @@ export function useViewSetup<
       hasInitialized.current = true;
     }
   }, [viewPropertyVisibility, setPropertyVisibility]);
-
-  // Pattern 2: Update excluded properties when groupBy changes
-  useEffect(() => {
-    if (groupBy?.groupBy) {
-      setExcludedPropertyIds([groupBy.groupBy]);
-    } else {
-      setExcludedPropertyIds([]);
-    }
-  }, [groupBy?.groupBy, setExcludedPropertyIds]);
 
   // Pattern 3: Validate property keys
   const propertyValidationError = useMemo(

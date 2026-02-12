@@ -100,7 +100,6 @@ export function ListView<
     properties,
     propertyVisibility,
     pagination: contextPagination,
-    setExcludedPropertyIds,
     setPropertyVisibility,
   } = useDataViewContext<TData, TProperties>();
 
@@ -128,7 +127,6 @@ export function ListView<
       : undefined,
     viewPropertyVisibility,
     contextPagination,
-    setExcludedPropertyIds,
     setPropertyVisibility,
   });
 
