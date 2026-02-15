@@ -2,7 +2,7 @@
 
 import { type ReactNode, useCallback, useMemo, useRef } from "react";
 import { cn, groupByProperty as groupDataByProperty } from "../../../lib/utils";
-import type { DataViewProperty } from "../../../types";
+import type { DataViewProperty, GroupCounts } from "../../../types";
 import {
   Accordion,
   AccordionContent,
@@ -76,6 +76,8 @@ export interface BoardRowLayoutProps<
     expandedSubGroups?: string[];
     /** Callback when sub-group expansion changes */
     onExpandedSubGroupsChange?: (groups: string[]) => void;
+    /** Server-side sub-group counts (for row headers) */
+    counts?: GroupCounts;
   };
 
   /**
@@ -104,9 +106,11 @@ export interface BoardRowLayoutProps<
   columnWidth?: string;
 
   /**
-   * Column footer renderer (for pagination)
+   * Footer renderer (for pagination below cards in each sub-group)
+   * Renders per-column within each sub-group row
+   * All buttons in a row trigger the same action (load more for that sub-group)
    */
-  renderColumnFooter?: (groupKey: string) => ReactNode;
+  renderFooter?: (subGroupKey: string) => ReactNode;
 
   /**
    * Additional className
@@ -141,10 +145,12 @@ export function BoardRowLayout<
   columnHeader,
   getColumnBgClass,
   columnWidth = "w-80",
-  renderColumnFooter,
+  renderFooter,
   className,
   stickyHeader,
 }: BoardRowLayoutProps<TData, TProperties>) {
+  // Extract counts from subGroup config
+  const subGroupCounts = subGroupConfig.counts;
   // Refs for sticky header
   const headerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -155,11 +161,12 @@ export function BoardRowLayout<
   }, [properties, subGroupConfig.subGroupBy]);
 
   // Collect all unique sub-group keys across all groups and sort them
+  // When server counts are available, use them for accurate totals
   const allSubGroupData = useMemo(() => {
     // Flatten all items from all groups
     const allItems = groups.flatMap((g) => g.items);
 
-    if (allItems.length === 0) {
+    if (allItems.length === 0 && !subGroupCounts) {
       return [];
     }
 
@@ -171,13 +178,27 @@ export function BoardRowLayout<
       subGroupConfig.startWeekOn
     );
 
+    // Get all unique sub-group keys (from either client data or server counts)
+    const allSubGroupKeys = new Set([
+      ...Object.keys(subGroups),
+      ...Object.keys(subGroupCounts ?? {}),
+    ]);
+
     // Build sub-group array with counts
-    const subGroupArray = Object.entries(subGroups).map(([key, items]) => {
-      const count = (items as TData[]).length;
+    const subGroupArray = Array.from(allSubGroupKeys).map((key) => {
+      const serverCount = subGroupCounts?.[key];
+      const clientItems = subGroups[key] as TData[] | undefined;
+      const clientCount = clientItems?.length ?? 0;
+
+      // Prefer server counts when available
+      const count = serverCount?.count ?? clientCount;
+      const hasMore = serverCount?.hasMore ?? false;
+
       return {
         key,
         totalCount: count,
-        displayCount: count > 99 ? "99+" : String(count),
+        // Show 99+ if any group has more OR if total exceeds 99
+        displayCount: hasMore || count > 99 ? "99+" : String(count),
         sortValue: sortValues[key] ?? key,
       };
     });
@@ -195,7 +216,7 @@ export function BoardRowLayout<
     });
 
     return subGroupArray;
-  }, [groups, subGroupConfig, properties]);
+  }, [groups, subGroupConfig, properties, subGroupCounts]);
 
   // Get items for a specific cell (column group + sub-group)
   const getItemsForCell = useCallback(
@@ -220,6 +241,7 @@ export function BoardRowLayout<
   );
 
   // Filter sub-groups based on hideEmptyGroups
+  // Uses server counts (totalCount) when available, consistent with Table/List/Gallery views
   const visibleSubGroups = useMemo(() => {
     const hideEmpty = subGroupConfig.hideEmptyGroups ?? true;
 
@@ -227,18 +249,9 @@ export function BoardRowLayout<
       return allSubGroupData;
     }
 
-    // Only show sub-groups that have at least one item in any column
-    return allSubGroupData.filter((subGroup) =>
-      groups.some(
-        (group) => getItemsForCell(group.key, subGroup.key).length > 0
-      )
-    );
-  }, [
-    allSubGroupData,
-    groups,
-    subGroupConfig.hideEmptyGroups,
-    getItemsForCell,
-  ]);
+    // Filter by totalCount (from server counts) to show groups even when items aren't loaded yet
+    return allSubGroupData.filter((subGroup) => subGroup.totalCount > 0);
+  }, [allSubGroupData, subGroupConfig.hideEmptyGroups]);
 
   const columnWidthPx = parseColumnWidth(columnWidth);
 
@@ -302,26 +315,12 @@ export function BoardRowLayout<
                 groups={groups}
                 key={subGroup.key}
                 keyExtractor={keyExtractor}
+                renderFooter={renderFooter}
                 subGroup={subGroup}
                 subGroupByPropertyDef={subGroupByPropertyDef}
               />
             ))}
           </Accordion>
-
-          {/* Column footers (pagination) */}
-          {renderColumnFooter && (
-            <div className="mt-4 flex gap-4">
-              {groups.map((group) => (
-                <div
-                  className="shrink-0"
-                  key={group.key}
-                  style={{ width: columnWidthPx }}
-                >
-                  {renderColumnFooter(group.key)}
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -337,6 +336,7 @@ function SubGroupRow<TData>({
   keyExtractor,
   cardContent,
   getColumnBgClass,
+  renderFooter,
 }: {
   subGroup: { key: string; displayCount?: string };
   subGroupByPropertyDef?: DataViewProperty<TData>;
@@ -346,6 +346,7 @@ function SubGroupRow<TData>({
   keyExtractor: (item: TData, index: number) => string;
   cardContent: (item: TData, index: number) => ReactNode;
   getColumnBgClass?: (groupName: string) => string | undefined;
+  renderFooter?: (subGroupKey: string) => ReactNode;
 }) {
   const itemRef = useRef<HTMLDivElement>(null);
 
@@ -372,8 +373,6 @@ function SubGroupRow<TData>({
       <AccordionContent className="gap-0 pb-0">
         <div className="flex gap-4">
           {groups.map((group) => {
-            // Cast to helper to avoid TS complexity if needed, but here generic works?
-            // TData is visible here.
             const cellItems = getItemsForCell(group.key, subGroup.key);
             const columnBgClass = getColumnBgClass?.(group.key);
 
@@ -397,6 +396,8 @@ function SubGroupRow<TData>({
                 ) : (
                   <div className="min-h-10" />
                 )}
+                {/* Footer (pagination) - all columns trigger same sub-group action */}
+                {renderFooter?.(subGroup.key)}
               </div>
             );
           })}

@@ -10,8 +10,10 @@ export type { PaginationContext } from "./pagination";
 export type {
   BasePaginatedResponse,
   BidirectionalPaginatedResponse,
+  GroupCountInfo,
   GroupCounts,
   InferItemsFromQueryOptions,
+  ViewCounts,
 } from "./pagination-types";
 export * from "./property.type";
 

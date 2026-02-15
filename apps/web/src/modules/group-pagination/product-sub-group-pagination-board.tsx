@@ -1,6 +1,6 @@
 "use client";
 
-import { useGroupPagePagination } from "@sparkyidea/dataview/hooks";
+import { useGroupInfinitePagination } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
@@ -8,7 +8,7 @@ import {
   BoardSkeleton,
   BoardView,
 } from "@sparkyidea/dataview/views/board-view";
-import type { Cursors, SortQuery, WhereNode } from "@sparkyidea/shared/types";
+import type { SortQuery, WhereNode } from "@sparkyidea/shared/types";
 import {
   buildSearchFilter,
   combineGroupFilter,
@@ -23,7 +23,7 @@ import { ViewNav } from "./view-nav";
  * Props passed from server (parsed URL params)
  */
 interface Props {
-  cursors: Cursors;
+  expanded: string[] | null;
   limit: number;
   filter?: WhereNode[] | null;
   /** Raw search string from URL (for UI display) */
@@ -32,13 +32,14 @@ interface Props {
 }
 
 /**
- * BoardView with server-side pagination
+ * BoardView with sub-groups and infinite load-more pagination.
  *
- * Unlike Table/List/Gallery, BoardView columns are always visible (no accordion).
- * All group keys are always "expanded" so all columns fetch data.
+ * Sub-groups (availability rows) are the actual pagination groups.
+ * Each sub-group row has its own "Load More" button.
+ * Columns (category) use getManyByGroup to ensure items are distributed across all columns.
  */
 export function ProductSubGroupPaginationBoard({
-  cursors,
+  expanded: expandedProp,
   limit,
   filter = null,
   search: searchQuery = "",
@@ -50,30 +51,59 @@ export function ProductSubGroupPaginationBoard({
   const searchableFields = getSearchableProperties(productProperties);
   const search = buildSearchFilter(searchQuery, searchableFields);
 
-  // 1. Fetch group counts (suspends until data is ready)
+  // Get group counts (for column headers - category)
   const { data: groupCounts } = useSuspenseQuery(
     trpc.product.getGroup.queryOptions({ groupBy: "category" })
   );
 
-  // 2. Get all group keys - all columns are always visible in BoardView
-  const allGroupKeys = Object.keys(groupCounts);
+  // Get sub-group counts (for row headers - availability)
+  // These are the actual pagination groups
+  const { data: subGroupCounts } = useSuspenseQuery(
+    trpc.product.getGroup.queryOptions({ groupBy: "availability" })
+  );
 
-  // 3. Single hook call - creates queries internally using TRPC queryOptions
-  const { data, pagination } = useGroupPagePagination({
-    allGroupKeys,
-    expanded: allGroupKeys, // All columns visible
-    cursors,
-    groupCounts,
-    limit,
-    createQueryOptions: (groupKey, cursor) =>
-      trpc.product.getMany.queryOptions({
-        filter: combineGroupFilter("category", groupKey, filter),
-        search,
-        sort,
-        cursor,
-        limit,
-      }),
-  });
+  // Get all sub-group keys (rows) - these are the pagination groups
+  const allSubGroupKeys = Object.keys(subGroupCounts);
+
+  // Apply default expanded on client - default to all sub-groups expanded
+  const expanded = expandedProp ?? [];
+
+  // Use grouped infinite pagination - creates separate queries per sub-group (row)
+  // Each sub-group row has its own Load More
+  // Uses getManyByGroup with groupBy: "category" to ensure items are distributed across columns
+  const { data, pagination, handleAccordionChange, expandedGroups } =
+    useGroupInfinitePagination({
+      allGroupKeys: allSubGroupKeys,
+      expanded,
+      limit,
+      createQueryOptions: (subGroupKey) =>
+        trpc.product.getManyByGroup.infiniteQueryOptions(
+          {
+            groupBy: "category",
+            filter: combineGroupFilter("availability", subGroupKey, filter),
+            search,
+            sort,
+            limit,
+          },
+          {
+            getNextPageParam: (lastPage) => {
+              // Check if any category has more items
+              const hasAnyMore = Object.values(lastPage.hasNextPage).some(
+                Boolean
+              );
+              if (!hasAnyMore) {
+                return undefined;
+              }
+              // Return cursor map for categories that have more
+              return Object.fromEntries(
+                Object.entries(lastPage.nextCursor).filter(
+                  (entry): entry is [string, string] => entry[1] !== null
+                )
+              );
+            },
+          }
+        ),
+    });
 
   // Empty state
   if (pagination.groups.length === 0) {
@@ -87,6 +117,7 @@ export function ProductSubGroupPaginationBoard({
   return (
     <Suspense fallback={<BoardSkeleton columnCount={4} />}>
       <DataViewProvider
+        counts={{ group: groupCounts, subGroup: subGroupCounts }}
         data={data}
         defaults={{
           filter,
@@ -101,17 +132,20 @@ export function ProductSubGroupPaginationBoard({
         </NotionToolbar>
 
         <BoardView
-          counts={groupCounts}
           layout={{
             cardPreview: "productImage",
             cardSize: "medium",
             fitMedia: true,
             colorColumns: true,
           }}
-          pagination="page"
+          pagination="loadMore"
           view={{
             group: { groupBy: "category", showAggregation: true },
-            subGroup: { subGroupBy: "availability" },
+            subGroup: {
+              subGroupBy: "availability",
+              expandedSubGroups: expandedGroups,
+              onExpandedSubGroupsChange: handleAccordionChange,
+            },
           }}
         />
       </DataViewProvider>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useGroupInfinitePagination } from "@sparkyidea/dataview/hooks";
+import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
@@ -9,11 +9,11 @@ import {
   BoardView,
 } from "@sparkyidea/dataview/views/board-view";
 import type { SortQuery, WhereNode } from "@sparkyidea/shared/types";
+import { buildSearchFilter } from "@sparkyidea/shared/utils";
 import {
-  buildSearchFilter,
-  combineGroupFilter,
-} from "@sparkyidea/shared/utils";
-import { useSuspenseQuery } from "@tanstack/react-query";
+  useSuspenseInfiniteQuery,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { productProperties } from "./product-properties";
@@ -28,11 +28,11 @@ interface Props {
 }
 
 /**
- * BoardView with infinite load-more pagination
+ * BoardView with infinite load-more pagination (no sub-groups)
  *
- * Unlike Table/List/Gallery, BoardView columns are always visible (no accordion).
- * All group keys are always "expanded" so all columns fetch data.
- * Props are passed to DataViewProvider defaults.
+ * Uses getManyByGroup for single-request loading of all columns.
+ * Groups (columns) are client-side - data is flat like getMany.
+ * Single Load More triggers all columns at once.
  */
 export function ProductGroupPaginationBoard({
   limit,
@@ -46,38 +46,59 @@ export function ProductGroupPaginationBoard({
   const searchableFields = getSearchableProperties(productProperties);
   const search = buildSearchFilter(searchQuery, searchableFields);
 
-  // 1. Fetch group counts
+  // Get group counts (for column headers)
   const { data: groupCounts } = useSuspenseQuery(
     trpc.product.getGroup.queryOptions({ groupBy: "category" })
   );
 
-  // 2. Get all group keys
-  const allGroupKeys = Object.keys(groupCounts);
-
-  // 3. Single hook call using TRPC infiniteQueryOptions - all groups "expanded" for board
-  const { data, pagination } = useGroupInfinitePagination({
-    allGroupKeys,
-    expanded: allGroupKeys, // All columns visible
-    groupCounts,
-    limit,
-    createQueryOptions: (groupKey) =>
-      trpc.product.getMany.infiniteQueryOptions(
-        {
-          filter: combineGroupFilter("category", groupKey, filter),
-          search,
-          sort,
-          limit,
+  // Infinite query - fetches all groups in one request (flat like getMany)
+  // Groups (columns) are handled client-side
+  const infiniteQuery = useSuspenseInfiniteQuery(
+    trpc.product.getManyByGroup.infiniteQueryOptions(
+      {
+        groupBy: "category",
+        limit,
+        filter,
+        sort,
+        search,
+      },
+      {
+        getNextPageParam: (lastPage) => {
+          const hasAnyMore = Object.values(lastPage.hasNextPage).some(Boolean);
+          if (!hasAnyMore) {
+            return undefined;
+          }
+          return Object.fromEntries(
+            Object.entries(lastPage.nextCursor).filter(
+              (entry): entry is [string, string] => entry[1] !== null
+            )
+          );
         },
-        {
-          getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
-        }
-      ),
+      }
+    )
+  );
+
+  // Use shared hook for pagination state
+  const { items, pagination } = useInfinitePagination({
+    infiniteQuery,
+    limit,
+    limitOptions: [10, 25, 50, 100],
   });
+
+  // Empty state
+  if (items.length === 0) {
+    return (
+      <div className="flex min-h-100 items-center justify-center">
+        <p className="text-muted-foreground">No products found</p>
+      </div>
+    );
+  }
 
   return (
     <Suspense fallback={<BoardSkeleton columnCount={4} />}>
       <DataViewProvider
-        data={data}
+        counts={{ group: groupCounts }}
+        data={items}
         defaults={{
           filter,
           sort,
@@ -90,25 +111,18 @@ export function ProductGroupPaginationBoard({
           <ViewNav />
         </NotionToolbar>
 
-        {pagination.groups.length === 0 ? (
-          <div className="flex min-h-100 items-center justify-center">
-            <p className="text-muted-foreground">No products found</p>
-          </div>
-        ) : (
-          <BoardView
-            counts={groupCounts}
-            layout={{
-              cardPreview: "productImage",
-              cardSize: "medium",
-              colorColumns: true,
-              fitMedia: true,
-            }}
-            pagination="loadMore"
-            view={{
-              group: { groupBy: "category", showAggregation: true },
-            }}
-          />
-        )}
+        <BoardView
+          layout={{
+            cardPreview: "productImage",
+            cardSize: "medium",
+            colorColumns: true,
+            fitMedia: true,
+          }}
+          pagination="loadMore"
+          view={{
+            group: { groupBy: "category", showAggregation: true },
+          }}
+        />
       </DataViewProvider>
     </Suspense>
   );

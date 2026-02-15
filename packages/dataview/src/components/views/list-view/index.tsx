@@ -101,6 +101,7 @@ export function ListView<
     propertyVisibility,
     pagination: contextPagination,
     setPropertyVisibility,
+    counts,
   } = useDataViewContext<TData, TProperties>();
 
   const { propertyVisibility: viewPropertyVisibility, group: groupBy } = view;
@@ -128,6 +129,7 @@ export function ListView<
     viewPropertyVisibility,
     contextPagination,
     setPropertyVisibility,
+    counts: counts?.group,
   });
 
   // Use shared hook for display properties filtering

@@ -11,6 +11,7 @@ import type {
   DataViewProperty,
   PropertyMeta,
   SortQuery,
+  ViewCounts,
   WhereNode,
 } from "../../types";
 
@@ -68,6 +69,9 @@ export interface DataViewContextValue<
 
   // Pagination (flat or grouped)
   pagination?: PaginationOutput<TData> | undefined;
+
+  // Counts for group headers (and optionally sub-group headers for BoardView)
+  counts?: ViewCounts;
 }
 
 export const DataViewContext = createContext<

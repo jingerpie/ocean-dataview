@@ -1,11 +1,12 @@
 "use client";
 
 import { Loader } from "lucide-react";
+import type { ComponentProps } from "react";
 import { cn } from "../../../lib/utils";
-import { Button, type ButtonProps } from "../button";
+import { Button } from "../button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
 
-type DataActionBarActionProps = ButtonProps & {
+type DataActionBarActionProps = ComponentProps<typeof Button> & {
   /**
    * Tooltip text to display on hover
    */

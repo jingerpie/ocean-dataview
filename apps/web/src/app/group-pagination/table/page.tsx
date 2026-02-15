@@ -1,10 +1,11 @@
 import { groupPaginationParams } from "@sparkyidea/shared/lib";
+import type { SearchParams } from "@sparkyidea/shared/types";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ProductGroupPaginationTable } from "@/modules/group-pagination/product-group-pagination-table";
 import { getQueryClient, trpc } from "@/utils/trpc/server";
 
 interface PageProps {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: Promise<SearchParams>;
 }
 
 export default async function GroupPaginationTablePage(props: PageProps) {
@@ -15,7 +16,7 @@ export default async function GroupPaginationTablePage(props: PageProps) {
 
   const queryClient = getQueryClient();
 
-  await queryClient.prefetchQuery(
+  void queryClient.prefetchQuery(
     trpc.product.getGroup.queryOptions({ groupBy: "category" })
   );
 

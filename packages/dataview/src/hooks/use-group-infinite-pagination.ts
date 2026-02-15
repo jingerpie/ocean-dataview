@@ -17,7 +17,6 @@ import {
 } from "react";
 import type {
   BasePaginatedResponse,
-  GroupCounts,
   InferItemsFromQueryOptions,
 } from "../types/pagination-types";
 
@@ -53,8 +52,6 @@ export interface UseGroupInfinitePaginationOptions<
   allGroupKeys: string[];
   /** Currently expanded groups */
   expanded: string[];
-  /** Group counts from API */
-  groupCounts: GroupCounts;
   /** Items per page (from server props) */
   limit: number;
   /** Factory to create query options for each group */
@@ -72,9 +69,6 @@ export interface GroupInfiniteInfo<TData> {
   key: string;
   value: string;
   items: TData[];
-  count: number;
-  hasMore: boolean;
-  displayCount: string;
   hasNext: boolean;
   onNext: () => void;
   totalLoaded: number;
@@ -136,10 +130,12 @@ const defaultGetNextPageParam = (
 /**
  * Creates fixed number of infinite queries to satisfy React hooks rules.
  * Always calls maxGroups hooks, using enabled flag to control which run.
+ * Once a group has been expanded, keep it enabled to preserve cached data.
  */
 function useGroupInfiniteQueries(
   allGroupKeys: string[],
   expanded: string[],
+  fetchedGroups: Set<string>,
   maxGroups: number,
   createQueryOptions: (groupKey: string) => GroupInfiniteQueryOptions
 ): UseInfiniteQueryResult<
@@ -165,7 +161,10 @@ function useGroupInfiniteQueries(
 
   for (let i = 0; i < maxGroups; i++) {
     const groupKey = allGroupKeys[i];
-    const isEnabled = groupKey != null && expanded.includes(groupKey);
+    // Keep query enabled if currently expanded OR was previously fetched (preserves cache)
+    const isEnabled =
+      groupKey != null &&
+      (expanded.includes(groupKey) || fetchedGroups.has(groupKey));
 
     // Get query options from factory (or use placeholder)
     const options = groupKey
@@ -179,7 +178,9 @@ function useGroupInfiniteQueries(
       getNextPageParam:
         (options.getNextPageParam as typeof defaultGetNextPageParam) ??
         defaultGetNextPageParam,
-      initialPageParam: (options.initialPageParam as string) ?? "",
+      // Use initialPageParam from options if provided, otherwise undefined
+      // Don't default to "" as some endpoints expect Record<string, string> or undefined
+      initialPageParam: options.initialPageParam,
       enabled: isEnabled,
     });
 
@@ -204,6 +205,9 @@ function useGroupInfiniteQueries(
  * - Compatible with TRPC's infiniteQueryOptions
  * - Automatic type inference from createQueryOptions callback
  *
+ * Note: Group counts should be passed to DataViewProvider via the `counts` prop.
+ * This hook handles pagination state; counts are managed separately via context.
+ *
  * @example
  * ```tsx
  * const ProductGroupGallery = ({ expanded: expandedProp, limit }: Props) => {
@@ -216,12 +220,9 @@ function useGroupInfiniteQueries(
  *   const expanded = expandedProp ?? DEFAULT_EXPANDED;
  *   const allGroupKeys = Object.keys(groupCounts);
  *
- *   // Type is inferred from TRPC's infiniteQueryOptions return type
- *   // expandedGroups provides local state for optimistic UI (prevents bouncing)
  *   const { data, pagination, handleAccordionChange, expandedGroups } = useGroupInfinitePagination({
  *     allGroupKeys,
  *     expanded,
- *     groupCounts,
  *     limit,
  *     createQueryOptions: (groupKey) =>
  *       trpc.product.getMany.infiniteQueryOptions(
@@ -234,12 +235,12 @@ function useGroupInfiniteQueries(
  *   });
  *
  *   return (
- *     <DataViewProvider data={data} pagination={pagination}>
+ *     <DataViewProvider data={data} counts={{ group: groupCounts }} pagination={pagination}>
  *       <GalleryView
  *         view={{
  *           group: {
  *             groupBy: "familyGroup",
- *             expandedGroups, // Use local state from hook, not props
+ *             expandedGroups,
  *             onExpandedChange: handleAccordionChange,
  *           },
  *         }}
@@ -259,7 +260,6 @@ export function useGroupInfinitePagination<
   const {
     allGroupKeys,
     expanded,
-    groupCounts,
     limit,
     createQueryOptions,
     maxGroups = DEFAULT_MAX_GROUPS,
@@ -271,11 +271,25 @@ export function useGroupInfinitePagination<
   const [localExpanded, setLocalExpanded] = useState(expanded);
   const isInternalChange = useRef(false);
 
+  // Track groups that have been fetched (expanded at least once)
+  // This ensures queries stay enabled and data is preserved when collapsed
+  const [fetchedGroups, setFetchedGroups] = useState<Set<string>>(
+    () => new Set(expanded)
+  );
+
   // Sync from props only on external changes (e.g., URL navigation, programmatic updates)
   // Skip sync if we triggered the change ourselves
   useEffect(() => {
     if (!isInternalChange.current) {
       setLocalExpanded(expanded);
+      // Add newly expanded groups to fetched set
+      setFetchedGroups((prev) => {
+        const next = new Set(prev);
+        for (const key of expanded) {
+          next.add(key);
+        }
+        return next;
+      });
     }
     isInternalChange.current = false;
   }, [expanded]);
@@ -295,35 +309,32 @@ export function useGroupInfinitePagination<
   );
 
   // Create infinite queries internally
-  // Use localExpanded for query enablement (optimistic UI)
+  // Use localExpanded for query enablement, fetchedGroups for cache preservation
   const infiniteQueries = useGroupInfiniteQueries(
     allGroupKeys,
     localExpanded,
+    fetchedGroups,
     maxGroups,
     createQueryOptions
   );
 
   // Build groups array with items and pagination info
   // Use localExpanded for UI state (optimistic UI)
+  // Note: counts are managed via context, not in this hook
   const groups = useMemo(() => {
     return allGroupKeys.map((groupKey, index) => {
       const query = infiniteQueries[index];
       const isExpanded = localExpanded.includes(groupKey);
-      const countInfo = groupCounts[groupKey] ?? { count: 0, hasMore: false };
 
       // Flatten all pages for this group
-      const items = isExpanded
-        ? ((query?.data?.pages?.flatMap(
-            (page) => (page as BasePaginatedResponse<TData>).items
-          ) ?? []) as TData[])
-        : ([] as TData[]);
+      // Return cached items even when collapsed (query stays enabled via fetchedGroups)
+      const items = (query?.data?.pages?.flatMap(
+        (page) => (page as BasePaginatedResponse<TData>).items
+      ) ?? []) as TData[];
 
       const group: GroupInfiniteInfo<TData> = {
         key: groupKey,
         value: groupKey,
-        count: countInfo.count,
-        hasMore: countInfo.hasMore,
-        displayCount: countInfo.hasMore ? "99+" : String(countInfo.count),
         items,
         hasNext: query?.hasNextPage ?? false,
         totalLoaded: items.length,
@@ -342,7 +353,7 @@ export function useGroupInfinitePagination<
 
       return group;
     });
-  }, [allGroupKeys, infiniteQueries, localExpanded, groupCounts]);
+  }, [allGroupKeys, infiniteQueries, localExpanded]);
 
   // Flatten all items
   const data = useMemo(() => groups.flatMap((g) => g.items), [groups]);
@@ -364,6 +375,15 @@ export function useGroupInfinitePagination<
       // Optimistic UI: update local state immediately
       setLocalExpanded(newExpanded);
       isInternalChange.current = true;
+
+      // Track newly expanded groups for cache preservation
+      setFetchedGroups((prev) => {
+        const next = new Set(prev);
+        for (const key of newExpanded) {
+          next.add(key);
+        }
+        return next;
+      });
 
       startTransition(() => {
         setExpanded(newExpanded.length > 0 ? newExpanded : null);

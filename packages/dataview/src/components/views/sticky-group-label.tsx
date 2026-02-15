@@ -113,7 +113,6 @@ export function StickyGroupLabel({
 
     return () => {
       resizeObserver.disconnect();
-      debouncedResizeHandler.cancel();
       window.removeEventListener("scroll", handleScrollLogic);
     };
   }, [containerRef, handleScrollLogic, debouncedResizeHandler]);

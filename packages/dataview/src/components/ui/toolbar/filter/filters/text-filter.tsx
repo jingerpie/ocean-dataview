@@ -52,11 +52,10 @@ function DebouncedTextInput({
   const [localValue, setLocalValue] = useState(value);
   const isInternalChange = useRef(false);
 
-  // Proper debounce that resets timer on each call
-  const debouncedOnChange = useDebouncedCallback(
-    onChange,
-    FILTER_INPUT_DEBOUNCE_MS
-  );
+  // Debounced callback (matches tablecn - no flush on blur)
+  const debouncedOnChange = useDebouncedCallback((newValue: string) => {
+    onChange(newValue);
+  }, FILTER_INPUT_DEBOUNCE_MS);
 
   // Sync from parent only on external changes
   useEffect(() => {
@@ -66,10 +65,6 @@ function DebouncedTextInput({
     isInternalChange.current = false;
   }, [value]);
 
-  useEffect(() => {
-    return () => debouncedOnChange.flush();
-  }, [debouncedOnChange]);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setLocalValue(newValue);
@@ -77,15 +72,10 @@ function DebouncedTextInput({
     debouncedOnChange(newValue);
   };
 
-  const handleBlur = () => {
-    debouncedOnChange.flush();
-  };
-
   return (
     <Input
       className={className}
       inputMode={inputMode}
-      onBlur={handleBlur}
       onChange={handleChange}
       placeholder={placeholder}
       type={type}

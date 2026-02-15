@@ -37,11 +37,29 @@ export interface BidirectionalPaginatedResponse<TData>
 // ============================================================================
 
 /**
+ * Single group count info.
+ */
+export interface GroupCountInfo {
+  count: number;
+  hasMore: boolean;
+}
+
+/**
  * Group counts format from API.
- * Used by grouped pagination hooks.
+ * Used by grouped pagination hooks and DataViewProvider.
  */
 export interface GroupCounts {
-  [key: string]: { count: number; hasMore: boolean };
+  [key: string]: GroupCountInfo;
+}
+
+/**
+ * Combined counts for DataViewProvider.
+ * - group: Primary grouping counts (column headers in BoardView, group headers in other views)
+ * - subGroup: Secondary grouping counts (row headers in BoardView with sub-groups)
+ */
+export interface ViewCounts {
+  group: GroupCounts;
+  subGroup?: GroupCounts;
 }
 
 // ============================================================================

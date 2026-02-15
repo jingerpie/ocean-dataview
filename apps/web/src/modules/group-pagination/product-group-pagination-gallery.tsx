@@ -71,7 +71,6 @@ export function ProductGroupPaginationGallery({
     useGroupInfinitePagination({
       allGroupKeys,
       expanded,
-      groupCounts,
       limit,
       createQueryOptions: (groupKey) =>
         trpc.product.getMany.infiniteQueryOptions(
@@ -99,6 +98,7 @@ export function ProductGroupPaginationGallery({
   return (
     <Suspense fallback={<GallerySkeleton cardCount={6} />}>
       <DataViewProvider
+        counts={{ group: groupCounts }}
         data={data}
         defaults={{
           filter,

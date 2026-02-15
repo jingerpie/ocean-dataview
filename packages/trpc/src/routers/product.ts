@@ -3,8 +3,10 @@ import { product } from "@sparkyidea/db/schema/product";
 import {
   getCursorParams,
   productSearchParamsSchema,
+  searchQuerySchema,
+  whereNodeSchema,
 } from "@sparkyidea/shared/types";
-import { and, count, desc } from "drizzle-orm";
+import { and, count, desc, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { publicProcedure, router } from "../index";
 import { buildWhere } from "../lib/filter-columns";
@@ -82,62 +84,17 @@ export const productRouter = router({
         hasPreviousPage: isBackward ? hasMoreInDirection : !!after,
       };
     }),
+
   getGroup: publicProcedure
     .input(
       z.object({
-        channelId: z.string().optional(),
         groupBy: z.enum(["category", "availability"]),
-        subGroupBy: z.enum(["category", "availability"]).optional(),
       })
     )
     .query(async ({ input }) => {
-      const { groupBy, subGroupBy } = input;
-
+      const { groupBy } = input;
       const groupByColumn = product[groupBy];
 
-      // Two-level grouping (for BoardView sub-groups)
-      if (subGroupBy) {
-        const subGroupByColumn = product[subGroupBy];
-
-        const groupedCounts = await db
-          .select({
-            group: groupByColumn,
-            subGroup: subGroupByColumn,
-            count: count(),
-          })
-          .from(product)
-          .groupBy(groupByColumn, subGroupByColumn)
-          .orderBy(desc(count()));
-
-        // Transform into nested structure
-        const result: Record<
-          string,
-          {
-            count: number;
-            hasMore: boolean;
-            subGroups: Record<string, { count: number; hasMore: boolean }>;
-          }
-        > = {};
-
-        for (const { group, subGroup, count: c } of groupedCounts) {
-          const groupKey = String(group ?? "null");
-          const subGroupKey = String(subGroup ?? "null");
-
-          if (!result[groupKey]) {
-            result[groupKey] = { count: 0, hasMore: false, subGroups: {} };
-          }
-          result[groupKey].count += c;
-          result[groupKey].hasMore = result[groupKey].count >= 100;
-          result[groupKey].subGroups[subGroupKey] = {
-            count: Math.min(c, 100),
-            hasMore: c >= 100,
-          };
-        }
-
-        return result;
-      }
-
-      // Single-level grouping (existing logic)
       const groupedCounts = await db
         .select({
           group: groupByColumn,
@@ -149,15 +106,129 @@ export const productRouter = router({
 
       // Build result with counts capped at 100 and hasMore flag
       const result: Record<string, { count: number; hasMore: boolean }> = {};
-
       for (const { group, count: groupCount } of groupedCounts) {
         const groupKey = String(group ?? "null");
         result[groupKey] = {
           count: Math.min(groupCount, 100),
-          hasMore: groupCount >= 100,
+          hasMore: groupCount > 100,
         };
       }
 
       return result;
+    }),
+
+  /**
+   * Get items grouped by a property with per-group pagination.
+   * Same response shape as getMany but with per-group Records.
+   * Counts handled separately by getGroup procedure.
+   */
+  getManyByGroup: publicProcedure
+    .input(
+      z.object({
+        groupBy: z.enum(["category", "availability"]),
+        limit: z.number().int().min(1).max(100).default(10),
+        cursor: z.record(z.string(), z.string()).optional(),
+        filter: z.array(whereNodeSchema).nullish(),
+        sort: z
+          .array(
+            z.object({
+              property: z.string(),
+              direction: z.enum(["asc", "desc"]),
+            })
+          )
+          .default([]),
+        search: searchQuerySchema.nullish(),
+      })
+    )
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Loop with cursor handling requires conditionals
+    .query(async ({ input }) => {
+      const {
+        groupBy,
+        limit,
+        cursor: inputCursors = {},
+        filter,
+        sort,
+        search,
+      } = input;
+      const groupByColumn = product[groupBy];
+
+      // Build common WHERE clauses
+      const searchWhere = buildWhere(product, search ? [search] : null);
+      const filterWhere = buildWhere(product, filter);
+
+      // Prepare sort with tiebreaker
+      const primaryDirection = sort?.[0]?.direction ?? "desc";
+      const sortWithTiebreaker: typeof sort =
+        sort && sort.length > 0
+          ? [...sort, { property: "id", direction: primaryDirection }]
+          : [
+              { property: "createdAt", direction: "desc" },
+              { property: "id", direction: "desc" },
+            ];
+
+      // Get distinct groups (counts handled by getGroup procedure)
+      const groupsResult = await db
+        .selectDistinct({ group: groupByColumn })
+        .from(product)
+        .where(and(filterWhere, searchWhere));
+
+      // Fetch items for each group
+      const allItems: (typeof product.$inferSelect)[] = [];
+      const startCursor: Record<string, string | null> = {};
+      const endCursor: Record<string, string | null> = {};
+      const nextCursor: Record<string, string | null> = {};
+      const hasNextPage: Record<string, boolean> = {};
+      const hasPreviousPage: Record<string, boolean> = {};
+      const seenIds = new Set<number>();
+
+      for (const { group } of groupsResult) {
+        const groupKey = String(group ?? "null");
+        const cursor = inputCursors[groupKey];
+        const groupWhere =
+          group === null ? isNull(groupByColumn) : eq(groupByColumn, group);
+
+        // Build cursor WHERE for this group
+        const { orderBy, cursorWhere } = buildCursor(product, {
+          sort: sortWithTiebreaker,
+          cursor,
+          direction: "forward",
+        });
+
+        // Fetch with limit + 1 to check hasMore
+        const data = await db.query.product.findMany({
+          where: and(filterWhere, searchWhere, cursorWhere, groupWhere),
+          orderBy,
+          limit: limit + 1,
+        });
+
+        const hasMore = data.length > limit;
+        const items = hasMore ? data.slice(0, -1) : data;
+        const firstItem = items[0];
+        const lastItem = items.at(-1);
+
+        // Track cursors (forward-only pagination for Load More)
+        startCursor[groupKey] = firstItem ? String(firstItem.id) : null;
+        endCursor[groupKey] = lastItem ? String(lastItem.id) : null;
+        nextCursor[groupKey] = hasMore ? endCursor[groupKey] : null;
+        hasNextPage[groupKey] = hasMore;
+        hasPreviousPage[groupKey] = !!cursor;
+
+        // Add items, deduping by ID
+        for (const item of items) {
+          if (!seenIds.has(item.id)) {
+            seenIds.add(item.id);
+            allItems.push(item);
+          }
+        }
+      }
+
+      return {
+        items: allItems,
+        startCursor,
+        endCursor,
+        nextCursor,
+        hasNextPage,
+        hasPreviousPage,
+      };
     }),
 });

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { transformData, validatePropertyKeys } from "../lib/utils";
-import type { DataViewProperty } from "../types";
+import type { DataViewProperty, GroupCounts } from "../types";
 import type { GroupedDataItem } from "./use-group-config";
 import { useGroupConfig } from "./use-group-config";
 import type { GroupInfiniteInfo } from "./use-group-infinite-pagination";
@@ -45,6 +45,8 @@ export interface UseViewSetupOptions<
   setPropertyVisibility: (visibility: string[]) => void;
   /** Additional property IDs to exclude (e.g., cardPreview) */
   additionalExcludeKeys?: string[];
+  /** Group counts from context (for group headers) */
+  counts?: GroupCounts;
 }
 
 /**
@@ -93,6 +95,7 @@ export function useViewSetup<
   viewPropertyVisibility,
   contextPagination,
   setPropertyVisibility,
+  counts,
 }: UseViewSetupOptions<TData, TProperties>): UseViewSetupResult<
   TData,
   TProperties
@@ -155,7 +158,12 @@ export function useViewSetup<
     return clientGroupByProperty;
   }, [hasGroupedPagination, groupBy, properties, clientGroupByProperty]);
 
+  // Helper to format count for display
+  const formatDisplayCount = (countInfo: GroupCounts[string]) =>
+    countInfo.hasMore ? "99+" : String(countInfo.count);
+
   // Pattern 9: Choose grouped data source: pagination.groups (server) or useGroupConfig (client)
+  // Counts come from context (DataViewProvider.counts prop)
   const groupedData = useMemo(() => {
     if (
       hasGroupedPagination &&
@@ -168,17 +176,43 @@ export function useViewSetup<
         groups: Array<GroupInfo<TData> | GroupInfiniteInfo<TData>>;
       };
       return paginationWithGroups.groups.map(
-        (group: GroupInfo<TData> | GroupInfiniteInfo<TData>) => ({
-          key: group.key,
-          items: transformData(group.items, properties) as TData[],
-          count: group.count,
-          displayCount: group.displayCount,
-          sortValue: group.value,
-        })
+        (group: GroupInfo<TData> | GroupInfiniteInfo<TData>) => {
+          // Get counts from context
+          const countInfo = counts?.[group.key];
+          return {
+            key: group.key,
+            items: transformData(group.items, properties) as TData[],
+            count: countInfo?.count ?? 0,
+            displayCount: countInfo ? formatDisplayCount(countInfo) : "0",
+            sortValue: group.value,
+          };
+        }
       );
     }
+
+    // For client-side grouping, merge counts if available
+    if (clientGroupedData && counts) {
+      return clientGroupedData.map((group) => {
+        const countInfo = counts[group.key];
+        if (countInfo) {
+          return {
+            ...group,
+            count: countInfo.count,
+            displayCount: formatDisplayCount(countInfo),
+          };
+        }
+        return group;
+      });
+    }
+
     return clientGroupedData;
-  }, [hasGroupedPagination, contextPagination, clientGroupedData, properties]);
+  }, [
+    hasGroupedPagination,
+    contextPagination,
+    clientGroupedData,
+    properties,
+    counts,
+  ]);
 
   return {
     transformedData,

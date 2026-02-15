@@ -57,9 +57,9 @@ export interface BoardColumnCardProps<TData> {
   columnWidth?: string;
 
   /**
-   * Column footer renderer (for pagination)
+   * Footer renderer (for pagination below cards)
    */
-  renderColumnFooter?: (groupKey: string) => ReactNode;
+  renderFooter?: (groupKey: string) => ReactNode;
 
   /**
    * Additional className
@@ -88,7 +88,7 @@ export function BoardColumnCard<TData>({
   columnHeader,
   getColumnBgClass,
   columnWidth = "w-80",
-  renderColumnFooter,
+  renderFooter,
   className,
   stickyHeader,
 }: BoardColumnCardProps<TData>) {
@@ -170,8 +170,8 @@ export function BoardColumnCard<TData>({
                       </div>
                     ))
                   )}
-                  {/* Column Footer (pagination) */}
-                  {renderColumnFooter?.(group.key)}
+                  {/* Footer (pagination) */}
+                  {renderFooter?.(group.key)}
                 </div>
               );
             })}

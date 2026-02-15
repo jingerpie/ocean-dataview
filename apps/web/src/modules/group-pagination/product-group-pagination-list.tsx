@@ -68,7 +68,6 @@ export function ProductGroupPaginationList({
       allGroupKeys,
       expanded,
       cursors,
-      groupCounts,
       limit,
       createQueryOptions: (groupKey, cursor) =>
         trpc.product.getMany.queryOptions({
@@ -92,6 +91,7 @@ export function ProductGroupPaginationList({
   return (
     <Suspense fallback={<ListSkeleton rowCount={8} />}>
       <DataViewProvider
+        counts={{ group: groupCounts }}
         data={data}
         defaults={{
           filter,

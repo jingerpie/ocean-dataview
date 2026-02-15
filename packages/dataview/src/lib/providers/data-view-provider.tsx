@@ -2,7 +2,11 @@
 
 import type { ReactNode } from "react";
 import { useCallback, useMemo, useState } from "react";
-import { type DataViewProperty, toPropertyMetaArray } from "../../types";
+import {
+  type DataViewProperty,
+  toPropertyMetaArray,
+  type ViewCounts,
+} from "../../types";
 import { cn } from "../utils";
 import {
   DataViewContext,
@@ -27,6 +31,12 @@ export interface DataViewProviderProps<
    * - sort: Default sort state
    */
   defaults?: DataViewDefaults;
+  /**
+   * Counts from server for group headers
+   * - group: Primary grouping counts (column headers in BoardView, group headers in other views)
+   * - subGroup: Secondary grouping counts (row headers in BoardView with sub-groups)
+   */
+  counts?: ViewCounts;
 }
 
 export function DataViewProvider<
@@ -40,6 +50,7 @@ export function DataViewProvider<
   className,
   pagination,
   defaults,
+  counts,
 }: DataViewProviderProps<TData, TProperties>) {
   // Get all property IDs that CAN be visible (hidden !== true in definition)
   const visiblePropertyIds = useMemo(
@@ -138,6 +149,7 @@ export function DataViewProvider<
       showAllProperties,
       hideAllProperties,
       pagination,
+      counts,
     }),
     [
       data,
@@ -151,6 +163,7 @@ export function DataViewProvider<
       showAllProperties,
       hideAllProperties,
       pagination,
+      counts,
     ]
   );
 

@@ -15,7 +15,6 @@ export function LoadMorePagination({
   hasNext = false,
   onNext,
   isFetchingNextPage = false,
-  totalLoaded,
   error,
 }: LoadMorePaginationProps) {
   // Don't show if no more items or no callback
@@ -26,11 +25,6 @@ export function LoadMorePagination({
   return (
     <div className="flex flex-col items-center gap-2">
       {error && <p className="text-destructive text-sm">Failed to load more</p>}
-      {totalLoaded != null && (
-        <span className="text-muted-foreground text-sm">
-          Showing {totalLoaded} items
-        </span>
-      )}
       <Button
         className="gap-2 font-normal text-muted-foreground hover:text-foreground"
         disabled={isFetchingNextPage}

@@ -18,15 +18,14 @@ const EMPTY_FILTER: WhereNode[] = [];
  * - Reads from DataViewContext defaults (server props)
  * - Writes to URL via nuqs (triggers server re-render)
  * - Uses empty filter `[]` in URL to distinguish "cleared" from "use default"
- * - Uses proper debouncing that always uses the LATEST value
+ * - Uses useDebouncedCallback for debouncing (like tablecn)
  *
  * @example
  * ```ts
- * const { filter, setFilter, flush } = useFilterParams();
+ * const { filter, setFilter } = useFilterParams();
  *
  * // URL format: ?filter=[["status","eq","active"]]
  * // Empty filter: ?filter=[]
- * // Call flush() before navigation to ensure pending updates are applied
  * ```
  */
 export function useFilterParams() {
@@ -34,7 +33,7 @@ export function useFilterParams() {
   const { defaults } = useDataViewContext();
   const serverFilter = defaults?.filter ?? null;
 
-  // Write-only URL state
+  // URL state (nuqs handles URL updates)
   const [, setUrlFilterState] = useQueryState(
     "filter",
     parseAsFilter.withOptions({ shallow: false })
@@ -48,7 +47,7 @@ export function useFilterParams() {
   // Track if change originated internally
   const isInternalChange = useRef(false);
 
-  // Debounced URL update - uses proper debounce that resets timer on each call
+  // Debounced URL update (like tablecn)
   const debouncedUrlUpdate = useDebouncedCallback((filter: WhereNode[]) => {
     setUrlFilterState(filter);
   }, FILTER_DEBOUNCE_MS);
@@ -61,11 +60,6 @@ export function useFilterParams() {
     }
     isInternalChange.current = false;
   }, [serverFilter]);
-
-  // Flush pending updates on unmount
-  useEffect(() => {
-    return () => debouncedUrlUpdate.flush();
-  }, [debouncedUrlUpdate]);
 
   // Set the entire filter array (replaces previous filter)
   const setFilter = useCallback(
@@ -86,18 +80,17 @@ export function useFilterParams() {
   const clearFilter = useCallback(() => {
     setLocalFilter(null);
     isInternalChange.current = true;
-    debouncedUrlUpdate.cancel();
-    // Write empty filter to URL to distinguish from "use default"
-    setUrlFilterState(EMPTY_FILTER);
-  }, [debouncedUrlUpdate, setUrlFilterState]);
+    // Write empty filter to URL immediately (no debounce for clear)
+    void setUrlFilterState(EMPTY_FILTER);
+  }, [setUrlFilterState]);
 
   /** Remove filter param from URL entirely, restoring to server defaults */
   const resetFilter = useCallback(() => {
     setLocalFilter(serverFilter);
     isInternalChange.current = true;
-    debouncedUrlUpdate.cancel();
-    setUrlFilterState(null);
-  }, [debouncedUrlUpdate, serverFilter, setUrlFilterState]);
+    // Immediate URL update for reset
+    void setUrlFilterState(null);
+  }, [serverFilter, setUrlFilterState]);
 
   return {
     filter: localFilter,
@@ -105,7 +98,5 @@ export function useFilterParams() {
     clearFilter,
     resetFilter,
     isFiltered: localFilter !== null && localFilter.length > 0,
-    /** Immediately apply pending filter to URL */
-    flush: debouncedUrlUpdate.flush,
   };
 }

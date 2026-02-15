@@ -30,7 +30,7 @@ export default async function PaginationGalleryPage(props: PageProps) {
 
   const queryClient = getQueryClient();
 
-  await queryClient.prefetchQuery(
+  void queryClient.prefetchQuery(
     trpc.product.getMany.queryOptions({
       cursor,
       limit,

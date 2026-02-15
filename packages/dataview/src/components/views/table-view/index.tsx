@@ -143,6 +143,7 @@ export function TableView<
     propertyVisibility,
     pagination: contextPagination,
     setPropertyVisibility,
+    counts,
   } = useDataViewContext<TData, TProperties>();
 
   const { showVerticalLines = true, wrapAllColumns = true } = layout;
@@ -172,6 +173,7 @@ export function TableView<
     viewPropertyVisibility,
     contextPagination,
     setPropertyVisibility,
+    counts: counts?.group,
   });
 
   // Enable row selection when actions are provided
@@ -381,6 +383,7 @@ export function TableView<
 
             // Build pagination context for this group
             // Handle both GroupInfo (page) and GroupInfiniteInfo (infinite) types
+            // Counts come from groupedData (populated from context), not paginationGroup
             const paginationContext: PaginationContext | undefined =
               paginationGroup && contextPagination
                 ? {
@@ -411,8 +414,8 @@ export function TableView<
                       }
                       return 0;
                     })(),
-                    totalCount: paginationGroup.count,
-                    hasMoreThanMax: paginationGroup.hasMore,
+                    totalCount: group.count,
+                    hasMoreThanMax: group.displayCount === "99+",
                   }
                 : undefined;
 

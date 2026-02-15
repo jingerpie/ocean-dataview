@@ -16,7 +16,7 @@ import {
   validatePropertyKeys,
 } from "../../../lib/utils";
 import { getBoardCardDimensions } from "../../../lib/utils/get-card-sizes";
-import type { BadgeColor, DataViewProperty } from "../../../types";
+import type { BadgeColor, DataViewProperty, GroupCounts } from "../../../types";
 import { Badge } from "../../ui/badge";
 import { EmptyState } from "../../ui/empty-state";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
@@ -24,20 +24,6 @@ import { DataCard } from "../data-card";
 import { DataCell } from "../data-cell";
 import { BoardColumnCard } from "./board-column-card";
 import { BoardRowLayout } from "./board-row-layout";
-
-// Board-specific types for group counts
-/** Single-level group counts */
-export type GroupCounts = Record<string, { count: number; hasMore: boolean }>;
-
-/** Two-level group counts (with sub-groups) */
-export type GroupCountsWithSubGroups = Record<
-  string,
-  {
-    count: number;
-    hasMore: boolean;
-    subGroups: Record<string, { count: number; hasMore: boolean }>;
-  }
->;
 
 export interface BoardViewProps<
   TData,
@@ -157,9 +143,9 @@ export interface BoardViewProps<
 
   /**
    * Group counts from server (for rendering column headers with server-side counts)
-   * Only needed when using server-side pagination
+   * Only needed when using server-side pagination.
    */
-  counts?: GroupCounts | GroupCountsWithSubGroups;
+  counts?: GroupCounts;
 }
 
 /**
@@ -185,7 +171,13 @@ export function BoardView<
     properties,
     pagination: contextPagination,
     setPropertyVisibility,
+    counts: contextCounts,
   } = useDataViewContext<TData, TProperties>();
+
+  // Use prop counts if provided, otherwise fall back to context
+  const viewCounts = _counts ? { group: _counts } : contextCounts;
+  const counts = viewCounts?.group;
+  const subGroupCounts = viewCounts?.subGroup;
 
   // Check if we're using grouped pagination from context
   const hasGroupedPagination =
@@ -232,29 +224,39 @@ export function BoardView<
     return transformData(data as TData[], properties) as TData[];
   }, [data, properties]);
 
-  // Prepare group configuration (only needed for client-side grouping)
+  // Prepare group configuration for client-side column grouping
+  // For sub-grouped boards: always use client-side grouping for columns
+  // (pagination.groups = sub-groups/rows, not columns)
+  // For non-sub-grouped boards: use server groups if available
   const clientGroupConfig = useMemo(() => {
-    if (!groupConfig || hasGroupedPagination) {
+    if (!groupConfig) {
       return undefined;
     }
-    return {
-      groupBy: String(groupConfig.groupBy),
-      showAs: groupConfig.showAs,
-      startWeekOn: groupConfig.startWeekOn,
-      sort: groupConfig.sort,
-      hideEmptyGroups: groupConfig.hideEmptyGroups,
-    };
-  }, [groupConfig, hasGroupedPagination]);
+    // Always use client-side grouping when sub-groups are present
+    // because pagination.groups represents sub-groups, not columns
+    if (subGroupConfig || !hasGroupedPagination) {
+      return {
+        groupBy: String(groupConfig.groupBy),
+        showAs: groupConfig.showAs,
+        startWeekOn: groupConfig.startWeekOn,
+        sort: groupConfig.sort,
+        hideEmptyGroups: groupConfig.hideEmptyGroups,
+      };
+    }
+    return undefined;
+  }, [groupConfig, hasGroupedPagination, subGroupConfig]);
 
   // Use shared hook for primary group configuration (with auto-selection)
-  // Skip if using grouped pagination from context
+  // For sub-grouped boards: always required (columns are client-side)
+  // For non-sub-grouped boards: skip if using grouped pagination
+  const useClientGrouping = !!subGroupConfig || !hasGroupedPagination;
   const {
     groupedData: clientGroupedData,
     validationError: primaryValidationError,
     groupByProperty: clientGroupByProperty,
   } = useGroupConfig(transformedData, properties, clientGroupConfig, {
-    required: !hasGroupedPagination,
-    autoSelectGroupBy: !hasGroupedPagination,
+    required: useClientGrouping,
+    autoSelectGroupBy: useClientGrouping,
   });
 
   // Get groupBy property for header display
@@ -270,22 +272,63 @@ export function BoardView<
   }, [hasGroupedPagination, groupConfig, properties, clientGroupByProperty]);
 
   // Choose grouped data source: pagination.groups (server) or useGroupConfig (client)
+  // For sub-grouped boards: always use client grouping for columns
+  // (pagination.groups = sub-groups/rows, not columns)
   const groupedData = useMemo(() => {
+    // For sub-grouped boards OR when using client grouping, use clientGroupedData
+    if (useClientGrouping) {
+      // When counts are available (prefetched), use them to build columns
+      // This ensures columns are visible even when no items are loaded yet
+      if (counts) {
+        // Build columns from counts, merging with client data if available
+        const clientDataMap = new Map(
+          (clientGroupedData ?? []).map((g) => [g.key, g])
+        );
+
+        return Object.entries(counts).map(([key, countInfo]) => {
+          const clientGroup = clientDataMap.get(key);
+          return {
+            key,
+            items: clientGroup?.items ?? [],
+            count: countInfo.count,
+            displayCount: countInfo.hasMore ? "99+" : String(countInfo.count),
+            sortValue: clientGroup?.sortValue ?? key,
+          };
+        });
+      }
+      return clientGroupedData;
+    }
+
+    // Non-sub-grouped boards with grouped pagination: use pagination.groups as columns
     if (hasGroupedPagination && "groups" in contextPagination) {
       // Convert pagination.groups to GroupedDataItem format
       // Groups can be either GroupInfo (page) or GroupInfiniteInfo (infinite)
+      // Counts come from context.counts, not from group objects
       return contextPagination.groups.map(
-        (group: GroupInfo<TData> | GroupInfiniteInfo<TData>) => ({
-          key: group.key,
-          items: transformData(group.items, properties) as TData[],
-          count: group.count,
-          displayCount: group.displayCount,
-          sortValue: group.value,
-        })
+        (group: GroupInfo<TData> | GroupInfiniteInfo<TData>) => {
+          const countInfo = counts?.[group.key];
+          return {
+            key: group.key,
+            items: transformData(group.items, properties) as TData[],
+            count: countInfo?.count ?? group.items.length,
+            displayCount: countInfo?.hasMore
+              ? "99+"
+              : String(countInfo?.count ?? group.items.length),
+            sortValue: group.value,
+          };
+        }
       );
     }
+
     return clientGroupedData;
-  }, [hasGroupedPagination, contextPagination, clientGroupedData, properties]);
+  }, [
+    useClientGrouping,
+    hasGroupedPagination,
+    contextPagination,
+    clientGroupedData,
+    properties,
+    counts,
+  ]);
 
   // Use shared hook for sub-group configuration (if present)
   const { validationError: subGroupValidationError } = useGroupConfig(
@@ -323,8 +366,9 @@ export function BoardView<
       defaultExpanded: subGroupConfig.defaultExpanded,
       expandedSubGroups: subGroupConfig.expandedSubGroups,
       onExpandedSubGroupsChange: subGroupConfig.onExpandedSubGroupsChange,
+      counts: subGroupCounts,
     };
-  }, [subGroupConfig]);
+  }, [subGroupConfig, subGroupCounts]);
 
   // Get group options from property config
   const groupOptions = useMemo(() => {
@@ -459,10 +503,10 @@ export function BoardView<
     );
   }
 
-  // Empty state - check both client-side and server-side cases
-  const isEmpty = hasGroupedPagination
-    ? contextPagination.groups.length === 0
-    : Array.isArray(data) && (data.length === 0 || !groupedData);
+  // Empty state - check based on groupedData (columns)
+  // For sub-grouped boards with counts, columns come from counts, not pagination.groups
+  // For non-sub-grouped boards, columns come from pagination.groups or clientGroupedData
+  const isEmpty = !groupedData || groupedData.length === 0;
 
   if (isEmpty) {
     return (
@@ -477,11 +521,14 @@ export function BoardView<
   // Use groupedData from useGroupConfig
   const groups: GroupedDataItem<TData>[] = groupedData || [];
 
-  // Build column footer renderer using pagination mode
-  const renderColumnFooter = pagination
-    ? (groupKey: string) => {
-        const ctx = buildPaginationContext(contextPagination, groupKey);
-        return renderPagination(pagination, ctx);
+  // Build footer renderer using pagination mode
+  // For sub-grouped boards: key is subGroupKey (e.g., "In stock")
+  // For non-sub-grouped boards: key is columnKey (e.g., "Accessories")
+  // hasNext is automatically handled by buildPaginationContext from pagination.groups[].hasNext
+  const renderFooter = pagination
+    ? (key: string) => {
+        const ctx = buildPaginationContext(contextPagination, key);
+        return <div className="mt-2">{renderPagination(pagination, ctx)}</div>;
       }
     : undefined;
 
@@ -498,7 +545,7 @@ export function BoardView<
         groups={groups}
         keyExtractor={keyExtractor}
         properties={properties}
-        renderColumnFooter={renderColumnFooter}
+        renderFooter={renderFooter}
         stickyHeader={{
           enabled: true,
           offset: 56,
@@ -517,7 +564,7 @@ export function BoardView<
       getColumnBgClass={getColumnBgClass}
       groups={groups}
       keyExtractor={keyExtractor}
-      renderColumnFooter={renderColumnFooter}
+      renderFooter={renderFooter}
       stickyHeader={{
         enabled: true,
         offset: 56,
@@ -532,10 +579,11 @@ export type { DataViewContextValue as BoardContextValue } from "../../../lib/pro
 export { useDataViewContext as useBoardContext } from "../../../lib/providers/data-view-context";
 export type { DataViewProviderProps as BoardProviderProps } from "../../../lib/providers/data-view-provider";
 export { DataViewProvider as BoardProvider } from "../../../lib/providers/data-view-provider";
+// Re-export GroupCounts from types for backwards compatibility
+export type { GroupCounts } from "../../../types";
 export {
   Visibility,
   type VisibilityProps,
 } from "../../ui/toolbar/visibility";
 // Skeleton
 export { BoardSkeleton } from "./board-skeleton";
-// Note: GroupCounts and GroupCountsWithSubGroups are exported at top of file

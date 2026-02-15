@@ -115,6 +115,7 @@ export function GalleryView<
     propertyVisibility,
     pagination: contextPagination,
     setPropertyVisibility,
+    counts,
   } = useDataViewContext<TData, TProperties>();
 
   const {
@@ -148,6 +149,7 @@ export function GalleryView<
     viewPropertyVisibility,
     contextPagination,
     setPropertyVisibility,
+    counts: counts?.group,
   });
 
   // Use shared hook for display properties filtering

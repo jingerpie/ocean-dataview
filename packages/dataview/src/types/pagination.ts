@@ -53,8 +53,4 @@ export interface PaginationContext {
   error?: Error | null;
   /** Whether the request errored */
   isError?: boolean;
-
-  // Infinite scroll specific
-  /** Total items loaded across all pages (for load-more/infinite-scroll) */
-  totalLoaded?: number;
 }

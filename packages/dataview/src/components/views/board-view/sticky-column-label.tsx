@@ -179,7 +179,6 @@ export function StickyColumnLabel({
 
     return () => {
       resizeObserver.disconnect();
-      debouncedResizeHandler.cancel();
       window.removeEventListener("scroll", handleScrollLogic);
       containerElement.removeEventListener("scroll", handleContainerScroll);
     };

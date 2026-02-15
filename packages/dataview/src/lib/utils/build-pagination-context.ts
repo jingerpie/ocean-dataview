@@ -64,6 +64,9 @@ export function buildPaginationContext<TData>(
       onNext: group.onNext,
       onPrev: "onPrev" in group ? group.onPrev : () => undefined,
       isLoading: group.isLoading,
+      isFetching: "isFetching" in group ? group.isFetching : undefined,
+      isFetchingNextPage:
+        "isFetchingNextPage" in group ? group.isFetchingNextPage : undefined,
       limit: pagination.limit,
       onLimitChange: pagination.onLimitChange,
       limitOptions: pagination.limitOptions,
@@ -87,6 +90,11 @@ export function buildPaginationContext<TData>(
     onNext: pagination.onNext,
     onPrev: pagination.onPrev,
     isLoading: pagination.isLoading,
+    isFetching: "isFetching" in pagination ? pagination.isFetching : undefined,
+    isFetchingNextPage:
+      "isFetchingNextPage" in pagination
+        ? pagination.isFetchingNextPage
+        : undefined,
     limit: pagination.limit,
     onLimitChange: pagination.onLimitChange,
     limitOptions: pagination.limitOptions,

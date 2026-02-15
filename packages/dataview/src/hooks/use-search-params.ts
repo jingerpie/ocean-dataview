@@ -12,14 +12,13 @@ const SEARCH_DEBOUNCE_MS = 300;
  *
  * - Reads from DataViewContext defaults (server props)
  * - Writes to URL via nuqs (triggers server re-render)
- * - Uses proper debouncing that always uses the LATEST value
+ * - Uses useDebouncedCallback for debouncing (like tablecn)
  *
  * @example
  * ```ts
- * const { search, setSearch, isSearching } = useSearchParams();
+ * const { search, setSearch } = useSearchParams();
  *
  * // URL format: ?search=laptop
- * // isSearching is true while debounce is pending
  * ```
  */
 export function useSearchParams() {
@@ -27,7 +26,7 @@ export function useSearchParams() {
   const { defaults } = useDataViewContext();
   const serverSearch = defaults?.search ?? "";
 
-  // Write-only URL state
+  // URL state (nuqs handles URL updates)
   const [, setUrlSearchState] = useQueryState(
     "search",
     parseAsString.withOptions({ shallow: false })
@@ -39,7 +38,7 @@ export function useSearchParams() {
   // Track if change originated from user typing (internal)
   const isInternalChange = useRef(false);
 
-  // Debounced URL update - uses proper debounce that resets timer on each call
+  // Debounced URL update (like tablecn)
   const debouncedUrlUpdate = useDebouncedCallback((value: string) => {
     setUrlSearchState(value);
   }, SEARCH_DEBOUNCE_MS);
@@ -52,11 +51,6 @@ export function useSearchParams() {
     }
     isInternalChange.current = false;
   }, [serverSearch]);
-
-  // Flush pending updates on unmount
-  useEffect(() => {
-    return () => debouncedUrlUpdate.flush();
-  }, [debouncedUrlUpdate]);
 
   const setSearch = useCallback(
     (value: string | null) => {
@@ -72,19 +66,14 @@ export function useSearchParams() {
   const clearSearch = useCallback(() => {
     setLocalSearch("");
     isInternalChange.current = true;
-    debouncedUrlUpdate.cancel();
-    // Write empty string to URL to distinguish from "use default"
-    setUrlSearchState("");
-  }, [debouncedUrlUpdate, setUrlSearchState]);
+    // Write empty string to URL immediately (no debounce for clear)
+    void setUrlSearchState("");
+  }, [setUrlSearchState]);
 
   return {
     search: localSearch,
     setSearch,
     clearSearch,
     hasSearch: Boolean(localSearch),
-    /** True while debounce is pending (search not yet applied to URL) */
-    isSearching: debouncedUrlUpdate.isPending(),
-    /** Immediately apply pending search to URL */
-    flush: debouncedUrlUpdate.flush,
   };
 }

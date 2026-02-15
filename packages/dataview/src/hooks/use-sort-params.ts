@@ -19,15 +19,14 @@ const EMPTY_SORT: SortQuery[] = [];
  * - Reads from DataViewContext defaults (server props)
  * - Writes to URL via nuqs (triggers server re-render)
  * - Uses empty array `[]` in URL to distinguish "cleared" from "use default"
- * - Uses proper debouncing that always uses the LATEST value
+ * - Uses useDebouncedCallback for debouncing (like tablecn)
  *
  * @example
  * ```ts
- * const { sort, setSort, flush } = useSortParams();
+ * const { sort, setSort } = useSortParams();
  *
  * // URL format: ?sort=[["name","asc"]]
  * // Empty sort: ?sort=[]
- * // Call flush() before navigation to ensure pending updates are applied
  * ```
  */
 export function useSortParams() {
@@ -35,7 +34,7 @@ export function useSortParams() {
   const { defaults } = useDataViewContext();
   const serverSort = defaults?.sort ?? [];
 
-  // Write-only URL state
+  // URL state (nuqs handles URL updates)
   const [, setUrlSortState] = useQueryState("sort", {
     ...parseAsSort,
     shallow: false,
@@ -47,7 +46,7 @@ export function useSortParams() {
   // Track if change originated internally
   const isInternalChange = useRef(false);
 
-  // Debounced URL update - uses proper debounce that resets timer on each call
+  // Debounced URL update (like tablecn)
   const debouncedUrlUpdate = useDebouncedCallback((newSort: SortQuery[]) => {
     setUrlSortState(newSort);
   }, SORT_DEBOUNCE_MS);
@@ -60,11 +59,6 @@ export function useSortParams() {
     }
     isInternalChange.current = false;
   }, [serverSort]);
-
-  // Flush pending updates on unmount
-  useEffect(() => {
-    return () => debouncedUrlUpdate.flush();
-  }, [debouncedUrlUpdate]);
 
   const setSort = useCallback(
     (newSort: SortQuery[]) => {
@@ -114,18 +108,17 @@ export function useSortParams() {
   const clearSort = useCallback(() => {
     setLocalSort([]);
     isInternalChange.current = true;
-    debouncedUrlUpdate.cancel();
-    // Write empty array to URL to distinguish from "use default"
-    setUrlSortState(EMPTY_SORT);
-  }, [debouncedUrlUpdate, setUrlSortState]);
+    // Write empty array to URL immediately (no debounce for clear)
+    void setUrlSortState(EMPTY_SORT);
+  }, [setUrlSortState]);
 
   /** Remove sort param from URL entirely, restoring to server defaults */
   const resetSort = useCallback(() => {
     setLocalSort(serverSort);
     isInternalChange.current = true;
-    debouncedUrlUpdate.cancel();
-    setUrlSortState(null);
-  }, [debouncedUrlUpdate, serverSort, setUrlSortState]);
+    // Immediate URL update for reset
+    void setUrlSortState(null);
+  }, [serverSort, setUrlSortState]);
 
   return {
     sort: localSort,
@@ -135,7 +128,5 @@ export function useSortParams() {
     clearSort,
     resetSort,
     isSorted: localSort.length > 0,
-    /** Immediately apply pending sort to URL */
-    flush: debouncedUrlUpdate.flush,
   };
 }

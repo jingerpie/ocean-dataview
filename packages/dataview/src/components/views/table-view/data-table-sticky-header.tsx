@@ -146,7 +146,6 @@ export function DataTableStickyHeader<TData>({
 
     return () => {
       resizeObserver.disconnect();
-      debouncedResizeHandler.cancel();
       window.removeEventListener("scroll", handleScrollLogic);
       containerElement.removeEventListener("scroll", handleTableScroll);
     };

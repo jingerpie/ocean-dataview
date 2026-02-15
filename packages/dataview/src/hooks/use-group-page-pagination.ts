@@ -14,7 +14,6 @@ import {
 } from "react";
 import type {
   BidirectionalPaginatedResponse,
-  GroupCounts,
   InferItemsFromQueryOptions,
 } from "../types/pagination-types";
 
@@ -46,8 +45,6 @@ export interface UseGroupPagePaginationOptions<
   allGroupKeys: string[];
   /** Currently expanded groups */
   expanded: string[];
-  /** Group counts from API */
-  groupCounts: GroupCounts;
   /** Cursors object per group (from URL props) */
   cursors?: Cursors;
   /** Items per page (from server props) */
@@ -65,9 +62,6 @@ export interface GroupInfo<TData> {
   key: string;
   value: string;
   items: TData[];
-  count: number;
-  hasMore: boolean;
-  displayCount: string;
   isLoading: boolean;
   isFetching: boolean;
   hasNext: boolean;
@@ -124,6 +118,9 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
  * - Creates queries internally (handles React hooks rules)
  * - Automatic type inference from createQueryOptions callback
  *
+ * Note: Group counts should be passed to DataViewProvider via the `counts` prop.
+ * This hook handles pagination state; counts are managed separately via context.
+ *
  * @example
  * ```tsx
  * const ProductGroupTable = ({ expanded: expandedProp, cursors, limit }: Props) => {
@@ -136,13 +133,10 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
  *   const expanded = expandedProp ?? DEFAULT_EXPANDED;
  *   const allGroupKeys = Object.keys(groupCounts);
  *
- *   // Type is inferred from TRPC's queryOptions return type
- *   // expandedGroups provides local state for optimistic UI (prevents bouncing)
  *   const { data, pagination, handleAccordionChange, expandedGroups } = useGroupPagePagination({
  *     allGroupKeys,
  *     expanded,
  *     cursors,
- *     groupCounts,
  *     limit,
  *     createQueryOptions: (groupKey, cursor) =>
  *       trpc.product.getMany.queryOptions({
@@ -153,12 +147,12 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
  *   });
  *
  *   return (
- *     <DataViewProvider data={data} pagination={pagination}>
+ *     <DataViewProvider data={data} counts={{ group: groupCounts }} pagination={pagination}>
  *       <TableView
  *         view={{
  *           group: {
  *             groupBy: "familyGroup",
- *             expandedGroups, // Use local state from hook, not props
+ *             expandedGroups,
  *             onExpandedChange: handleAccordionChange,
  *           },
  *         }}
@@ -179,7 +173,6 @@ export function useGroupPagePagination<
     allGroupKeys,
     expanded,
     cursors = {},
-    groupCounts,
     limit,
     createQueryOptions,
     limitOptions = DEFAULT_LIMIT_OPTIONS,
@@ -190,21 +183,36 @@ export function useGroupPagePagination<
   const [localExpanded, setLocalExpanded] = useState(expanded);
   const isInternalChange = useRef(false);
 
+  // Track groups that have been fetched (expanded at least once)
+  // This ensures queries stay enabled and data is preserved when collapsed
+  const [fetchedGroups, setFetchedGroups] = useState<Set<string>>(
+    () => new Set(expanded)
+  );
+
   // Sync from props only on external changes (e.g., URL navigation, programmatic updates)
   // Skip sync if we triggered the change ourselves
   useEffect(() => {
     if (!isInternalChange.current) {
       setLocalExpanded(expanded);
+      // Add newly expanded groups to fetched set
+      setFetchedGroups((prev) => {
+        const next = new Set(prev);
+        for (const key of expanded) {
+          next.add(key);
+        }
+        return next;
+      });
     }
     isInternalChange.current = false;
   }, [expanded]);
 
   // Create queries internally using useQueries
-  // Use localExpanded for query enablement (optimistic UI)
+  // Keep query enabled if currently expanded OR was previously fetched (preserves cache)
   const queries = useQueries({
     queries: allGroupKeys.map((groupKey) => {
       const cursor = cursors[groupKey];
-      const isEnabled = localExpanded.includes(groupKey);
+      const isEnabled =
+        localExpanded.includes(groupKey) || fetchedGroups.has(groupKey);
 
       const queryOpts = createQueryOptions(groupKey, cursor);
 
@@ -236,24 +244,22 @@ export function useGroupPagePagination<
 
   // Build groups array with items and pagination info
   // Use localExpanded for UI state (optimistic UI)
+  // Note: counts are managed via context, not in this hook
   const groups = useMemo(() => {
     return allGroupKeys.map((groupKey, index) => {
       const query = queries[index];
       const isExpanded = localExpanded.includes(groupKey);
-      const countInfo = groupCounts[groupKey] ?? { count: 0, hasMore: false };
       const queryData = query?.data as
         | BidirectionalPaginatedResponse<TData>
         | undefined;
-      const items: TData[] = isExpanded ? (queryData?.items ?? []) : [];
+      // Return cached items even when collapsed (query stays enabled via fetchedGroups)
+      const items: TData[] = queryData?.items ?? [];
       const cursorState = cursors[groupKey];
       const groupStart = cursorState?.start ?? 0;
 
       const group: GroupInfo<TData> = {
         key: groupKey,
         value: groupKey,
-        count: countInfo.count,
-        hasMore: countInfo.hasMore,
-        displayCount: countInfo.hasMore ? "99+" : String(countInfo.count),
         isLoading: query?.isLoading ?? false,
         isFetching: isExpanded && (query?.isFetching ?? false),
         items,
@@ -304,15 +310,7 @@ export function useGroupPagePagination<
 
       return group;
     });
-  }, [
-    allGroupKeys,
-    queries,
-    localExpanded,
-    cursors,
-    groupCounts,
-    limit,
-    setCursors,
-  ]);
+  }, [allGroupKeys, queries, localExpanded, cursors, limit, setCursors]);
 
   // Flatten all items
   const data = useMemo(() => groups.flatMap((g) => g.items), [groups]);
@@ -335,6 +333,15 @@ export function useGroupPagePagination<
       // Optimistic UI: update local state immediately
       setLocalExpanded(newExpanded);
       isInternalChange.current = true;
+
+      // Track newly expanded groups for cache preservation
+      setFetchedGroups((prev) => {
+        const next = new Set(prev);
+        for (const key of newExpanded) {
+          next.add(key);
+        }
+        return next;
+      });
 
       const removed = localExpanded.find((g) => !newExpanded.includes(g));
 
