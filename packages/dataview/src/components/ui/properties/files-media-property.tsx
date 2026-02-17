@@ -2,6 +2,7 @@
 
 import { FileIcon } from "lucide-react";
 import Image from "next/image";
+import { cn } from "../../../lib/utils";
 
 // Regex patterns compiled at module level for performance
 const IMAGE_EXTENSION_REGEX = /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?|#|$)/i;
@@ -9,31 +10,38 @@ const NON_IMAGE_EXTENSION_REGEX =
   /\.(pdf|doc|docx|xls|xlsx|zip|txt|csv|mp4|mov|avi)(\?|#|$)/i;
 const ANY_EXTENSION_REGEX = /\.\w+(\?|#|$)/;
 
-// Thumbnail dimensions for different contexts
-const THUMBNAIL_SIZE = 26; // Standard thumbnail size for compact display
-
 interface FilesMediaPropertyProps {
-  value: string[];
+  value: string | string[] | null | undefined;
+  className?: string;
 }
 
-export function FilesMediaProperty({ value }: FilesMediaPropertyProps) {
+export function FilesMediaProperty({
+  value,
+  className,
+}: FilesMediaPropertyProps) {
   if (!value) {
-    return <span className="text-muted-foreground text-sm">-</span>;
+    return (
+      <span className={cn("text-muted-foreground text-sm", className)}>-</span>
+    );
   }
 
   // Handle single URL string
   if (typeof value === "string") {
-    return renderFile(value);
+    return renderFile(value, className);
   }
 
   // Handle array of URLs
   if (Array.isArray(value)) {
     if (value.length === 0) {
-      return <span className="text-muted-foreground text-sm">-</span>;
+      return (
+        <span className={cn("text-muted-foreground text-sm", className)}>
+          -
+        </span>
+      );
     }
 
     return (
-      <div className="flex gap-2">
+      <div className={cn("flex gap-2", className)}>
         {value.map((url) => (
           <div className="shrink-0" key={url}>
             {renderFile(url)}
@@ -43,22 +51,23 @@ export function FilesMediaProperty({ value }: FilesMediaPropertyProps) {
     );
   }
 
-  return <span className="text-sm">{String(value)}</span>;
+  return <span className={cn("text-sm", className)}>{String(value)}</span>;
 }
 
-function renderFile(url: string) {
+function renderFile(url: string, className?: string) {
   const isImage = checkIsImage(url);
-  const dimensions = getDimensions();
 
   // Non-image files: show file icon
   if (!isImage) {
     return (
       <a
-        className="inline-flex items-center justify-center rounded border border-border bg-muted hover:bg-muted/80"
+        className={cn(
+          "inline-flex h-[26px] w-[26px] items-center justify-center rounded border border-border bg-muted hover:bg-muted/80",
+          className
+        )}
         href={url}
         onClick={(e) => e.stopPropagation()}
         rel="noopener noreferrer"
-        style={{ width: dimensions.width, height: dimensions.height }}
         target="_blank"
       >
         <FileIcon className="h-4 w-4 text-muted-foreground" />
@@ -67,10 +76,12 @@ function renderFile(url: string) {
   }
 
   // Image files: show image thumbnail
-  // Always maintain original aspect ratio with height constraint
   return (
     <a
-      className="inline-block overflow-hidden rounded align-top hover:opacity-80"
+      className={cn(
+        "relative inline-block h-[26px] w-[26px] overflow-hidden rounded align-top hover:opacity-80",
+        className
+      )}
       href={url}
       onClick={(e) => e.stopPropagation()}
       rel="noopener noreferrer"
@@ -78,11 +89,10 @@ function renderFile(url: string) {
     >
       <Image
         alt="Media"
-        className="block object-contain"
-        height={dimensions.height}
+        className="object-cover"
+        fill
+        sizes="(max-width: 768px) 100vw, 200px"
         src={url}
-        style={{ height: dimensions.height, width: "auto" }}
-        width={dimensions.width}
       />
     </a>
   );
@@ -101,9 +111,4 @@ function checkIsImage(url: string): boolean {
 
   // If no extension found (e.g., Unsplash URLs), treat as image
   return !ANY_EXTENSION_REGEX.test(url);
-}
-
-function getDimensions() {
-  // Consistent size for all contexts
-  return { width: THUMBNAIL_SIZE, height: THUMBNAIL_SIZE };
 }

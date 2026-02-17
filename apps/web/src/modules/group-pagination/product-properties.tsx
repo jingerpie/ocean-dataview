@@ -1,4 +1,4 @@
-import { NumberProperty } from "@sparkyidea/dataview/properties";
+import { FilesMediaProperty } from "@sparkyidea/dataview/properties";
 import type { DataViewProperty } from "@sparkyidea/dataview/types";
 import type { AppRouter } from "@sparkyidea/trpc/routers/index";
 import type { inferRouterOutputs } from "@trpc/server";
@@ -12,12 +12,12 @@ export type Product = ProductWithVariants;
 export const productProperties = [
   {
     id: "productName",
-    label: "Product Name",
+    label: "Text",
     type: "text",
   },
   {
     id: "price",
-    label: "Price",
+    label: "Number",
     type: "number",
     config: {
       numberFormat: "dollar",
@@ -26,7 +26,7 @@ export const productProperties = [
   },
   {
     id: "stockLevel",
-    label: "Stock Level",
+    label: "Number (Bar)",
     type: "number",
     config: {
       showAs: {
@@ -38,7 +38,7 @@ export const productProperties = [
   },
   {
     id: "rating",
-    label: "Rating",
+    label: "Number (Ring)",
     type: "number",
     config: {
       showAs: {
@@ -49,27 +49,8 @@ export const productProperties = [
     },
   },
   {
-    id: "_totalWorth",
-    label: "Total Worth",
-    type: "formula",
-    value: (property) => (
-      <div className="flex flex-col items-center gap-2">
-        <NumberProperty
-          config={{
-            numberFormat: "dollar",
-            decimalPlaces: 2,
-          }}
-          value={
-            (property.raw("price") ?? 0) * (property.raw("stockLevel") ?? 0)
-          }
-        />
-        {property("rating")}
-      </div>
-    ),
-  },
-  {
     id: "category",
-    label: "Category",
+    label: "Select",
     type: "select",
     config: {
       options: [
@@ -88,7 +69,7 @@ export const productProperties = [
   },
   {
     id: "tags",
-    label: "Tags",
+    label: "Multi Select",
     type: "multiSelect",
     config: {
       options: [
@@ -103,7 +84,7 @@ export const productProperties = [
   },
   {
     id: "availability",
-    label: "Availability",
+    label: "Status",
     type: "status",
     config: {
       groups: [
@@ -130,37 +111,53 @@ export const productProperties = [
   },
   {
     id: "lastRestocked",
-    label: "Last Restocked",
+    label: "Date",
     type: "date",
   },
   {
     id: "featured",
-    label: "Featured",
+    label: "Checkbox",
     type: "checkbox",
   },
   {
     id: "productImage",
-    label: "Product Image",
+    label: "Files & Media",
     type: "filesMedia",
   },
   {
     id: "productLink",
-    label: "Product Link",
+    label: "URL",
     type: "url",
   },
   {
     id: "supplierPhone",
-    label: "Supplier Phone",
+    label: "Phone",
     type: "phone",
   },
   {
     id: "supplierEmail",
-    label: "Supplier Email",
+    label: "Email",
     type: "email",
   },
   {
-    id: "createdAt",
-    label: "Created At",
-    type: "date",
+    id: "_totalWorth",
+    label: "Formula",
+    type: "formula",
+    value: (property) => (
+      <div className="flex items-center gap-4">
+        <FilesMediaProperty
+          className="h-10 w-10"
+          value={property.raw("productImage")}
+        />
+        <div className="flex flex-col items-start justify-center gap-2">
+          {property("productName")}
+          <div className="flex items-center gap-2">
+            {property("price")}
+            {property("category")}
+            {property("availability")}
+          </div>
+        </div>
+      </div>
+    ),
   },
 ] as DataViewProperty<Product>[];
