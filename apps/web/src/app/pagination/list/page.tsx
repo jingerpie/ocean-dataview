@@ -19,7 +19,6 @@ export default async function PaginationListPage(props: PageProps) {
   const searchParams = await props.searchParams;
   const params = paginationParams.parse(searchParams);
 
-  const cursor = params.cursor ?? null;
   const limit = params.limit;
   const filter = params.filter ?? VIEW_DEFAULTS.filter;
   const sort = params.sort;
@@ -30,14 +29,19 @@ export default async function PaginationListPage(props: PageProps) {
 
   const queryClient = getQueryClient();
 
-  void queryClient.prefetchQuery(
-    trpc.product.getMany.queryOptions({
-      cursor,
-      limit,
-      filter,
-      sort,
-      search,
-    })
+  // Must match client's infiniteQueryOptions exactly for cache hit
+  void queryClient.prefetchInfiniteQuery(
+    trpc.product.getMany.infiniteQueryOptions(
+      {
+        limit,
+        filter,
+        sort,
+        search,
+      },
+      {
+        getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
+      }
+    )
   );
 
   return (
