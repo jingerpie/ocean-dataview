@@ -114,10 +114,10 @@ export function GroupSection<TData>({
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
+          <>
             {children}
-            {renderFooter}
-          </div>
+            {renderFooter && <div className="pt-4">{renderFooter}</div>}
+          </>
         )}
       </AccordionContent>
     </AccordionItem>

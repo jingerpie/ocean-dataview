@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertCircle, Columns3 } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type {
   GroupedDataItem,
   GroupInfiniteInfo,
@@ -11,19 +11,23 @@ import { useDisplayProperties, useGroupConfig } from "../../../hooks";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import {
   buildPaginationContext,
+  cn,
   getBadgeBgTransparentClass,
+  groupByProperty as groupDataByProperty,
   transformData,
   validatePropertyKeys,
 } from "../../../lib/utils";
 import { getBoardCardDimensions } from "../../../lib/utils/get-card-sizes";
 import type { BadgeColor, DataViewProperty, GroupCounts } from "../../../types";
+import { Accordion } from "../../ui/accordion";
 import { Badge } from "../../ui/badge";
 import { EmptyState } from "../../ui/empty-state";
+import { GroupSection } from "../../ui/group-section";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
 import { DataCard } from "../data-card";
 import { DataCell } from "../data-cell";
-import { BoardColumnCard } from "./board-column-card";
-import { BoardRowLayout } from "./board-row-layout";
+import { BoardColumnHeaders } from "./board-column-headers";
+import { BoardColumns } from "./board-columns";
 
 export interface BoardViewProps<
   TData,
@@ -528,48 +532,222 @@ export function BoardView<
   const renderFooter = pagination
     ? (key: string) => {
         const ctx = buildPaginationContext(contextPagination, key);
-        return <div className="mt-2">{renderPagination(pagination, ctx)}</div>;
+        return renderPagination(pagination, ctx);
       }
     : undefined;
 
-  // Use BoardRowLayout for sub-grouped boards (Notion-style full-width sub-groups)
-  // Use BoardColumnCard for non-sub-grouped boards (flat columns)
+  // === Sub-grouping logic (for sub-grouped boards) ===
+
+  // Find the subGroupBy property definition
+  const subGroupByPropertyDef = useMemo(() => {
+    if (!effectiveSubGroupConfig) {
+      return undefined;
+    }
+    return properties.find(
+      (prop) => prop.id === effectiveSubGroupConfig.subGroupBy
+    );
+  }, [properties, effectiveSubGroupConfig]);
+
+  // Collect all unique sub-group keys across all groups and sort them
+  const allSubGroupData = useMemo(() => {
+    if (!effectiveSubGroupConfig) {
+      return [];
+    }
+
+    // Flatten all items from all groups
+    const allItems = groups.flatMap((g) => g.items);
+    const subGroupCountsData = effectiveSubGroupConfig.counts;
+
+    if (allItems.length === 0 && !subGroupCountsData) {
+      return [];
+    }
+
+    const { groups: subGroups, sortValues } = groupDataByProperty(
+      allItems,
+      effectiveSubGroupConfig.subGroupBy,
+      properties,
+      effectiveSubGroupConfig.showAs,
+      effectiveSubGroupConfig.startWeekOn
+    );
+
+    // Get all unique sub-group keys (from either client data or server counts)
+    const allSubGroupKeys = new Set([
+      ...Object.keys(subGroups),
+      ...Object.keys(subGroupCountsData ?? {}),
+    ]);
+
+    // Build sub-group array with counts
+    const subGroupArray = Array.from(allSubGroupKeys).map((key) => {
+      const serverCount = subGroupCountsData?.[key];
+      const clientItems = subGroups[key] as TData[] | undefined;
+      const clientCount = clientItems?.length ?? 0;
+
+      // Prefer server counts when available
+      const count = serverCount?.count ?? clientCount;
+      const hasMore = serverCount?.hasMore ?? false;
+
+      return {
+        key,
+        items: [] as TData[], // Items will be fetched via getItemsForCell
+        count,
+        displayCount: hasMore || count > 99 ? "99+" : String(count),
+        sortValue: sortValues[key] ?? key,
+      };
+    });
+
+    // Sort sub-groups
+    const sortOrder = effectiveSubGroupConfig.sort ?? "propertyAscending";
+    subGroupArray.sort((a, b) => {
+      const multiplier = sortOrder === "propertyDescending" ? -1 : 1;
+      if (typeof a.sortValue === "number" && typeof b.sortValue === "number") {
+        return (a.sortValue - b.sortValue) * multiplier;
+      }
+      return (
+        String(a.sortValue).localeCompare(String(b.sortValue)) * multiplier
+      );
+    });
+
+    return subGroupArray;
+  }, [groups, effectiveSubGroupConfig, properties]);
+
+  // Get items for a specific cell (column group + sub-group)
+  const getItemsForCell = useCallback(
+    (groupKey: string, subGroupKey: string): TData[] => {
+      if (!effectiveSubGroupConfig) {
+        return [];
+      }
+
+      const group = groups.find((g) => g.key === groupKey);
+      if (!group) {
+        return [];
+      }
+
+      // Group items by sub-group property
+      const { groups: subGroups } = groupDataByProperty(
+        group.items,
+        effectiveSubGroupConfig.subGroupBy,
+        properties,
+        effectiveSubGroupConfig.showAs,
+        effectiveSubGroupConfig.startWeekOn
+      );
+
+      return (subGroups[subGroupKey] as TData[]) || [];
+    },
+    [groups, effectiveSubGroupConfig, properties]
+  );
+
+  // Filter sub-groups based on hideEmptyGroups
+  const visibleSubGroups = useMemo(() => {
+    if (!effectiveSubGroupConfig) {
+      return [];
+    }
+
+    const hideEmpty = effectiveSubGroupConfig.hideEmptyGroups ?? true;
+
+    if (!hideEmpty) {
+      return allSubGroupData;
+    }
+
+    // Filter by count to show groups even when items aren't loaded yet
+    return allSubGroupData.filter((subGroup) => subGroup.count > 0);
+  }, [allSubGroupData, effectiveSubGroupConfig]);
+
+  // === Render ===
+
+  // Sub-grouped view: BoardColumnHeaders + Accordion with GroupSection + BoardColumns
   if (effectiveSubGroupConfig) {
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
     return (
-      <BoardRowLayout
-        cardContent={getCardContent}
-        className={className}
-        columnHeader={getColumnHeader}
-        columnWidth={columnWidth}
-        getColumnBgClass={getColumnBgClass}
-        groups={groups}
-        keyExtractor={keyExtractor}
-        properties={properties}
-        renderFooter={renderFooter}
-        stickyHeader={{
-          enabled: true,
-          offset: 56,
-        }}
-        subGroup={effectiveSubGroupConfig}
-      />
+      <div className={cn("relative max-w-full overflow-clip", className)}>
+        <div className="overflow-x-auto pb-4" ref={scrollContainerRef}>
+          <div className="min-w-fit">
+            {/* Column Headers (sticky) */}
+            <BoardColumnHeaders
+              columnHeader={getColumnHeader}
+              columnWidth={columnWidth}
+              containerRef={scrollContainerRef}
+              getColumnBgClass={getColumnBgClass}
+              groups={groups}
+              stickyHeader={{
+                enabled: true,
+                offset: 56,
+              }}
+            />
+
+            {/* Sub-group rows using GroupSection */}
+            <Accordion
+              defaultValue={effectiveSubGroupConfig.defaultExpanded}
+              multiple
+              onValueChange={effectiveSubGroupConfig.onExpandedSubGroupsChange}
+              value={effectiveSubGroupConfig.expandedSubGroups}
+            >
+              {visibleSubGroups.map((subGroup) => (
+                <GroupSection
+                  group={subGroup}
+                  groupByPropertyDef={subGroupByPropertyDef}
+                  key={subGroup.key}
+                  showAggregation={true}
+                  stickyHeader={{
+                    enabled: true,
+                    offset: 93, // Higher offset to account for column headers
+                  }}
+                >
+                  <BoardColumns
+                    cardContent={getCardContent}
+                    columnWidth={columnWidth}
+                    getColumnBgClass={getColumnBgClass}
+                    getItems={(groupKey) =>
+                      getItemsForCell(groupKey, subGroup.key)
+                    }
+                    groups={groups}
+                    keyExtractor={keyExtractor}
+                    renderFooter={() => renderFooter?.(subGroup.key)}
+                    rounded="all"
+                  />
+                </GroupSection>
+              ))}
+            </Accordion>
+          </div>
+        </div>
+      </div>
     );
   }
 
+  // Flat view: BoardColumnHeaders + BoardColumns
+  const flatScrollContainerRef = useRef<HTMLDivElement>(null);
+
   return (
-    <BoardColumnCard
-      cardContent={getCardContent}
-      className={className}
-      columnHeader={getColumnHeader}
-      columnWidth={columnWidth}
-      getColumnBgClass={getColumnBgClass}
-      groups={groups}
-      keyExtractor={keyExtractor}
-      renderFooter={renderFooter}
-      stickyHeader={{
-        enabled: true,
-        offset: 56,
-      }}
-    />
+    <div className={cn("relative max-w-full overflow-clip", className)}>
+      <div className="overflow-x-auto pb-4" ref={flatScrollContainerRef}>
+        <div className="min-w-fit">
+          {/* Column Headers */}
+          <BoardColumnHeaders
+            columnHeader={getColumnHeader}
+            columnWidth={columnWidth}
+            containerRef={flatScrollContainerRef}
+            getColumnBgClass={getColumnBgClass}
+            groups={groups}
+            rounded="top"
+            stickyHeader={{
+              enabled: true,
+              offset: 56,
+            }}
+          />
+
+          {/* Column Cards */}
+          <BoardColumns
+            cardContent={getCardContent}
+            columnWidth={columnWidth}
+            getColumnBgClass={getColumnBgClass}
+            groups={groups}
+            keyExtractor={keyExtractor}
+            renderFooter={renderFooter}
+            rounded="bottom"
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 
