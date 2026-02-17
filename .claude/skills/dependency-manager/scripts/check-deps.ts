@@ -29,28 +29,6 @@ interface Violation {
   section: string;
 }
 
-const ROOT_INFRA_PACKAGES = new Set([
-  "@biomejs/biome",
-  "biome",
-  "turbo",
-  "husky",
-  "lint-staged",
-  "prettier",
-  "eslint",
-  "@turbo/gen",
-  "typescript", // sometimes needed at root for IDE
-]);
-
-function isInfraPackage(pkg: string): boolean {
-  if (ROOT_INFRA_PACKAGES.has(pkg)) {
-    return true;
-  }
-  if (pkg.startsWith("@types/bun")) {
-    return true;
-  }
-  return false;
-}
-
 function isCatalogRef(version: string): boolean {
   return version === "catalog:" || version.startsWith("catalog:");
 }
@@ -77,8 +55,9 @@ function checkDependencySection(
     }
 
     if (isRoot) {
-      // Root should only have infrastructure packages
-      if (!isInfraPackage(pkg)) {
+      // If a package is in root AND in catalog, it should be moved to a workspace
+      // Packages only in root devDependencies (not in catalog) are implicitly infrastructure
+      if (catalog[pkg]) {
         violations.push({
           file,
           type: "root-app-dep",

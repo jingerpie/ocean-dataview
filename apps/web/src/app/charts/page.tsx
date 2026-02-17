@@ -1,6 +1,9 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
 import { PriceByCategoryChart } from "@/modules/charts/calories-by-type-chart";
+
+export const dynamic = "force-dynamic";
+
 import { PriceTrendAreaChart } from "@/modules/charts/calories-trend-area-chart";
 import { FamilyGroupHorizontalChart } from "@/modules/charts/family-group-horizontal-chart";
 import { ProductTagDonutChart } from "@/modules/charts/product-tag-donut-chart";

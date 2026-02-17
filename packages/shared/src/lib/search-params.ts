@@ -1,3 +1,4 @@
+import { getTableColumns, type Table } from "drizzle-orm";
 import {
   createParser,
   createSearchParamsCache,
@@ -196,22 +197,21 @@ const expandedValidator = (value: unknown): string[] | null => {
 // ============================================================================
 
 /**
- * Schema for sort entries - property is a string, not typed to entity keys.
- * Validation of property names happens at runtime when building queries.
- */
-const sortEntrySchema = z.object({
-  property: z.string(),
-  direction: z.enum(["asc", "desc"]),
-});
-
-/**
  * Creates a Zod schema for TRPC input validation.
- * This is the single source of truth for semantic validation.
+ * Extracts column names from the Drizzle table for type-safe property validation.
  * Uses .catch() for graceful degradation - invalid values fall back to defaults.
  */
-export const createSearchParamsSchema = <T extends z.ZodRawShape>(
-  _schema: z.ZodObject<T>
-) => {
+export const createSearchParamsSchema = (table: Table) => {
+  const columnNames = Object.keys(getTableColumns(table)) as [
+    string,
+    ...string[],
+  ];
+
+  const sortEntrySchema = z.object({
+    property: z.enum(columnNames),
+    direction: z.enum(["asc", "desc"]),
+  });
+
   return z.object({
     cursor: z.union([cursorValueSchema, z.string()]).nullish().catch(null),
     limit: z
