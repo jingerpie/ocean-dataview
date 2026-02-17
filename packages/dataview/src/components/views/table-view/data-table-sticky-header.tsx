@@ -222,7 +222,7 @@ export function DataTableStickyHeader<TData>({
   // Render the sticky header using a portal
   return createPortal(
     <div
-      className="fixed z-50 bg-muted"
+      className="fixed z-40 bg-muted"
       style={{
         top: stickyTopOffset,
         left: Math.max(0, containerRect.left),

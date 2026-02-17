@@ -427,7 +427,7 @@ export function TableView<
                 key={group.key}
                 renderFooter={renderPagination(pagination, paginationContext)}
                 showAggregation={groupBy?.showAggregation ?? true}
-                stickyHeader={{ enabled: true, offset: 56 }}
+                stickyHeader={{ enabled: true, offset: 57 }}
               >
                 <DataTable
                   actionBar={actionBar}
@@ -435,7 +435,7 @@ export function TableView<
                   data={group.items}
                   enableRowSelection={enableRowSelection}
                   header={{ enabled: true, sticky: true }}
-                  offset={100} // 56 (navbar) + 44 (group label height)
+                  offset={101} // 57 (navbar + border) + 44 (group label height)
                   onRowClick={onRowClick}
                   onRowSelectionChange={setRowSelection}
                   rowSelection={rowSelection}
@@ -474,7 +474,7 @@ export function TableView<
         data={flatTableData}
         enableRowSelection={enableRowSelection}
         header={{ enabled: true, sticky: true }}
-        offset={56}
+        offset={57}
         onRowClick={onRowClick}
         onRowSelectionChange={setRowSelection}
         rowSelection={rowSelection}

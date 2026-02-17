@@ -101,7 +101,7 @@ export function GroupSection<TData>({
       {stickyHeader?.enabled ? (
         <StickyGroupLabel
           containerRef={itemRef}
-          offset={stickyHeader.offset ?? 56}
+          offset={stickyHeader.offset ?? 57}
         >
           {triggerContent}
         </StickyGroupLabel>

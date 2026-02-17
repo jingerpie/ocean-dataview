@@ -251,7 +251,7 @@ export function StickyColumnLabel({
   // Render the sticky header using a portal
   return createPortal(
     <div
-      className="fixed z-50 bg-background"
+      className="fixed z-40 bg-background"
       style={{
         top: offset,
         left: Math.max(0, containerRect.left),

@@ -183,7 +183,7 @@ export function ListView<
                 key={group.key}
                 renderFooter={renderPagination(pagination, paginationContext)}
                 showAggregation={groupBy?.showAggregation ?? true}
-                stickyHeader={{ enabled: true, offset: 56 }}
+                stickyHeader={{ enabled: true, offset: 57 }}
               >
                 <ListRow
                   allProperties={properties}

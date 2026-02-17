@@ -671,7 +671,7 @@ export function BoardView<
               groups={groups}
               stickyHeader={{
                 enabled: true,
-                offset: 56,
+                offset: 57,
               }}
             />
 
@@ -690,7 +690,7 @@ export function BoardView<
                   showAggregation={true}
                   stickyHeader={{
                     enabled: true,
-                    offset: 93, // Higher offset to account for column headers
+                    offset: 93, // 57 (site header + border) + 36 (column headers)
                   }}
                 >
                   <BoardColumns
@@ -731,7 +731,7 @@ export function BoardView<
             rounded="top"
             stickyHeader={{
               enabled: true,
-              offset: 56,
+              offset: 57,
             }}
           />
 

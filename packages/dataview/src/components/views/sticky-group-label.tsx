@@ -138,10 +138,10 @@ export function StickyGroupLabel({
       {originalHeader}
       {createPortal(
         <div
-          className={cn("fixed right-0 z-40 bg-background pt-3", className)}
+          className={cn("fixed right-0 z-40 bg-background", className)}
           ref={stickyHeaderRef}
           style={{
-            top: offset - 12, // Offset by pt-3 (12px) to close gap with group header
+            top: offset,
             left: headerRect.left,
           }}
         >
