@@ -15,7 +15,6 @@
   },
   "devDependencies": {
     "@sparkyidea/config": "workspace:*",
-    "@types/bun": "catalog:",
     "typescript": "catalog:"
   }
 }
