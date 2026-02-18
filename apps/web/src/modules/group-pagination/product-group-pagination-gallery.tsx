@@ -26,7 +26,6 @@ const DEFAULT_EXPANDED: string[] = [];
  */
 interface Props {
   expanded: string[] | null;
-  cursors: unknown; // Not used for infinite pagination, but passed from page
   limit: number;
   filter?: WhereNode[] | null;
   /** Raw search string from URL (for UI display) */
