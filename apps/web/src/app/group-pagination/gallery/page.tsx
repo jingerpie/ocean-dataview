@@ -41,7 +41,8 @@ export default async function GroupPaginationGalleryPage(props: PageProps) {
           limit,
         },
         {
-          getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
+          getNextPageParam: (lastPage) =>
+            lastPage.hasNextPage ? lastPage.endCursor : undefined,
         }
       )
     );

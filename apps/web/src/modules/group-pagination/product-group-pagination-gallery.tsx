@@ -75,7 +75,8 @@ export function ProductGroupPaginationGallery({
             limit,
           },
           {
-            getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
+            getNextPageParam: (lastPage) =>
+              lastPage.hasNextPage ? lastPage.endCursor : undefined,
           }
         ),
     });

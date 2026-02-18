@@ -79,7 +79,6 @@ export const productRouter = router({
         items,
         startCursor, // First item's ID (for previous page)
         endCursor, // Last item's ID (for next page)
-        nextCursor: hasMoreInDirection && !isBackward ? endCursor : null, // Backwards compat
         hasNextPage: isBackward ? true : hasMoreInDirection,
         hasPreviousPage: isBackward ? hasMoreInDirection : !!after,
       };
@@ -176,7 +175,6 @@ export const productRouter = router({
       const allItems: (typeof product.$inferSelect)[] = [];
       const startCursor: Record<string, string | null> = {};
       const endCursor: Record<string, string | null> = {};
-      const nextCursor: Record<string, string | null> = {};
       const hasNextPage: Record<string, boolean> = {};
       const hasPreviousPage: Record<string, boolean> = {};
       const seenIds = new Set<number>();
@@ -209,7 +207,6 @@ export const productRouter = router({
         // Track cursors (forward-only pagination for Load More)
         startCursor[groupKey] = firstItem ? String(firstItem.id) : null;
         endCursor[groupKey] = lastItem ? String(lastItem.id) : null;
-        nextCursor[groupKey] = hasMore ? endCursor[groupKey] : null;
         hasNextPage[groupKey] = hasMore;
         hasPreviousPage[groupKey] = !!cursor;
 
@@ -226,7 +223,6 @@ export const productRouter = router({
         items: allItems,
         startCursor,
         endCursor,
-        nextCursor,
         hasNextPage,
         hasPreviousPage,
       };

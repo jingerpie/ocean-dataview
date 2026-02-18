@@ -115,6 +115,7 @@ const DEFAULT_MAX_GROUPS = 10;
 /**
  * Default getNextPageParam for infinite queries.
  * Used as fallback when TRPC's infiniteQueryOptions doesn't provide one.
+ * Follows Relay spec: use endCursor only when hasNextPage is true.
  */
 const defaultGetNextPageParam = (
   lastPage: BasePaginatedResponse<unknown>
@@ -226,7 +227,7 @@ function useGroupInfiniteQueries(
  *           filters: [{ property: "familyGroup", condition: "eq", value: groupKey }],
  *           limit,
  *         },
- *         { getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined },
+ *         { getNextPageParam: (lastPage) => lastPage.hasNextPage ? lastPage.endCursor : undefined },
  *       ),
  *   });
  *

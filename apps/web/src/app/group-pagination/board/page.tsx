@@ -52,10 +52,11 @@ export default async function GroupPaginationBoardPage(props: PageProps) {
             if (!hasAnyMore) {
               return undefined;
             }
+            // Relay pattern: use endCursor where hasNextPage is true
             return Object.fromEntries(
-              Object.entries(lastPage.nextCursor).filter(
-                (entry): entry is [string, string] => entry[1] !== null
-              )
+              Object.entries(lastPage.hasNextPage)
+                .filter(([key, hasMore]) => hasMore && lastPage.endCursor[key])
+                .map(([key]) => [key, lastPage.endCursor[key] as string])
             );
           },
         }

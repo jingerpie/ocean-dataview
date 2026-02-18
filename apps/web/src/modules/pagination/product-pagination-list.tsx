@@ -51,7 +51,8 @@ export function ProductPaginationList({
         sort,
       },
       {
-        getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
+        getNextPageParam: (lastPage) =>
+          lastPage.hasNextPage ? lastPage.endCursor : undefined,
       }
     )
   );

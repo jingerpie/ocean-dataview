@@ -117,7 +117,7 @@ export interface InfinitePaginationResult<TData> {
  *   const infiniteQuery = useSuspenseInfiniteQuery(
  *     trpc.product.getMany.infiniteQueryOptions(
  *       { limit, sort: [{ property: "updatedAt", direction: "desc" }] },
- *       { getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined },
+ *       { getNextPageParam: (lastPage) => lastPage.hasNextPage ? lastPage.endCursor : undefined },
  *     ),
  *   );
  *

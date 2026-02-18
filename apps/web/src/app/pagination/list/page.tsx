@@ -39,7 +39,8 @@ export default async function PaginationListPage(props: PageProps) {
         search,
       },
       {
-        getNextPageParam: (lastPage) => lastPage.endCursor ?? undefined,
+        getNextPageParam: (lastPage) =>
+          lastPage.hasNextPage ? lastPage.endCursor : undefined,
       }
     )
   );
