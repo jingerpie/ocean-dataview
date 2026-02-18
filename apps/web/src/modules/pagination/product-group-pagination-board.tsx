@@ -8,7 +8,7 @@ import {
   BoardSkeleton,
   BoardView,
 } from "@sparkyidea/dataview/views/board-view";
-import type { SortQuery, WhereNode } from "@sparkyidea/shared/types";
+import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
 import { buildSearchFilter } from "@sparkyidea/shared/utils";
 import {
   useSuspenseInfiniteQuery,
@@ -20,7 +20,7 @@ import { productProperties } from "./product-properties";
 import { ViewNav } from "./view-nav";
 
 interface Props {
-  limit: number;
+  limit: Limit;
   filter?: WhereNode[] | null;
   /** Raw search string from URL (for UI display) */
   search?: string;
@@ -82,7 +82,6 @@ export function ProductGroupPaginationBoard({
   const { items, pagination } = useInfinitePagination({
     infiniteQuery,
     limit,
-    limitOptions: [10, 25, 50, 100],
   });
 
   // Empty state

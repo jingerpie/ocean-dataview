@@ -1,3 +1,13 @@
+// Import limit types from shared package for local use
+import type { Limit } from "@sparkyidea/shared/types";
+
+// biome-ignore lint/performance/noBarrelFile: Intentional re-export from shared package
+export {
+  DEFAULT_LIMIT,
+  LIMIT_OPTIONS,
+  type Limit,
+} from "@sparkyidea/shared/types";
+
 /**
  * Unified pagination context for cursor-based pagination.
  * Used by pagination components (PagePagination, LoadMorePagination, InfiniteScrollPagination).
@@ -15,11 +25,9 @@ export interface PaginationContext {
 
   // Limit/Page size
   /** Number of items per page/batch */
-  limit?: number;
+  limit?: Limit;
   /** Callback to change limit/batch size */
-  onLimitChange?: (limit: number) => void;
-  /** Available limit options */
-  limitOptions?: number[];
+  onLimitChange?: (limit: Limit) => void;
 
   // Item range display ("X-Y of Total")
   /** Display start offset for "Showing X-Y" */

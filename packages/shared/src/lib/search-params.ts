@@ -2,7 +2,6 @@ import { getTableColumns, type Table } from "drizzle-orm";
 import {
   createParser,
   createSearchParamsCache,
-  parseAsInteger,
   parseAsJson,
 } from "nuqs/server";
 import { z } from "zod";
@@ -18,15 +17,12 @@ import {
   type Cursors,
   type CursorValue,
   cursorValueSchema,
+  DEFAULT_LIMIT,
+  LIMIT_OPTIONS,
+  type Limit,
 } from "../types/pagination.type";
 import { validateFilter } from "../utils/filter-validation";
 import { validateSort } from "../utils/sort-validation";
-
-// ============================================================================
-// Constants
-// ============================================================================
-
-const DEFAULT_LIMIT = 25;
 
 // ============================================================================
 // Filter URL Transformation Helpers
@@ -239,8 +235,23 @@ export const createSearchParamsSchema = (table: Table) => {
 // 2. Server-side NUQS Parsers (for URL params in RSC)
 // ============================================================================
 
+/**
+ * Parse limit from URL, validating against allowed values.
+ * Returns Limit type instead of number.
+ */
+const parseAsLimit = createParser({
+  parse: (value: string): Limit => {
+    const num = Number.parseInt(value, 10);
+    if (LIMIT_OPTIONS.includes(num as Limit)) {
+      return num as Limit;
+    }
+    return DEFAULT_LIMIT;
+  },
+  serialize: (value: Limit) => String(value),
+}).withDefault(DEFAULT_LIMIT);
+
 const sharedParsers = {
-  limit: parseAsInteger.withDefault(DEFAULT_LIMIT),
+  limit: parseAsLimit,
   filter: parseAsJson(filterValidator),
   sort: parseAsJson(sortValidator).withDefault([]),
   search: createParser({

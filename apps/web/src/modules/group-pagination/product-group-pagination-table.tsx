@@ -8,7 +8,12 @@ import {
   TableSkeleton,
   TableView,
 } from "@sparkyidea/dataview/views/table-view";
-import type { Cursors, SortQuery, WhereNode } from "@sparkyidea/shared/types";
+import type {
+  Cursors,
+  Limit,
+  SortQuery,
+  WhereNode,
+} from "@sparkyidea/shared/types";
 import {
   buildSearchFilter,
   combineGroupFilter,
@@ -27,7 +32,7 @@ const DEFAULT_EXPANDED: string[] = [];
 interface Props {
   expanded: string[] | null;
   cursors: Cursors;
-  limit: number;
+  limit: Limit;
   filter?: WhereNode[] | null;
   /** Raw search string from URL (for UI display) */
   search?: string;

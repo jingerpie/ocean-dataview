@@ -69,7 +69,6 @@ export function buildPaginationContext<TData>(
         "isFetchingNextPage" in group ? group.isFetchingNextPage : undefined,
       limit: pagination.limit,
       onLimitChange: pagination.onLimitChange,
-      limitOptions: pagination.limitOptions,
       displayStart: "displayStart" in group ? group.displayStart : 1,
       displayEnd: (() => {
         if ("displayEnd" in group) {
@@ -97,7 +96,6 @@ export function buildPaginationContext<TData>(
         : undefined,
     limit: pagination.limit,
     onLimitChange: pagination.onLimitChange,
-    limitOptions: pagination.limitOptions,
     displayStart: "displayStart" in pagination ? pagination.displayStart : 1,
     displayEnd: (() => {
       if ("displayEnd" in pagination) {

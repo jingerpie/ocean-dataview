@@ -1,5 +1,6 @@
 "use client";
 
+import type { Limit } from "@sparkyidea/shared/types";
 import type { InfiniteData } from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useCallback, useMemo } from "react";
@@ -50,9 +51,7 @@ export interface UseInfinitePaginationOptions<
   /** Infinite query result from useSuspenseInfiniteQuery */
   infiniteQuery: TQuery;
   /** Items per page (from server props) */
-  limit: number;
-  /** Available limit options (default: [10, 25, 50, 100]) */
-  limitOptions?: number[];
+  limit: Limit;
 }
 
 /**
@@ -66,9 +65,8 @@ export interface InfinitePaginationState {
   onPrev: () => void;
 
   // Limit control
-  limit: number;
-  onLimitChange: (limit: number) => void;
-  limitOptions: number[];
+  limit: Limit;
+  onLimitChange: (limit: Limit) => void;
 
   // Infinite-specific
   totalLoaded: number;
@@ -92,13 +90,6 @@ export interface InfinitePaginationResult<TData> {
   /** Pagination state for DataViewProvider */
   pagination: InfinitePaginationState;
 }
-
-// ============================================================================
-// Constants
-// ============================================================================
-
-// Smaller batch sizes for infinite scroll (data accumulates client-side)
-const DEFAULT_LIMIT_OPTIONS = [10, 25, 50, 100];
 
 // ============================================================================
 // Hook
@@ -150,11 +141,7 @@ export function useInfinitePagination<
 >(
   options: UseInfinitePaginationOptions<TQuery, TData>
 ): InfinitePaginationResult<TData> {
-  const {
-    infiniteQuery,
-    limit,
-    limitOptions = DEFAULT_LIMIT_OPTIONS,
-  } = options;
+  const { infiniteQuery, limit } = options;
 
   const {
     data,
@@ -197,8 +184,7 @@ export function useInfinitePagination<
 
       // Limit control
       limit,
-      onLimitChange: setUrlLimit,
-      limitOptions,
+      onLimitChange: setUrlLimit as (limit: Limit) => void,
 
       // Infinite-specific
       totalLoaded: items.length,

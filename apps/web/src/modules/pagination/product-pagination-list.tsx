@@ -5,7 +5,7 @@ import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import { ListSkeleton, ListView } from "@sparkyidea/dataview/views/list-view";
-import type { SortQuery, WhereNode } from "@sparkyidea/shared/types";
+import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
 import { buildSearchFilter } from "@sparkyidea/shared/utils";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
@@ -14,7 +14,7 @@ import { productProperties } from "./product-properties";
 import { ViewNav } from "./view-nav";
 
 interface ProductPaginationListProps {
-  limit: number;
+  limit: Limit;
   filter?: WhereNode[] | null;
   /** Raw search string from URL (for UI display) */
   search?: string;
@@ -60,7 +60,6 @@ export function ProductPaginationList({
   const { items, pagination } = useInfinitePagination({
     infiniteQuery,
     limit: defaultLimit,
-    limitOptions: [10, 25, 50, 100],
   });
 
   return (

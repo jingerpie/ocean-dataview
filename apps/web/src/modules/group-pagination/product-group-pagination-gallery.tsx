@@ -8,7 +8,7 @@ import {
   GallerySkeleton,
   GalleryView,
 } from "@sparkyidea/dataview/views/gallery-view";
-import type { SortQuery, WhereNode } from "@sparkyidea/shared/types";
+import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
 import {
   buildSearchFilter,
   combineGroupFilter,
@@ -26,7 +26,7 @@ const DEFAULT_EXPANDED: string[] = [];
  */
 interface Props {
   expanded: string[] | null;
-  limit: number;
+  limit: Limit;
   filter?: WhereNode[] | null;
   /** Raw search string from URL (for UI display) */
   search?: string;

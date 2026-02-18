@@ -4,6 +4,7 @@ import { parseAsCursor } from "@sparkyidea/shared/lib";
 import type { CursorValue } from "@sparkyidea/shared/types";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useCallback, useTransition } from "react";
+import type { Limit } from "../types/pagination";
 import type { BidirectionalPaginatedResponse } from "../types/pagination-types";
 
 // ============================================================================
@@ -17,11 +18,9 @@ export interface UsePagePaginationOptions<TData> {
   /** Cursor value (from URL) for flat pagination */
   cursor?: CursorValue | null;
   /** Items per page (from server props) */
-  limit: number;
+  limit: Limit;
   /** Query result from useSuspenseQuery */
   data: BidirectionalPaginatedResponse<TData>;
-  /** Available limit options (default: [25, 50, 100, 200]) */
-  limitOptions?: number[];
 }
 
 /**
@@ -36,9 +35,8 @@ export interface PagePaginationResult {
   onPrev: () => void;
 
   // Limit control
-  limit: number;
-  onLimitChange: (newLimit: number) => void;
-  limitOptions: number[];
+  limit: Limit;
+  onLimitChange: (newLimit: Limit) => void;
 
   // Display info
   displayStart: number;
@@ -47,13 +45,6 @@ export interface PagePaginationResult {
   // Loading state (always false with Suspense, but included for compatibility)
   isLoading: boolean;
 }
-
-// ============================================================================
-// Constants
-// ============================================================================
-
-// Larger batch sizes for page-based pagination (single page shown at a time)
-const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
 
 // ============================================================================
 // Hook
@@ -100,7 +91,7 @@ const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
 export function usePagePagination<TData>(
   options: UsePagePaginationOptions<TData>
 ): PagePaginationResult {
-  const { cursor, limit, data, limitOptions = DEFAULT_LIMIT_OPTIONS } = options;
+  const { cursor, limit, data } = options;
 
   const [, startTransition] = useTransition();
 
@@ -148,7 +139,7 @@ export function usePagePagination<TData>(
   }, [start, limit, data.startCursor, setCursor]);
 
   const onLimitChange = useCallback(
-    (newLimit: number) => {
+    (newLimit: Limit) => {
       startTransition(() => {
         setUrlLimit(newLimit);
         // Reset to first page
@@ -168,7 +159,6 @@ export function usePagePagination<TData>(
     // Limit control
     limit,
     onLimitChange,
-    limitOptions,
 
     // Display info
     displayStart: items.length > 0 ? start + 1 : 0,

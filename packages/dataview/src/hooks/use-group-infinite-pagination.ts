@@ -1,6 +1,7 @@
 "use client";
 
 import { parseAsExpanded } from "@sparkyidea/shared/lib";
+import type { Limit } from "@sparkyidea/shared/types";
 import {
   type InfiniteData,
   type UseInfiniteQueryResult,
@@ -53,13 +54,11 @@ export interface UseGroupInfinitePaginationOptions<
   /** Currently expanded groups */
   expanded: string[];
   /** Items per page (from server props) */
-  limit: number;
+  limit: Limit;
   /** Factory to create query options for each group */
   createQueryOptions: (groupKey: string) => TQueryOptions;
   /** Max groups to support (default: 10) */
   maxGroups?: number;
-  /** Available limit options (default: [10, 25, 50, 100]) */
-  limitOptions?: number[];
 }
 
 /**
@@ -84,9 +83,8 @@ export interface GroupInfiniteInfo<TData> {
  */
 export interface GroupInfinitePaginationState<TData> {
   groups: GroupInfiniteInfo<TData>[];
-  limit: number;
-  onLimitChange: (limit: number) => void;
-  limitOptions: number[];
+  limit: Limit;
+  onLimitChange: (limit: Limit) => void;
   isLoading: boolean;
 }
 
@@ -108,8 +106,6 @@ export interface GroupInfinitePaginationResult<TData> {
 // Constants
 // ============================================================================
 
-// Smaller batch sizes for infinite scroll (data accumulates client-side)
-const DEFAULT_LIMIT_OPTIONS = [10, 25, 50, 100];
 const DEFAULT_MAX_GROUPS = 10;
 
 // ============================================================================
@@ -263,7 +259,6 @@ export function useGroupInfinitePagination<
     limit,
     createQueryOptions,
     maxGroups = DEFAULT_MAX_GROUPS,
-    limitOptions = DEFAULT_LIMIT_OPTIONS,
   } = options;
 
   // Local state for optimistic accordion UI (prevents bouncing)
@@ -360,7 +355,7 @@ export function useGroupInfinitePagination<
 
   // Limit change handler
   const onLimitChange = useCallback(
-    (newLimit: number) => {
+    (newLimit: Limit) => {
       startTransition(() => {
         setUrlLimit(newLimit);
       });
@@ -401,7 +396,6 @@ export function useGroupInfinitePagination<
       groups,
       limit,
       onLimitChange,
-      limitOptions,
       isLoading,
     },
     handleAccordionChange,

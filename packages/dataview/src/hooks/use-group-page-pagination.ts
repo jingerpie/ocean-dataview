@@ -1,7 +1,7 @@
 "use client";
 
 import { parseAsCursors, parseAsExpanded } from "@sparkyidea/shared/lib";
-import type { Cursors, CursorValue } from "@sparkyidea/shared/types";
+import type { Cursors, CursorValue, Limit } from "@sparkyidea/shared/types";
 import { useQueries } from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
 import {
@@ -48,11 +48,9 @@ export interface UseGroupPagePaginationOptions<
   /** Cursors object per group (from URL props) */
   cursors?: Cursors;
   /** Items per page (from server props) */
-  limit: number;
+  limit: Limit;
   /** Factory to create query options for each group */
   createQueryOptions: (groupKey: string, cursor?: CursorValue) => TQueryOptions;
-  /** Available limit options (default: [25, 50, 100, 200]) */
-  limitOptions?: number[];
 }
 
 /**
@@ -77,9 +75,8 @@ export interface GroupInfo<TData> {
  */
 export interface GroupPagePaginationState<TData> {
   groups: GroupInfo<TData>[];
-  limit: number;
-  onLimitChange: (limit: number) => void;
-  limitOptions: number[];
+  limit: Limit;
+  onLimitChange: (limit: Limit) => void;
   isLoading: boolean;
 }
 
@@ -96,13 +93,6 @@ export interface GroupPagePaginationResult<TData> {
   /** Current expanded groups (local state for optimistic UI) */
   expandedGroups: string[];
 }
-
-// ============================================================================
-// Constants
-// ============================================================================
-
-// Larger batch sizes for page-based pagination (single page shown at a time)
-const DEFAULT_LIMIT_OPTIONS = [25, 50, 100, 200];
 
 // ============================================================================
 // Hook
@@ -175,7 +165,6 @@ export function useGroupPagePagination<
     cursors = {},
     limit,
     createQueryOptions,
-    limitOptions = DEFAULT_LIMIT_OPTIONS,
   } = options;
 
   // Local state for optimistic accordion UI (prevents bouncing)
@@ -317,7 +306,7 @@ export function useGroupPagePagination<
 
   // Limit change handler
   const onLimitChange = useCallback(
-    (newLimit: number) => {
+    (newLimit: Limit) => {
       startTransition(() => {
         setUrlLimit(newLimit);
         setCursors({}); // Reset all cursors when limit changes
@@ -366,7 +355,6 @@ export function useGroupPagePagination<
       groups,
       limit,
       onLimitChange,
-      limitOptions,
       isLoading,
     },
     handleAccordionChange,

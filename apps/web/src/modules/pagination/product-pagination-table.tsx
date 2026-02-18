@@ -10,6 +10,7 @@ import {
 } from "@sparkyidea/dataview/views/table-view";
 import type {
   CursorValue,
+  Limit,
   SortQuery,
   WhereNode,
 } from "@sparkyidea/shared/types";
@@ -25,7 +26,7 @@ import { ViewNav } from "./view-nav";
  */
 interface PaginationProps {
   cursor?: CursorValue | null;
-  limit: number;
+  limit: Limit;
   filter?: WhereNode[] | null;
   /** Raw search string from URL (for UI display) */
   search?: string;
@@ -71,7 +72,6 @@ export function ProductPaginationTable(props: PaginationProps) {
     cursor,
     limit,
     data,
-    limitOptions: [10, 25, 50, 100],
   });
 
   return (

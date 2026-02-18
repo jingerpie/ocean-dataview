@@ -8,7 +8,7 @@ import {
   BoardSkeleton,
   BoardView,
 } from "@sparkyidea/dataview/views/board-view";
-import type { SortQuery, WhereNode } from "@sparkyidea/shared/types";
+import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
 import {
   buildSearchFilter,
   combineGroupFilter,
@@ -24,7 +24,7 @@ import { ViewNav } from "./view-nav";
  */
 interface Props {
   expanded: string[] | null;
-  limit: number;
+  limit: Limit;
   filter?: WhereNode[] | null;
   /** Raw search string from URL (for UI display) */
   search?: string;

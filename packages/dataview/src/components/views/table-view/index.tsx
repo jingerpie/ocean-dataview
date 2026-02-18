@@ -399,7 +399,6 @@ export function TableView<
                         : () => undefined,
                     limit: contextPagination.limit,
                     onLimitChange: contextPagination.onLimitChange,
-                    limitOptions: contextPagination.limitOptions,
                     isLoading: paginationGroup.isLoading,
                     displayStart:
                       "displayStart" in paginationGroup

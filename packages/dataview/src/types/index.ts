@@ -6,7 +6,12 @@ export type { Action } from "./action.type";
 // biome-ignore lint/performance/noBarrelFile: Intentional public API barrel file
 export * from "./chart.type";
 // Export pagination types
-export type { PaginationContext } from "./pagination";
+export {
+  DEFAULT_LIMIT,
+  LIMIT_OPTIONS,
+  type Limit,
+  type PaginationContext,
+} from "./pagination";
 export type {
   BasePaginatedResponse,
   BidirectionalPaginatedResponse,

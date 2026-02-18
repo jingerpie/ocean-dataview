@@ -8,7 +8,7 @@ import {
   GallerySkeleton,
   GalleryView,
 } from "@sparkyidea/dataview/views/gallery-view";
-import type { SortQuery, WhereNode } from "@sparkyidea/shared/types";
+import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
 import { buildSearchFilter } from "@sparkyidea/shared/utils";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
@@ -17,7 +17,7 @@ import { productProperties } from "./product-properties";
 import { ViewNav } from "./view-nav";
 
 interface ProductPaginationGalleryProps {
-  limit: number;
+  limit: Limit;
   filter?: WhereNode[] | null;
   /** Raw search string from URL (for UI display) */
   search?: string;
@@ -63,7 +63,6 @@ export function ProductPaginationGallery({
   const { items, pagination } = useInfinitePagination({
     infiniteQuery,
     limit: defaultLimit,
-    limitOptions: [10, 25, 50, 100],
   });
 
   return (

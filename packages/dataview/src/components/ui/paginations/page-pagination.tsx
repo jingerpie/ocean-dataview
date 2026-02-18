@@ -29,7 +29,6 @@ export function PagePagination({
   onPrev,
   limit = 25,
   onLimitChange,
-  limitOptions = [10, 25, 50, 100],
   isLoading = false,
   displayStart,
   displayEnd,
@@ -76,14 +75,16 @@ export function PagePagination({
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground text-sm">Rows per page</span>
         <Select
-          onValueChange={(value) => onLimitChange?.(Number(value))}
+          onValueChange={(value) =>
+            onLimitChange?.(Number(value) as 10 | 25 | 50 | 100 | 200)
+          }
           value={String(limit)}
         >
           <SelectTrigger className="h-8 w-18">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {limitOptions.map((size) => (
+            {[10, 25, 50, 100, 200].map((size) => (
               <SelectItem key={size} value={String(size)}>
                 {size}
               </SelectItem>
