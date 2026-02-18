@@ -2,11 +2,7 @@
 import type { Limit } from "@sparkyidea/shared/types";
 
 // biome-ignore lint/performance/noBarrelFile: Intentional re-export from shared package
-export {
-  DEFAULT_LIMIT,
-  LIMIT_OPTIONS,
-  type Limit,
-} from "@sparkyidea/shared/types";
+export { LIMIT_OPTIONS, type Limit } from "@sparkyidea/shared/types";
 
 /**
  * Unified pagination context for cursor-based pagination.

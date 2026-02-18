@@ -17,7 +17,6 @@ import {
   type Cursors,
   type CursorValue,
   cursorValueSchema,
-  DEFAULT_LIMIT,
   LIMIT_OPTIONS,
   type Limit,
 } from "../types/pagination.type";
@@ -210,13 +209,7 @@ export const createSearchParamsSchema = (table: Table) => {
 
   return z.object({
     cursor: z.union([cursorValueSchema, z.string()]).nullish().catch(null),
-    limit: z
-      .number()
-      .int()
-      .min(1)
-      .max(200)
-      .catch(DEFAULT_LIMIT)
-      .default(DEFAULT_LIMIT),
+    limit: z.number().int().min(1).max(200).catch(25),
     search: searchQuerySchema.nullish().catch(null),
     filter: z
       .array(whereNodeSchema)
@@ -225,8 +218,8 @@ export const createSearchParamsSchema = (table: Table) => {
       .transform((f) => (f ? validateFilter(f) : null)),
     sort: z
       .array(sortEntrySchema)
-      .catch([])
       .default([])
+      .catch([])
       .transform(validateSort),
   });
 };
@@ -237,21 +230,21 @@ export const createSearchParamsSchema = (table: Table) => {
 
 /**
  * Parse limit from URL, validating against allowed values.
- * Returns Limit type instead of number.
+ * Returns null for invalid values (handled by .withDefault).
  */
 const parseAsLimit = createParser({
-  parse: (value: string): Limit => {
+  parse: (value: string): Limit | null => {
     const num = Number.parseInt(value, 10);
     if (LIMIT_OPTIONS.includes(num as Limit)) {
       return num as Limit;
     }
-    return DEFAULT_LIMIT;
+    return null;
   },
   serialize: (value: Limit) => String(value),
-}).withDefault(DEFAULT_LIMIT);
+});
 
 const sharedParsers = {
-  limit: parseAsLimit,
+  limit: parseAsLimit.withDefault(25),
   filter: parseAsJson(filterValidator),
   sort: parseAsJson(sortValidator).withDefault([]),
   search: createParser({
@@ -273,7 +266,7 @@ export const paginationParams = createSearchParamsCache({
  */
 export const groupPaginationParams = createSearchParamsCache({
   cursors: parseAsJson(cursorsValidator).withDefault({}),
-  expanded: parseAsJson(expandedValidator),
+  expanded: parseAsJson(expandedValidator).withDefault([]),
   ...sharedParsers,
 });
 

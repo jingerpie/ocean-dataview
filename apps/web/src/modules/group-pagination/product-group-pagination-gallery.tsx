@@ -19,13 +19,11 @@ import { useTRPC } from "@/utils/trpc/client";
 import { productProperties } from "./product-properties";
 import { ViewNav } from "./view-nav";
 
-const DEFAULT_EXPANDED: string[] = [];
-
 /**
  * Props passed from server (parsed URL params)
  */
 interface Props {
-  expanded: string[] | null;
+  expanded: string[];
   limit: Limit;
   filter?: WhereNode[] | null;
   /** Raw search string from URL (for UI display) */
@@ -41,7 +39,7 @@ interface Props {
  * - Data accumulates client-side per group
  */
 export function ProductGroupPaginationGallery({
-  expanded: expandedProp,
+  expanded,
   limit,
   filter = null,
   search: searchQuery = "",
@@ -58,10 +56,7 @@ export function ProductGroupPaginationGallery({
     trpc.product.getGroup.queryOptions({ groupBy: "category" })
   );
 
-  // 2. Apply default on client
-  const expanded = expandedProp ?? DEFAULT_EXPANDED;
-
-  // 3. Get all group keys
+  // 2. Get all group keys
   const allGroupKeys = Object.keys(groupCounts);
 
   // 4. Single hook call - creates queries internally using TRPC infiniteQueryOptions

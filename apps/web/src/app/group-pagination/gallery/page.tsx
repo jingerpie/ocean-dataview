@@ -31,7 +31,7 @@ export default async function GroupPaginationGalleryPage(props: PageProps) {
   );
 
   // Prefetch infinite query for each expanded group (must match client options)
-  for (const groupKey of expanded ?? []) {
+  for (const groupKey of expanded) {
     void queryClient.prefetchInfiniteQuery(
       trpc.product.getMany.infiniteQueryOptions(
         {

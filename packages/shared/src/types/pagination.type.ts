@@ -12,11 +12,6 @@ export const LIMIT_OPTIONS = [10, 25, 50, 100, 200] as const;
 export type Limit = (typeof LIMIT_OPTIONS)[number];
 
 /**
- * Default limit value.
- */
-export const DEFAULT_LIMIT: Limit = 25;
-
-/**
  * Cursor value for pagination state.
  * - Flat pagination: used directly as `cursor` param
  * - Grouped pagination: used as values in `cursors` object map

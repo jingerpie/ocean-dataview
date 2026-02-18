@@ -38,7 +38,7 @@ export default async function GroupPaginationListPage(props: PageProps) {
   );
 
   // Prefetch data for each expanded group (must match client query options)
-  for (const groupKey of expanded ?? []) {
+  for (const groupKey of expanded) {
     const cursor = cursors[groupKey] ?? null;
     void queryClient.prefetchQuery(
       trpc.product.getMany.queryOptions({

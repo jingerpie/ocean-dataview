@@ -7,7 +7,6 @@ export type { Action } from "./action.type";
 export * from "./chart.type";
 // Export pagination types
 export {
-  DEFAULT_LIMIT,
   LIMIT_OPTIONS,
   type Limit,
   type PaginationContext,

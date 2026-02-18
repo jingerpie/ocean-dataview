@@ -23,7 +23,7 @@ import { ViewNav } from "./view-nav";
  * Props passed from server (parsed URL params)
  */
 interface Props {
-  expanded: string[] | null;
+  expanded: string[];
   limit: Limit;
   filter?: WhereNode[] | null;
   /** Raw search string from URL (for UI display) */
@@ -39,7 +39,7 @@ interface Props {
  * Columns (category) use getManyByGroup to ensure items are distributed across all columns.
  */
 export function ProductSubGroupPaginationBoard({
-  expanded: expandedProp,
+  expanded,
   limit,
   filter = null,
   search: searchQuery = "",
@@ -64,9 +64,6 @@ export function ProductSubGroupPaginationBoard({
 
   // Get all sub-group keys (rows) - these are the pagination groups
   const allSubGroupKeys = Object.keys(subGroupCounts);
-
-  // Apply default expanded on client - default to all sub-groups expanded
-  const expanded = expandedProp ?? [];
 
   // Use grouped infinite pagination - creates separate queries per sub-group (row)
   // Each sub-group row has its own Load More
