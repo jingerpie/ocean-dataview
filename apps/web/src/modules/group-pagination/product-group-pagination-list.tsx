@@ -1,6 +1,6 @@
 "use client";
 
-import { useGroupPagePagination } from "@sparkyidea/dataview/hooks";
+import { usePagePagination } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
@@ -37,7 +37,7 @@ interface Props {
 /**
  * Product Group List with cursor-based pagination.
  *
- * Pattern: Server prefetch → Props → Client uses props for query
+ * Pattern: Uses usePagePagination with groupBy for per-group pagination
  */
 export function ProductGroupPaginationList({
   expanded,
@@ -63,15 +63,16 @@ export function ProductGroupPaginationList({
   // 2. Get all group keys (stable order)
   const allGroupKeys = Object.keys(groupData.counts);
 
-  // 4. Single hook call - creates queries internally using TRPC queryOptions
-  // expandedGroups from hook provides local state for optimistic UI (no bouncing)
+  // Use unified page pagination with groupBy for per-group prev/next
   const { data, pagination, handleAccordionChange, expandedGroups } =
-    useGroupPagePagination({
-      allGroupKeys,
-      expanded,
-      cursors,
+    usePagePagination({
       limit,
-      createQueryOptions: (groupKey, cursor) =>
+      cursors,
+      groupBy: {
+        allGroupKeys,
+        expanded,
+      },
+      queryOptions: (groupKey, cursor) =>
         trpc.product.getMany.queryOptions({
           filter: combineGroupFilter("category", groupKey, filter),
           search,

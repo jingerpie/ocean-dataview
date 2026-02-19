@@ -2,10 +2,87 @@
 
 import { Loader2 } from "lucide-react";
 import { useRef } from "react";
-import type { DataViewProperty } from "../../types";
+import type { DataViewProperty, NumberConfig } from "../../types";
 import { DataCell } from "../views/data-cell";
 import { StickyGroupLabel } from "../views/sticky-group-label";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "./accordion";
+
+// Regex patterns for parsing number range group keys
+const LESS_THAN_REGEX = /^< (\d+)$/;
+const PLUS_REGEX = /^(\d+)\+$/;
+const RANGE_REGEX = /^(\d+)-(\d+)$/;
+
+/**
+ * Format a single number using NumberConfig settings
+ */
+function formatNumber(value: number, config?: NumberConfig): string {
+  const { numberFormat = "number", decimalPlaces = 0 } = config ?? {};
+
+  switch (numberFormat) {
+    case "numberWithCommas":
+      return value.toLocaleString(undefined, {
+        minimumFractionDigits: decimalPlaces,
+        maximumFractionDigits: decimalPlaces,
+      });
+    case "percentage":
+      return `${value.toFixed(decimalPlaces)}%`;
+    case "dollar":
+      return `$${value.toLocaleString(undefined, {
+        minimumFractionDigits: decimalPlaces,
+        maximumFractionDigits: decimalPlaces,
+      })}`;
+    case "euro":
+      return `€${value.toLocaleString(undefined, {
+        minimumFractionDigits: decimalPlaces,
+        maximumFractionDigits: decimalPlaces,
+      })}`;
+    case "pound":
+      return `£${value.toLocaleString(undefined, {
+        minimumFractionDigits: decimalPlaces,
+        maximumFractionDigits: decimalPlaces,
+      })}`;
+    default:
+      return value.toFixed(decimalPlaces);
+  }
+}
+
+/**
+ * Format a number range group key (e.g., "0-100") into a display label
+ * Returns null if the key is not a valid range format
+ */
+function formatNumberRangeLabel(
+  groupKey: string,
+  config?: NumberConfig
+): string | null {
+  // Handle special cases
+  if (groupKey === "Unknown") {
+    return "Unknown";
+  }
+
+  // Handle "< min" format
+  const lessThanMatch = LESS_THAN_REGEX.exec(groupKey);
+  if (lessThanMatch) {
+    const min = Number(lessThanMatch[1]);
+    return `< ${formatNumber(min, config)}`;
+  }
+
+  // Handle "max+" format
+  const plusMatch = PLUS_REGEX.exec(groupKey);
+  if (plusMatch) {
+    const max = Number(plusMatch[1]);
+    return `${formatNumber(max, config)}+`;
+  }
+
+  // Handle "min-max" range format
+  const rangeMatch = RANGE_REGEX.exec(groupKey);
+  if (rangeMatch) {
+    const min = Number(rangeMatch[1]);
+    const max = Number(rangeMatch[2]);
+    return `${formatNumber(min, config)} to ${formatNumber(max, config)}`;
+  }
+
+  return null;
+}
 
 interface GroupSectionProps<TData> {
   /**
@@ -87,22 +164,41 @@ export function GroupSection<TData>({
     return group.key;
   };
 
+  // Render the group label based on property type
+  const renderGroupLabel = () => {
+    // For number properties, format the range string (e.g., "0-100" → "$0.00 to $100.00")
+    if (groupByPropertyDef?.type === "number") {
+      const rangeLabel = formatNumberRangeLabel(
+        group.key,
+        groupByPropertyDef.config
+      );
+      if (rangeLabel) {
+        return <span className="text-sm tabular-nums">{rangeLabel}</span>;
+      }
+    }
+
+    // Use DataCell for property types (select, multiSelect, status, date, checkbox, etc.)
+    if (groupByPropertyDef) {
+      return (
+        <DataCell
+          configOverride={dateConfigOverride}
+          item={
+            group.items[0] ?? ({ [groupByPropertyDef.id]: group.key } as TData)
+          }
+          property={groupByPropertyDef}
+          value={getGroupValue()}
+        />
+      );
+    }
+
+    // Fallback for no property definition
+    return <span className="font-medium text-sm">{group.key}</span>;
+  };
+
   const triggerContent = (
     <AccordionTrigger className="py-3 hover:no-underline">
       <div className="flex items-center gap-2">
-        {groupByPropertyDef ? (
-          <DataCell
-            configOverride={dateConfigOverride}
-            item={
-              group.items[0] ??
-              ({ [groupByPropertyDef.id]: group.key } as TData)
-            }
-            property={groupByPropertyDef}
-            value={getGroupValue()}
-          />
-        ) : (
-          <span className="font-medium text-sm">{group.key}</span>
-        )}
+        {renderGroupLabel()}
         {showAggregation && (
           <span className="font-medium text-muted-foreground text-xs">
             {group.displayCount ?? group.count}

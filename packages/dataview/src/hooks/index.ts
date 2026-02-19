@@ -26,38 +26,30 @@ export type { UseViewSetupOptions, UseViewSetupResult } from "./use-view-setup";
 export { useViewSetup } from "./use-view-setup";
 
 // ============================================================================
-// Pagination Hooks - 4 main hooks for all pagination use cases
+// Pagination Hooks - 2 unified hooks for all pagination use cases
 // ============================================================================
 
-// 4. useGroupInfinitePagination - Grouped infinite scroll / load-more
+// useInfinitePagination - Infinite scroll / load-more (flat + grouped)
 export type {
-  GroupInfiniteInfo,
-  GroupInfinitePaginationResult,
-  GroupInfinitePaginationState,
-  GroupInfiniteQueryOptions,
-  UseGroupInfinitePaginationOptions,
-} from "./use-group-infinite-pagination";
-export { useGroupInfinitePagination } from "./use-group-infinite-pagination";
-// 2. useGroupPagePagination - Grouped page-based pagination (per-group Prev/Next)
-export type {
+  GroupByOptions,
   GroupInfo,
-  GroupPagePaginationResult,
-  GroupPagePaginationState,
-  GroupPageQueryOptions,
-  UseGroupPagePaginationOptions,
-} from "./use-group-page-pagination";
-export { useGroupPagePagination } from "./use-group-page-pagination";
-// 3. useInfinitePagination - Flat infinite scroll / load-more
-export type {
   InfinitePaginationResult,
   InfinitePaginationState,
-  InfiniteQueryState,
+  InfiniteQueryOptions,
   UseInfinitePaginationOptions,
 } from "./use-infinite-pagination";
-export { useInfinitePagination } from "./use-infinite-pagination";
-// 1. usePagePagination - Flat page-based pagination (Prev/Next)
+export {
+  useInfinitePagination,
+  useLoadMorePagination,
+} from "./use-infinite-pagination";
+
+// usePagePagination - Page navigation (flat + grouped)
 export type {
+  PageGroupByOptions,
+  PageGroupInfo,
   PagePaginationResult,
+  PagePaginationState,
+  PageQueryOptions,
   UsePagePaginationOptions,
 } from "./use-page-pagination";
 export { usePagePagination } from "./use-page-pagination";

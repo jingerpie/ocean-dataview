@@ -10,10 +10,7 @@ import {
 } from "@sparkyidea/dataview/views/board-view";
 import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
 import { buildSearchFilter } from "@sparkyidea/shared/utils";
-import {
-  useSuspenseInfiniteQuery,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { productProperties } from "./product-properties";
@@ -53,44 +50,41 @@ export function ProductGroupPaginationBoard({
     })
   );
 
-  // Infinite query - fetches all groups in one request (flat like getMany)
-  // Groups (columns) are handled client-side
-  const infiniteQuery = useSuspenseInfiniteQuery(
-    trpc.product.getManyByGroup.infiniteQueryOptions(
-      {
-        groupBy: { bySelect: { property: "category" } },
-        limit,
-        filter,
-        sort,
-        search,
-      },
-      {
-        getNextPageParam: (lastPage) => {
-          const hasAnyMore = Object.values(lastPage.hasNextPage).some(Boolean);
-          if (!hasAnyMore) {
-            return undefined;
-          }
-          // Pass ALL groups with cursors (or null for exhausted/empty groups)
-          // Server will skip groups with null cursor
-          return Object.fromEntries(
-            Object.entries(lastPage.endCursor).map(([key, cursor]) => [
-              key,
-              cursor,
-            ])
-          );
-        },
-      }
-    )
-  );
-
-  // Use shared hook for pagination state
-  const { items, pagination } = useInfinitePagination({
-    infiniteQuery,
+  // Use unified hook for pagination state (flat mode)
+  const { data, pagination } = useInfinitePagination({
     limit,
+    queryOptions: () =>
+      trpc.product.getManyByGroup.infiniteQueryOptions(
+        {
+          groupBy: { bySelect: { property: "category" } },
+          limit,
+          filter,
+          sort,
+          search,
+        },
+        {
+          getNextPageParam: (lastPage) => {
+            const hasAnyMore = Object.values(lastPage.hasNextPage).some(
+              Boolean
+            );
+            if (!hasAnyMore) {
+              return undefined;
+            }
+            // Pass ALL groups with cursors (or null for exhausted/empty groups)
+            // Server will skip groups with null cursor
+            return Object.fromEntries(
+              Object.entries(lastPage.endCursor).map(([key, cursor]) => [
+                key,
+                cursor,
+              ])
+            );
+          },
+        }
+      ),
   });
 
   // Empty state
-  if (items.length === 0) {
+  if (data.length === 0) {
     return (
       <div className="flex min-h-100 items-center justify-center">
         <p className="text-muted-foreground">No products found</p>
@@ -105,7 +99,7 @@ export function ProductGroupPaginationBoard({
           group: groupData.counts,
           groupSortValues: groupData.sortValues,
         }}
-        data={items}
+        data={data}
         filter={filter}
         group={{ bySelect: { property: "category" }, showCount: true }}
         pagination={pagination}

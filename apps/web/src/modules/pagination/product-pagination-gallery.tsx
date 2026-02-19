@@ -10,7 +10,6 @@ import {
 } from "@sparkyidea/dataview/views/gallery-view";
 import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
 import { buildSearchFilter } from "@sparkyidea/shared/utils";
-import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { productProperties } from "./product-properties";
@@ -27,7 +26,7 @@ interface ProductPaginationGalleryProps {
 /**
  * Product Gallery with infinite pagination (load more).
  *
- * Pattern: Uses useSuspenseInfiniteQuery for data accumulation
+ * Pattern: Uses useInfinitePagination (flat mode)
  * - Data is appended when "Load More" is clicked
  * - Props are passed to DataViewProvider defaults
  * - Hooks read from defaults (server props), write to URL
@@ -44,32 +43,28 @@ export function ProductPaginationGallery({
   const searchableFields = getSearchableProperties(productProperties);
   const search = buildSearchFilter(searchQuery, searchableFields);
 
-  // Infinite query using TRPC infiniteQueryOptions
-  const infiniteQuery = useSuspenseInfiniteQuery(
-    trpc.product.getMany.infiniteQueryOptions(
-      {
-        limit: defaultLimit,
-        filter,
-        search,
-        sort,
-      },
-      {
-        getNextPageParam: (lastPage) =>
-          lastPage.hasNextPage ? lastPage.endCursor : undefined,
-      }
-    )
-  );
-
-  // Use the new hook for pagination state
-  const { items, pagination } = useInfinitePagination({
-    infiniteQuery,
+  // Use unified hook for pagination state (flat mode)
+  const { data, pagination } = useInfinitePagination({
     limit: defaultLimit,
+    queryOptions: () =>
+      trpc.product.getMany.infiniteQueryOptions(
+        {
+          limit: defaultLimit,
+          filter,
+          search,
+          sort,
+        },
+        {
+          getNextPageParam: (lastPage) =>
+            lastPage.hasNextPage ? lastPage.endCursor : undefined,
+        }
+      ),
   });
 
   return (
     <Suspense fallback={<GallerySkeleton cardCount={6} />}>
       <DataViewProvider
-        data={items}
+        data={data}
         filter={filter}
         pagination={pagination}
         properties={productProperties}
@@ -80,7 +75,7 @@ export function ProductPaginationGallery({
           <ViewNav />
         </NotionToolbar>
 
-        {items.length === 0 ? (
+        {data.length === 0 ? (
           <div className="flex min-h-100 items-center justify-center">
             <p className="text-muted-foreground">No products found</p>
           </div>

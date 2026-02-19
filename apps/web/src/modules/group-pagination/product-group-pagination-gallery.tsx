@@ -1,6 +1,6 @@
 "use client";
 
-import { useGroupInfinitePagination } from "@sparkyidea/dataview/hooks";
+import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
@@ -34,7 +34,7 @@ interface Props {
 /**
  * Product Group Gallery with infinite load-more pagination per group.
  *
- * Pattern: Uses useGroupInfinitePagination for per-group data accumulation
+ * Pattern: Uses useInfinitePagination with groupBy for per-group data accumulation
  * - Each group has its own "Load More" button
  * - Data accumulates client-side per group
  */
@@ -61,14 +61,15 @@ export function ProductGroupPaginationGallery({
   // 2. Get all group keys
   const allGroupKeys = Object.keys(groupData.counts);
 
-  // 4. Single hook call - creates queries internally using TRPC infiniteQueryOptions
-  // expandedGroups from hook provides local state for optimistic UI (no bouncing)
+  // Use unified infinite pagination with groupBy for per-group load more
   const { data, pagination, handleAccordionChange, expandedGroups } =
-    useGroupInfinitePagination({
-      allGroupKeys,
-      expanded,
+    useInfinitePagination({
       limit,
-      createQueryOptions: (groupKey) =>
+      groupBy: {
+        allGroupKeys,
+        expanded,
+      },
+      queryOptions: (groupKey) =>
         trpc.product.getMany.infiniteQueryOptions(
           {
             filter: combineGroupFilter("category", groupKey, filter),

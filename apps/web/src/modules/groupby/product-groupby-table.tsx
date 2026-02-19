@@ -1,6 +1,6 @@
 "use client";
 
-import { useGroupInfinitePagination } from "@sparkyidea/dataview/hooks";
+import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
@@ -67,14 +67,15 @@ export function ProductGroupByTable({
     [groupData.counts]
   );
 
-  // Use grouped infinite pagination with getManyByGroup
-  // Creates a query per group for items when expanded
+  // Use unified infinite pagination with groupBy for per-group load more
   const { data, pagination, handleAccordionChange, expandedGroups } =
-    useGroupInfinitePagination({
-      allGroupKeys,
-      expanded,
+    useInfinitePagination({
       limit: defaultLimit,
-      createQueryOptions: (groupKey) =>
+      groupBy: {
+        allGroupKeys,
+        expanded,
+      },
+      queryOptions: (groupKey) =>
         trpc.product.getManyByGroup.infiniteQueryOptions(
           {
             groupBy: groupConfig,

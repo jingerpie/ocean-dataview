@@ -364,14 +364,17 @@ export type FormulaPropertyType<T> = BaseProperty<T> & {
    * @param property - Function to render a property with its full config
    * @param item - The raw data item for direct field access
    * @returns ReactNode to render in the cell
+   *
+   * Uses method syntax for bivariant parameter types (allows DataViewProperty<T> to be assigned to DataViewProperty<unknown>)
    */
   // biome-ignore lint/suspicious/noExplicitAny: Flexible signature to avoid type inference issues with union types
-  value?: (property: PropertyRenderFunction, item: T) => any;
+  value?(property: PropertyRenderFunction, item: T): any;
   /**
    * Optional: which property to use for sorting this formula column.
    * Since formulas can't be sorted directly, this specifies a backing property.
+   * Uses `string` instead of `keyof T` for type variance compatibility.
    */
-  sortBy?: keyof T;
+  sortBy?: string;
 };
 
 /**
@@ -401,7 +404,8 @@ export type ButtonPropertyType<T> = BaseProperty<T> & {
    * @param item - The row data item
    * @returns Array of button actions to render
    */
-  value: (item: T) => ButtonAction[];
+  // Using method syntax for bivariant parameter types (allows DataViewProperty<T> to be assigned to DataViewProperty<unknown>)
+  value(item: T): ButtonAction[];
 };
 
 /**

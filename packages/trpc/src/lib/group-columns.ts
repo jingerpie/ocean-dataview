@@ -259,17 +259,14 @@ export function buildGroupBy<T extends Table>(
     }
 
     case "number": {
-      if (parsed.numberRange) {
-        const { range, step } = parsed.numberRange;
-        return {
-          groupKey: buildNumberRangeCase(columnSql, range, step),
-          orderBy: buildNumberRangeOrder(columnSql, range, step),
-        };
-      }
-      // No range specified - group by exact value
+      // Use provided range or default to 0-1000 with step 100
+      const { range, step } = parsed.numberRange ?? {
+        range: [0, 1000] as [number, number],
+        step: 100,
+      };
       return {
-        groupKey: sql`COALESCE(${column}::text, 'No ' || '${sql.raw(parsed.property)}')`,
-        orderBy: sql`COALESCE(${column}, 0)`,
+        groupKey: buildNumberRangeCase(columnSql, range, step),
+        orderBy: buildNumberRangeOrder(columnSql, range, step),
       };
     }
 
@@ -422,24 +419,31 @@ export function buildGroupWhere<T extends Table>(
       }
       return sql`${column} = ${groupKey}`;
 
-    case "number":
-      if (parsed.numberRange) {
-        const numWhere = buildNumberRangeWhere(
-          column,
-          groupKey,
-          parsed.numberRange.range
-        );
-        if (numWhere) {
-          return numWhere;
-        }
+    case "number": {
+      // Use provided range or default to 0-1000 (must match buildGroupBy default)
+      const { range } = parsed.numberRange ?? {
+        range: [0, 1000] as [number, number],
+      };
+      const numWhere = buildNumberRangeWhere(column, groupKey, range);
+      if (numWhere) {
+        return numWhere;
       }
       return sql`${column} = ${groupKey}`;
+    }
 
     case "checkbox":
       if (groupKey === "Checked") {
         return sql`${column} = true`;
       }
       return sql`(${column} IS NULL OR ${column} = false)`;
+
+    case "multiSelect":
+      // For multiSelect, check if the groupKey is contained in the array column
+      // Handle "No property" case for NULL/empty arrays
+      if (groupKey === `No ${parsed.property}`) {
+        return sql`(${column} IS NULL OR CARDINALITY(${column}) = 0)`;
+      }
+      return sql`${groupKey} = ANY(${column})`;
 
     default:
       return sql`${column} = ${groupKey}`;

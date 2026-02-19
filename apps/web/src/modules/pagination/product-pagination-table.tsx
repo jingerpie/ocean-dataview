@@ -9,13 +9,12 @@ import {
   TableView,
 } from "@sparkyidea/dataview/views/table-view";
 import type {
-  CursorValue,
+  Cursors,
   Limit,
   SortQuery,
   WhereNode,
 } from "@sparkyidea/shared/types";
 import { buildSearchFilter } from "@sparkyidea/shared/utils";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { productProperties } from "./product-properties";
@@ -26,7 +25,7 @@ import { ViewNav } from "./view-nav";
  * Props passed from server (with defaults already applied)
  */
 interface PaginationProps {
-  cursor?: CursorValue | null;
+  cursors?: Cursors;
   filter?: WhereNode[] | null;
   limit: Limit;
   /** Raw search string from URL (for UI display) */
@@ -37,15 +36,13 @@ interface PaginationProps {
 /**
  * Product Table with simple cursor-based pagination.
  *
- * Pattern: Server prefetch → Props → Client uses props for query
- * - Server parses URL, applies defaults, prefetches, passes props
- * - Client uses useSuspenseQuery with props (matches server prefetch = cache hit)
+ * Pattern: Uses usePagePagination (flat mode)
  * - Props are passed to DataViewProvider defaults
  * - Hooks read from defaults (server props), write to URL
  */
 export function ProductPaginationTable(props: PaginationProps) {
   const {
-    cursor = null,
+    cursors = {},
     limit,
     filter = null,
     search: searchQuery = "",
@@ -57,28 +54,24 @@ export function ProductPaginationTable(props: PaginationProps) {
   const searchableFields = getSearchableProperties(productProperties);
   const search = buildSearchFilter(searchQuery, searchableFields);
 
-  // Query with props directly - MUST match server prefetch for cache hit
-  const { data } = useSuspenseQuery(
-    trpc.product.getMany.queryOptions({
-      cursor,
-      limit,
-      filter,
-      search,
-      sort: sorts,
-    })
-  );
-
-  // Pagination controls
-  const pagination = usePagePagination({
-    cursor,
+  // Use unified hook for pagination state (flat mode)
+  const { data, pagination } = usePagePagination({
     limit,
-    data,
+    cursors,
+    queryOptions: (_groupKey, cursor) =>
+      trpc.product.getMany.queryOptions({
+        cursor,
+        limit,
+        filter,
+        search,
+        sort: sorts,
+      }),
   });
 
   return (
     <Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
       <DataViewProvider
-        data={data.items}
+        data={data}
         filter={filter}
         pagination={pagination}
         properties={productProperties}

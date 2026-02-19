@@ -1,6 +1,6 @@
 "use client";
 
-import { useGroupInfinitePagination } from "@sparkyidea/dataview/hooks";
+import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
@@ -69,15 +69,15 @@ export function ProductSubGroupPaginationBoard({
   // Get all sub-group keys (rows) - these are the pagination groups
   const allSubGroupKeys = Object.keys(subGroupData.counts);
 
-  // Use grouped infinite pagination - creates separate queries per sub-group (row)
-  // Each sub-group row has its own Load More
-  // Uses getManyByGroup with groupBy: "category" to ensure items are distributed across columns
+  // Use unified infinite pagination with groupBy for per-sub-group load more
   const { data, pagination, handleAccordionChange, expandedGroups } =
-    useGroupInfinitePagination({
-      allGroupKeys: allSubGroupKeys,
-      expanded,
+    useInfinitePagination({
       limit,
-      createQueryOptions: (subGroupKey) =>
+      groupBy: {
+        allGroupKeys: allSubGroupKeys,
+        expanded,
+      },
+      queryOptions: (subGroupKey) =>
         trpc.product.getManyByGroup.infiniteQueryOptions(
           {
             groupBy: { bySelect: { property: "category" } },
