@@ -1,7 +1,7 @@
 // Export all property types
 
 // Export action types
-export type { Action } from "./action.type";
+export type { BulkAction } from "./action.type";
 // Export chart types
 // biome-ignore lint/performance/noBarrelFile: Intentional public API barrel file
 export * from "./chart.type";

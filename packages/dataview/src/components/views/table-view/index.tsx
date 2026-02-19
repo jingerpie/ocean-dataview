@@ -12,7 +12,7 @@ import { useDisplayProperties, useViewSetup } from "../../../hooks";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import { buildPaginationContext, cn } from "../../../lib/utils";
 import type {
-  Action,
+  BulkAction,
   DataViewProperty,
   PaginationContext,
 } from "../../../types";
@@ -34,9 +34,20 @@ export interface TableViewProps<
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 > {
   /**
+   * Bulk actions for operations on selected rows.
+   * When provided, automatically enables:
+   * - Row selection with checkboxes
+   * - Floating action bar for bulk operations
+   *
+   * For row-level actions, use button property type instead.
+   */
+  bulkActions?: BulkAction<TData>[];
+
+  /**
    * Additional className
    */
   className?: string;
+
   /**
    * Layout configuration
    */
@@ -61,14 +72,6 @@ export interface TableViewProps<
    * For flat tables: renders below the table
    */
   pagination?: PaginationMode;
-  /**
-   * Row actions for individual and bulk operations
-   * When provided, automatically enables:
-   * - Row selection with checkboxes
-   * - Actions column with row-level actions
-   * - Floating action bar for bulk operations
-   */
-  rowActions?: Action<TData>[];
 
   /**
    * View configuration
@@ -122,12 +125,12 @@ export function TableView<
   TProperties extends
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
+  bulkActions,
+  className,
   layout = {},
-  view = {},
   onRowClick,
   pagination,
-  rowActions,
-  className,
+  view = {},
 }: TableViewProps<TData, TProperties>) {
   // Get data and properties from context
   const {
@@ -168,10 +171,10 @@ export function TableView<
     counts: counts?.group,
   });
 
-  // Enable row selection when rowActions are provided
-  const enableRowSelection = Boolean(rowActions && rowActions.length > 0);
+  // Enable row selection when bulkActions are provided
+  const enableRowSelection = Boolean(bulkActions && bulkActions.length > 0);
 
-  // Internal row selection state (always internal when using rowActions)
+  // Internal row selection state (always internal when using bulkActions)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   // Use shared hook for display properties filtering
@@ -240,27 +243,24 @@ export function TableView<
     return allColumns;
   }, [displayProperties, properties, enableRowSelection]);
 
-  // Generate action bar if rowActions provided
+  // Generate action bar if bulkActions provided
   const actionBar = useMemo(() => {
-    if (!rowActions || rowActions.length === 0) {
+    if (!bulkActions || bulkActions.length === 0) {
       return undefined;
     }
 
-    // Capture rowActions in closure to satisfy TypeScript
-    const definedActions = rowActions;
+    // Capture bulkActions in closure to satisfy TypeScript
+    const actions = bulkActions;
 
     function TableActionBar(table: TanStackTable<TData>) {
       const selectedRows = table
         .getFilteredSelectedRowModel()
         .rows.map((r) => r.original);
 
-      // Get bulk actions (exclude rowOnly actions)
-      const bulkActions = definedActions.filter((a) => !a.rowOnly);
-
       return (
         <DataActionBar table={table}>
           <DataActionBarSelection table={table} />
-          {bulkActions.map((action) => (
+          {actions.map((action) => (
             <DataActionBarAction
               isPending={action.isPending}
               key={action.label}
@@ -276,7 +276,7 @@ export function TableView<
     }
 
     return TableActionBar;
-  }, [rowActions]);
+  }, [bulkActions]);
 
   // Error state
   if (validationError || propertyValidationError) {

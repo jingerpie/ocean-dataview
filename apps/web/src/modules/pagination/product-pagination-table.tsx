@@ -91,9 +91,9 @@ export function ProductPaginationTable(props: PaginationProps) {
           <ViewNav />
         </NotionToolbar>
         <TableView
+          bulkActions={sampleRowActions}
           layout={{ showVerticalLines: false, wrapAllColumns: false }}
           pagination="page"
-          rowActions={sampleRowActions}
         />
       </DataViewProvider>
     </Suspense>

@@ -1,16 +1,10 @@
 import type { ReactNode } from "react";
 
 /**
- * Action definition for data view rows
- * Used for both individual row actions and bulk operations
+ * Bulk action definition for TableView
+ * Used for operations on multiple selected rows
  */
-export interface Action<T> {
-  /**
-   * Only show this action in bulk action bar
-   * Hides from individual row actions
-   */
-  bulkOnly?: boolean;
-
+export interface BulkAction<T> {
   /**
    * Optional icon to display with the action
    */
@@ -21,30 +15,16 @@ export interface Action<T> {
    * Shows spinner when true
    */
   isPending?: boolean;
+
   /**
    * Action label displayed to users
    */
   label: string;
 
   /**
-   * Action handler - always receives an array of items
-   * For row actions: array with single item
-   * For bulk actions: array with all selected items
+   * Action handler - receives array of selected items
    */
   onClick: (items: T[]) => void;
-
-  /**
-   * Mark as primary action
-   * Shows as main button in row actions SplitButton
-   * First action with primary: true is used
-   */
-  primary?: boolean;
-
-  /**
-   * Only show this action in row actions
-   * Hides from bulk action bar
-   */
-  rowOnly?: boolean;
 
   /**
    * Visual variant for the action

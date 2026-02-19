@@ -114,9 +114,9 @@ export function ProductGroupPaginationTable({
         </NotionToolbar>
 
         <TableView
+          bulkActions={sampleRowActions}
           layout={{ showVerticalLines: false, wrapAllColumns: false }}
           pagination="page"
-          rowActions={sampleRowActions}
           view={{
             group: {
               groupBy: "category",

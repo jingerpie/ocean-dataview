@@ -1,13 +1,12 @@
-import type { Action } from "@sparkyidea/dataview/types";
+import type { BulkAction } from "@sparkyidea/dataview/types";
 import { Edit, Eye, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "./product-properties";
 
-export const sampleRowActions: Action<Product>[] = [
+export const sampleRowActions: BulkAction<Product>[] = [
   {
     label: "View",
     icon: <Eye className="h-4 w-4" />,
-    primary: true,
     onClick: () => toast("View action (demo)"),
   },
   {
@@ -18,7 +17,6 @@ export const sampleRowActions: Action<Product>[] = [
   {
     label: "Feature",
     icon: <Star className="h-4 w-4" />,
-    bulkOnly: true,
     onClick: () => toast("Feature action (demo)"),
   },
   {
