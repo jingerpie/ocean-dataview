@@ -17,9 +17,9 @@
  * Used by infinite pagination (forward-only navigation).
  */
 export interface BasePaginatedResponse<TData> {
-  items: TData[];
   endCursor?: string | number | null;
   hasNextPage?: boolean;
+  items: TData[];
 }
 
 /**
@@ -28,8 +28,8 @@ export interface BasePaginatedResponse<TData> {
  */
 export interface BidirectionalPaginatedResponse<TData>
   extends BasePaginatedResponse<TData> {
-  startCursor?: string | null;
   hasPreviousPage?: boolean;
+  startCursor?: string | null;
 }
 
 // ============================================================================

@@ -18,10 +18,10 @@ import {
 } from "../../../select";
 
 interface RelativeDatePickerProps {
-  /** Current value as [direction, count, unit] array */
-  value: RelativeToTodayValue | undefined;
   /** Callback when value changes */
   onChange: (value: RelativeToTodayValue) => void;
+  /** Current value as [direction, count, unit] array */
+  value: RelativeToTodayValue | undefined;
 }
 
 const directionItems = [
@@ -42,9 +42,9 @@ const unitItems = [
 // ============================================================================
 
 interface RelativeDateDropdownsProps {
-  value: RelativeToTodayValue | undefined;
-  onChange: (value: RelativeToTodayValue) => void;
   className?: string;
+  onChange: (value: RelativeToTodayValue) => void;
+  value: RelativeToTodayValue | undefined;
 }
 
 function RelativeDateDropdowns({

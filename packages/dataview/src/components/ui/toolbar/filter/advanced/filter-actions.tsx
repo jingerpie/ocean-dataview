@@ -10,16 +10,16 @@ import {
 } from "../../../dropdown-menu";
 
 interface FilterActionsProps {
-  /** Callback to remove this item */
-  onRemove: () => void;
-  /** Callback to duplicate this item */
-  onDuplicate: () => void;
-  /** Callback to wrap this item in a group (shows "Wrap in group" if provided) */
-  onWrapInGroup?: () => void;
-  /** Callback to unwrap this group (shows "Unwrap group" if provided) */
-  onUnwrap?: () => void;
   /** Additional class names */
   className?: string;
+  /** Callback to duplicate this item */
+  onDuplicate: () => void;
+  /** Callback to remove this item */
+  onRemove: () => void;
+  /** Callback to unwrap this group (shows "Unwrap group" if provided) */
+  onUnwrap?: () => void;
+  /** Callback to wrap this item in a group (shows "Wrap in group" if provided) */
+  onWrapInGroup?: () => void;
 }
 
 /**

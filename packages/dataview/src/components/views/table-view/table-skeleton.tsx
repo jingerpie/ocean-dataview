@@ -13,45 +13,45 @@ import {
 
 interface TableSkeletonProps extends React.ComponentProps<"div"> {
   /**
-   * Number of columns to display
-   * @default 5
-   */
-  columnCount?: number;
-  /**
-   * Number of rows to display
-   * @default 10
-   */
-  rowCount?: number;
-  /**
    * Column width pattern, cycles if fewer than columnCount
    * @default ["auto"]
    */
   cellWidths?: string[];
   /**
-   * Show toolbar skeleton
-   * @default true
+   * Number of columns to display
+   * @default 5
    */
-  withToolbar?: boolean;
-  /**
-   * Show pagination skeleton
-   * @default true
-   */
-  withPagination?: boolean;
-  /**
-   * Show view options button in toolbar
-   * @default true
-   */
-  withViewOptions?: boolean;
+  columnCount?: number;
   /**
    * Number of filter button skeletons
    * @default 2
    */
   filterCount?: number;
   /**
+   * Number of rows to display
+   * @default 10
+   */
+  rowCount?: number;
+  /**
    * Use minWidth for columns (prevents shrinking)
    * @default false
    */
   shrinkZero?: boolean;
+  /**
+   * Show pagination skeleton
+   * @default true
+   */
+  withPagination?: boolean;
+  /**
+   * Show toolbar skeleton
+   * @default true
+   */
+  withToolbar?: boolean;
+  /**
+   * Show view options button in toolbar
+   * @default true
+   */
+  withViewOptions?: boolean;
 }
 
 export function TableSkeleton({

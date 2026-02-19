@@ -21,18 +21,18 @@ import {
 import { ChartPaginatedLegend } from "../../ui/chart-paginated-legend";
 
 interface VerticalBarChartInnerProps {
-  data: ChartDataPoint[];
-  height: number;
-  colors: string[];
-  colorScheme: ChartColorScheme;
-  gridLine?: GridLineType;
   axisName?: AxisNameType;
+  colorScheme: ChartColorScheme;
+  colors: string[];
+  data: ChartDataPoint[];
   dataLabels?: boolean;
+  gridLine?: GridLineType;
+  groupKeys?: string[];
+  height: number;
+  showLegend?: boolean;
   xAxisLabel?: string;
   yAxisLabel?: string;
   yAxisRange?: { min: number; max: number };
-  groupKeys?: string[];
-  showLegend?: boolean;
 }
 
 export function VerticalBarChartInner({

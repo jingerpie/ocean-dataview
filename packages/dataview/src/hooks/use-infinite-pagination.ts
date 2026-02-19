@@ -17,13 +17,13 @@ import type { BasePaginatedResponse } from "../types/pagination-types";
 export interface InfiniteQueryState {
   // biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
   data: InfiniteData<any>;
+  error?: unknown;
   fetchNextPage: () => void;
   hasNextPage: boolean;
-  isFetchingNextPage: boolean;
-  isFetching: boolean;
-  isLoading: boolean;
-  error?: unknown;
   isError: boolean;
+  isFetching: boolean;
+  isFetchingNextPage: boolean;
+  isLoading: boolean;
 }
 
 /**
@@ -58,6 +58,8 @@ export interface UseInfinitePaginationOptions<
  * Pagination state for infinite views
  */
 export interface InfinitePaginationState {
+  // Error state
+  error: unknown;
   // Navigation
   /**
    * Whether there are more items to load.
@@ -66,24 +68,21 @@ export interface InfinitePaginationState {
    */
   hasNext: boolean | Record<string, boolean>;
   hasPrev: false;
-  onNext: () => void;
-  onPrev: () => void;
-
-  // Limit control
-  limit: Limit;
-  onLimitChange: (limit: Limit) => void;
-
-  // Infinite-specific
-  totalLoaded: number;
+  isError: boolean;
+  isFetching: boolean;
   isFetchingNextPage: boolean;
 
   // Loading states
   isLoading: boolean;
-  isFetching: boolean;
 
-  // Error state
-  error: unknown;
-  isError: boolean;
+  // Limit control
+  limit: Limit;
+  onLimitChange: (limit: Limit) => void;
+  onNext: () => void;
+  onPrev: () => void;
+
+  // Infinite-specific
+  totalLoaded: number;
 }
 
 /**

@@ -16,28 +16,28 @@ import { FilterChip } from "../../ui/toolbar/filter/simple/filter-chip";
 import { SortChip } from "../../ui/toolbar/sort/sort-chip";
 
 interface ChipsBarProps {
-  /** Current sorts (multiple sorts supported) */
-  sorts: SortQuery[];
-  /** Callback when sorts change */
-  onSortsChange: (sorts: SortQuery[]) => void;
+  /** Advanced filter (WhereExpression at root level) */
+  advancedFilter: WhereExpression | null;
+  /** Index of advancedFilter in root array */
+  advancedFilterIndex: number | null;
+  /** Additional class names */
+  className?: string;
   /** Current filter (array of WhereNode, implicit AND) */
   filter: WhereNode[] | null;
   /** Callback when filter changes */
   onFilterChange: (filter: WhereNode[] | null) => void;
   /** Callback to reset all filters and sorts (removes from URL) */
   onReset: () => void;
+  /** Callback when sorts change */
+  onSortsChange: (sorts: SortQuery[]) => void;
   /** Available properties */
   properties: readonly PropertyMeta[];
-  /** Advanced filter (WhereExpression at root level) */
-  advancedFilter: WhereExpression | null;
-  /** Index of advancedFilter in root array */
-  advancedFilterIndex: number | null;
-  /** Simple filter rules (WhereRules at root level) */
-  simpleFilterConditions: Array<{ condition: WhereRule; index: number }>;
   /** Total rule count in advanced filter */
   ruleCount: number;
-  /** Additional class names */
-  className?: string;
+  /** Simple filter rules (WhereRules at root level) */
+  simpleFilterConditions: Array<{ condition: WhereRule; index: number }>;
+  /** Current sorts (multiple sorts supported) */
+  sorts: SortQuery[];
 }
 
 /**

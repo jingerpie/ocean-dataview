@@ -25,32 +25,32 @@ import { FilterActions } from "./filter-actions";
 import { FilterRule } from "./filter-rule";
 
 interface FilterGroupProps {
+  /** Additional class names */
+  className?: string;
+  /** The connector logic from parent (how this group connects to siblings) */
+  connectorLogic?: "and" | "or";
   /** The compound filter (AND/OR group) */
   filter: WhereExpression;
-  /** Available properties to filter on */
-  properties: readonly PropertyMeta[];
-  /** Current nesting level (0 = root, 1, 2) */
-  level: 0 | 1 | 2;
   /** Whether this is the first item in parent (for connector display) */
   isFirst: boolean;
   /** Whether this is the second item in parent (for dropdown display) */
   isSecond?: boolean;
+  /** Current nesting level (0 = root, 1, 2) */
+  level: 0 | 1 | 2;
   /** Callback when filter changes */
   onChange: (filter: WhereExpression) => void;
-  /** Callback to remove this group (not available at root) */
-  onRemove?: () => void;
+  /** Callback when this group's connector logic changes (for parent) */
+  onConnectorLogicChange?: (logic: "and" | "or") => void;
   /** Callback to duplicate this group (for nested groups) */
   onDuplicate?: () => void;
+  /** Callback to remove this group (not available at root) */
+  onRemove?: () => void;
   /** Callback to unwrap this group - replace with its single item (for nested groups) */
   onUnwrap?: (item: WhereNode) => void;
   /** Callback to wrap this group in another group (for nested groups) */
   onWrapInGroup?: () => void;
-  /** Callback when this group's connector logic changes (for parent) */
-  onConnectorLogicChange?: (logic: "and" | "or") => void;
-  /** The connector logic from parent (how this group connects to siblings) */
-  connectorLogic?: "and" | "or";
-  /** Additional class names */
-  className?: string;
+  /** Available properties to filter on */
+  properties: readonly PropertyMeta[];
 }
 
 /**

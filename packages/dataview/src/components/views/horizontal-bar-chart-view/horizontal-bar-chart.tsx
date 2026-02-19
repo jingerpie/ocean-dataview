@@ -21,18 +21,18 @@ import {
 import { ChartPaginatedLegend } from "../../ui/chart-paginated-legend";
 
 interface HorizontalBarChartInnerProps {
-  data: ChartDataPoint[];
-  height: number;
-  colors: string[];
-  colorScheme: ChartColorScheme;
-  gridLine?: GridLineType;
   axisName?: AxisNameType;
+  colorScheme: ChartColorScheme;
+  colors: string[];
+  data: ChartDataPoint[];
   dataLabels?: boolean;
-  xAxisLabel?: string;
-  yAxisLabel?: string;
-  xAxisRange?: { min: number; max: number };
+  gridLine?: GridLineType;
   groupKeys?: string[];
+  height: number;
   showLegend?: boolean;
+  xAxisLabel?: string;
+  xAxisRange?: { min: number; max: number };
+  yAxisLabel?: string;
 }
 
 export function HorizontalBarChartInner({

@@ -17,10 +17,10 @@ import type { BidirectionalPaginatedResponse } from "../types/pagination-types";
 export interface UsePagePaginationOptions<TData> {
   /** Cursor value (from URL) for flat pagination */
   cursor?: CursorValue | null;
-  /** Items per page (from server props) */
-  limit: Limit;
   /** Query result from useSuspenseQuery */
   data: BidirectionalPaginatedResponse<TData>;
+  /** Items per page (from server props) */
+  limit: Limit;
 }
 
 /**
@@ -28,6 +28,10 @@ export interface UsePagePaginationOptions<TData> {
  * Compatible with PaginationContext for DataViewProvider
  */
 export interface PagePaginationResult {
+  displayEnd: number;
+
+  // Display info
+  displayStart: number;
   // Navigation
   /**
    * Whether there are more items to load.
@@ -36,19 +40,15 @@ export interface PagePaginationResult {
    */
   hasNext: boolean | Record<string, boolean>;
   hasPrev: boolean;
-  onNext: () => void;
-  onPrev: () => void;
+
+  // Loading state (always false with Suspense, but included for compatibility)
+  isLoading: boolean;
 
   // Limit control
   limit: Limit;
   onLimitChange: (newLimit: Limit) => void;
-
-  // Display info
-  displayStart: number;
-  displayEnd: number;
-
-  // Loading state (always false with Suspense, but included for compatibility)
-  isLoading: boolean;
+  onNext: () => void;
+  onPrev: () => void;
 }
 
 // ============================================================================

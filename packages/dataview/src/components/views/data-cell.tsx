@@ -16,19 +16,19 @@ import { TextProperty } from "../ui/properties/text-property";
 import { UrlProperty } from "../ui/properties/url-property";
 
 interface DataCellProps<T> {
-  value: unknown;
-  property: DataViewProperty<T>;
-  item: T;
-  wrap?: boolean;
   /**
    * All property definitions - required for formula properties
    * to render other properties via `property(id)` renderer
    */
   allProperties?: readonly DataViewProperty<T>[];
+  item: T;
+  property: DataViewProperty<T>;
   /**
    * Internal: tracks renderedProperties formula IDs to detect circular references
    */
   renderedProperties?: Set<string>;
+  value: unknown;
+  wrap?: boolean;
 }
 
 /**

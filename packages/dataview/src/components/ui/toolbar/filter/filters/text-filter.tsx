@@ -14,18 +14,18 @@ const FILTER_INPUT_DEBOUNCE_MS = 300;
 // ============================================================================
 
 interface TextFilterChipProps {
-  rule: WhereRule;
-  property: PropertyMeta;
-  onRuleChange: (rule: WhereRule) => void;
-  onRemove: () => void;
   onAddToAdvanced?: () => void;
+  onRemove: () => void;
+  onRuleChange: (rule: WhereRule) => void;
+  property: PropertyMeta;
+  rule: WhereRule;
   variant?: "compact" | "detailed";
 }
 
 interface TextFilterValueProps {
-  rule: WhereRule;
-  property: PropertyMeta;
   onValueChange: (value: unknown) => void;
+  property: PropertyMeta;
+  rule: WhereRule;
 }
 
 // ============================================================================
@@ -33,12 +33,12 @@ interface TextFilterValueProps {
 // ============================================================================
 
 interface DebouncedTextInputProps {
-  value: string;
-  onChange: (value: string) => void;
-  type?: "text" | "number";
-  inputMode?: "numeric";
-  placeholder?: string;
   className?: string;
+  inputMode?: "numeric";
+  onChange: (value: string) => void;
+  placeholder?: string;
+  type?: "text" | "number";
+  value: string;
 }
 
 function DebouncedTextInput({

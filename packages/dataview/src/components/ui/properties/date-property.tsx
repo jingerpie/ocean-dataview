@@ -36,8 +36,8 @@ function getDateFnsLocale(localeString: string): Locale {
 }
 
 interface DatePropertyProps {
-  value: Date | null;
   config?: DateConfig;
+  value: Date | null;
 }
 
 /**

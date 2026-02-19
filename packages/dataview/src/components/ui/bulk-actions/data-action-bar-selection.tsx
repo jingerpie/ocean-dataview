@@ -9,20 +9,19 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
 
 interface DataActionBarSelectionProps<TData> {
   /**
-   * TanStack Table instance (for TableView)
-   * Optional - if not provided, use selectedCount and onClearSelection
+   * Clear selection callback (for ListView or custom implementations)
    */
-  table?: Table<TData>;
+  onClearSelection?: () => void;
 
   /**
    * Selected count (for ListView or custom implementations)
    */
   selectedCount?: number;
-
   /**
-   * Clear selection callback (for ListView or custom implementations)
+   * TanStack Table instance (for TableView)
+   * Optional - if not provided, use selectedCount and onClearSelection
    */
-  onClearSelection?: () => void;
+  table?: Table<TData>;
 }
 
 /**

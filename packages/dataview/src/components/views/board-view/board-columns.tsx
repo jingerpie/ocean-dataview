@@ -20,6 +20,32 @@ function parseColumnWidth(columnWidth: string): number {
 
 export interface BoardColumnsProps<TData> {
   /**
+   * Card content renderer
+   */
+  cardContent: (item: TData, index: number) => ReactNode;
+
+  /**
+   * Additional className for the cards container
+   */
+  className?: string;
+
+  /**
+   * Column width class
+   */
+  columnWidth?: string;
+
+  /**
+   * Column background class (color)
+   */
+  getColumnBgClass?: (groupName: string) => string | undefined;
+
+  /**
+   * Custom function to get items for a column
+   * If provided, uses this instead of group.items
+   * Useful for sub-grouped boards where items are filtered by sub-group
+   */
+  getItems?: (groupKey: string) => TData[];
+  /**
    * Grouped data to display (one group per column)
    */
   groups: Array<{
@@ -30,36 +56,14 @@ export interface BoardColumnsProps<TData> {
   }>;
 
   /**
-   * Card content renderer
-   */
-  cardContent: (item: TData, index: number) => ReactNode;
-
-  /**
    * Key extractor function
    */
   keyExtractor: (item: TData, index: number) => string;
 
   /**
-   * Column background class (color)
-   */
-  getColumnBgClass?: (groupName: string) => string | undefined;
-
-  /**
-   * Column width class
-   */
-  columnWidth?: string;
-
-  /**
    * Footer renderer (for pagination below cards)
    */
   renderFooter?: (groupKey: string) => ReactNode;
-
-  /**
-   * Custom function to get items for a column
-   * If provided, uses this instead of group.items
-   * Useful for sub-grouped boards where items are filtered by sub-group
-   */
-  getItems?: (groupKey: string) => TData[];
 
   /**
    * Corner rounding style
@@ -69,11 +73,6 @@ export interface BoardColumnsProps<TData> {
    * Default: "all"
    */
   rounded?: "top" | "bottom" | "all";
-
-  /**
-   * Additional className for the cards container
-   */
-  className?: string;
 }
 
 /**

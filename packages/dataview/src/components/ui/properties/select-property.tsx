@@ -5,8 +5,8 @@ import type { SelectConfig } from "../../../types/property.type";
 import { Badge } from "../badge";
 
 interface SelectPropertyProps {
-  value: string | null;
   config?: SelectConfig;
+  value: string | null;
 }
 
 /**

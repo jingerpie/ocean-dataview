@@ -14,24 +14,24 @@ export interface UseToolbarStateOptions {
 }
 
 export interface UseToolbarStateReturn {
-  /** Whether any filters or sorts are active */
-  hasActiveControls: boolean;
-  /** Whether Row 2 is visible */
-  row2Visible: boolean;
-  /** Set Row 2 visibility */
-  setRow2Visible: (visible: boolean) => void;
-  /** Toggle Row 2 visibility */
-  toggleRow2: () => void;
-  /** Simple filter conditions at root level (displayed as FilterChip) */
-  simpleFilterConditions: Array<{ condition: WhereRule; index: number }>;
   /** Advanced filter (WhereExpression at root, displayed as AdvancedFilterChip) */
   advancedFilter: WhereExpression | null;
   /** Index of advancedFilter in root array */
   advancedFilterIndex: number | null;
-  /** Total number of rules in advanced filter */
-  ruleCount: number;
+  /** Whether any filters or sorts are active */
+  hasActiveControls: boolean;
   /** Whether filter needs normalization */
   needsNormalization: boolean;
+  /** Whether Row 2 is visible */
+  row2Visible: boolean;
+  /** Total number of rules in advanced filter */
+  ruleCount: number;
+  /** Set Row 2 visibility */
+  setRow2Visible: (visible: boolean) => void;
+  /** Simple filter conditions at root level (displayed as FilterChip) */
+  simpleFilterConditions: Array<{ condition: WhereRule; index: number }>;
+  /** Toggle Row 2 visibility */
+  toggleRow2: () => void;
 }
 
 /**

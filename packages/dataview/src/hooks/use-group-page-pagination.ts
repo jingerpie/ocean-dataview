@@ -27,9 +27,9 @@ import type {
  * Uses loose typing to accept TRPC's return type which has more context parameters.
  */
 export interface GroupPageQueryOptions {
-  queryKey: readonly unknown[];
   // biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
   queryFn?: any;
+  queryKey: readonly unknown[];
 }
 
 /**
@@ -43,25 +43,22 @@ export interface UseGroupPagePaginationOptions<
 > {
   /** All group keys in stable order */
   allGroupKeys: string[];
-  /** Currently expanded groups */
-  expanded: string[];
-  /** Cursors object per group (from URL props) */
-  cursors?: Cursors;
-  /** Items per page (from server props) */
-  limit: Limit;
   /** Factory to create query options for each group */
   createQueryOptions: (groupKey: string, cursor?: CursorValue) => TQueryOptions;
+  /** Cursors object per group (from URL props) */
+  cursors?: Cursors;
+  /** Currently expanded groups */
+  expanded: string[];
+  /** Items per page (from server props) */
+  limit: Limit;
 }
 
 /**
  * Per-group pagination info
  */
 export interface GroupInfo<TData> {
-  key: string;
-  value: string;
-  items: TData[];
-  isLoading: boolean;
-  isFetching: boolean;
+  displayEnd: number;
+  displayStart: number;
   /**
    * Whether there are more items to load.
    * - boolean: from getMany (single pagination unit)
@@ -69,10 +66,13 @@ export interface GroupInfo<TData> {
    */
   hasNext: boolean | Record<string, boolean>;
   hasPrev: boolean;
+  isFetching: boolean;
+  isLoading: boolean;
+  items: TData[];
+  key: string;
   onNext: () => void;
   onPrev: () => void;
-  displayStart: number;
-  displayEnd: number;
+  value: string;
 }
 
 /**
@@ -80,9 +80,9 @@ export interface GroupInfo<TData> {
  */
 export interface GroupPagePaginationState<TData> {
   groups: GroupInfo<TData>[];
+  isLoading: boolean;
   limit: Limit;
   onLimitChange: (limit: Limit) => void;
-  isLoading: boolean;
 }
 
 /**
@@ -91,12 +91,12 @@ export interface GroupPagePaginationState<TData> {
 export interface GroupPagePaginationResult<TData> {
   /** Flattened data from all groups */
   data: TData[];
-  /** Pagination state for DataViewProvider */
-  pagination: GroupPagePaginationState<TData>;
-  /** Handler for accordion expand/collapse */
-  handleAccordionChange: (newExpanded: string[]) => void;
   /** Current expanded groups (local state for optimistic UI) */
   expandedGroups: string[];
+  /** Handler for accordion expand/collapse */
+  handleAccordionChange: (newExpanded: string[]) => void;
+  /** Pagination state for DataViewProvider */
+  pagination: GroupPagePaginationState<TData>;
 }
 
 // ============================================================================

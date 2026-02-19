@@ -21,20 +21,20 @@ import { PropertyIcon } from "../../property-icon";
 import { DirectionPicker } from "./direction-picker";
 
 interface SortRuleProps {
-  /** The sort rule */
-  sort: SortQuery;
-  /** The current property for this sort */
-  property: PropertyMeta;
-  /** All available properties */
-  properties: readonly PropertyMeta[];
-  /** Callback when sort rule changes */
-  onUpdate: (updates: Partial<SortQuery>) => void;
-  /** Callback to remove this sort rule */
-  onRemove: () => void;
-  /** Whether to enable drag-and-drop (default: true) */
-  draggable?: boolean;
   /** Additional class names */
   className?: string;
+  /** Whether to enable drag-and-drop (default: true) */
+  draggable?: boolean;
+  /** Callback to remove this sort rule */
+  onRemove: () => void;
+  /** Callback when sort rule changes */
+  onUpdate: (updates: Partial<SortQuery>) => void;
+  /** All available properties */
+  properties: readonly PropertyMeta[];
+  /** The current property for this sort */
+  property: PropertyMeta;
+  /** The sort rule */
+  sort: SortQuery;
 }
 
 /**

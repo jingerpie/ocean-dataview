@@ -18,6 +18,10 @@ export interface GalleryViewProps<
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 > {
   /**
+   * Additional className
+   */
+  className?: string;
+  /**
    * Layout configuration
    */
   layout: {
@@ -28,6 +32,23 @@ export interface GalleryViewProps<
     wrapAllProperties?: boolean;
     showPropertyNames?: boolean;
   };
+
+  /**
+   * Card click handler
+   */
+  onCardClick?: (item: TData) => void;
+
+  /**
+   * Pagination mode for the gallery.
+   * - "page": Classic prev/next pagination with "Showing X-Y"
+   * - "loadMore": "Load more" button
+   * - "infiniteScroll": Auto-load on scroll
+   * - undefined: No pagination UI
+   *
+   * For grouped galleries: renders inside each group
+   * For flat galleries: renders below the gallery
+   */
+  pagination?: PaginationMode;
 
   /**
    * View configuration
@@ -69,28 +90,6 @@ export interface GalleryViewProps<
       onExpandedChange?: (groups: string[]) => void;
     };
   };
-
-  /**
-   * Card click handler
-   */
-  onCardClick?: (item: TData) => void;
-
-  /**
-   * Pagination mode for the gallery.
-   * - "page": Classic prev/next pagination with "Showing X-Y"
-   * - "loadMore": "Load more" button
-   * - "infiniteScroll": Auto-load on scroll
-   * - undefined: No pagination UI
-   *
-   * For grouped galleries: renders inside each group
-   * For flat galleries: renders below the gallery
-   */
-  pagination?: PaginationMode;
-
-  /**
-   * Additional className
-   */
-  className?: string;
 }
 
 /**

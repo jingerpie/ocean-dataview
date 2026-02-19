@@ -8,19 +8,19 @@ const { product } = await import("../schema/product");
 const productsData = (await import("./products.json")).default;
 
 interface ProductJson {
-  "Product Name": string;
-  Price: number;
-  "Stock Level": number;
-  Rating: number;
-  Category: string;
-  Tags: string[];
   Availability: string;
-  "Last Restocked": string;
+  Category: string;
   Featured: boolean;
-  "Product Link": string;
+  "Last Restocked": string;
+  Price: number;
   "Product Image": string;
-  "Supplier Phone": string;
+  "Product Link": string;
+  "Product Name": string;
+  Rating: number;
+  "Stock Level": number;
   "Supplier Email": string;
+  "Supplier Phone": string;
+  Tags: string[];
 }
 
 async function seed() {

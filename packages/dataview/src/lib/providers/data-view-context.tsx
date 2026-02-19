@@ -29,49 +29,48 @@ export type PaginationOutput<TData> =
  * These are the source of truth for the current view state
  */
 export interface DataViewDefaults {
-  /** Default visible property IDs */
-  visibility?: string[];
   /** Current filter state (from server) - array of WhereNode (implicit AND) */
   filter?: WhereNode[] | null;
-  /** Current sort state (from server) */
-  sort?: SortQuery[];
-  /** Current search string (from server) */
-  search?: string;
   /** Default page size */
   limit?: number;
+  /** Current search string (from server) */
+  search?: string;
+  /** Current sort state (from server) */
+  sort?: SortQuery[];
+  /** Default visible property IDs */
+  visibility?: string[];
 }
 
 export interface DataViewContextValue<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
+  // Counts for group headers (and optionally sub-group headers for BoardView)
+  counts?: ViewCounts;
   // Core data
   data: TData[];
-  properties: TProperties;
-  /** Covariant property metadata - safe to pass to UI components */
-  propertyMetas: PropertyMeta[];
 
   // Default values for URL state (when URL params are empty)
   defaults?: DataViewDefaults;
 
-  // Property visibility state
-  propertyVisibility: TProperties[number]["id"][];
-  setPropertyVisibility: (visibility: TProperties[number]["id"][]) => void;
-
   // Excluded properties (e.g., grouped column) - set by view component
   excludedPropertyIds: TProperties[number]["id"][];
-  setExcludedPropertyIds: (ids: TProperties[number]["id"][]) => void;
-
-  // Helper methods
-  toggleProperty: (propertyId: TProperties[number]["id"]) => void;
-  showAllProperties: () => void;
   hideAllProperties: () => void;
 
   // Pagination (flat or grouped)
   pagination?: PaginationOutput<TData> | undefined;
+  properties: TProperties;
+  /** Covariant property metadata - safe to pass to UI components */
+  propertyMetas: PropertyMeta[];
 
-  // Counts for group headers (and optionally sub-group headers for BoardView)
-  counts?: ViewCounts;
+  // Property visibility state
+  propertyVisibility: TProperties[number]["id"][];
+  setExcludedPropertyIds: (ids: TProperties[number]["id"][]) => void;
+  setPropertyVisibility: (visibility: TProperties[number]["id"][]) => void;
+  showAllProperties: () => void;
+
+  // Helper methods
+  toggleProperty: (propertyId: TProperties[number]["id"]) => void;
 }
 
 export const DataViewContext = createContext<

@@ -487,11 +487,11 @@ export function computeData<TData>(
 }
 
 export interface ChartDataPoint {
-  name: string;
-  value?: number; // Optional when using groupBy
   count?: number;
+  name: string;
   percentage?: number;
   sortValue?: string | number; // For proper date/numeric sorting
+  value?: number; // Optional when using groupBy
   [key: string]: string | number | undefined; // Allow dynamic keys for grouped data (e.g., { name: "Jan", low: 5, medium: 10, high: 3 })
 }
 

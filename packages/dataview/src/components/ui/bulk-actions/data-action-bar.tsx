@@ -7,34 +7,6 @@ import { cn } from "../../../lib/utils";
 
 interface DataActionBarProps<TData> {
   /**
-   * TanStack Table instance (for TableView)
-   * Optional - if not provided, use selectedCount and onClearSelection
-   */
-  table?: Table<TData>;
-
-  /**
-   * Selected count (for ListView or custom implementations)
-   */
-  selectedCount?: number;
-
-  /**
-   * Clear selection callback (for ListView or custom implementations)
-   */
-  onClearSelection?: () => void;
-
-  /**
-   * Visibility control
-   * If not provided, auto-calculates from table or selectedCount
-   */
-  visible?: boolean;
-
-  /**
-   * Portal container element
-   * Defaults to document.body
-   */
-  container?: Element | DocumentFragment | null;
-
-  /**
    * Child components (action buttons, selection info, etc.)
    */
   children?: ReactNode;
@@ -43,6 +15,33 @@ interface DataActionBarProps<TData> {
    * Additional class names
    */
   className?: string;
+
+  /**
+   * Portal container element
+   * Defaults to document.body
+   */
+  container?: Element | DocumentFragment | null;
+
+  /**
+   * Clear selection callback (for ListView or custom implementations)
+   */
+  onClearSelection?: () => void;
+
+  /**
+   * Selected count (for ListView or custom implementations)
+   */
+  selectedCount?: number;
+  /**
+   * TanStack Table instance (for TableView)
+   * Optional - if not provided, use selectedCount and onClearSelection
+   */
+  table?: Table<TData>;
+
+  /**
+   * Visibility control
+   * If not provided, auto-calculates from table or selectedCount
+   */
+  visible?: boolean;
 }
 
 /**

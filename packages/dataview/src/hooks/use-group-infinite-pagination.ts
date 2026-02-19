@@ -31,13 +31,13 @@ import type {
  * Uses loose typing to accept TRPC's return type which has more context parameters.
  */
 export interface GroupInfiniteQueryOptions {
-  queryKey: readonly unknown[];
-  // biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
-  queryFn?: any;
   // biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
   getNextPageParam?: any;
   // biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
   initialPageParam?: any;
+  // biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
+  queryFn?: any;
+  queryKey: readonly unknown[];
 }
 
 /**
@@ -51,12 +51,12 @@ export interface UseGroupInfinitePaginationOptions<
 > {
   /** All group keys in stable order */
   allGroupKeys: string[];
+  /** Factory to create query options for each group */
+  createQueryOptions: (groupKey: string) => TQueryOptions;
   /** Currently expanded groups */
   expanded: string[];
   /** Items per page (from server props) */
   limit: Limit;
-  /** Factory to create query options for each group */
-  createQueryOptions: (groupKey: string) => TQueryOptions;
   /** Max groups to support (default: 10) */
   maxGroups?: number;
 }
@@ -65,22 +65,22 @@ export interface UseGroupInfinitePaginationOptions<
  * Per-group infinite pagination info
  */
 export interface GroupInfiniteInfo<TData> {
-  key: string;
-  value: string;
-  items: TData[];
+  error: unknown;
   /**
    * Whether there are more items to load.
    * - boolean: from getMany (single pagination unit)
    * - Record<string, boolean>: from getManyByGroup (per-group pagination)
    */
   hasNext: boolean | Record<string, boolean>;
-  onNext: () => void;
-  totalLoaded: number;
+  isError: boolean;
+  isFetching: boolean;
   isFetchingNextPage: boolean;
   isLoading: boolean;
-  isFetching: boolean;
-  error: unknown;
-  isError: boolean;
+  items: TData[];
+  key: string;
+  onNext: () => void;
+  totalLoaded: number;
+  value: string;
 }
 
 /**
@@ -88,9 +88,9 @@ export interface GroupInfiniteInfo<TData> {
  */
 export interface GroupInfinitePaginationState<TData> {
   groups: GroupInfiniteInfo<TData>[];
+  isLoading: boolean;
   limit: Limit;
   onLimitChange: (limit: Limit) => void;
-  isLoading: boolean;
 }
 
 /**
@@ -99,12 +99,12 @@ export interface GroupInfinitePaginationState<TData> {
 export interface GroupInfinitePaginationResult<TData> {
   /** Flattened data from all groups */
   data: TData[];
-  /** Pagination state for DataViewProvider */
-  pagination: GroupInfinitePaginationState<TData>;
-  /** Handler for accordion expand/collapse */
-  handleAccordionChange: (newExpanded: string[]) => void;
   /** Current expanded groups (local state for optimistic UI) */
   expandedGroups: string[];
+  /** Handler for accordion expand/collapse */
+  handleAccordionChange: (newExpanded: string[]) => void;
+  /** Pagination state for DataViewProvider */
+  pagination: GroupInfinitePaginationState<TData>;
 }
 
 // ============================================================================

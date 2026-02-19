@@ -28,25 +28,25 @@ import { SimpleFilterPopover } from "../simple/simple-filter-popover";
 // ============================================================================
 
 interface StatusFilterChipProps {
-  rule: WhereRule;
-  property: PropertyMeta;
-  onRuleChange: (rule: WhereRule) => void;
-  onRemove: () => void;
   onAddToAdvanced?: () => void;
+  onRemove: () => void;
+  onRuleChange: (rule: WhereRule) => void;
+  property: PropertyMeta;
+  rule: WhereRule;
   variant?: "compact" | "detailed";
 }
 
 interface StatusFilterValueProps {
-  rule: WhereRule;
-  property: PropertyMeta;
   onValueChange: (value: unknown) => void;
+  property: PropertyMeta;
+  rule: WhereRule;
 }
 
 interface StatusOption {
-  value: string;
   color: BadgeColor;
   group: string;
   icon?: StatusGroup["icon"];
+  value: string;
 }
 
 // ============================================================================
@@ -90,10 +90,10 @@ function flattenStatusOptions(
 
 interface StatusBodyProps {
   groups: StatusGroup[];
-  selectedValues: string[];
+  onClearAll: () => void;
   onToggle: (value: string) => void;
   onToggleGroup: (groupOptions: string[], checked: boolean) => void;
-  onClearAll: () => void;
+  selectedValues: string[];
 }
 
 function getGroupCheckState(

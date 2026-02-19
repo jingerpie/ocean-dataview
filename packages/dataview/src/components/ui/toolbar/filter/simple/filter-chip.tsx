@@ -9,16 +9,16 @@ import { StatusSimpleFilter } from "../filters/status-filter";
 import { TextSimpleFilter } from "../filters/text-filter";
 
 interface FilterChipProps {
-  /** The filter rule */
-  rule: WhereRule;
-  /** The property being filtered */
-  property: PropertyMeta;
-  /** Callback when rule changes */
-  onRuleChange: (rule: WhereRule) => void;
-  /** Callback to remove this filter */
-  onRemove: () => void;
   /** Callback to add this filter to advanced filter */
   onAddToAdvanced?: () => void;
+  /** Callback to remove this filter */
+  onRemove: () => void;
+  /** Callback when rule changes */
+  onRuleChange: (rule: WhereRule) => void;
+  /** The property being filtered */
+  property: PropertyMeta;
+  /** The filter rule */
+  rule: WhereRule;
   /**
    * Chip variant:
    * - `compact` - Shows property name only: [Icon] Property ▾

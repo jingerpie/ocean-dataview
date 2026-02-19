@@ -10,11 +10,11 @@ import { join } from "node:path";
 import { Glob } from "bun";
 
 interface PackageJson {
-  name?: string;
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
-  peerDependencies?: Record<string, string>;
+  name?: string;
   optionalDependencies?: Record<string, string>;
+  peerDependencies?: Record<string, string>;
   workspaces?: {
     packages?: string[];
     catalog?: Record<string, string>;
@@ -23,10 +23,10 @@ interface PackageJson {
 
 interface Violation {
   file: string;
-  type: "hardcoded" | "missing-catalog" | "root-app-dep";
   package: string;
-  version: string;
   section: string;
+  type: "hardcoded" | "missing-catalog" | "root-app-dep";
+  version: string;
 }
 
 function isCatalogRef(version: string): boolean {

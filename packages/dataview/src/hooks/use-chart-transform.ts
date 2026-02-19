@@ -46,6 +46,31 @@ function isComputationType(
 }
 
 interface ChartConfig {
+  data?: {
+    whatToShow: {
+      property: string;
+      showAs?: string;
+      startWeekOn?: "monday" | "sunday";
+    };
+    showAs: ComputationType;
+    computeProperty?: string;
+    sortBy?: string;
+    omitZeroValues?: boolean;
+  };
+  style: {
+    color: string;
+    height: string;
+    gridLine?: string;
+    axisName?: string;
+    dataLabels?: boolean;
+    showValueInCenter?: boolean;
+    showLegend?: boolean;
+    dataLabelFormat?: string;
+    smoothLine?: boolean;
+    gradientArea?: boolean;
+    showDots?: boolean;
+    caption?: string;
+  };
   xAxis?: {
     whatToShow:
       | { property: string; showAs?: string; startWeekOn?: "monday" | "sunday" }
@@ -72,39 +97,14 @@ interface ChartConfig {
     hideGroups?: string[];
     omitZeroValues?: boolean;
   };
-  data?: {
-    whatToShow: {
-      property: string;
-      showAs?: string;
-      startWeekOn?: "monday" | "sunday";
-    };
-    showAs: ComputationType;
-    computeProperty?: string;
-    sortBy?: string;
-    omitZeroValues?: boolean;
-  };
-  style: {
-    color: string;
-    height: string;
-    gridLine?: string;
-    axisName?: string;
-    dataLabels?: boolean;
-    showValueInCenter?: boolean;
-    showLegend?: boolean;
-    dataLabelFormat?: string;
-    smoothLine?: boolean;
-    gradientArea?: boolean;
-    showDots?: boolean;
-    caption?: string;
-  };
 }
 
 interface UseChartTransformResult {
   chartData: ChartDataPoint[];
   groupKeys: string[];
+  validationError: string | null;
   xAxisLabel: string | undefined;
   yAxisLabel: string | undefined;
-  validationError: string | null;
 }
 
 export function useChartTransform<

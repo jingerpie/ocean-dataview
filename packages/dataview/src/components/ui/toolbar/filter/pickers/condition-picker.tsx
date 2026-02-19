@@ -16,13 +16,13 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
 
 interface ConditionPickerProps {
+  className?: string;
   condition: FilterCondition;
+  /** Inline style (no border, transparent) for filter chips */
+  inline?: boolean;
   onConditionChange: (condition: FilterCondition) => void;
   /** Property type determines available conditions */
   propertyType: PropertyType;
-  /** Inline style (no border, transparent) for filter chips */
-  inline?: boolean;
-  className?: string;
 }
 
 function ConditionPicker({

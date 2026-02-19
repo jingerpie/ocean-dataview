@@ -7,30 +7,30 @@ import { Skeleton } from "../../ui/skeleton";
 
 interface BoardSkeletonProps extends React.ComponentProps<"div"> {
   /**
-   * Number of columns to display
-   * @default 4
+   * Card size preset
+   * @default "medium"
    */
-  columnCount?: number;
+  cardSize?: "small" | "medium" | "large";
   /**
    * Number of cards per column
    * @default 3
    */
   cardsPerColumn?: number;
   /**
-   * Card size preset
-   * @default "medium"
+   * Number of columns to display
+   * @default 4
    */
-  cardSize?: "small" | "medium" | "large";
-  /**
-   * Show image placeholder in cards
-   * @default true
-   */
-  withImage?: boolean;
+  columnCount?: number;
   /**
    * Number of property lines per card
    * @default 2
    */
   propertyCount?: number;
+  /**
+   * Show image placeholder in cards
+   * @default true
+   */
+  withImage?: boolean;
 }
 
 export function BoardSkeleton({

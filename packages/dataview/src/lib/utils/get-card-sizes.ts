@@ -5,13 +5,13 @@
 export type CardSize = "small" | "medium" | "large";
 
 export interface BoardCardDimensions {
-  imageHeight: number;
   columnWidth: string; // Tailwind class e.g., "w-64"
+  imageHeight: number;
 }
 
 export interface GalleryCardDimensions {
-  imageHeight: number;
   cols: string; // Tailwind grid classes
+  imageHeight: number;
 }
 
 /**

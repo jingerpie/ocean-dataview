@@ -17,25 +17,25 @@ interface GallerySkeletonProps extends React.ComponentProps<"div"> {
    */
   cardSize?: "small" | "medium" | "large";
   /**
-   * Show toolbar skeleton
-   * @default true
+   * Number of property lines per card
+   * @default 2
    */
-  withToolbar?: boolean;
-  /**
-   * Show pagination skeleton
-   * @default true
-   */
-  withPagination?: boolean;
+  propertyCount?: number;
   /**
    * Show image placeholder in cards
    * @default true
    */
   withImage?: boolean;
   /**
-   * Number of property lines per card
-   * @default 2
+   * Show pagination skeleton
+   * @default true
    */
-  propertyCount?: number;
+  withPagination?: boolean;
+  /**
+   * Show toolbar skeleton
+   * @default true
+   */
+  withToolbar?: boolean;
 }
 
 export function GallerySkeleton({

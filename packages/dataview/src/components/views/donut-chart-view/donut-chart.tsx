@@ -19,12 +19,12 @@ import {
 import { ChartPaginatedLegend } from "../../ui/chart-paginated-legend";
 
 interface DonutChartInnerProps {
-  data: ChartDataPoint[];
-  height: number;
   colors: string[];
-  showValueInCenter?: boolean;
-  showLegend?: boolean;
+  data: ChartDataPoint[];
   dataLabelFormat?: DataLabelFormatType;
+  height: number;
+  showLegend?: boolean;
+  showValueInCenter?: boolean;
 }
 
 export function DonutChartInner({

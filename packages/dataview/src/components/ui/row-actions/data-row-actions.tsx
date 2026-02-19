@@ -9,26 +9,6 @@ interface DataRowActionsProps {
   additionalActions?: DropdownAction[];
 
   /**
-   * Label for primary action button
-   */
-  primaryLabel?: string;
-
-  /**
-   * Primary action callback
-   */
-  onPrimaryAction?: () => void;
-
-  /**
-   * Edit action callback
-   */
-  onEdit?: () => void;
-
-  /**
-   * View action callback
-   */
-  onView?: () => void;
-
-  /**
    * Archive action callback
    */
   onArchive?: () => void;
@@ -37,6 +17,26 @@ interface DataRowActionsProps {
    * Delete action callback
    */
   onDelete?: () => void;
+
+  /**
+   * Edit action callback
+   */
+  onEdit?: () => void;
+
+  /**
+   * Primary action callback
+   */
+  onPrimaryAction?: () => void;
+
+  /**
+   * View action callback
+   */
+  onView?: () => void;
+
+  /**
+   * Label for primary action button
+   */
+  primaryLabel?: string;
 }
 
 /**

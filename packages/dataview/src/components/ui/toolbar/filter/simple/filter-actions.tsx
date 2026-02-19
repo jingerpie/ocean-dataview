@@ -12,12 +12,12 @@ import {
 } from "../../../dropdown-menu";
 
 interface FilterActionsProps {
-  /** Callback to remove this filter */
-  onRemove: () => void;
-  /** Callback to add this filter to advanced filter */
-  onAddToAdvanced?: () => void;
   /** Additional class names */
   className?: string;
+  /** Callback to add this filter to advanced filter */
+  onAddToAdvanced?: () => void;
+  /** Callback to remove this filter */
+  onRemove: () => void;
 }
 
 /**

@@ -22,13 +22,9 @@ function parseColumnWidth(columnWidth: string): number {
 
 export interface BoardColumnHeadersProps {
   /**
-   * Grouped data to display (one group per column)
+   * Additional className
    */
-  groups: Array<{
-    key: string;
-    count: number;
-    displayCount?: string;
-  }>;
+  className?: string;
 
   /**
    * Column header renderer
@@ -36,24 +32,27 @@ export interface BoardColumnHeadersProps {
   columnHeader?: (groupName: string, count: number) => ReactNode;
 
   /**
-   * Column background class (color)
-   */
-  getColumnBgClass?: (groupName: string) => string | undefined;
-
-  /**
    * Column width class
    */
   columnWidth?: string;
 
   /**
-   * Sticky header configuration
+   * Ref to the scrollable container (for sticky behavior coordination)
    */
-  stickyHeader?: {
-    /** Enable portal-based sticky header for page scroll */
-    enabled: boolean;
-    /** Offset from top of viewport (e.g., navbar height) */
-    offset?: number;
-  };
+  containerRef?: React.RefObject<HTMLDivElement | null>;
+
+  /**
+   * Column background class (color)
+   */
+  getColumnBgClass?: (groupName: string) => string | undefined;
+  /**
+   * Grouped data to display (one group per column)
+   */
+  groups: Array<{
+    key: string;
+    count: number;
+    displayCount?: string;
+  }>;
 
   /**
    * Corner rounding style
@@ -65,14 +64,14 @@ export interface BoardColumnHeadersProps {
   rounded?: "top" | "bottom" | "all";
 
   /**
-   * Additional className
+   * Sticky header configuration
    */
-  className?: string;
-
-  /**
-   * Ref to the scrollable container (for sticky behavior coordination)
-   */
-  containerRef?: React.RefObject<HTMLDivElement | null>;
+  stickyHeader?: {
+    /** Enable portal-based sticky header for page scroll */
+    enabled: boolean;
+    /** Offset from top of viewport (e.g., navbar height) */
+    offset?: number;
+  };
 }
 
 /**

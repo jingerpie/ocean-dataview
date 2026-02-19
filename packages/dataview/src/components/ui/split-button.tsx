@@ -12,21 +12,16 @@ import {
 } from "./dropdown-menu";
 
 export interface DropdownAction {
+  className?: string;
   label: string;
   onClick: () => void;
-  className?: string;
 }
 
 interface SplitButtonProps {
   /**
-   * Label for the primary action button
+   * Additional actions shown in dropdown
    */
-  primaryLabel?: string;
-
-  /**
-   * Icon for the primary action button
-   */
-  primaryIcon?: ReactNode;
+  dropdownActions: DropdownAction[];
 
   /**
    * Primary action callback
@@ -34,9 +29,13 @@ interface SplitButtonProps {
   onPrimaryAction: () => void;
 
   /**
-   * Additional actions shown in dropdown
+   * Icon for the primary action button
    */
-  dropdownActions: DropdownAction[];
+  primaryIcon?: ReactNode;
+  /**
+   * Label for the primary action button
+   */
+  primaryLabel?: string;
 
   /**
    * Button size

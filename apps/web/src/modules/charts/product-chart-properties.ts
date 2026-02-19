@@ -4,21 +4,21 @@ import type { DataViewProperty } from "@sparkyidea/dataview/types";
 
 // Product type from database
 export interface Product {
-  id: number;
-  productName: string | null;
-  price: number | null;
-  stockLevel: number | null;
-  rating: number | null;
-  category: string | null;
-  tags: string[] | null;
   availability: string | null;
-  lastRestocked: string | null;
-  featured: boolean | null;
-  productLink: string | null;
-  productImage: string | null;
-  supplierPhone: string | null;
-  supplierEmail: string | null;
+  category: string | null;
   createdAt: string | null;
+  featured: boolean | null;
+  id: number;
+  lastRestocked: string | null;
+  price: number | null;
+  productImage: string | null;
+  productLink: string | null;
+  productName: string | null;
+  rating: number | null;
+  stockLevel: number | null;
+  supplierEmail: string | null;
+  supplierPhone: string | null;
+  tags: string[] | null;
   updatedAt: string | null;
 }
 

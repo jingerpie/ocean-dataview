@@ -6,9 +6,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export interface ViewNavItem {
+  label: string;
   /** Full URL to the view (e.g., "/pagination/table?filter=...") */
   value: string;
-  label: string;
 }
 
 interface ViewNavProps {

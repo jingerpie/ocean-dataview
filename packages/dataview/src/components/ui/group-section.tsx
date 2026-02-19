@@ -9,6 +9,11 @@ import { AccordionContent, AccordionItem, AccordionTrigger } from "./accordion";
 
 interface GroupSectionProps<TData> {
   /**
+   * Render function for the group content
+   * Receives the group items and should return the view-specific rendering
+   */
+  children: React.ReactNode;
+  /**
    * Group data with items
    */
   group: {
@@ -25,20 +30,14 @@ interface GroupSectionProps<TData> {
   groupByPropertyDef?: DataViewProperty<TData>;
 
   /**
-   * Render function for the group content
-   * Receives the group items and should return the view-specific rendering
+   * Show loading spinner in the group content area
    */
-  children: React.ReactNode;
+  isLoading?: boolean;
 
   /**
    * Optional footer to render at the bottom of the group (e.g., LoadMore button)
    */
   renderFooter?: React.ReactNode;
-
-  /**
-   * Show loading spinner in the group content area
-   */
-  isLoading?: boolean;
 
   /**
    * Display aggregation counts in group headers (default: true)

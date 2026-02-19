@@ -13,10 +13,10 @@ export interface ChartViewProviderProps<
   TData,
   TProperties extends readonly DataViewProperty<NoInfer<TData>>[],
 > {
-  data: TData[];
-  properties: TProperties;
   children: ReactNode;
   className?: string;
+  data: TData[];
+  properties: TProperties;
 }
 
 export function ChartViewProvider<

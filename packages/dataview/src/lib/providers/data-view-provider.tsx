@@ -19,11 +19,15 @@ export interface DataViewProviderProps<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
-  data: TData[];
-  properties: TProperties;
   children: ReactNode;
   className?: string;
-  pagination?: PaginationOutput<TData> | undefined;
+  /**
+   * Counts from server for group headers
+   * - group: Primary grouping counts (column headers in BoardView, group headers in other views)
+   * - subGroup: Secondary grouping counts (row headers in BoardView with sub-groups)
+   */
+  counts?: ViewCounts;
+  data: TData[];
   /**
    * Default values for URL state when URL params are empty
    * - visibility: Default visible property IDs
@@ -31,12 +35,8 @@ export interface DataViewProviderProps<
    * - sort: Default sort state
    */
   defaults?: DataViewDefaults;
-  /**
-   * Counts from server for group headers
-   * - group: Primary grouping counts (column headers in BoardView, group headers in other views)
-   * - subGroup: Secondary grouping counts (row headers in BoardView with sub-groups)
-   */
-  counts?: ViewCounts;
+  pagination?: PaginationOutput<TData> | undefined;
+  properties: TProperties;
 }
 
 export function DataViewProvider<

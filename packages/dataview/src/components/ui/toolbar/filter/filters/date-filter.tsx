@@ -23,18 +23,18 @@ import { SimpleFilterPopover } from "../simple/simple-filter-popover";
 // ============================================================================
 
 interface DateFilterChipProps {
-  rule: WhereRule;
-  property: PropertyMeta;
-  onRuleChange: (rule: WhereRule) => void;
-  onRemove: () => void;
   onAddToAdvanced?: () => void;
+  onRemove: () => void;
+  onRuleChange: (rule: WhereRule) => void;
+  property: PropertyMeta;
+  rule: WhereRule;
   variant?: "compact" | "detailed";
 }
 
 interface DateFilterValueProps {
-  rule: WhereRule;
-  property: PropertyMeta;
   onValueChange: (value: unknown) => void;
+  property: PropertyMeta;
+  rule: WhereRule;
 }
 
 // ============================================================================

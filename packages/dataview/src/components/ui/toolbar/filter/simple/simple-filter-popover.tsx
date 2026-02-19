@@ -15,14 +15,14 @@ import { ConditionPicker } from "../pickers/condition-picker";
 import { FilterActions } from "./filter-actions";
 
 interface SimpleFilterPopoverProps {
-  rule: WhereRule;
-  property: PropertyMeta;
-  onRuleChange: (rule: WhereRule) => void;
-  onRemove: () => void;
-  onAddToAdvanced?: () => void;
-  variant?: "compact" | "detailed";
   children?: ReactNode;
   classNames?: string;
+  onAddToAdvanced?: () => void;
+  onRemove: () => void;
+  onRuleChange: (rule: WhereRule) => void;
+  property: PropertyMeta;
+  rule: WhereRule;
+  variant?: "compact" | "detailed";
 }
 
 function SimpleFilterPopover({

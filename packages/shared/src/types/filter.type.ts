@@ -7,10 +7,10 @@ import type { DataTableConfig } from "../config/data-table";
 // ============================================================================
 
 export interface Option {
-  label: string;
-  value: string;
   count?: number;
   icon?: FC<SVGProps<SVGSVGElement>>;
+  label: string;
+  value: string;
 }
 
 // ============================================================================
@@ -39,10 +39,10 @@ export type FilterCondition = DataTableConfig["conditionalOperators"][number];
  * const sort: { property: keyof Product; direction: "asc" | "desc" } = { property: "name", direction: "asc" };
  */
 export interface SortQuery {
-  property: string;
-  direction: "asc" | "desc";
   /** Custom sort order for status/select properties - pre-computed by client */
   customOrder?: string[];
+  direction: "asc" | "desc";
+  property: string;
 }
 
 // ============================================================================
@@ -53,8 +53,8 @@ export interface SortQuery {
  * Leaf node - single WHERE rule
  */
 export interface WhereRule {
-  property: string;
   condition: FilterCondition;
+  property: string;
   value?: unknown;
 }
 

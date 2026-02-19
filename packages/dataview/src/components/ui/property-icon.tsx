@@ -5,10 +5,10 @@ import { cn } from "../../lib/utils";
 import type { PropertyType } from "../../types";
 
 interface PropertyIconProps {
-  /** The property type to display icon for */
-  type: PropertyType;
   /** Additional class names */
   className?: string;
+  /** The property type to display icon for */
+  type: PropertyType;
 }
 
 /**

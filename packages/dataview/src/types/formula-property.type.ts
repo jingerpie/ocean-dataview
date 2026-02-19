@@ -24,31 +24,31 @@ export interface TextPropertyComponentProps extends BasePropertyComponentProps {
 
 export interface NumberPropertyComponentProps
   extends BasePropertyComponentProps {
-  value: number | null;
   config?: NumberConfig;
+  value: number | null;
 }
 
 export interface SelectPropertyComponentProps
   extends BasePropertyComponentProps {
-  value: string | null;
   config?: SelectConfig;
+  value: string | null;
 }
 
 export interface MultiSelectPropertyComponentProps
   extends BasePropertyComponentProps {
-  value: string[];
   config?: MultiSelectConfig;
+  value: string[];
 }
 
 export interface StatusPropertyComponentProps
   extends BasePropertyComponentProps {
-  value: string | null;
   config?: StatusConfig;
+  value: string | null;
 }
 
 export interface DatePropertyComponentProps extends BasePropertyComponentProps {
-  value: Date | null;
   config?: DateConfig;
+  value: Date | null;
 }
 
 export interface CheckboxPropertyComponentProps
@@ -57,8 +57,8 @@ export interface CheckboxPropertyComponentProps
 }
 
 export interface UrlPropertyComponentProps extends BasePropertyComponentProps {
-  value: string | null;
   config?: UrlConfig;
+  value: string | null;
 }
 
 export interface EmailPropertyComponentProps
@@ -81,18 +81,18 @@ export interface FilesMediaPropertyComponentProps
  * More maintainable than deeply nested conditional types
  */
 interface PropertyComponentPropsMap {
-  text: TextPropertyComponentProps;
-  number: NumberPropertyComponentProps;
-  select: SelectPropertyComponentProps;
-  multiSelect: MultiSelectPropertyComponentProps;
-  status: StatusPropertyComponentProps;
-  date: DatePropertyComponentProps;
   checkbox: CheckboxPropertyComponentProps;
-  url: UrlPropertyComponentProps;
+  date: DatePropertyComponentProps;
   email: EmailPropertyComponentProps;
-  phone: PhonePropertyComponentProps;
   filesMedia: FilesMediaPropertyComponentProps;
   formula: never; // Formula type doesn't use these props
+  multiSelect: MultiSelectPropertyComponentProps;
+  number: NumberPropertyComponentProps;
+  phone: PhonePropertyComponentProps;
+  select: SelectPropertyComponentProps;
+  status: StatusPropertyComponentProps;
+  text: TextPropertyComponentProps;
+  url: UrlPropertyComponentProps;
 }
 
 /**

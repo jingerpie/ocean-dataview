@@ -7,14 +7,14 @@ import { Button } from "../../button";
 import { Input } from "../../input";
 
 interface SearchInputProps {
-  /** Current search value (from parent state) */
-  value: string;
+  /** Additional class names */
+  className?: string;
   /** Callback when search value changes - called immediately on every keystroke */
   onChange: (value: string) => void;
   /** Placeholder text */
   placeholder?: string;
-  /** Additional class names */
-  className?: string;
+  /** Current search value (from parent state) */
+  value: string;
   /**
    * Trigger variant (for collapsed state):
    * - `default` - Icon + text, outline button

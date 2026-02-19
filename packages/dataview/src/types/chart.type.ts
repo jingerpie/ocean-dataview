@@ -51,6 +51,15 @@ export interface VerticalBarChartConfig<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
+  style: {
+    color: ChartColorScheme;
+    height: ChartHeight;
+    gridLine?: GridLineType;
+    axisName?: AxisNameType;
+    dataLabels?: boolean;
+    showLegend?: boolean;
+    caption?: string;
+  };
   xAxis: {
     whatToShow: {
       property: TProperties[number]["id"];
@@ -74,15 +83,6 @@ export interface VerticalBarChartConfig<
       sortBy?: GroupBySortByType;
     };
     range?: { min: number; max: number };
-  };
-  style: {
-    color: ChartColorScheme;
-    height: ChartHeight;
-    gridLine?: GridLineType;
-    axisName?: AxisNameType;
-    dataLabels?: boolean;
-    showLegend?: boolean;
-    caption?: string;
   };
 }
 
@@ -95,6 +95,15 @@ export interface HorizontalBarChartConfig<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
+  style: {
+    color: ChartColorScheme;
+    height: ChartHeight;
+    gridLine?: GridLineType;
+    axisName?: AxisNameType;
+    dataLabels?: boolean;
+    showLegend?: boolean;
+    caption?: string;
+  };
   xAxis: {
     whatToShow:
       | "count"
@@ -118,15 +127,6 @@ export interface HorizontalBarChartConfig<
     sortBy?: SortByType;
     hideGroups?: string[];
     omitZeroValues?: boolean;
-  };
-  style: {
-    color: ChartColorScheme;
-    height: ChartHeight;
-    gridLine?: GridLineType;
-    axisName?: AxisNameType;
-    dataLabels?: boolean;
-    showLegend?: boolean;
-    caption?: string;
   };
 }
 
@@ -139,6 +139,16 @@ export interface LineChartConfig<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
+  style: {
+    color: ChartColorScheme;
+    height: ChartHeight;
+    gridLine?: GridLineType;
+    axisName?: AxisNameType;
+    smoothLine?: boolean;
+    showLegend?: boolean;
+    showDots?: boolean;
+    caption?: string;
+  };
   xAxis: {
     whatToShow: {
       property: TProperties[number]["id"];
@@ -162,16 +172,6 @@ export interface LineChartConfig<
       sortBy?: GroupBySortByType;
     };
     range?: { min: number; max: number };
-  };
-  style: {
-    color: ChartColorScheme;
-    height: ChartHeight;
-    gridLine?: GridLineType;
-    axisName?: AxisNameType;
-    smoothLine?: boolean;
-    showLegend?: boolean;
-    showDots?: boolean;
-    caption?: string;
   };
 }
 
@@ -184,6 +184,16 @@ export interface AreaChartConfig<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
+  style: {
+    color: ChartColorScheme;
+    height: ChartHeight;
+    gridLine?: GridLineType;
+    axisName?: AxisNameType;
+    smoothLine?: boolean;
+    showLegend?: boolean;
+    showDots?: boolean;
+    caption?: string;
+  };
   xAxis: {
     whatToShow: {
       property: TProperties[number]["id"];
@@ -207,16 +217,6 @@ export interface AreaChartConfig<
       sortBy?: GroupBySortByType;
     };
     range?: { min: number; max: number };
-  };
-  style: {
-    color: ChartColorScheme;
-    height: ChartHeight;
-    gridLine?: GridLineType;
-    axisName?: AxisNameType;
-    smoothLine?: boolean;
-    showLegend?: boolean;
-    showDots?: boolean;
-    caption?: string;
   };
 }
 
@@ -257,16 +257,6 @@ export interface ChartViewProps<
   TProperties extends
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 > {
-  /**
-   * Data to visualize
-   */
-  data: TData[];
-
-  /**
-   * Property definitions
-   */
-  properties: TProperties;
-
   /**
    * Chart type
    */
@@ -440,4 +430,13 @@ export interface ChartViewProps<
       caption?: string;
     };
   };
+  /**
+   * Data to visualize
+   */
+  data: TData[];
+
+  /**
+   * Property definitions
+   */
+  properties: TProperties;
 }

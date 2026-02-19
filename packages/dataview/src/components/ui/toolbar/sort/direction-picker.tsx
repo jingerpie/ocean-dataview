@@ -16,12 +16,12 @@ const DIRECTION_ITEMS = [
 ];
 
 interface DirectionPickerProps {
-  /** Sort direction */
-  value: "asc" | "desc";
-  /** Callback when direction changes */
-  onValueChange: (direction: "asc" | "desc") => void;
   /** Additional class names for the trigger */
   className?: string;
+  /** Callback when direction changes */
+  onValueChange: (direction: "asc" | "desc") => void;
+  /** Sort direction */
+  value: "asc" | "desc";
 }
 
 /**

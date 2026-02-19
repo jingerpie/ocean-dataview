@@ -19,19 +19,19 @@ import {
 import { ChartPaginatedLegend } from "../../ui/chart-paginated-legend";
 
 interface AreaChartInnerProps {
-  data: ChartDataPoint[];
-  height: number;
-  colors: string[];
-  colorScheme: ChartColorScheme;
-  gridLine?: GridLineType;
   axisName?: AxisNameType;
+  colorScheme: ChartColorScheme;
+  colors: string[];
+  data: ChartDataPoint[];
+  gridLine?: GridLineType;
+  groupKeys?: string[];
+  height: number;
+  showDots?: boolean;
+  showLegend?: boolean;
+  smoothLine?: boolean;
   xAxisLabel?: string;
   yAxisLabel?: string;
   yAxisRange?: { min: number; max: number };
-  smoothLine?: boolean;
-  showLegend?: boolean;
-  showDots?: boolean;
-  groupKeys?: string[];
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Chart rendering with conditional axes and legend handling

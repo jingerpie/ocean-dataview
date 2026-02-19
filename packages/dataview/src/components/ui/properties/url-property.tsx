@@ -3,8 +3,8 @@
 import type { UrlConfig } from "../../../types/property.type";
 
 interface UrlPropertyProps {
-  value: string | null;
   config?: UrlConfig;
+  value: string | null;
 }
 
 export function UrlProperty({

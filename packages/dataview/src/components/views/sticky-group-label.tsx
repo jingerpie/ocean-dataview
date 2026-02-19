@@ -25,14 +25,14 @@ interface StickyGroupLabelProps {
   className?: string;
 
   /**
-   * Offset from top of viewport (e.g., navbar height)
-   */
-  offset?: number;
-
-  /**
    * Reference to the group container element
    */
   containerRef: React.RefObject<HTMLElement | null>;
+
+  /**
+   * Offset from top of viewport (e.g., navbar height)
+   */
+  offset?: number;
 }
 
 /**

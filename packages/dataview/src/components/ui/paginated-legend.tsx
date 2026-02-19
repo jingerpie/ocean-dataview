@@ -11,28 +11,28 @@ import { Button } from "./button";
 const RESIZE_DEBOUNCE_MS = 150;
 
 interface LegendItem {
-  name: string;
   color: string;
+  name: string;
 }
 
 interface PaginatedLegendProps {
+  className?: string;
   items: LegendItem[];
   legendState?: {
     hiddenItems: Record<string, boolean>;
     hoveredItem: string | null;
   };
   onClick?: (data: LegendPayload, index: number, e: React.MouseEvent) => void;
-  onMouseOver?: (
-    data: LegendPayload,
-    index: number,
-    e: React.MouseEvent
-  ) => void;
   onMouseOut?: (
     data: LegendPayload,
     index: number,
     e: React.MouseEvent
   ) => void;
-  className?: string;
+  onMouseOver?: (
+    data: LegendPayload,
+    index: number,
+    e: React.MouseEvent
+  ) => void;
 }
 
 // Pagination constants

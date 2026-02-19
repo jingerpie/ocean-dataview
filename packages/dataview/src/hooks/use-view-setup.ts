@@ -12,14 +12,14 @@ import type { GroupInfo } from "./use-group-page-pagination";
 export interface ViewGroupConfig {
   /** Property ID to group by */
   groupBy: string;
-  /** How to display the grouping */
-  showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option";
-  /** Week start day for week grouping */
-  startWeekOn?: "monday" | "sunday";
-  /** Sort direction for groups */
-  sort?: "propertyAscending" | "propertyDescending";
   /** Hide empty groups */
   hideEmptyGroups?: boolean;
+  /** How to display the grouping */
+  showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option";
+  /** Sort direction for groups */
+  sort?: "propertyAscending" | "propertyDescending";
+  /** Week start day for week grouping */
+  startWeekOn?: "monday" | "sunday";
 }
 
 /**
@@ -29,24 +29,24 @@ export interface UseViewSetupOptions<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
-  /** Raw data from context */
-  data: TData[];
-  /** Property definitions */
-  properties: TProperties;
-  /** Group configuration from view props */
-  groupBy?: ViewGroupConfig;
-  /** Property visibility from view props (initial state) */
-  viewPropertyVisibility?: string[];
-  /** Context property visibility (current state) */
-  contextPropertyVisibility?: string[];
-  /** Context pagination state */
-  contextPagination?: unknown;
-  /** Setter for property visibility */
-  setPropertyVisibility: (visibility: string[]) => void;
   /** Additional property IDs to exclude (e.g., cardPreview) */
   additionalExcludeKeys?: string[];
+  /** Context pagination state */
+  contextPagination?: unknown;
+  /** Context property visibility (current state) */
+  contextPropertyVisibility?: string[];
   /** Group counts from context (for group headers) */
   counts?: GroupCounts;
+  /** Raw data from context */
+  data: TData[];
+  /** Group configuration from view props */
+  groupBy?: ViewGroupConfig;
+  /** Property definitions */
+  properties: TProperties;
+  /** Setter for property visibility */
+  setPropertyVisibility: (visibility: string[]) => void;
+  /** Property visibility from view props (initial state) */
+  viewPropertyVisibility?: string[];
 }
 
 /**
@@ -56,10 +56,8 @@ export interface UseViewSetupResult<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
-  /** Transformed data with property IDs as keys */
-  transformedData: TData[];
-  /** Whether using grouped pagination from context */
-  hasGroupedPagination: boolean;
+  /** Property used for grouping */
+  groupByProperty: TProperties[number] | undefined;
   /** Group configuration for useGroupConfig hook */
   groupConfig:
     | {
@@ -72,12 +70,14 @@ export interface UseViewSetupResult<
     | undefined;
   /** Grouped data items (from server or client) */
   groupedData: GroupedDataItem<TData>[] | null;
-  /** Property used for grouping */
-  groupByProperty: TProperties[number] | undefined;
-  /** Validation error message from useGroupConfig */
-  validationError: string | null;
+  /** Whether using grouped pagination from context */
+  hasGroupedPagination: boolean;
   /** Property key validation error */
   propertyValidationError: string | undefined;
+  /** Transformed data with property IDs as keys */
+  transformedData: TData[];
+  /** Validation error message from useGroupConfig */
+  validationError: string | null;
 }
 
 /**

@@ -31,18 +31,18 @@ import { SimpleFilterPopover } from "../simple/simple-filter-popover";
 // ============================================================================
 
 interface SelectFilterChipProps {
-  rule: WhereRule;
-  property: PropertyMeta;
-  onRuleChange: (rule: WhereRule) => void;
-  onRemove: () => void;
   onAddToAdvanced?: () => void;
+  onRemove: () => void;
+  onRuleChange: (rule: WhereRule) => void;
+  property: PropertyMeta;
+  rule: WhereRule;
   variant?: "compact" | "detailed";
 }
 
 interface SelectFilterValueProps {
-  rule: WhereRule;
-  property: PropertyMeta;
   onValueChange: (value: unknown) => void;
+  property: PropertyMeta;
+  rule: WhereRule;
 }
 
 // ============================================================================
@@ -50,11 +50,11 @@ interface SelectFilterValueProps {
 // ============================================================================
 
 interface SelectBodyProps {
+  onClearAll: () => void;
+  onRemove: (value: string) => void;
+  onToggle: (value: string) => void;
   options: SelectOption[];
   selectedValues: string[];
-  onToggle: (value: string) => void;
-  onRemove: (value: string) => void;
-  onClearAll: () => void;
 }
 
 function SelectBody({

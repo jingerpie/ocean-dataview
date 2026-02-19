@@ -26,12 +26,12 @@ import { AddSortButton } from "./add-sort-button";
 import { SortRule } from "./sort-rule";
 
 interface SortChipProps {
-  /** Current sort rules */
-  sorts: SortQuery[];
-  /** Available properties to sort by */
-  properties: readonly PropertyMeta[];
   /** Callback when sorts change */
   onSortsChange: (sorts: SortQuery[]) => void;
+  /** Available properties to sort by */
+  properties: readonly PropertyMeta[];
+  /** Current sort rules */
+  sorts: SortQuery[];
 }
 
 /**

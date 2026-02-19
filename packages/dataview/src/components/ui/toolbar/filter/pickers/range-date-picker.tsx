@@ -22,10 +22,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
 type DateRangeValue = [string | null, string | null];
 
 interface RangeDatePickerProps {
-  /** Current value as [from, to] array */
-  value: DateRangeValue | undefined;
   /** Callback when value changes */
   onChange: (value: DateRangeValue) => void;
+  /** Current value as [from, to] array */
+  value: DateRangeValue | undefined;
 }
 
 // ============================================================================

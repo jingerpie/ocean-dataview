@@ -9,11 +9,11 @@ import { Table, TableHead, TableHeader, TableRow } from "../../ui/table";
 const RESIZE_DEBOUNCE_MS = 150;
 
 interface DataTableStickyHeaderProps<TData> {
-  table: TanstackTable<TData>;
   enabled: boolean;
-  tableHeaderRef: React.RefObject<HTMLTableSectionElement | null>;
-  tableContainerRef: React.RefObject<HTMLDivElement | null>;
   offset?: number;
+  table: TanstackTable<TData>;
+  tableContainerRef: React.RefObject<HTMLDivElement | null>;
+  tableHeaderRef: React.RefObject<HTMLTableSectionElement | null>;
 }
 
 export function DataTableStickyHeader<TData>({

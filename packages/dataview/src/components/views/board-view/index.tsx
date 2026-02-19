@@ -35,6 +35,21 @@ export interface BoardViewProps<
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 > {
   /**
+   * Additional className
+   */
+  className?: string;
+
+  /**
+   * Group counts from server (for rendering column headers with server-side counts)
+   * Only needed when using server-side pagination.
+   */
+  counts?: GroupCounts;
+
+  /**
+   * Function to extract unique key from item
+   */
+  keyExtractor?: (item: TData, index: number) => string;
+  /**
    * Layout configuration
    */
   layout?: {
@@ -46,6 +61,22 @@ export interface BoardViewProps<
     colorColumns?: boolean; // default: false
     showPropertyNames?: boolean; // default: false
   };
+
+  /**
+   * Card click handler
+   */
+  onCardClick?: (item: TData) => void;
+
+  /**
+   * Pagination mode for the board.
+   * - "page": Classic prev/next pagination with "Showing X-Y"
+   * - "loadMore": "Load more" button
+   * - "infiniteScroll": Auto-load on scroll
+   * - undefined: No pagination UI
+   *
+   * For boards: renders at bottom of each column
+   */
+  pagination?: PaginationMode;
 
   /**
    * View configuration
@@ -118,38 +149,6 @@ export interface BoardViewProps<
       onExpandedSubGroupsChange?: (groups: string[]) => void;
     };
   };
-
-  /**
-   * Card click handler
-   */
-  onCardClick?: (item: TData) => void;
-
-  /**
-   * Function to extract unique key from item
-   */
-  keyExtractor?: (item: TData, index: number) => string;
-
-  /**
-   * Pagination mode for the board.
-   * - "page": Classic prev/next pagination with "Showing X-Y"
-   * - "loadMore": "Load more" button
-   * - "infiniteScroll": Auto-load on scroll
-   * - undefined: No pagination UI
-   *
-   * For boards: renders at bottom of each column
-   */
-  pagination?: PaginationMode;
-
-  /**
-   * Additional className
-   */
-  className?: string;
-
-  /**
-   * Group counts from server (for rendering column headers with server-side counts)
-   * Only needed when using server-side pagination.
-   */
-  counts?: GroupCounts;
 }
 
 /**

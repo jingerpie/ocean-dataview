@@ -23,13 +23,13 @@ export * from "./property.type";
 
 // Pagination result interface
 export interface PaginationResult<T> {
-  data: T[];
-  totalPages: number;
   currentPage: number;
+  data: T[];
   hasNext: boolean;
   hasPrev: boolean;
-  totalItems: number;
   pageSize: number;
+  totalItems: number;
+  totalPages: number;
 }
 
 // Grouped data interface

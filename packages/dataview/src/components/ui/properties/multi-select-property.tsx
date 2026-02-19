@@ -5,8 +5,8 @@ import type { MultiSelectConfig } from "../../../types/property.type";
 import { Badge } from "../badge";
 
 interface MultiSelectPropertyProps {
-  value: string[];
   config?: MultiSelectConfig;
+  value: string[];
 }
 
 export function MultiSelectProperty({

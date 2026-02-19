@@ -18,13 +18,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 import { PropertyIcon } from "../../property-icon";
 
 interface SortPropertyPickerProps {
-  /** Available properties to sort by */
-  properties: readonly PropertyMeta[];
   /**
    * Override default click behavior. If provided, replaces default action (open dropdown).
    * Use this to customize what happens when the trigger is clicked.
    */
   onClick?: () => void;
+  /** Available properties to sort by */
+  properties: readonly PropertyMeta[];
   /**
    * Trigger variant:
    * - `default` - Sort icon with "Sort" label, outline button

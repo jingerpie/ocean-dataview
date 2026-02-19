@@ -17,12 +17,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 import { PropertyIcon } from "../../property-icon";
 
 interface AddSortButtonProps {
-  /** Available properties to sort by */
-  properties: readonly PropertyMeta[];
-  /** Callback when a property is selected */
-  onSelect: (propertyId: string) => void;
   /** Additional class names */
   className?: string;
+  /** Callback when a property is selected */
+  onSelect: (propertyId: string) => void;
+  /** Available properties to sort by */
+  properties: readonly PropertyMeta[];
 }
 
 /**

@@ -5,30 +5,30 @@ import { Skeleton } from "../../ui/skeleton";
 
 interface ListSkeletonProps extends React.ComponentProps<"div"> {
   /**
+   * Number of property lines per row
+   * @default 3
+   */
+  propertyCount?: number;
+  /**
    * Number of rows to display
    * @default 8
    */
   rowCount?: number;
-  /**
-   * Show toolbar skeleton
-   * @default true
-   */
-  withToolbar?: boolean;
-  /**
-   * Show pagination skeleton
-   * @default true
-   */
-  withPagination?: boolean;
   /**
    * Show dividers between rows
    * @default true
    */
   withDividers?: boolean;
   /**
-   * Number of property lines per row
-   * @default 3
+   * Show pagination skeleton
+   * @default true
    */
-  propertyCount?: number;
+  withPagination?: boolean;
+  /**
+   * Show toolbar skeleton
+   * @default true
+   */
+  withToolbar?: boolean;
 }
 
 export function ListSkeleton({

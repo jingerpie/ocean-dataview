@@ -9,16 +9,6 @@ import { DataCell } from "./data-cell";
 
 export interface DataCardProps<TData> {
   /**
-   * Item data to display
-   */
-  item: TData;
-
-  /**
-   * Property definitions for display
-   */
-  displayProperties: DataViewProperty<TData>[];
-
-  /**
    * All property definitions - required for formula properties
    */
   allProperties?: readonly DataViewProperty<TData>[];
@@ -29,9 +19,14 @@ export interface DataCardProps<TData> {
   cardPreview?: string;
 
   /**
-   * Image height in pixels
+   * Additional className
    */
-  imageHeight: number;
+  className?: string;
+
+  /**
+   * Property definitions for display
+   */
+  displayProperties: DataViewProperty<TData>[];
 
   /**
    * Fit image (object-cover) or contain (object-contain)
@@ -40,14 +35,13 @@ export interface DataCardProps<TData> {
   fitMedia?: boolean;
 
   /**
-   * Wrap all properties
+   * Image height in pixels
    */
-  wrapAllProperties?: boolean;
-
+  imageHeight: number;
   /**
-   * Show property names
+   * Item data to display
    */
-  showPropertyNames?: boolean;
+  item: TData;
 
   /**
    * Card click handler
@@ -55,9 +49,14 @@ export interface DataCardProps<TData> {
   onCardClick?: (item: TData) => void;
 
   /**
-   * Additional className
+   * Show property names
    */
-  className?: string;
+  showPropertyNames?: boolean;
+
+  /**
+   * Wrap all properties
+   */
+  wrapAllProperties?: boolean;
 }
 
 /**

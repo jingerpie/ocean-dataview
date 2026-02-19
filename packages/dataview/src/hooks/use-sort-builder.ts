@@ -1,11 +1,11 @@
 import { create } from "zustand";
 
 interface SortBuilderState {
+  close: () => void;
   isOpen: boolean;
   open: () => void;
-  close: () => void;
-  toggle: () => void;
   setOpen: (open: boolean) => void;
+  toggle: () => void;
 }
 
 export const useSortBuilder = create<SortBuilderState>((set) => ({

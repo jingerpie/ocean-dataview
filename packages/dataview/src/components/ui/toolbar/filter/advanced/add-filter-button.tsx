@@ -14,16 +14,16 @@ import {
 } from "../../../dropdown-menu";
 
 interface AddFilterButtonProps {
-  /** Available properties to filter on */
-  properties: readonly PropertyMeta[];
   /** Whether adding a group is allowed (false at max depth) */
   canAddGroup: boolean;
-  /** Callback when a new rule is added */
-  onAddRule: (rule: WhereRule) => void;
-  /** Callback when a new group is added */
-  onAddGroup: () => void;
   /** Additional class names */
   className?: string;
+  /** Callback when a new group is added */
+  onAddGroup: () => void;
+  /** Callback when a new rule is added */
+  onAddRule: (rule: WhereRule) => void;
+  /** Available properties to filter on */
+  properties: readonly PropertyMeta[];
 }
 
 /**

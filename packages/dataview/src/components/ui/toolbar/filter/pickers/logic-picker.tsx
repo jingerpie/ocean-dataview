@@ -18,6 +18,8 @@ const LOGIC_OPTIONS = [
 ] as const;
 
 interface LogicPickerProps {
+  /** Additional class names */
+  className?: string;
   /** Whether this is the first rule (shows "Where" label) */
   isFirst: boolean;
   /** Whether this is the second rule (shows dropdown, can change logic) */
@@ -26,8 +28,6 @@ interface LogicPickerProps {
   logic: "and" | "or";
   /** Callback when logic changes */
   onLogicChange: (logic: "and" | "or") => void;
-  /** Additional class names */
-  className?: string;
 }
 
 /**

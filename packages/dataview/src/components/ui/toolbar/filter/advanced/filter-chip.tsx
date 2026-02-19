@@ -12,10 +12,10 @@ import { FilterGroup } from "./filter-group";
 interface AdvancedFilterChipProps {
   /** The compound filter */
   filter: WhereExpression;
-  /** Available properties */
-  properties: readonly PropertyMeta[];
   /** Callback when filter changes */
   onFilterChange: (filter: WhereNode | null) => void;
+  /** Available properties */
+  properties: readonly PropertyMeta[];
   /** Total number of rules in the filter */
   ruleCount: number;
 }

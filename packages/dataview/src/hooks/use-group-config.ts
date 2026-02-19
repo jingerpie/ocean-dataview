@@ -7,44 +7,44 @@ import {
 import type { DataViewProperty } from "../types/property.type";
 
 export interface GroupConfig {
-  groupBy: string;
-  showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option";
-  startWeekOn?: "monday" | "sunday";
-  sort?: "propertyAscending" | "propertyDescending";
   defaultExpanded?: string[];
-  hideEmptyGroups?: boolean;
-  /** Display aggregation counts in group headers (default: true) */
-  showAggregation?: boolean;
   /** Controlled expansion state (array of expanded group keys) */
   expandedGroups?: string[];
+  groupBy: string;
+  hideEmptyGroups?: boolean;
   /** Callback when expansion state changes */
   onExpandedChange?: (groups: string[]) => void;
+  /** Display aggregation counts in group headers (default: true) */
+  showAggregation?: boolean;
+  showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option";
+  sort?: "propertyAscending" | "propertyDescending";
+  startWeekOn?: "monday" | "sunday";
 }
 
 export interface GroupedDataItem<TData> {
-  key: string;
-  items: TData[];
   count: number;
   displayCount?: string; // "99+" or actual count as string
+  items: TData[];
+  key: string;
   sortValue: string | number;
 }
 
 export interface UseGroupConfigOptions {
-  /** Whether grouping is required (BoardView: true, others: false) */
-  required?: boolean;
   /** Auto-select a suitable property if groupBy not provided (BoardView only) */
   autoSelectGroupBy?: boolean;
+  /** Whether grouping is required (BoardView: true, others: false) */
+  required?: boolean;
 }
 
 export interface UseGroupConfigResult<TData> {
+  /** Computed default value for accordion component */
+  accordionDefaultValue: string[] | undefined;
+  /** The property definition being grouped by */
+  groupByProperty: DataViewProperty<TData> | undefined;
   /** Grouped data array ready for rendering, or null if no grouping */
   groupedData: GroupedDataItem<TData>[] | null;
   /** Validation error message, or null if valid */
   validationError: string | null;
-  /** The property definition being grouped by */
-  groupByProperty: DataViewProperty<TData> | undefined;
-  /** Computed default value for accordion component */
-  accordionDefaultValue: string[] | undefined;
 }
 
 /**

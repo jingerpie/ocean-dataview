@@ -6,6 +6,15 @@ import { DataCell } from "../data-cell";
 
 export interface ListRowProps<TData> {
   /**
+   * All property definitions - required for formula properties
+   */
+  allProperties?: readonly DataViewProperty<TData>[];
+
+  /**
+   * Additional className
+   */
+  className?: string;
+  /**
    * Data to display in the list
    */
   data: TData[];
@@ -16,19 +25,9 @@ export interface ListRowProps<TData> {
   displayProperties: DataViewProperty<TData>[];
 
   /**
-   * All property definitions - required for formula properties
-   */
-  allProperties?: readonly DataViewProperty<TData>[];
-
-  /**
    * Item click handler
    */
   onItemClick?: (item: TData) => void;
-
-  /**
-   * Additional className
-   */
-  className?: string;
 }
 
 /**

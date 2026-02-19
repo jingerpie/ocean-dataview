@@ -28,10 +28,10 @@ import { ViewNav } from "./view-nav";
  * Props passed from server (parsed URL params)
  */
 interface Props {
-  expanded: string[];
   cursors: Cursors;
-  limit: Limit;
+  expanded: string[];
   filter?: WhereNode[] | null;
+  limit: Limit;
   /** Raw search string from URL (for UI display) */
   search?: string;
   sort?: SortQuery[];

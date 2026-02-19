@@ -18,18 +18,18 @@ import {
 import { ChartPaginatedLegend } from "../../ui/chart-paginated-legend";
 
 interface LineChartInnerProps {
-  data: ChartDataPoint[];
-  height: number;
-  colors: string[];
-  gridLine?: GridLineType;
   axisName?: AxisNameType;
+  colors: string[];
+  data: ChartDataPoint[];
+  gridLine?: GridLineType;
+  groupKeys?: string[];
+  height: number;
+  showDots?: boolean;
+  showLegend?: boolean;
+  smoothLine?: boolean;
   xAxisLabel?: string;
   yAxisLabel?: string;
   yAxisRange?: { min: number; max: number };
-  smoothLine?: boolean;
-  showLegend?: boolean;
-  showDots?: boolean;
-  groupKeys?: string[];
 }
 
 export function LineChartInner({

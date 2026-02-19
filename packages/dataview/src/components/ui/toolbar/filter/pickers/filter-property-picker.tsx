@@ -24,13 +24,23 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
 import { PropertyIcon } from "../../../property-icon";
 
 interface FilterPropertyPickerProps {
-  /** Available properties to filter by */
-  properties: readonly PropertyMeta[];
+  /**
+   * Advanced mode (for use inside advanced filter builder):
+   * - `true` - No "Add advanced filter" button, shows all properties
+   * - `false` - Shows "Add advanced filter" button, excludes already-used properties
+   */
+  advance?: boolean;
   /**
    * Override default click behavior. If provided, replaces default action (open dropdown).
    * Use this to customize what happens when the trigger is clicked.
    */
   onClick?: () => void;
+  /** Callback when property changes (for rule variant only) */
+  onPropertyChange?: (property: PropertyMeta) => void;
+  /** Available properties to filter by */
+  properties: readonly PropertyMeta[];
+  /** Currently selected property (for rule variant only) */
+  value?: PropertyMeta;
   /**
    * Trigger variant:
    * - `default` - Filter icon with "Filter" label, outline button
@@ -39,16 +49,6 @@ interface FilterPropertyPickerProps {
    * - `inline` - Filter icon only, ghost button, no label
    */
   variant?: "default" | "icon" | "rule" | "inline";
-  /**
-   * Advanced mode (for use inside advanced filter builder):
-   * - `true` - No "Add advanced filter" button, shows all properties
-   * - `false` - Shows "Add advanced filter" button, excludes already-used properties
-   */
-  advance?: boolean;
-  /** Currently selected property (for rule variant only) */
-  value?: PropertyMeta;
-  /** Callback when property changes (for rule variant only) */
-  onPropertyChange?: (property: PropertyMeta) => void;
 }
 
 /**

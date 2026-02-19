@@ -6,14 +6,25 @@ import type { ReactNode } from "react";
  */
 export interface Action<T> {
   /**
-   * Action label displayed to users
+   * Only show this action in bulk action bar
+   * Hides from individual row actions
    */
-  label: string;
+  bulkOnly?: boolean;
 
   /**
    * Optional icon to display with the action
    */
   icon?: ReactNode;
+
+  /**
+   * Loading state for async actions
+   * Shows spinner when true
+   */
+  isPending?: boolean;
+  /**
+   * Action label displayed to users
+   */
+  label: string;
 
   /**
    * Action handler - always receives an array of items
@@ -30,26 +41,14 @@ export interface Action<T> {
   primary?: boolean;
 
   /**
-   * Visual variant for the action
-   * 'destructive' renders in red for dangerous actions
-   */
-  variant?: "default" | "destructive";
-
-  /**
-   * Only show this action in bulk action bar
-   * Hides from individual row actions
-   */
-  bulkOnly?: boolean;
-
-  /**
    * Only show this action in row actions
    * Hides from bulk action bar
    */
   rowOnly?: boolean;
 
   /**
-   * Loading state for async actions
-   * Shows spinner when true
+   * Visual variant for the action
+   * 'destructive' renders in red for dangerous actions
    */
-  isPending?: boolean;
+  variant?: "default" | "destructive";
 }

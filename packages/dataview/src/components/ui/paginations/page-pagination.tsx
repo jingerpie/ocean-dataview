@@ -11,6 +11,7 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -84,11 +85,13 @@ export function PagePagination({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {[10, 25, 50, 100, 200].map((size) => (
-              <SelectItem key={size} value={String(size)}>
-                {size}
-              </SelectItem>
-            ))}
+            <SelectGroup>
+              {[10, 25, 50, 100, 200].map((size) => (
+                <SelectItem key={size} value={String(size)}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectGroup>
           </SelectContent>
         </Select>
       </div>

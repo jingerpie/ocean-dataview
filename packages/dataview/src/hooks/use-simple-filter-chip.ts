@@ -1,12 +1,12 @@
 import { create } from "zustand";
 
 interface SimpleFilterChipState {
-  /** The property ID of the currently open filter chip, or null if none is open */
-  openPropertyId: string | null;
-  /** Open a filter chip by property ID */
-  open: (propertyId: string) => void;
   /** Close the currently open filter chip */
   close: () => void;
+  /** Open a filter chip by property ID */
+  open: (propertyId: string) => void;
+  /** The property ID of the currently open filter chip, or null if none is open */
+  openPropertyId: string | null;
   /** Set the open property ID directly (null to close) */
   setOpen: (propertyId: string | null) => void;
 }

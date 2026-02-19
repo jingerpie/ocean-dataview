@@ -17,8 +17,8 @@ import { productProperties } from "./product-properties";
 import { ViewNav } from "./view-nav";
 
 interface ProductPaginationGalleryProps {
-  limit: Limit;
   filter?: WhereNode[] | null;
+  limit: Limit;
   /** Raw search string from URL (for UI display) */
   search?: string;
   sort?: SortQuery[];

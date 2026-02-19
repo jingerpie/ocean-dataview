@@ -22,30 +22,30 @@ import { FilterActions } from "./filter-actions";
 // ============================================================================
 
 interface FilterRuleProps {
-  /** The filter rule */
-  rule: WhereRule;
-  /** Available properties to filter on */
-  properties: readonly PropertyMeta[];
+  /** Whether this rule can be wrapped in a group */
+  canWrapInGroup: boolean;
+  /** Additional class names */
+  className?: string;
   /** Whether this is the first rule in the group (shows "Where") */
   isFirst: boolean;
   /** Whether this is the second rule in the group (shows dropdown) */
   isSecond: boolean;
   /** Current group logic */
   logic: "and" | "or";
-  /** Callback when rule changes */
-  onRuleChange: (rule: WhereRule) => void;
+  /** Callback to duplicate this rule */
+  onDuplicate: () => void;
   /** Callback when group logic changes (affects all rules in group) */
   onLogicChange: (logic: "and" | "or") => void;
   /** Callback to remove this rule */
   onRemove: () => void;
-  /** Callback to duplicate this rule */
-  onDuplicate: () => void;
+  /** Callback when rule changes */
+  onRuleChange: (rule: WhereRule) => void;
   /** Callback to wrap this rule in a group */
   onWrapInGroup: () => void;
-  /** Whether this rule can be wrapped in a group */
-  canWrapInGroup: boolean;
-  /** Additional class names */
-  className?: string;
+  /** Available properties to filter on */
+  properties: readonly PropertyMeta[];
+  /** The filter rule */
+  rule: WhereRule;
 }
 
 /**
@@ -136,9 +136,9 @@ function FilterRule({
 // ============================================================================
 
 interface FilterValueProps {
-  rule: WhereRule;
-  property: PropertyMeta;
   onValueChange: (value: unknown) => void;
+  property: PropertyMeta;
+  rule: WhereRule;
 }
 
 function FilterValue({ rule, property, onValueChange }: FilterValueProps) {
@@ -152,9 +152,9 @@ function FilterValue({ rule, property, onValueChange }: FilterValueProps) {
 // ============================================================================
 
 interface ValueInputProps {
-  rule: WhereRule;
-  property: PropertyMeta;
   onValueChange: (value: unknown) => void;
+  property: PropertyMeta;
+  rule: WhereRule;
 }
 
 function ValueInput({ rule, property, onValueChange }: ValueInputProps) {

@@ -28,46 +28,29 @@ interface HeaderConfig {
 
 interface DataTableProps<TData> {
   /**
-   * Data to display in the table
+   * Action bar render function
+   * Receives table instance for accessing selection state
    */
-  data: TData[];
+  actionBar?: (table: TanStackTable<TData>) => React.ReactNode;
+
+  /**
+   * Additional className for the table wrapper
+   */
+  className?: string;
 
   /**
    * Column definitions
    */
   columns: ColumnDef<TData>[];
-
   /**
-   * Layout configuration
+   * Data to display in the table
    */
-  showVerticalLines?: boolean;
-  wrapAllColumns?: boolean;
-
-  /**
-   * Row click handler
-   */
-  onRowClick?: (item: TData) => void;
+  data: TData[];
 
   /**
    * Enable row selection with checkboxes
    */
   enableRowSelection?: boolean;
-
-  /**
-   * Row selection state
-   */
-  rowSelection?: RowSelectionState;
-
-  /**
-   * Row selection change callback
-   */
-  onRowSelectionChange?: (state: RowSelectionState) => void;
-
-  /**
-   * Action bar render function
-   * Receives table instance for accessing selection state
-   */
-  actionBar?: (table: TanStackTable<TData>) => React.ReactNode;
 
   /**
    * Header configuration
@@ -81,9 +64,25 @@ interface DataTableProps<TData> {
   offset?: number;
 
   /**
-   * Additional className for the table wrapper
+   * Row click handler
    */
-  className?: string;
+  onRowClick?: (item: TData) => void;
+
+  /**
+   * Row selection change callback
+   */
+  onRowSelectionChange?: (state: RowSelectionState) => void;
+
+  /**
+   * Row selection state
+   */
+  rowSelection?: RowSelectionState;
+
+  /**
+   * Layout configuration
+   */
+  showVerticalLines?: boolean;
+  wrapAllColumns?: boolean;
 }
 
 /**

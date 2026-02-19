@@ -79,8 +79,6 @@ export function normalizeFilter(
 // ============================================================================
 
 export interface FilterAnalysis {
-  /** Simple conditions at root level (displayed as FilterChip) */
-  simpleConditions: Array<{ condition: WhereRule; index: number }>;
   /** First WhereExpression at root level (displayed as AdvancedFilterChip) */
   advancedFilter: WhereExpression | null;
   /** Index of advancedFilter in root array */
@@ -89,6 +87,8 @@ export interface FilterAnalysis {
   needsNormalization: boolean;
   /** Total count of rules (for advanced filter chip display) */
   ruleCount: number;
+  /** Simple conditions at root level (displayed as FilterChip) */
+  simpleConditions: Array<{ condition: WhereRule; index: number }>;
 }
 
 /**
@@ -189,9 +189,9 @@ export function normalizeFilterStructure(
 
 export interface FlattenedCondition {
   condition: WhereRule;
-  path: number[];
-  parentLogic: "and" | "or";
   depth: number;
+  parentLogic: "and" | "or";
+  path: number[];
 }
 
 /**

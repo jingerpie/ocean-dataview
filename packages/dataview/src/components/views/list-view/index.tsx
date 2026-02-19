@@ -17,6 +17,27 @@ export interface ListViewProps<
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 > {
   /**
+   * Additional className
+   */
+  className?: string;
+
+  /**
+   * Item click handler
+   */
+  onItemClick?: (item: TData) => void;
+
+  /**
+   * Pagination mode for the list.
+   * - "page": Classic prev/next pagination with "Showing X-Y"
+   * - "loadMore": "Load more" button
+   * - "infiniteScroll": Auto-load on scroll
+   * - undefined: No pagination UI
+   *
+   * For grouped lists: renders inside each group
+   * For flat lists: renders below the list
+   */
+  pagination?: PaginationMode;
+  /**
    * View configuration
    */
   view?: {
@@ -56,28 +77,6 @@ export interface ListViewProps<
       onExpandedChange?: (groups: string[]) => void;
     };
   };
-
-  /**
-   * Item click handler
-   */
-  onItemClick?: (item: TData) => void;
-
-  /**
-   * Pagination mode for the list.
-   * - "page": Classic prev/next pagination with "Showing X-Y"
-   * - "loadMore": "Load more" button
-   * - "infiniteScroll": Auto-load on scroll
-   * - undefined: No pagination UI
-   *
-   * For grouped lists: renders inside each group
-   * For flat lists: renders below the list
-   */
-  pagination?: PaginationMode;
-
-  /**
-   * Additional className
-   */
-  className?: string;
 }
 
 /**

@@ -18,21 +18,21 @@ import { Visibility } from "../../ui/toolbar/visibility";
 import { ChipsBar } from "./chips-bar";
 
 interface NotionToolbarProps extends ComponentProps<"div"> {
+  /** Children (tabs, etc.) - always visible on left */
+  children?: ReactNode;
+  /** Enable filter functionality */
+  enableFilter?: boolean;
+  /** Enable properties visibility button */
+  enableProperties?: boolean;
+  /** Enable search functionality */
+  enableSearch?: boolean;
+  /** Enable sort functionality */
+  enableSort?: boolean;
   /**
    * Available properties for filtering/sorting.
    * Optional - defaults to propertyMetas from DataViewContext.
    */
   properties?: readonly PropertyMeta[];
-  /** Enable filter functionality */
-  enableFilter?: boolean;
-  /** Enable sort functionality */
-  enableSort?: boolean;
-  /** Enable search functionality */
-  enableSearch?: boolean;
-  /** Enable properties visibility button */
-  enableProperties?: boolean;
-  /** Children (tabs, etc.) - always visible on left */
-  children?: ReactNode;
 }
 
 /**

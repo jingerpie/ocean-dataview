@@ -75,10 +75,10 @@ const PRESET_LABELS: Record<Exclude<DatePreset, "custom">, string> = {
  * SingleDatePicker props shared between filter UI and inline editors.
  */
 interface SingleDatePickerProps {
-  /** Current value (ISO string or timestamp) */
-  value: string | number | undefined;
   /** Callback when value changes (receives ISO string) */
   onChange: (value: string) => void;
+  /** Current value (ISO string or timestamp) */
+  value: string | number | undefined;
 }
 
 // ============================================================================
@@ -119,8 +119,8 @@ function getDateFromPreset(preset: DatePreset): Date | null {
 // ============================================================================
 
 interface SingleDatePickerBodyProps extends SingleDatePickerProps {
-  className?: string;
   autoFocus?: boolean;
+  className?: string;
 }
 
 /**

@@ -24,12 +24,27 @@ export type PropertyType =
 // Base property structure (using _T for type consistency across property types)
 export interface BaseProperty<_T> {
   /**
-   * Unique identifier for this property.
-   * Must correspond to a field in the data object (except for formula type).
+   * Enable filtering for this property.
+   * When false, property won't appear in the filter dropdown.
+   * @default true
    */
-  id: string;
-  label?: string;
-  type: PropertyType;
+  enableFilter?: boolean;
+
+  /**
+   * Enable search for this property.
+   * - `true`: Include in search (even if type would be excluded by default)
+   * - `false`: Exclude from search (even if type would be included by default)
+   * - `undefined`: Use type-based default (excluded: filesMedia, checkbox, formula)
+   * @default true (except filesMedia, checkbox, formula which default to false)
+   */
+  enableSearch?: boolean;
+
+  /**
+   * Enable sorting for this property.
+   * When false, property won't appear in the sort dropdown.
+   * @default true
+   */
+  enableSort?: boolean;
 
   // ===== Constraint fields =====
 
@@ -43,29 +58,13 @@ export interface BaseProperty<_T> {
    * @default false
    */
   hidden?: boolean;
-
   /**
-   * Enable filtering for this property.
-   * When false, property won't appear in the filter dropdown.
-   * @default true
+   * Unique identifier for this property.
+   * Must correspond to a field in the data object (except for formula type).
    */
-  enableFilter?: boolean;
-
-  /**
-   * Enable sorting for this property.
-   * When false, property won't appear in the sort dropdown.
-   * @default true
-   */
-  enableSort?: boolean;
-
-  /**
-   * Enable search for this property.
-   * - `true`: Include in search (even if type would be excluded by default)
-   * - `false`: Exclude from search (even if type would be included by default)
-   * - `undefined`: Use type-based default (excluded: filesMedia, checkbox, formula)
-   * @default true (except filesMedia, checkbox, formula which default to false)
-   */
-  enableSearch?: boolean;
+  id: string;
+  label?: string;
+  type: PropertyType;
 }
 
 // Type-specific configurations
@@ -80,6 +79,7 @@ export type BadgeColor =
   | "teal";
 
 export interface NumberConfig {
+  decimalPlaces?: number; // 0-10
   numberFormat?:
     | "number"
     | "numberWithCommas"
@@ -87,7 +87,6 @@ export interface NumberConfig {
     | "dollar"
     | "euro"
     | "pound";
-  decimalPlaces?: number; // 0-10
   showAs?: {
     type?: "number" | "bar" | "ring"; // default: "number"
     color?: BadgeColor; // default: "green" (only used for bar/ring)
@@ -97,8 +96,8 @@ export interface NumberConfig {
 }
 
 export interface SelectOption {
-  value: string;
   color?: BadgeColor;
+  value: string;
 }
 
 /**
@@ -110,23 +109,23 @@ export interface SelectOption {
 export type OptionOrder = "manual" | "asc" | "desc";
 
 export interface SelectConfig {
-  options: SelectOption[];
   /** How options are ordered in picker dropdown @default "manual" */
   optionOrder?: OptionOrder;
+  options: SelectOption[];
 }
 
 export interface MultiSelectConfig {
-  options: SelectOption[];
   /** How options are ordered in picker dropdown @default "manual" */
   optionOrder?: OptionOrder;
+  options: SelectOption[];
 }
 
 export interface StatusGroup {
-  label: string;
   color: BadgeColor;
-  options: string[];
   /** Optional icon component to display. Defaults to CircleDashed. */
   icon?: IconComponent;
+  label: string;
+  options: string[];
 }
 
 export interface StatusConfig {
@@ -179,22 +178,22 @@ export type PropertyConfig =
  * }
  */
 export interface PropertyMeta {
-  /** Unique identifier for this property */
-  id: string;
-  /** Property type for rendering */
-  type: PropertyType;
-  /** Display label */
-  label?: string;
   /** Type-specific configuration */
   config?: PropertyConfig;
-  /** Hide from visibility toggle and columns @default false */
-  hidden?: boolean;
   /** Enable filtering @default true */
   enableFilter?: boolean;
-  /** Enable sorting @default true */
-  enableSort?: boolean;
   /** Enable search @default type-dependent */
   enableSearch?: boolean;
+  /** Enable sorting @default true */
+  enableSort?: boolean;
+  /** Hide from visibility toggle and columns @default false */
+  hidden?: boolean;
+  /** Unique identifier for this property */
+  id: string;
+  /** Display label */
+  label?: string;
+  /** Property type for rendering */
+  type: PropertyType;
 }
 
 /**
@@ -284,11 +283,11 @@ export type PhonePropertyType<T> = BaseProperty<T> & {
  * @typeParam TData - The data type for type-safe raw value access
  */
 export interface PropertyFunction<TData> {
+  /** Get raw data value for a property (type-safe) */
+  raw: <K extends keyof TData>(id: K) => TData[K];
   /** Render a property with its full styling and config */
   // biome-ignore lint/suspicious/noExplicitAny: Returns ReactNode but using any for simpler type inference
   (id: string): any;
-  /** Get raw data value for a property (type-safe) */
-  raw: <K extends keyof TData>(id: K) => TData[K];
 }
 
 /**
@@ -438,8 +437,8 @@ export function getSearchableProperties<T>(
 
 // Sort configuration (simple client-side sorting)
 export interface SortConfig<T> {
-  propertyKey: keyof T;
   direction: "asc" | "desc";
+  propertyKey: keyof T;
 }
 
 // View configuration
@@ -447,10 +446,10 @@ export interface ViewConfig<
   T,
   TProperties extends readonly DataViewProperty<T>[] = DataViewProperty<T>[],
 > {
+  filter?: WhereNode | null;
+  groupBy?: keyof T;
   properties: TProperties;
   propertyVisibility?: PropertyKeys<TProperties>[];
-  filter?: WhereNode | null;
-  sort?: SortConfig<T>;
-  groupBy?: keyof T;
   searchQuery?: string;
+  sort?: SortConfig<T>;
 }

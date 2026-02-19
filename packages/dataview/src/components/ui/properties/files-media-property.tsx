@@ -11,8 +11,8 @@ const NON_IMAGE_EXTENSION_REGEX =
 const ANY_EXTENSION_REGEX = /\.\w+(\?|#|$)/;
 
 interface FilesMediaPropertyProps {
-  value: string | string[] | null | undefined;
   className?: string;
+  value: string | string[] | null | undefined;
 }
 
 export function FilesMediaProperty({

@@ -6,8 +6,8 @@ import type { StatusConfig } from "../../../types/property.type";
 import { Badge } from "../badge";
 
 interface StatusPropertyProps {
-  value: string | null;
   config?: StatusConfig;
+  value: string | null;
 }
 
 export function StatusProperty({ value, config }: StatusPropertyProps) {

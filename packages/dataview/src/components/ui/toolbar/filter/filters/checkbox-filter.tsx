@@ -19,18 +19,18 @@ import { SimpleFilterPopover } from "../simple/simple-filter-popover";
 // ============================================================================
 
 interface CheckboxFilterChipProps {
-  rule: WhereRule;
-  property: PropertyMeta;
-  onRuleChange: (rule: WhereRule) => void;
-  onRemove: () => void;
   onAddToAdvanced?: () => void;
+  onRemove: () => void;
+  onRuleChange: (rule: WhereRule) => void;
+  property: PropertyMeta;
+  rule: WhereRule;
   variant?: "compact" | "detailed";
 }
 
 interface CheckboxFilterValueProps {
-  rule: WhereRule;
-  property: PropertyMeta;
   onValueChange: (value: unknown) => void;
+  property: PropertyMeta;
+  rule: WhereRule;
 }
 
 // ============================================================================
@@ -38,8 +38,8 @@ interface CheckboxFilterValueProps {
 // ============================================================================
 
 interface CheckboxBodyProps {
-  value: boolean | undefined;
   onChange: (value: boolean) => void;
+  value: boolean | undefined;
 }
 
 function CheckboxBody({ value, onChange }: CheckboxBodyProps) {

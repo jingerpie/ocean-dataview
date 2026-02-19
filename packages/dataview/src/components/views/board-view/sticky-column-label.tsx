@@ -15,6 +15,35 @@ const RESIZE_DEBOUNCE_MS = 150;
 
 interface StickyColumnLabelProps {
   /**
+   * Additional className for header items (passed via cn)
+   */
+  className?: string;
+
+  /**
+   * Column header renderer
+   */
+  columnHeader?: (groupName: string, count: number) => ReactNode;
+
+  /**
+   * Column width in pixels
+   */
+  columnWidthPx: number;
+
+  /**
+   * Reference to the scroll container element
+   */
+  containerRef: React.RefObject<HTMLDivElement | null>;
+
+  /**
+   * Whether sticky header is enabled
+   */
+  enabled: boolean;
+
+  /**
+   * Column background class getter
+   */
+  getColumnBgClass?: (groupName: string) => string | undefined;
+  /**
    * Groups to render in the header
    */
   groups: Array<{
@@ -24,44 +53,14 @@ interface StickyColumnLabelProps {
   }>;
 
   /**
-   * Column width in pixels
-   */
-  columnWidthPx: number;
-
-  /**
-   * Column header renderer
-   */
-  columnHeader?: (groupName: string, count: number) => ReactNode;
-
-  /**
-   * Column background class getter
-   */
-  getColumnBgClass?: (groupName: string) => string | undefined;
-
-  /**
-   * Whether sticky header is enabled
-   */
-  enabled: boolean;
-
-  /**
    * Reference to the original header element
    */
   headerRef: React.RefObject<HTMLDivElement | null>;
 
   /**
-   * Reference to the scroll container element
-   */
-  containerRef: React.RefObject<HTMLDivElement | null>;
-
-  /**
    * Offset from top of viewport (e.g., navbar height)
    */
   offset?: number;
-
-  /**
-   * Additional className for header items (passed via cn)
-   */
-  className?: string;
 }
 
 /**

@@ -18,8 +18,8 @@ type RelativeToTodayValue = [
 
 interface GetFilterPreviewOptions {
   condition: FilterCondition;
-  value: unknown;
   propertyType: PropertyType;
+  value: unknown;
 }
 
 /**

@@ -5,19 +5,19 @@ import type { LegendPayload } from "recharts/types/component/DefaultLegendConten
 import { PaginatedLegend } from "./paginated-legend";
 
 interface ChartPaginatedLegendProps {
-  groupKeys: string[];
   colors: string[];
+  groupKeys: string[];
   legendState?: {
     hiddenItems: Record<string, boolean>;
     hoveredItem: string | null;
   };
   onClick?: (data: LegendPayload, index: number, e: React.MouseEvent) => void;
-  onMouseOver?: (
+  onMouseOut?: (
     data: LegendPayload,
     index: number,
     e: React.MouseEvent
   ) => void;
-  onMouseOut?: (
+  onMouseOver?: (
     data: LegendPayload,
     index: number,
     e: React.MouseEvent
