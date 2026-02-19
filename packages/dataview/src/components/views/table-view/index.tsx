@@ -7,11 +7,7 @@ import type {
 } from "@tanstack/react-table";
 import { AlertCircle } from "lucide-react";
 import { useMemo, useState } from "react";
-import type {
-  GroupedDataItem,
-  GroupInfiniteInfo,
-  GroupInfo,
-} from "../../../hooks";
+import type { GroupedDataItem } from "../../../hooks";
 import { useDisplayProperties, useViewSetup } from "../../../hooks";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import { buildPaginationContext, cn } from "../../../lib/utils";
@@ -39,12 +35,42 @@ export interface TableViewProps<
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 > {
   /**
+   * Actions for rows and bulk operations
+   * When provided, automatically enables:
+   * - Row selection with checkboxes
+   * - Actions column with row-level actions
+   * - Floating action bar for bulk operations
+   */
+  actions?: Action<TData>[];
+
+  /**
+   * Additional className
+   */
+  className?: string;
+  /**
    * Layout configuration
    */
   layout?: {
     showVerticalLines?: boolean;
     wrapAllColumns?: boolean;
   };
+
+  /**
+   * Row click handler
+   */
+  onRowClick?: (row: TData) => void;
+
+  /**
+   * Pagination mode for the table.
+   * - "page": Classic prev/next pagination with "Showing X-Y"
+   * - "loadMore": "Load more" button
+   * - "infiniteScroll": Auto-load on scroll
+   * - undefined: No pagination UI
+   *
+   * For grouped tables: renders inside each group
+   * For flat tables: renders below the table
+   */
+  pagination?: PaginationMode;
 
   /**
    * View configuration
@@ -86,37 +112,6 @@ export interface TableViewProps<
       onExpandedChange?: (groups: string[]) => void;
     };
   };
-
-  /**
-   * Row click handler
-   */
-  onRowClick?: (row: TData) => void;
-
-  /**
-   * Pagination mode for the table.
-   * - "page": Classic prev/next pagination with "Showing X-Y"
-   * - "loadMore": "Load more" button
-   * - "infiniteScroll": Auto-load on scroll
-   * - undefined: No pagination UI
-   *
-   * For grouped tables: renders inside each group
-   * For flat tables: renders below the table
-   */
-  pagination?: PaginationMode;
-
-  /**
-   * Actions for rows and bulk operations
-   * When provided, automatically enables:
-   * - Row selection with checkboxes
-   * - Actions column with row-level actions
-   * - Floating action bar for bulk operations
-   */
-  actions?: Action<TData>[];
-
-  /**
-   * Additional className
-   */
-  className?: string;
 }
 
 /**
@@ -152,7 +147,6 @@ export function TableView<
   // Use shared view setup hook
   const {
     transformedData,
-    hasGroupedPagination,
     groupConfig,
     groupedData,
     groupByProperty,
@@ -367,52 +361,17 @@ export function TableView<
           onValueChange={groupBy.onExpandedChange}
           value={groupBy.expandedGroups ?? []}
         >
-          {/* biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex pagination context building for grouped data */}
           {groupedData.map((group: GroupedDataItem<TData>) => {
-            // Find matching pagination group to build context
-            // Groups can be either GroupInfo (page) or GroupInfiniteInfo (infinite)
-            const paginationGroup =
-              hasGroupedPagination &&
-              contextPagination &&
-              "groups" in contextPagination
-                ? contextPagination.groups.find(
-                    (g: GroupInfo<TData> | GroupInfiniteInfo<TData>) =>
-                      g.key === group.key
-                  )
-                : null;
-
-            // Build pagination context for this group
-            // Handle both GroupInfo (page) and GroupInfiniteInfo (infinite) types
-            // Counts come from groupedData (populated from context), not paginationGroup
+            // Build pagination context for this group using the utility function
+            // which handles hasNext resolution (boolean | Record<string, boolean>)
+            const basePaginationContext = buildPaginationContext(
+              contextPagination,
+              group.key
+            );
             const paginationContext: PaginationContext | undefined =
-              paginationGroup && contextPagination
+              basePaginationContext
                 ? {
-                    hasNext: paginationGroup.hasNext,
-                    hasPrev:
-                      "hasPrev" in paginationGroup
-                        ? paginationGroup.hasPrev
-                        : false,
-                    onNext: paginationGroup.onNext,
-                    onPrev:
-                      "onPrev" in paginationGroup
-                        ? paginationGroup.onPrev
-                        : () => undefined,
-                    limit: contextPagination.limit,
-                    onLimitChange: contextPagination.onLimitChange,
-                    isLoading: paginationGroup.isLoading,
-                    displayStart:
-                      "displayStart" in paginationGroup
-                        ? paginationGroup.displayStart
-                        : 1,
-                    displayEnd: (() => {
-                      if ("displayEnd" in paginationGroup) {
-                        return paginationGroup.displayEnd;
-                      }
-                      if ("totalLoaded" in paginationGroup) {
-                        return paginationGroup.totalLoaded;
-                      }
-                      return 0;
-                    })(),
+                    ...basePaginationContext,
                     totalCount: group.count,
                     hasMoreThanMax: group.displayCount === "99+",
                   }
