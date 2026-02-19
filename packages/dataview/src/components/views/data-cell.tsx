@@ -52,12 +52,12 @@ function DataCellComponent<T>({
       if (!(valueFn && allProperties)) {
         return null;
       }
-      const renderer = createFormulaRenderer(
+      const [propertyRender, itemData] = createFormulaRenderer(
         item,
         allProperties,
         renderedProperties
       );
-      return <>{valueFn(renderer)}</>;
+      return <>{valueFn(propertyRender, itemData)}</>;
     }
 
     case "text":

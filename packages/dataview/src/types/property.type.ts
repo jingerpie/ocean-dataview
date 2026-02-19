@@ -295,49 +295,35 @@ export type PhonePropertyType<T> = BaseProperty<T> & {
 };
 
 /**
- * Property function type for formula properties.
- * - `property(id)` renders the property with its full config (returns ReactNode)
- * - `property.raw(id)` returns the typed raw data value for that property
+ * Property render function for formula properties.
+ * Renders a property with its full styling and config.
  *
- * @typeParam TData - The data type for type-safe raw value access
+ * @param id - Property ID to render
+ * @returns ReactNode with styled property display
  */
-export interface PropertyFunction<TData> {
-  /** Get raw data value for a property (type-safe) */
-  raw: <K extends keyof TData>(id: K) => TData[K];
-  /** Render a property with its full styling and config */
-  // biome-ignore lint/suspicious/noExplicitAny: Returns ReactNode but using any for simpler type inference
-  (id: string): any;
-}
-
-/**
- * @deprecated Use PropertyFunction instead
- */
-// biome-ignore lint/suspicious/noExplicitAny: Deprecated type for backwards compatibility
-export type PropertyRenderer = PropertyFunction<any>;
+// biome-ignore lint/suspicious/noExplicitAny: Returns ReactNode but using any for simpler type inference
+export type PropertyRenderFunction = (id: string) => any;
 
 /**
  * Formula property type - renders composite values using other properties.
  *
- * The `value` function receives a `property` function that provides both
- * rendering and raw data access:
- * - `property(id)` - Renders the property with styling
- * - `property.raw(id)` - Returns the raw data value
+ * The `value` function receives:
+ * - `property(id)` - Renders the property with styling (ReactNode)
+ * - `item` - The raw data item for direct field access
  *
  * @example
  * ```tsx
- * // Using property() for rendering and property.raw() for data access
+ * // Using property() for rendering and item for data access
  * {
- *   id: "productName",
+ *   id: "productSummary",
  *   type: "formula",
  *   label: "Product",
  *   sortBy: "name",
- *   enableFilter: false,
- *   enableSort: false,
- *   value: (property) => (
+ *   value: (property, item) => (
  *     <div className="flex flex-col gap-1">
  *       {property("name")}        // Rendered with text styling
  *       {property("familyGroup")} // Rendered with select colors
- *       {property.raw("minCalories") > 500 && (
+ *       {item.minCalories > 500 && (
  *         <span className="text-red-500 text-xs">High cal</span>
  *       )}
  *     </div>
@@ -349,10 +335,10 @@ export type PropertyRenderer = PropertyFunction<any>;
  * {
  *   id: "summary",
  *   type: "formula",
- *   value: (property) => (
+ *   value: (property, item) => (
  *     <div className="flex gap-2">
- *       <TextProperty value={property.raw("title")} />
- *       <NumberProperty value={property.raw("price")} config={{ numberFormat: "dollar" }} />
+ *       <TextProperty value={item.title} />
+ *       <NumberProperty value={item.price} config={{ numberFormat: "dollar" }} />
  *     </div>
  *   ),
  * }
@@ -364,13 +350,12 @@ export type FormulaPropertyType<T> = BaseProperty<T> & {
   /**
    * Formula value function.
    *
-   * @param property - Function with two modes:
-   *   - `property(id)` renders a property with its full config
-   *   - `property.raw(id)` returns typed raw data value
+   * @param property - Function to render a property with its full config
+   * @param item - The raw data item for direct field access
    * @returns ReactNode to render in the cell
    */
   // biome-ignore lint/suspicious/noExplicitAny: Flexible signature to avoid type inference issues with union types
-  value?: (property: PropertyFunction<T>) => any;
+  value?: (property: PropertyRenderFunction, item: T) => any;
   /**
    * Optional: which property to use for sorting this formula column.
    * Since formulas can't be sorted directly, this specifies a backing property.

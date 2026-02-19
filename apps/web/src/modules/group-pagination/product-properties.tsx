@@ -141,15 +141,12 @@ export const productProperties = [
     type: "email",
   },
   {
-    id: "_totalWorth",
+    id: "_formula",
     label: "Formula",
     type: "formula",
-    value: (property) => (
+    value: (property, item) => (
       <div className="flex items-center gap-4">
-        <FilesMediaProperty
-          className="h-10 w-10"
-          value={property.raw("productImage")}
-        />
+        <FilesMediaProperty className="h-10 w-10" value={item.productImage} />
         <div className="flex flex-col items-start justify-center gap-2">
           {property("productName")}
           <div className="flex items-center gap-2">
