@@ -71,17 +71,34 @@ export function GroupSection<TData>({
 }: GroupSectionProps<TData>) {
   const itemRef = useRef<HTMLDivElement>(null);
 
+  // For date properties in group headers, use "relativeGroup" format
+  // which converts bucket start dates to labels (e.g., "Today", "Last 7 days", "Aug 2025")
+  const dateConfigOverride =
+    groupByPropertyDef?.type === "date"
+      ? { dateFormat: "relativeGroup" }
+      : undefined;
+
+  // For checkbox groups, convert string "Checked"/"Unchecked" to boolean
+  // since CheckboxProperty expects boolean, not string
+  const getGroupValue = () => {
+    if (groupByPropertyDef?.type === "checkbox") {
+      return group.key === "Checked";
+    }
+    return group.key;
+  };
+
   const triggerContent = (
     <AccordionTrigger className="py-3 hover:no-underline">
       <div className="flex items-center gap-2">
         {groupByPropertyDef ? (
           <DataCell
+            configOverride={dateConfigOverride}
             item={
               group.items[0] ??
               ({ [groupByPropertyDef.id]: group.key } as TData)
             }
             property={groupByPropertyDef}
-            value={group.key}
+            value={getGroupValue()}
           />
         ) : (
           <span className="font-medium text-sm">{group.key}</span>

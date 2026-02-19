@@ -136,7 +136,24 @@ export interface StatusConfig {
 }
 
 export interface DateConfig {
-  dateFormat?: "full" | "short" | "MDY" | "DMY" | "YMD" | "relative";
+  /**
+   * Date format options:
+   * - "full": "February 19, 2026"
+   * - "short": "Feb 19, 2026"
+   * - "MDY": "02/19/2026"
+   * - "DMY": "19/02/2026"
+   * - "YMD": "2026-02-19"
+   * - "relative": "2 days ago"
+   * - "relativeGroup": For group headers - converts bucket start date to label ("Today", "Last 7 days", "Aug 2025")
+   */
+  dateFormat?:
+    | "full"
+    | "short"
+    | "MDY"
+    | "DMY"
+    | "YMD"
+    | "relative"
+    | "relativeGroup";
   timeFormat?: "hidden" | "12hour" | "24hour";
 }
 

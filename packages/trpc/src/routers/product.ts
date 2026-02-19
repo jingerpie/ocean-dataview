@@ -149,7 +149,11 @@ export const productRouter = router({
       const sortValues: Record<string, string | number> = {};
 
       for (const row of results) {
-        const key = String(row.groupKey ?? `No ${parsed.property}`);
+        // Convert Date to ISO string for proper serialization
+        const key =
+          row.groupKey instanceof Date
+            ? row.groupKey.toISOString()
+            : String(row.groupKey ?? `No ${parsed.property}`);
         counts[key] = {
           count: Math.min(Number(row.count), 100),
           hasMore: Number(row.count) > 100,

@@ -158,6 +158,155 @@ const sortValidator = (value: unknown): SortQuery[] | null => {
     .filter((s): s is SortQuery => s !== null);
 };
 
+// ============================================================================
+// GroupBy URL Transformation Helpers
+// ============================================================================
+
+/**
+ * GroupBy URL format (compact positional arrays):
+ *   ["select", property]
+ *   ["status", property, showAs]
+ *   ["date", property, showAs, startWeekOn?]
+ *   ["checkbox", property]
+ *   ["multiSelect", property]
+ *   ["text", property, showAs?]
+ *   ["number", property, min, max, step]
+ *
+ * Code format (discriminated union):
+ *   { bySelect: { property } }
+ *   { byStatus: { property, showAs } }
+ *   etc.
+ */
+
+export type GroupByConfigInput =
+  | { bySelect: { property: string } }
+  | { byStatus: { property: string; showAs: "option" | "group" } }
+  | {
+      byDate: {
+        property: string;
+        showAs: "day" | "week" | "month" | "year" | "relative";
+        startWeekOn?: "monday" | "sunday";
+      };
+    }
+  | { byCheckbox: { property: string } }
+  | { byMultiSelect: { property: string } }
+  | { byText: { property: string; showAs?: "exact" | "alphabetical" } }
+  | {
+      byNumber: {
+        property: string;
+        showAs?: { range: [number, number]; step: number };
+      };
+    };
+
+/**
+ * Transform URL positional array to GroupByConfig object.
+ * Structural validation only - tRPC validates business logic.
+ */
+const transformUrlToGroupConfig = (url: unknown): GroupByConfigInput | null => {
+  if (!Array.isArray(url) || url.length < 2) {
+    return null;
+  }
+
+  const [type, property, ...rest] = url;
+
+  if (typeof type !== "string" || typeof property !== "string") {
+    return null;
+  }
+
+  switch (type) {
+    case "select":
+      return { bySelect: { property } };
+
+    case "status": {
+      const showAs = (rest[0] as "option" | "group") ?? "option";
+      return { byStatus: { property, showAs } };
+    }
+
+    case "date": {
+      const showAs =
+        (rest[0] as "day" | "week" | "month" | "year" | "relative") ?? "day";
+      const startWeekOn = rest[1] as "monday" | "sunday" | undefined;
+      return startWeekOn
+        ? { byDate: { property, showAs, startWeekOn } }
+        : { byDate: { property, showAs } };
+    }
+
+    case "checkbox":
+      return { byCheckbox: { property } };
+
+    case "multiSelect":
+      return { byMultiSelect: { property } };
+
+    case "text": {
+      const showAs = (rest[0] as "exact" | "alphabetical") ?? "exact";
+      return { byText: { property, showAs } };
+    }
+
+    case "number": {
+      const [min, max, step] = rest;
+      if (
+        typeof min === "number" &&
+        typeof max === "number" &&
+        typeof step === "number"
+      ) {
+        return {
+          byNumber: { property, showAs: { range: [min, max], step } },
+        };
+      }
+      // No range specified - exact number grouping
+      return { byNumber: { property } };
+    }
+
+    default:
+      return null;
+  }
+};
+
+/**
+ * Transform GroupByConfig object to URL positional array.
+ */
+const transformGroupConfigToUrl = (config: GroupByConfigInput): unknown[] => {
+  if ("bySelect" in config) {
+    return ["select", config.bySelect.property];
+  }
+  if ("byStatus" in config) {
+    return ["status", config.byStatus.property, config.byStatus.showAs];
+  }
+  if ("byDate" in config) {
+    const { property, showAs, startWeekOn } = config.byDate;
+    return startWeekOn
+      ? ["date", property, showAs, startWeekOn]
+      : ["date", property, showAs];
+  }
+  if ("byCheckbox" in config) {
+    return ["checkbox", config.byCheckbox.property];
+  }
+  if ("byMultiSelect" in config) {
+    return ["multiSelect", config.byMultiSelect.property];
+  }
+  if ("byText" in config) {
+    const { property, showAs } = config.byText;
+    return showAs && showAs !== "exact"
+      ? ["text", property, showAs]
+      : ["text", property];
+  }
+  if ("byNumber" in config) {
+    const { property, showAs } = config.byNumber;
+    if (showAs) {
+      return ["number", property, ...showAs.range, showAs.step];
+    }
+    return ["number", property];
+  }
+  return [];
+};
+
+/**
+ * GroupBy validator - structural check only, tRPC validates property names.
+ */
+const groupByValidator = (value: unknown): GroupByConfigInput | null => {
+  return transformUrlToGroupConfig(value);
+};
+
 /**
  * Cursor validator - structural check only, tRPC validates shape.
  */
@@ -251,6 +400,8 @@ const sharedParsers = {
     parse: (v) => (typeof v === "string" ? v : ""),
     serialize: (v) => v,
   }).withDefault(""),
+  group: parseAsJson(groupByValidator),
+  subGroup: parseAsJson(groupByValidator),
 };
 
 /**
@@ -335,4 +486,17 @@ export const parseAsSort = createParser({
   // Transform to compact positional array format: ["property", "asc"|"desc"]
   serialize: (value: SortQuery[]) =>
     JSON.stringify(value.map((s) => [s.property, s.direction])),
+});
+
+export const parseAsGroupBy = createParser({
+  parse: (value: string): GroupByConfigInput | null => {
+    try {
+      const parsed = JSON.parse(value);
+      return groupByValidator(parsed);
+    } catch {
+      return null;
+    }
+  },
+  serialize: (value: GroupByConfigInput) =>
+    JSON.stringify(transformGroupConfigToUrl(value)),
 });

@@ -22,6 +22,11 @@ interface DataCellProps<T> {
    * to render other properties via `property(id)` renderer
    */
   allProperties?: readonly DataViewProperty<T>[];
+  /**
+   * Override property config for specific rendering contexts (e.g., group headers)
+   * Merged with property.config, with configOverride taking precedence
+   */
+  configOverride?: Record<string, unknown>;
   item: T;
   property: DataViewProperty<T>;
   /**
@@ -42,9 +47,18 @@ function DataCellComponent<T>({
   item,
   wrap = false,
   allProperties,
+  configOverride,
   renderedProperties = new Set(),
 }: DataCellProps<T>) {
   const displayValue = value;
+
+  // Helper to merge property config with override
+  const getConfig = <C,>(baseConfig: C | undefined): C | undefined => {
+    if (!configOverride) {
+      return baseConfig;
+    }
+    return { ...baseConfig, ...configOverride } as C;
+  };
 
   switch (property.type) {
     case "formula": {
@@ -98,7 +112,7 @@ function DataCellComponent<T>({
     case "date":
       return (
         <DateProperty
-          config={property.config}
+          config={getConfig(property.config)}
           value={displayValue as Date | string | null}
         />
       );

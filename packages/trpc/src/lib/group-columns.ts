@@ -28,34 +28,62 @@ interface GroupByResult {
 }
 
 /**
- * Build SQL CASE expression for relative date grouping
+ * Build SQL CASE expression for relative date grouping.
+ *
+ * Returns the START DATE of each bucket as ISO timestamp for type-safe client handling.
+ * Client uses this date + showAs="relative" to format the display label.
+ *
+ * Buckets (in chronological order):
+ * - Past months → first of that month
+ * - Last 30 days (8-30 days ago) → CURRENT_DATE - 30
+ * - Last 7 days (2-7 days ago) → CURRENT_DATE - 7
+ * - Yesterday → CURRENT_DATE - 1
+ * - Today → CURRENT_DATE
+ * - Tomorrow → CURRENT_DATE + 1
+ * - Next 7 days (2-7 days ahead) → CURRENT_DATE + 2
+ * - Next 30 days (8-30 days ahead) → CURRENT_DATE + 8
+ * - Future months → first of that month
  */
 function buildRelativeDateCase(column: SQL): SQL {
   return sql`CASE
-    WHEN DATE(${column}) = CURRENT_DATE THEN 'Today'
-    WHEN DATE(${column}) = CURRENT_DATE - INTERVAL '1 day' THEN 'Yesterday'
-    WHEN DATE(${column}) = CURRENT_DATE + INTERVAL '1 day' THEN 'Tomorrow'
-    WHEN DATE(${column}) BETWEEN CURRENT_DATE - INTERVAL '7 days' AND CURRENT_DATE - INTERVAL '2 days' THEN 'Last 7 days'
-    WHEN DATE(${column}) BETWEEN CURRENT_DATE + INTERVAL '2 days' AND CURRENT_DATE + INTERVAL '7 days' THEN 'Next 7 days'
-    WHEN DATE(${column}) BETWEEN CURRENT_DATE - INTERVAL '30 days' AND CURRENT_DATE - INTERVAL '8 days' THEN 'Last 30 days'
-    WHEN DATE(${column}) BETWEEN CURRENT_DATE + INTERVAL '8 days' AND CURRENT_DATE + INTERVAL '30 days' THEN 'Next 30 days'
-    ELSE TO_CHAR(${column}, 'Mon YYYY')
+    WHEN ${column} IS NULL THEN NULL
+    WHEN ${column}::date = CURRENT_DATE THEN CURRENT_DATE::timestamp
+    WHEN ${column}::date = CURRENT_DATE - 1 THEN (CURRENT_DATE - 1)::timestamp
+    WHEN ${column}::date = CURRENT_DATE + 1 THEN (CURRENT_DATE + 1)::timestamp
+    WHEN ${column}::date BETWEEN CURRENT_DATE - 7 AND CURRENT_DATE - 2 THEN (CURRENT_DATE - 7)::timestamp
+    WHEN ${column}::date BETWEEN CURRENT_DATE + 2 AND CURRENT_DATE + 7 THEN (CURRENT_DATE + 2)::timestamp
+    WHEN ${column}::date BETWEEN CURRENT_DATE - 30 AND CURRENT_DATE - 8 THEN (CURRENT_DATE - 30)::timestamp
+    WHEN ${column}::date BETWEEN CURRENT_DATE + 8 AND CURRENT_DATE + 30 THEN (CURRENT_DATE + 8)::timestamp
+    ELSE DATE_TRUNC('month', ${column})::timestamp
   END`;
 }
 
 /**
- * Build SQL CASE expression for relative date sort order
+ * Build SQL CASE expression for relative date sort order.
+ *
+ * Orders chronologically from past to future:
+ * - Past months: large negative number + epoch (oldest first)
+ * - Last 30 days: -4
+ * - Last 7 days: -3
+ * - Yesterday: -2
+ * - Today: -1
+ * - Tomorrow: 0
+ * - Next 7 days: 1
+ * - Next 30 days: 2
+ * - Future months: large positive number + epoch (earliest first)
  */
 function buildRelativeDateOrder(column: SQL): SQL {
   return sql`CASE
-    WHEN DATE(${column}) = CURRENT_DATE THEN 0
-    WHEN DATE(${column}) = CURRENT_DATE - INTERVAL '1 day' THEN -1
-    WHEN DATE(${column}) = CURRENT_DATE + INTERVAL '1 day' THEN 1
-    WHEN DATE(${column}) BETWEEN CURRENT_DATE - INTERVAL '7 days' AND CURRENT_DATE - INTERVAL '2 days' THEN -2
-    WHEN DATE(${column}) BETWEEN CURRENT_DATE + INTERVAL '2 days' AND CURRENT_DATE + INTERVAL '7 days' THEN 2
-    WHEN DATE(${column}) BETWEEN CURRENT_DATE - INTERVAL '30 days' AND CURRENT_DATE - INTERVAL '8 days' THEN -3
-    WHEN DATE(${column}) BETWEEN CURRENT_DATE + INTERVAL '8 days' AND CURRENT_DATE + INTERVAL '30 days' THEN 3
-    ELSE EXTRACT(EPOCH FROM ${column})
+    WHEN ${column} IS NULL THEN 999999999
+    WHEN ${column}::date = CURRENT_DATE THEN -1
+    WHEN ${column}::date = CURRENT_DATE - 1 THEN -2
+    WHEN ${column}::date = CURRENT_DATE + 1 THEN 0
+    WHEN ${column}::date BETWEEN CURRENT_DATE - 7 AND CURRENT_DATE - 2 THEN -3
+    WHEN ${column}::date BETWEEN CURRENT_DATE + 2 AND CURRENT_DATE + 7 THEN 1
+    WHEN ${column}::date BETWEEN CURRENT_DATE - 30 AND CURRENT_DATE - 8 THEN -4
+    WHEN ${column}::date BETWEEN CURRENT_DATE + 8 AND CURRENT_DATE + 30 THEN 2
+    WHEN ${column}::date < CURRENT_DATE - 30 THEN -1000000000 + EXTRACT(EPOCH FROM ${column})
+    ELSE 1000000000 + EXTRACT(EPOCH FROM ${column})
   END`;
 }
 
@@ -251,7 +279,16 @@ export function buildGroupBy<T extends Table>(
         orderBy: sql`CASE WHEN ${column} = true THEN 0 ELSE 1 END`,
       };
 
-    // select, multiSelect, and any other types use simple grouping
+    // multiSelect arrays - use UNNEST to expand and group by individual values
+    // Items with multiple values will appear in multiple groups
+    // Handle NULL/empty arrays by replacing with single-element array containing "No property"
+    case "multiSelect":
+      return {
+        groupKey: sql`UNNEST(CASE WHEN ${column} IS NULL OR CARDINALITY(${column}) = 0 THEN ARRAY['No ${sql.raw(parsed.property)}'] ELSE ${column} END)`,
+        orderBy: sql`UNNEST(CASE WHEN ${column} IS NULL OR CARDINALITY(${column}) = 0 THEN ARRAY['No ${sql.raw(parsed.property)}'] ELSE ${column} END)`,
+      };
+
+    // select and any other types use simple grouping
     default:
       return {
         groupKey: sql`COALESCE(${column}::text, 'No ' || '${sql.raw(parsed.property)}')`,
@@ -271,7 +308,8 @@ function buildDateGroupWhere(
 ): SQL {
   switch (showAs) {
     case "relative":
-      return sql`(${buildRelativeDateCase(columnSql)}) = ${groupKey}`;
+      // groupKey is now a timestamp string - compare using the same CASE expression
+      return sql`(${buildRelativeDateCase(columnSql)}) = ${groupKey}::timestamp`;
     case "day":
       return sql`TO_CHAR(${column}, 'Mon DD, YYYY') = ${groupKey}`;
     case "week":
@@ -445,11 +483,16 @@ export async function executeGroupByQuery<T extends Table>(
   const sortValues: Record<string, string | number> = {};
 
   for (const row of result.rows as Array<{
-    group_key: string;
+    group_key: string | Date;
     sort_value: string | number;
     count: number;
   }>) {
-    const key = String(row.group_key);
+    // Convert Date to ISO string for use as object key
+    // Client parses ISO string back to Date for formatting
+    const key =
+      row.group_key instanceof Date
+        ? row.group_key.toISOString()
+        : String(row.group_key);
     counts[key] = {
       count: Math.min(Number(row.count), 100),
       hasMore: Number(row.count) > 100,

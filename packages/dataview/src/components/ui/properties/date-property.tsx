@@ -1,7 +1,12 @@
 "use client";
 
 import type { Locale } from "date-fns";
-import { format, formatDistanceToNow } from "date-fns";
+import {
+  differenceInDays,
+  format,
+  formatDistanceToNow,
+  startOfDay,
+} from "date-fns";
 // biome-ignore lint/performance/noNamespaceImport: Dynamic locale lookup requires all locales
 import * as locales from "date-fns/locale";
 import { useMemo } from "react";
@@ -33,6 +38,53 @@ function getDateFnsLocale(localeString: string): Locale {
 
   // Fallback to English
   return locales.enUS;
+}
+
+/**
+ * Format a date as a relative group label.
+ * Used for group headers when showAs="relative".
+ *
+ * The date represents the START of a bucket:
+ * - Today's date = "Today"
+ * - Yesterday's date = "Yesterday"
+ * - Tomorrow's date = "Tomorrow"
+ * - 7 days ago = "Last 7 days"
+ * - 2 days ahead = "Next 7 days"
+ * - 30 days ago = "Last 30 days"
+ * - 8 days ahead = "Next 30 days"
+ * - First of month = "MMM yyyy" (e.g., "Aug 2025")
+ */
+function formatRelativeGroupLabel(date: Date, locale: Locale): string {
+  const today = startOfDay(new Date());
+  const targetDay = startOfDay(date);
+  const diffDays = differenceInDays(targetDay, today);
+
+  // Match bucket start dates to labels
+  // These must match the server-side bucket boundaries in group-columns.ts
+  if (diffDays === 0) {
+    return "Today";
+  }
+  if (diffDays === -1) {
+    return "Yesterday";
+  }
+  if (diffDays === 1) {
+    return "Tomorrow";
+  }
+  if (diffDays === -7) {
+    return "Last 7 days";
+  }
+  if (diffDays === 2) {
+    return "Next 7 days";
+  }
+  if (diffDays === -30) {
+    return "Last 30 days";
+  }
+  if (diffDays === 8) {
+    return "Next 30 days";
+  }
+
+  // Fallback: format as month/year
+  return format(date, "MMM yyyy", { locale });
 }
 
 interface DatePropertyProps {
@@ -95,12 +147,20 @@ export function DateProperty({
           locale: dateFnsLocale,
         });
         break;
+      case "relativeGroup":
+        // Used for group headers - converts bucket start date to label
+        formatted = formatRelativeGroupLabel(dateValue, dateFnsLocale);
+        break;
       default:
         formatted = format(dateValue, "MMM d, yyyy", { locale: dateFnsLocale });
     }
 
-    // Add time if not hidden
-    if (timeFormat !== "hidden" && dateFormat !== "relative") {
+    // Add time if not hidden (except for relative formats)
+    if (
+      timeFormat !== "hidden" &&
+      dateFormat !== "relative" &&
+      dateFormat !== "relativeGroup"
+    ) {
       const timeFormatString = timeFormat === "12hour" ? "h:mm a" : "HH:mm";
       formatted += ` ${format(dateValue, timeFormatString, { locale: dateFnsLocale })}`;
     }

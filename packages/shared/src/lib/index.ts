@@ -6,6 +6,8 @@ export {
 export {
   // TRPC zod schema
   createSearchParamsSchema,
+  // Types
+  type GroupByConfigInput,
   groupPaginationParams, // grouped pagination
   // Server-side NUQS parsers
   paginationParams, // flat pagination
@@ -14,5 +16,6 @@ export {
   parseAsCursors, // grouped pagination
   parseAsExpanded,
   parseAsFilter, // new filter (recursive AND/OR)
+  parseAsGroupBy, // groupBy config
   parseAsSort,
 } from "./search-params";

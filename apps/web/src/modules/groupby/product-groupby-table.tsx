@@ -8,12 +8,7 @@ import {
   TableView,
 } from "@sparkyidea/dataview/views/table-view";
 import { parseAsExpanded } from "@sparkyidea/shared/lib";
-import type {
-  GroupByConfigInput,
-  Limit,
-  SortQuery,
-  WhereNode,
-} from "@sparkyidea/shared/types";
+import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
 import { buildSearchFilter } from "@sparkyidea/shared/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useQueryState } from "nuqs";
@@ -51,11 +46,10 @@ export function ProductGroupByTable({
   const searchableFields = getSearchableProperties(productProperties);
   const search = buildSearchFilter(searchQuery, searchableFields);
 
-  // Fetch group counts from server using new getGroup endpoint
+  // Fetch group counts from server
   // groupConfig is always defined since we have a default in useGroupConfig
-  const groupByInput = groupConfig as GroupByConfigInput;
   const { data: groupData } = useSuspenseQuery(
-    trpc.product.getGroup.queryOptions({ groupBy: groupByInput })
+    trpc.product.getGroup.queryOptions({ groupBy: groupConfig })
   );
 
   // Convert to ViewCounts format for DataViewProvider
@@ -83,7 +77,7 @@ export function ProductGroupByTable({
       createQueryOptions: (groupKey) =>
         trpc.product.getManyByGroup.infiniteQueryOptions(
           {
-            groupBy: groupByInput,
+            groupBy: groupConfig,
             limit: defaultLimit,
             filter,
             search,

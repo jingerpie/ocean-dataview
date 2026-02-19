@@ -1,6 +1,9 @@
 "use client";
 
-import type { GroupConfig } from "@sparkyidea/dataview/types";
+import {
+  type GroupByConfigInput,
+  parseAsGroupBy,
+} from "@sparkyidea/shared/lib";
 import {
   Select,
   SelectContent,
@@ -11,18 +14,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@sparkyidea/ui/components/select";
-import { parseAsString, useQueryState } from "nuqs";
+import { useQueryState } from "nuqs";
 
 interface GroupOption {
-  config: GroupConfig;
+  config: GroupByConfigInput;
   label: string;
-  value: string;
 }
 
 const BY_SELECT_OPTIONS: GroupOption[] = [
   {
     label: "Select",
-    value: "bySelect-category",
     config: { bySelect: { property: "category" } },
   },
 ];
@@ -30,12 +31,10 @@ const BY_SELECT_OPTIONS: GroupOption[] = [
 const BY_STATUS_OPTIONS: GroupOption[] = [
   {
     label: "Status (option)",
-    value: "byStatus-availability-option",
     config: { byStatus: { property: "availability", showAs: "option" } },
   },
   {
     label: "Status (group)",
-    value: "byStatus-availability-group",
     config: { byStatus: { property: "availability", showAs: "group" } },
   },
 ];
@@ -43,27 +42,22 @@ const BY_STATUS_OPTIONS: GroupOption[] = [
 const BY_DATE_OPTIONS: GroupOption[] = [
   {
     label: "Date (relative)",
-    value: "byDate-lastRestocked-relative",
     config: { byDate: { property: "lastRestocked", showAs: "relative" } },
   },
   {
     label: "Date (day)",
-    value: "byDate-lastRestocked-day",
     config: { byDate: { property: "lastRestocked", showAs: "day" } },
   },
   {
     label: "Date (week)",
-    value: "byDate-lastRestocked-week",
     config: { byDate: { property: "lastRestocked", showAs: "week" } },
   },
   {
     label: "Date (month)",
-    value: "byDate-lastRestocked-month",
     config: { byDate: { property: "lastRestocked", showAs: "month" } },
   },
   {
     label: "Date (year)",
-    value: "byDate-lastRestocked-year",
     config: { byDate: { property: "lastRestocked", showAs: "year" } },
   },
 ];
@@ -71,7 +65,6 @@ const BY_DATE_OPTIONS: GroupOption[] = [
 const BY_CHECKBOX_OPTIONS: GroupOption[] = [
   {
     label: "Checkbox",
-    value: "byCheckbox-featured",
     config: { byCheckbox: { property: "featured" } },
   },
 ];
@@ -79,7 +72,6 @@ const BY_CHECKBOX_OPTIONS: GroupOption[] = [
 const BY_MULTI_SELECT_OPTIONS: GroupOption[] = [
   {
     label: "Multi Select",
-    value: "byMultiSelect-tags",
     config: { byMultiSelect: { property: "tags" } },
   },
 ];
@@ -87,12 +79,10 @@ const BY_MULTI_SELECT_OPTIONS: GroupOption[] = [
 const BY_TEXT_OPTIONS: GroupOption[] = [
   {
     label: "Text (exact)",
-    value: "byText-productName-exact",
     config: { byText: { property: "productName", showAs: "exact" } },
   },
   {
     label: "Text (alphabetical)",
-    value: "byText-productName-alphabetical",
     config: { byText: { property: "productName", showAs: "alphabetical" } },
   },
 ];
@@ -100,7 +90,6 @@ const BY_TEXT_OPTIONS: GroupOption[] = [
 const BY_NUMBER_OPTIONS: GroupOption[] = [
   {
     label: "Number (0-500, step 100)",
-    value: "byNumber-price-range",
     config: {
       byNumber: { property: "price", showAs: { range: [0, 500], step: 100 } },
     },
@@ -117,21 +106,40 @@ const ALL_OPTIONS: GroupOption[] = [
   ...BY_NUMBER_OPTIONS,
 ];
 
-const DEFAULT_GROUP = "bySelect-category";
+const DEFAULT_GROUP: GroupByConfigInput = {
+  bySelect: { property: "category" },
+};
+
+/**
+ * Get a stable key for a GroupByConfigInput (for Select value matching).
+ * Uses JSON.stringify since configs are simple objects.
+ */
+function getConfigKey(config: GroupByConfigInput): string {
+  return JSON.stringify(config);
+}
+
+/**
+ * Find option by config (deep equality via JSON key).
+ */
+function findOptionByConfig(
+  config: GroupByConfigInput
+): GroupOption | undefined {
+  const key = getConfigKey(config);
+  return ALL_OPTIONS.find((opt) => getConfigKey(opt.config) === key);
+}
 
 export function useGroupConfig() {
-  const [groupValue, setGroupValue] = useQueryState(
+  const [groupConfig, setGroupConfig] = useQueryState(
     "group",
-    parseAsString.withDefault(DEFAULT_GROUP)
+    parseAsGroupBy.withOptions({ shallow: false })
   );
 
-  const selectedOption =
-    ALL_OPTIONS.find((opt) => opt.value === groupValue) ?? ALL_OPTIONS[0];
+  // Use default if null
+  const effectiveConfig = groupConfig ?? DEFAULT_GROUP;
 
   return {
-    groupValue,
-    setGroupValue,
-    groupConfig: selectedOption?.config,
+    groupConfig: effectiveConfig,
+    setGroupConfig,
   };
 }
 
@@ -139,31 +147,39 @@ function renderGroup(label: string, options: GroupOption[]) {
   return (
     <SelectGroup>
       <SelectLabel>{label}</SelectLabel>
-      {options.map((option) => (
-        <SelectItem key={option.value} value={option.value}>
-          {option.label}
-        </SelectItem>
-      ))}
+      {options.map((option) => {
+        const key = getConfigKey(option.config);
+        return (
+          <SelectItem key={key} value={key}>
+            {option.label}
+          </SelectItem>
+        );
+      })}
     </SelectGroup>
   );
 }
 
 export function GroupSelector() {
-  const { groupValue, setGroupValue } = useGroupConfig();
+  const { groupConfig, setGroupConfig } = useGroupConfig();
 
-  const selectedLabel =
-    ALL_OPTIONS.find((opt) => opt.value === groupValue)?.label ?? "Select...";
+  const selectedKey = getConfigKey(groupConfig);
+  const selectedLabel = findOptionByConfig(groupConfig)?.label ?? "Select...";
 
-  const handleValueChange = (value: string | null) => {
-    if (value) {
-      void setGroupValue(value);
+  const handleValueChange = (key: string | null) => {
+    if (!key) {
+      return;
+    }
+    // Find the option by its JSON key and set the config
+    const option = ALL_OPTIONS.find((opt) => getConfigKey(opt.config) === key);
+    if (option) {
+      void setGroupConfig(option.config);
     }
   };
 
   return (
     <div className="flex items-center gap-2">
       <span className="text-muted-foreground text-sm">Group By:</span>
-      <Select onValueChange={handleValueChange} value={groupValue}>
+      <Select onValueChange={handleValueChange} value={selectedKey}>
         <SelectTrigger className="w-[280px]">
           <SelectValue placeholder={selectedLabel}>{selectedLabel}</SelectValue>
         </SelectTrigger>
