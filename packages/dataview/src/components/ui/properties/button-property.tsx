@@ -1,26 +1,23 @@
 "use client";
 
-import type { ButtonAction, ButtonConfig } from "../../../types/property.type";
+import type { ButtonAction } from "../../../types/property.type";
 import { Button } from "../button";
 import { ButtonGroup } from "../button-group";
 
-interface ButtonPropertyProps<T> {
-  config: ButtonConfig<T>;
-  item: T;
+interface ButtonPropertyProps {
+  buttons: ButtonAction[];
 }
 
 /**
  * Renders action buttons for a data row.
- * For more complex button configurations, use formula property.
+ * Receives pre-computed button actions from the value function.
  */
-export function ButtonProperty<T>({ config, item }: ButtonPropertyProps<T>) {
-  const { buttons } = config;
-
+export function ButtonProperty({ buttons }: ButtonPropertyProps) {
   if (buttons.length === 0) {
     return null;
   }
 
-  const renderButton = (action: ButtonAction<T>) => {
+  const renderButton = (action: ButtonAction) => {
     const { label, icon: Icon, onClick, isPending, disabled } = action;
 
     return (
@@ -29,7 +26,7 @@ export function ButtonProperty<T>({ config, item }: ButtonPropertyProps<T>) {
         key={label}
         onClick={(e) => {
           e.stopPropagation();
-          onClick(item);
+          onClick();
         }}
         variant="outline"
       >

@@ -146,20 +146,14 @@ export interface UrlConfig {
 
 /**
  * Individual button action configuration.
+ * Used inside button property's value function where item is already in scope.
  */
-export interface ButtonAction<T = unknown> {
+export interface ButtonAction {
   disabled?: boolean;
   icon?: IconComponent;
   isPending?: boolean;
   label: string;
-  onClick: (item: T) => void;
-}
-
-/**
- * Configuration for button property type.
- */
-export interface ButtonConfig<T = unknown> {
-  buttons: ButtonAction<T>[];
+  onClick: () => void;
 }
 
 /**
@@ -367,10 +361,30 @@ export type FormulaPropertyType<T> = BaseProperty<T> & {
  * Button property type - renders action buttons in any column position.
  * Unlike rowActions which are tied to row selection and bulk operations,
  * button properties are independent per-row actions.
+ *
+ * @example
+ * ```tsx
+ * {
+ *   id: "actions",
+ *   type: "button",
+ *   label: "Actions",
+ *   value: (item) => [
+ *     { label: "View", icon: Eye, onClick: () => viewItem(item) },
+ *     { label: "Edit", icon: Edit, onClick: () => editItem(item) },
+ *   ],
+ * }
+ * ```
  */
 export type ButtonPropertyType<T> = BaseProperty<T> & {
   type: "button";
-  config: ButtonConfig<T>;
+  config?: never;
+  /**
+   * Button value function.
+   *
+   * @param item - The row data item
+   * @returns Array of button actions to render
+   */
+  value: (item: T) => ButtonAction[];
 };
 
 /**

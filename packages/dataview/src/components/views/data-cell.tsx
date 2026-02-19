@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import type { ButtonConfig, DataViewProperty } from "../../types/property.type";
+import type { DataViewProperty } from "../../types/property.type";
 import { ButtonProperty } from "../ui/properties/button-property";
 import { CheckboxProperty } from "../ui/properties/checkbox-property";
 import { DateProperty } from "../ui/properties/date-property";
@@ -123,13 +123,10 @@ function DataCellComponent<T>({
     case "filesMedia":
       return <FilesMediaProperty value={displayValue as string[]} />;
 
-    case "button":
-      return (
-        <ButtonProperty
-          config={property.config as ButtonConfig<T>}
-          item={item}
-        />
-      );
+    case "button": {
+      const buttons = property.value(item);
+      return <ButtonProperty buttons={buttons} />;
+    }
 
     default:
       return (

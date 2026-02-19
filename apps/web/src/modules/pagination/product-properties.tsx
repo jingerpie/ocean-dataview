@@ -162,23 +162,17 @@ export const productProperties = [
     id: "actions",
     label: "Actions",
     type: "button",
-    config: {
-      buttons: [
-        {
-          label: "View",
-          icon: Eye,
-          onClick: (item: Product) => {
-            toast.info(`Viewing: ${item.productName}`);
-          },
-        },
-        {
-          label: "Edit",
-          icon: Edit,
-          onClick: (item: Product) => {
-            toast.info(`Editing: ${item.productName}`);
-          },
-        },
-      ],
-    },
+    value: (item) => [
+      {
+        label: "View",
+        icon: Eye,
+        onClick: () => toast.info(`Viewing: ${item.productName}`),
+      },
+      {
+        label: "Edit",
+        icon: Edit,
+        onClick: () => toast.info(`Editing: ${item.productName}`),
+      },
+    ],
   },
 ] as DataViewProperty<Product>[];
