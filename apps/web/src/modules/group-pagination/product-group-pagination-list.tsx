@@ -95,9 +95,9 @@ export function ProductGroupPaginationList({
         data={data}
         filter={filter}
         group={{
-          groupBy: "category",
-          showAggregation: true,
-          expandedGroups,
+          bySelect: { property: "category" },
+          showCount: true,
+          expanded: expandedGroups,
           onExpandedChange: handleAccordionChange,
         }}
         pagination={pagination}

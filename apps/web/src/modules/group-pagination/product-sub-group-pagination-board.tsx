@@ -119,15 +119,15 @@ export function ProductSubGroupPaginationBoard({
         counts={{ group: groupCounts, subGroup: subGroupCounts }}
         data={data}
         filter={filter}
-        group={{ groupBy: "category", showAggregation: true }}
+        group={{ bySelect: { property: "category" }, showCount: true }}
         pagination={pagination}
         properties={productProperties}
         search={searchQuery}
         sort={sort}
         subGroup={{
-          subGroupBy: "availability",
-          expandedSubGroups: expandedGroups,
-          onExpandedSubGroupsChange: handleAccordionChange,
+          bySelect: { property: "availability" },
+          expanded: expandedGroups,
+          onExpandedChange: handleAccordionChange,
         }}
       >
         <NotionToolbar properties={productProperties}>
@@ -135,12 +135,10 @@ export function ProductSubGroupPaginationBoard({
         </NotionToolbar>
 
         <BoardView
-          layout={{
-            cardPreview: "productImage",
-            cardSize: "medium",
-            fitMedia: true,
-            colorColumns: true,
-          }}
+          cardPreview="productImage"
+          cardSize="medium"
+          colorColumns
+          fitMedia
           pagination="loadMore"
         />
       </DataViewProvider>

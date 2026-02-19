@@ -5,6 +5,20 @@ export type { BulkAction } from "./action.type";
 // Export chart types
 // biome-ignore lint/performance/noBarrelFile: Intentional public API barrel file
 export * from "./chart.type";
+// Export group config types
+export type {
+  CheckboxGroupConfig,
+  DateGroupConfig,
+  GroupByConfig,
+  GroupConfig,
+  MultiSelectGroupConfig,
+  NumberGroupConfig,
+  SelectGroupConfig,
+  SharedGroupOptions,
+  StatusGroupConfig,
+  SubGroupConfig,
+  TextGroupConfig,
+} from "./group-types";
 // Export pagination types
 export {
   LIMIT_OPTIONS,

@@ -65,15 +65,7 @@ export function ListView<
   } = useViewSetup({
     data: data as TData[],
     properties,
-    groupBy: group
-      ? {
-          groupBy: String(group.groupBy),
-          showAs: group.showAs,
-          startWeekOn: group.startWeekOn,
-          sort: group.sort,
-          hideEmptyGroups: group.hideEmptyGroups,
-        }
-      : undefined,
+    group,
     contextPagination,
     counts: counts?.group,
   });
@@ -112,7 +104,7 @@ export function ListView<
         <Accordion
           multiple
           onValueChange={group.onExpandedChange}
-          value={group.expandedGroups ?? []}
+          value={group.expanded ?? []}
         >
           {groupedData.map((groupItem: GroupedDataItem<TData>) => {
             // Build pagination context for this group using shared utility
@@ -128,7 +120,7 @@ export function ListView<
                 isLoading={false}
                 key={groupItem.key}
                 renderFooter={renderPagination(pagination, paginationContext)}
-                showAggregation={group.showAggregation ?? true}
+                showAggregation={group.showCount ?? true}
                 stickyHeader={{ enabled: true, offset: 57 }}
               >
                 <ListRow

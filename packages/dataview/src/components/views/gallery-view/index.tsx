@@ -14,20 +14,26 @@ import { DataCard } from "../data-card";
 
 export interface GalleryViewProps<TData> {
   /**
+   * Property ID for card preview image (references property.id, not data key)
+   */
+  cardPreview?: string;
+
+  /**
+   * Card size preset
+   * @default "medium"
+   */
+  cardSize?: "small" | "medium" | "large";
+
+  /**
    * Additional className
    */
   className?: string;
+
   /**
-   * Layout configuration
+   * Whether to fit media to card (object-cover vs object-contain)
+   * @default true
    */
-  layout: {
-    /** Property ID for card preview image (references property.id, not data key) */
-    cardPreview?: string;
-    cardSize?: "small" | "medium" | "large";
-    fitMedia?: boolean;
-    wrapAllProperties?: boolean;
-    showPropertyNames?: boolean;
-  };
+  fitMedia?: boolean;
 
   /**
    * Card click handler
@@ -45,6 +51,18 @@ export interface GalleryViewProps<TData> {
    * For flat galleries: renders below the gallery
    */
   pagination?: PaginationMode;
+
+  /**
+   * Show property names on cards
+   * @default false
+   */
+  showPropertyNames?: boolean;
+
+  /**
+   * Wrap all properties text
+   * @default false
+   */
+  wrapAllProperties?: boolean;
 }
 
 /**
@@ -56,10 +74,14 @@ export function GalleryView<
   TProperties extends
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
-  layout = {},
+  cardPreview,
+  cardSize = "medium",
+  className,
+  fitMedia = true,
   onCardClick,
   pagination,
-  className,
+  showPropertyNames = false,
+  wrapAllProperties = false,
 }: GalleryViewProps<TData>) {
   // Get data and properties from context
   const {
@@ -71,14 +93,6 @@ export function GalleryView<
     group,
   } = useDataViewContext<TData, TProperties>();
 
-  const {
-    cardPreview,
-    cardSize = "medium",
-    fitMedia = true,
-    wrapAllProperties = false,
-    showPropertyNames = false,
-  } = layout;
-
   // Use shared view setup hook
   const {
     transformedData,
@@ -89,15 +103,7 @@ export function GalleryView<
   } = useViewSetup({
     data: data as TData[],
     properties,
-    groupBy: group
-      ? {
-          groupBy: String(group.groupBy),
-          showAs: group.showAs,
-          startWeekOn: group.startWeekOn,
-          sort: group.sort,
-          hideEmptyGroups: group.hideEmptyGroups,
-        }
-      : undefined,
+    group,
     contextPagination,
     counts: counts?.group,
   });
@@ -165,7 +171,7 @@ export function GalleryView<
         <Accordion
           multiple
           onValueChange={group.onExpandedChange}
-          value={group.expandedGroups ?? []}
+          value={group.expanded ?? []}
         >
           {groupedData.map((groupItem: GroupedDataItem<TData>) => {
             // Build pagination context for this group using shared utility
@@ -181,7 +187,7 @@ export function GalleryView<
                 isLoading={false}
                 key={groupItem.key}
                 renderFooter={renderPagination(pagination, paginationContext)}
-                showAggregation={group.showAggregation ?? true}
+                showAggregation={group.showCount ?? true}
                 stickyHeader={{ enabled: true, offset: 57 }}
               >
                 {renderCardGrid(groupItem.items)}

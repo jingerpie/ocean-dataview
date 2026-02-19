@@ -86,11 +86,9 @@ export function ProductPaginationGallery({
           </div>
         ) : (
           <GalleryView
-            layout={{
-              cardPreview: "productImage",
-              cardSize: "medium",
-              fitMedia: true,
-            }}
+            cardPreview="productImage"
+            cardSize="medium"
+            fitMedia
             pagination="infiniteScroll"
           />
         )}

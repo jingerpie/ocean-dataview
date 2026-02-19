@@ -22,11 +22,7 @@ export type {
   UseToolbarStateReturn,
 } from "./use-toolbar-state";
 export { useToolbarState } from "./use-toolbar-state";
-export type {
-  UseViewSetupOptions,
-  UseViewSetupResult,
-  ViewGroupConfig,
-} from "./use-view-setup";
+export type { UseViewSetupOptions, UseViewSetupResult } from "./use-view-setup";
 export { useViewSetup } from "./use-view-setup";
 
 // ============================================================================

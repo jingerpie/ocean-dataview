@@ -103,9 +103,9 @@ export function ProductGroupPaginationTable({
         data={data}
         filter={filter}
         group={{
-          groupBy: "category",
-          showAggregation: true,
-          expandedGroups,
+          bySelect: { property: "category" },
+          showCount: true,
+          expanded: expandedGroups,
           onExpandedChange: handleAccordionChange,
         }}
         pagination={pagination}
@@ -119,8 +119,9 @@ export function ProductGroupPaginationTable({
 
         <TableView
           bulkActions={sampleRowActions}
-          layout={{ showVerticalLines: false, wrapAllColumns: false }}
           pagination="page"
+          showVerticalLines={false}
+          wrapAllColumns={false}
         />
       </DataViewProvider>
     </Suspense>

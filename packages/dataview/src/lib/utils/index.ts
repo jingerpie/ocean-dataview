@@ -18,6 +18,10 @@ export {
 } from "./date-picker-utils";
 export { groupByField } from "./group";
 export { paginateData } from "./paginate";
+export {
+  type ParsedGroupConfig,
+  parseGroupByConfig,
+} from "./parse-group-config";
 export { searchData } from "./search";
 export { sortData } from "./sort";
 export { transformData } from "./transform-data";

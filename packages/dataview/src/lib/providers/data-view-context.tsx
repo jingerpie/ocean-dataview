@@ -9,8 +9,10 @@ import type {
 } from "../../hooks";
 import type {
   DataViewProperty,
+  GroupConfig,
   PropertyMeta,
   SortQuery,
+  SubGroupConfig,
   ViewCounts,
   WhereNode,
 } from "../../types";
@@ -24,49 +26,8 @@ export type PaginationOutput<TData> =
   | GroupPagePaginationState<TData>
   | GroupInfinitePaginationState<TData>;
 
-/**
- * Group configuration for views
- */
-export interface GroupConfig<TPropertyId extends string = string> {
-  /** Controlled expanded groups state */
-  expandedGroups?: string[];
-  /** Property ID to group by */
-  groupBy: TPropertyId;
-  /** Hide empty groups */
-  hideEmptyGroups?: boolean;
-  /** Callback when expanded groups change */
-  onExpandedChange?: (groups: string[]) => void;
-  /** Show aggregation/count in group headers */
-  showAggregation?: boolean;
-  /** How to display the grouping */
-  showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option";
-  /** Sort direction for groups */
-  sort?: "propertyAscending" | "propertyDescending";
-  /** Week start day for week grouping */
-  startWeekOn?: "monday" | "sunday";
-}
-
-/**
- * Sub-group configuration for BoardView
- */
-export interface SubGroupConfig<TPropertyId extends string = string> {
-  /** Default expanded sub-groups */
-  defaultExpanded?: string[];
-  /** Controlled expanded sub-groups state */
-  expandedSubGroups?: string[];
-  /** Hide empty sub-groups */
-  hideEmptyGroups?: boolean;
-  /** Callback when expanded sub-groups change */
-  onExpandedSubGroupsChange?: (groups: string[]) => void;
-  /** How to display the sub-grouping */
-  showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option";
-  /** Sort direction for sub-groups */
-  sort?: "propertyAscending" | "propertyDescending";
-  /** Week start day for week sub-grouping */
-  startWeekOn?: "monday" | "sunday";
-  /** Property ID to sub-group by */
-  subGroupBy: TPropertyId;
-}
+// Re-export for convenience
+export type { GroupConfig, SubGroupConfig } from "../../types";
 
 export interface DataViewContextValue<
   TData,
@@ -83,7 +44,7 @@ export interface DataViewContextValue<
   filter?: WhereNode[] | null;
 
   // View config (previously in view prop)
-  group?: GroupConfig<TProperties[number]["id"]>;
+  group?: GroupConfig;
   hideAllProperties: () => void;
   limit?: number;
   pagination?: PaginationOutput<TData> | undefined;
@@ -96,7 +57,7 @@ export interface DataViewContextValue<
   setPropertyVisibility: (visibility: TProperties[number]["id"][]) => void;
   showAllProperties: () => void;
   sort?: SortQuery[];
-  subGroup?: SubGroupConfig<TProperties[number]["id"]>;
+  subGroup?: SubGroupConfig;
   toggleProperty: (propertyId: TProperties[number]["id"]) => void;
 }
 

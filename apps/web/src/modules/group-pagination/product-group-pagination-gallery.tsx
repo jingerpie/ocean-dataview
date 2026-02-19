@@ -97,9 +97,9 @@ export function ProductGroupPaginationGallery({
         data={data}
         filter={filter}
         group={{
-          groupBy: "category",
-          showAggregation: true,
-          expandedGroups,
+          bySelect: { property: "category" },
+          showCount: true,
+          expanded: expandedGroups,
           onExpandedChange: handleAccordionChange,
         }}
         pagination={pagination}
@@ -112,11 +112,9 @@ export function ProductGroupPaginationGallery({
         </NotionToolbar>
 
         <GalleryView
-          layout={{
-            cardPreview: "productImage",
-            cardSize: "medium",
-            fitMedia: true,
-          }}
+          cardPreview="productImage"
+          cardSize="medium"
+          fitMedia
           pagination="loadMore"
         />
       </DataViewProvider>

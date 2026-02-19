@@ -45,14 +45,6 @@ export interface TableViewProps<TData> {
   className?: string;
 
   /**
-   * Layout configuration
-   */
-  layout?: {
-    showVerticalLines?: boolean;
-    wrapAllColumns?: boolean;
-  };
-
-  /**
    * Row click handler
    */
   onRowClick?: (row: TData) => void;
@@ -68,6 +60,18 @@ export interface TableViewProps<TData> {
    * For flat tables: renders below the table
    */
   pagination?: PaginationMode;
+
+  /**
+   * Show vertical lines between columns
+   * @default true
+   */
+  showVerticalLines?: boolean;
+
+  /**
+   * Wrap text in all columns
+   * @default true
+   */
+  wrapAllColumns?: boolean;
 }
 
 /**
@@ -82,9 +86,10 @@ export function TableView<
 >({
   bulkActions,
   className,
-  layout = {},
   onRowClick,
   pagination,
+  showVerticalLines = true,
+  wrapAllColumns = true,
 }: TableViewProps<TData>) {
   // Get data and properties from context
   const {
@@ -95,8 +100,6 @@ export function TableView<
     counts,
     group,
   } = useDataViewContext<TData, TProperties>();
-
-  const { showVerticalLines = true, wrapAllColumns = true } = layout;
 
   // Use shared view setup hook
   const {
@@ -109,15 +112,7 @@ export function TableView<
   } = useViewSetup({
     data: data as TData[],
     properties,
-    groupBy: group
-      ? {
-          groupBy: String(group.groupBy),
-          showAs: group.showAs,
-          startWeekOn: group.startWeekOn,
-          sort: group.sort,
-          hideEmptyGroups: group.hideEmptyGroups,
-        }
-      : undefined,
+    group,
     contextPagination,
     counts: counts?.group,
   });
@@ -253,7 +248,7 @@ export function TableView<
         <Accordion
           multiple
           onValueChange={group.onExpandedChange}
-          value={group.expandedGroups ?? []}
+          value={group.expanded ?? []}
         >
           {groupedData.map((groupItem: GroupedDataItem<TData>) => {
             // Build pagination context for this group using the utility function
@@ -278,7 +273,7 @@ export function TableView<
                 isLoading={false}
                 key={groupItem.key}
                 renderFooter={renderPagination(pagination, paginationContext)}
-                showAggregation={group.showAggregation ?? true}
+                showAggregation={group.showCount ?? true}
                 stickyHeader={{ enabled: true, offset: 57 }}
               >
                 <DataTable

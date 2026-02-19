@@ -4,7 +4,9 @@ import type { ReactNode } from "react";
 import { useCallback, useMemo, useState } from "react";
 import {
   type DataViewProperty,
+  type GroupConfig,
   type SortQuery,
+  type SubGroupConfig,
   toPropertyMetaArray,
   type ViewCounts,
   type WhereNode,
@@ -13,9 +15,7 @@ import { cn } from "../utils";
 import {
   DataViewContext,
   type DataViewContextValue,
-  type GroupConfig,
   type PaginationOutput,
-  type SubGroupConfig,
 } from "./data-view-context";
 
 export interface DataViewProviderProps<
@@ -38,7 +38,7 @@ export interface DataViewProviderProps<
 
   // View config (flattened from view prop)
   /** Group configuration */
-  group?: GroupConfig<TProperties[number]["id"]>;
+  group?: GroupConfig;
   /** Default page size */
   limit?: number;
 
@@ -51,7 +51,7 @@ export interface DataViewProviderProps<
   /** Current sort state (from server) */
   sort?: SortQuery[];
   /** Sub-group configuration (BoardView only) */
-  subGroup?: SubGroupConfig<TProperties[number]["id"]>;
+  subGroup?: SubGroupConfig;
 }
 
 export function DataViewProvider<

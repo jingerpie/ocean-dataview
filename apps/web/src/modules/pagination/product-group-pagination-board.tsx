@@ -102,7 +102,7 @@ export function ProductGroupPaginationBoard({
         counts={{ group: groupCounts }}
         data={items}
         filter={filter}
-        group={{ groupBy: "category", showAggregation: true }}
+        group={{ bySelect: { property: "category" }, showCount: true }}
         pagination={pagination}
         properties={productProperties}
         search={searchQuery}
@@ -113,12 +113,10 @@ export function ProductGroupPaginationBoard({
         </NotionToolbar>
 
         <BoardView
-          layout={{
-            cardPreview: "productImage",
-            cardSize: "medium",
-            colorColumns: true,
-            fitMedia: true,
-          }}
+          cardPreview="productImage"
+          cardSize="medium"
+          colorColumns
+          fitMedia
           pagination="loadMore"
         />
       </DataViewProvider>

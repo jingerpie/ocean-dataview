@@ -1,24 +1,24 @@
 import { useMemo } from "react";
-import { transformData, validatePropertyKeys } from "../lib/utils";
-import type { DataViewProperty, GroupCounts } from "../types";
+import {
+  type ParsedGroupConfig,
+  parseGroupByConfig,
+  transformData,
+  validatePropertyKeys,
+} from "../lib/utils";
+import type { DataViewProperty, GroupConfig, GroupCounts } from "../types";
 import type { GroupedDataItem } from "./use-group-config";
 import { useGroupConfig } from "./use-group-config";
 import type { GroupInfiniteInfo } from "./use-group-infinite-pagination";
 import type { GroupInfo } from "./use-group-page-pagination";
 
 /**
- * Group configuration for views
+ * Internal group config format used by useGroupConfig hook
  */
-export interface ViewGroupConfig {
-  /** Property ID to group by */
+interface InternalGroupConfig {
   groupBy: string;
-  /** Hide empty groups */
   hideEmptyGroups?: boolean;
-  /** How to display the grouping */
   showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option";
-  /** Sort direction for groups */
   sort?: "propertyAscending" | "propertyDescending";
-  /** Week start day for week grouping */
   startWeekOn?: "monday" | "sunday";
 }
 
@@ -37,8 +37,8 @@ export interface UseViewSetupOptions<
   counts?: GroupCounts;
   /** Raw data from context */
   data: TData[];
-  /** Group configuration from context */
-  groupBy?: ViewGroupConfig;
+  /** Group configuration from context (new discriminated union format) */
+  group?: GroupConfig;
   /** Property definitions */
   properties: TProperties;
 }
@@ -52,20 +52,14 @@ export interface UseViewSetupResult<
 > {
   /** Property used for grouping */
   groupByProperty: TProperties[number] | undefined;
-  /** Group configuration for useGroupConfig hook */
-  groupConfig:
-    | {
-        groupBy: string;
-        showAs?: ViewGroupConfig["showAs"];
-        startWeekOn?: ViewGroupConfig["startWeekOn"];
-        sort?: ViewGroupConfig["sort"];
-        hideEmptyGroups?: boolean;
-      }
-    | undefined;
+  /** Group configuration for useGroupConfig hook (internal format) */
+  groupConfig: InternalGroupConfig | undefined;
   /** Grouped data items (from server or client) */
   groupedData: GroupedDataItem<TData>[] | null;
   /** Whether using grouped pagination from context */
   hasGroupedPagination: boolean;
+  /** Parsed group config from discriminated union */
+  parsedGroup: ParsedGroupConfig | undefined;
   /** Property key validation error */
   propertyValidationError: string | undefined;
   /** Transformed data with property IDs as keys */
@@ -85,61 +79,74 @@ export function useViewSetup<
 >({
   data,
   properties,
-  groupBy,
+  group,
   contextPagination,
   counts,
 }: UseViewSetupOptions<TData, TProperties>): UseViewSetupResult<
   TData,
   TProperties
 > {
-  // Pattern 3: Validate property keys
+  // Parse the discriminated union group config
+  const parsedGroup = useMemo(
+    () => (group ? parseGroupByConfig(group) : undefined),
+    [group]
+  );
+
+  // Validate property keys
   const propertyValidationError = useMemo(
     () => validatePropertyKeys(properties),
     [properties]
   );
 
-  // Pattern 4: Transform data FIRST before grouping
+  // Transform data FIRST before grouping
   const transformedData = useMemo(() => {
     return transformData(data as TData[], properties) as TData[];
   }, [data, properties]);
 
-  // Pattern 5: Check if we're using grouped pagination from context
+  // Check if we're using grouped pagination from context
   const hasGroupedPagination = Boolean(
     contextPagination &&
       typeof contextPagination === "object" &&
       "groups" in contextPagination
   );
 
-  // Pattern 6: Prepare group configuration (only needed for client-side grouping)
-  const groupConfig = useMemo(() => {
-    if (!groupBy || hasGroupedPagination) {
+  // Prepare internal group configuration (only needed for client-side grouping)
+  // Maps new format (ascending/descending) to old format (propertyAscending/propertyDescending)
+  const groupConfig = useMemo((): InternalGroupConfig | undefined => {
+    if (!parsedGroup || hasGroupedPagination) {
       return undefined;
     }
+    // Map sort values from new format to internal format
+    const sortMap: Record<string, "propertyAscending" | "propertyDescending"> =
+      {
+        ascending: "propertyAscending",
+        descending: "propertyDescending",
+      };
     return {
-      groupBy: String(groupBy.groupBy),
-      showAs: groupBy.showAs,
-      startWeekOn: groupBy.startWeekOn,
-      sort: groupBy.sort,
-      hideEmptyGroups: groupBy.hideEmptyGroups,
+      groupBy: parsedGroup.property,
+      showAs: parsedGroup.showAs,
+      startWeekOn: parsedGroup.startWeekOn,
+      sort: group?.sort ? sortMap[group.sort] : undefined,
+      hideEmptyGroups: group?.hideEmpty,
     };
-  }, [groupBy, hasGroupedPagination]);
+  }, [parsedGroup, hasGroupedPagination, group?.sort, group?.hideEmpty]);
 
-  // Pattern 7: Use shared hook for group configuration and processing (client-side grouping)
+  // Use shared hook for group configuration and processing (client-side grouping)
   const {
     groupedData: clientGroupedData,
     validationError,
     groupByProperty: clientGroupByProperty,
   } = useGroupConfig(transformedData, properties, groupConfig);
 
-  // Pattern 8: Get groupBy property for header display
+  // Get groupBy property for header display
   const groupByProperty = useMemo(() => {
-    if (hasGroupedPagination && groupBy?.groupBy) {
+    if (hasGroupedPagination && parsedGroup?.property) {
       // Server pagination - find property manually
-      return properties.find((p) => String(p.id) === groupBy.groupBy);
+      return properties.find((p) => String(p.id) === parsedGroup.property);
     }
     // Client grouping - use from hook
     return clientGroupByProperty;
-  }, [hasGroupedPagination, groupBy, properties, clientGroupByProperty]);
+  }, [hasGroupedPagination, parsedGroup, properties, clientGroupByProperty]);
 
   // Helper to format count for display
   const formatDisplayCount = (countInfo: GroupCounts[string]) =>
@@ -198,12 +205,13 @@ export function useViewSetup<
   ]);
 
   return {
-    transformedData,
-    hasGroupedPagination,
+    groupByProperty,
     groupConfig,
     groupedData,
-    groupByProperty,
-    validationError,
+    hasGroupedPagination,
+    parsedGroup,
     propertyValidationError,
+    transformedData,
+    validationError,
   };
 }

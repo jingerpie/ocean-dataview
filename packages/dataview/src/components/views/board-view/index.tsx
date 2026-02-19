@@ -14,6 +14,7 @@ import {
   cn,
   getBadgeBgTransparentClass,
   groupByProperty as groupDataByProperty,
+  parseGroupByConfig,
   transformData,
   validatePropertyKeys,
 } from "../../../lib/utils";
@@ -36,9 +37,26 @@ import { BoardColumns } from "./board-columns";
 
 export interface BoardViewProps<TData> {
   /**
+   * Property ID for card preview image (references property.id, not data key)
+   */
+  cardPreview?: string;
+
+  /**
+   * Card size preset
+   * @default "medium"
+   */
+  cardSize?: "small" | "medium" | "large";
+
+  /**
    * Additional className
    */
   className?: string;
+
+  /**
+   * Color column backgrounds based on property option colors
+   * @default false
+   */
+  colorColumns?: boolean;
 
   /**
    * Group counts from server (for rendering column headers with server-side counts)
@@ -47,21 +65,15 @@ export interface BoardViewProps<TData> {
   counts?: GroupCounts;
 
   /**
+   * Whether to fit media to card (object-cover vs object-contain)
+   * @default true
+   */
+  fitMedia?: boolean;
+
+  /**
    * Function to extract unique key from item
    */
   keyExtractor?: (item: TData, index: number) => string;
-  /**
-   * Layout configuration
-   */
-  layout?: {
-    /** Property ID for card preview image (references property.id, not data key) */
-    cardPreview?: string;
-    cardSize?: "small" | "medium" | "large"; // default: 'medium'
-    fitMedia?: boolean; // default: true (object-cover vs object-contain)
-    wrapAllProperties?: boolean; // default: false
-    colorColumns?: boolean; // default: false
-    showPropertyNames?: boolean; // default: false
-  };
 
   /**
    * Card click handler
@@ -78,6 +90,18 @@ export interface BoardViewProps<TData> {
    * For boards: renders at bottom of each column
    */
   pagination?: PaginationMode;
+
+  /**
+   * Show property names on cards
+   * @default false
+   */
+  showPropertyNames?: boolean;
+
+  /**
+   * Wrap all properties text
+   * @default false
+   */
+  wrapAllProperties?: boolean;
 }
 
 /**
@@ -89,13 +113,18 @@ export function BoardView<
   TProperties extends
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
-  layout = {},
-  onCardClick,
+  cardPreview,
+  cardSize = "medium",
+  className,
+  colorColumns = false,
+  counts: _counts,
+  fitMedia = true,
   keyExtractor = (item: TData, index: number) =>
     String((item as { id?: string }).id || index),
+  onCardClick,
   pagination,
-  className,
-  counts: _counts,
+  showPropertyNames = false,
+  wrapAllProperties = false,
 }: BoardViewProps<TData>) {
   // Get data and properties from context
   const {
@@ -114,19 +143,19 @@ export function BoardView<
   const subGroupCounts =
     "subGroup" in (viewCounts ?? {}) ? viewCounts?.subGroup : undefined;
 
+  // Parse group configs from discriminated unions
+  const parsedGroup = useMemo(
+    () => (groupConfig ? parseGroupByConfig(groupConfig) : undefined),
+    [groupConfig]
+  );
+  const parsedSubGroup = useMemo(
+    () => (subGroupConfig ? parseGroupByConfig(subGroupConfig) : undefined),
+    [subGroupConfig]
+  );
+
   // Check if we're using grouped pagination from context
   const hasGroupedPagination =
     contextPagination && "groups" in contextPagination;
-
-  // Apply layout defaults
-  const {
-    cardPreview,
-    cardSize = "medium",
-    fitMedia = true,
-    wrapAllProperties = false,
-    colorColumns = false,
-    showPropertyNames = false,
-  } = layout;
 
   // Validate property keys
   const propertyValidationError = useMemo(
@@ -144,22 +173,28 @@ export function BoardView<
   // (pagination.groups = sub-groups/rows, not columns)
   // For non-sub-grouped boards: use server groups if available
   const clientGroupConfig = useMemo(() => {
-    if (!groupConfig) {
+    if (!parsedGroup) {
       return undefined;
     }
+    // Map sort values from new format to internal format
+    const sortMap: Record<string, "propertyAscending" | "propertyDescending"> =
+      {
+        ascending: "propertyAscending",
+        descending: "propertyDescending",
+      };
     // Always use client-side grouping when sub-groups are present
     // because pagination.groups represents sub-groups, not columns
     if (subGroupConfig || !hasGroupedPagination) {
       return {
-        groupBy: String(groupConfig.groupBy),
-        showAs: groupConfig.showAs,
-        startWeekOn: groupConfig.startWeekOn,
-        sort: groupConfig.sort,
-        hideEmptyGroups: groupConfig.hideEmptyGroups,
+        groupBy: parsedGroup.property,
+        showAs: parsedGroup.showAs,
+        startWeekOn: parsedGroup.startWeekOn,
+        sort: groupConfig?.sort ? sortMap[groupConfig.sort] : undefined,
+        hideEmptyGroups: groupConfig?.hideEmpty,
       };
     }
     return undefined;
-  }, [groupConfig, hasGroupedPagination, subGroupConfig]);
+  }, [parsedGroup, hasGroupedPagination, subGroupConfig, groupConfig]);
 
   // Use shared hook for primary group configuration (with auto-selection)
   // For sub-grouped boards: always required (columns are client-side)
@@ -176,15 +211,13 @@ export function BoardView<
 
   // Get groupBy property for header display
   const groupByProperty = useMemo(() => {
-    if (hasGroupedPagination && groupConfig?.groupBy) {
+    if (hasGroupedPagination && parsedGroup?.property) {
       // Server pagination - find property manually
-      return properties.find(
-        (p) => String(p.id) === String(groupConfig.groupBy)
-      );
+      return properties.find((p) => String(p.id) === parsedGroup.property);
     }
     // Client grouping - use from hook
     return clientGroupByProperty;
-  }, [hasGroupedPagination, groupConfig, properties, clientGroupByProperty]);
+  }, [hasGroupedPagination, parsedGroup, properties, clientGroupByProperty]);
 
   // Choose grouped data source: pagination.groups (server) or useGroupConfig (client)
   // For sub-grouped boards: always use client grouping for columns
@@ -248,16 +281,26 @@ export function BoardView<
   ]);
 
   // Use shared hook for sub-group configuration (if present)
+  // Map sort values from new format to internal format
+  const subGroupSortMap: Record<
+    string,
+    "propertyAscending" | "propertyDescending"
+  > = {
+    ascending: "propertyAscending",
+    descending: "propertyDescending",
+  };
   const { validationError: subGroupValidationError } = useGroupConfig(
     transformedData,
     properties,
-    subGroupConfig
+    parsedSubGroup
       ? {
-          groupBy: String(subGroupConfig.subGroupBy),
-          showAs: subGroupConfig.showAs,
-          startWeekOn: subGroupConfig.startWeekOn,
-          sort: subGroupConfig.sort,
-          hideEmptyGroups: subGroupConfig.hideEmptyGroups,
+          groupBy: parsedSubGroup.property,
+          showAs: parsedSubGroup.showAs,
+          startWeekOn: parsedSubGroup.startWeekOn,
+          sort: subGroupConfig?.sort
+            ? subGroupSortMap[subGroupConfig.sort]
+            : undefined,
+          hideEmptyGroups: subGroupConfig?.hideEmpty,
         }
       : undefined
   );
@@ -270,22 +313,24 @@ export function BoardView<
 
   // Prepare effectiveSubGroupConfig for DataBoard component
   const effectiveSubGroupConfig = useMemo(() => {
-    if (!subGroupConfig) {
+    if (!(parsedSubGroup && subGroupConfig)) {
       return undefined;
     }
 
     return {
-      subGroupBy: subGroupConfig.subGroupBy,
-      showAs: subGroupConfig.showAs,
-      startWeekOn: subGroupConfig.startWeekOn,
-      sort: subGroupConfig.sort ?? "propertyAscending",
-      hideEmptyGroups: subGroupConfig.hideEmptyGroups ?? true,
+      subGroupBy: parsedSubGroup.property,
+      showAs: parsedSubGroup.showAs,
+      startWeekOn: parsedSubGroup.startWeekOn,
+      sort: subGroupConfig.sort
+        ? subGroupSortMap[subGroupConfig.sort]
+        : "propertyAscending",
+      hideEmptyGroups: subGroupConfig.hideEmpty ?? true,
       defaultExpanded: subGroupConfig.defaultExpanded,
-      expandedSubGroups: subGroupConfig.expandedSubGroups,
-      onExpandedSubGroupsChange: subGroupConfig.onExpandedSubGroupsChange,
+      expanded: subGroupConfig.expanded,
+      onExpandedChange: subGroupConfig.onExpandedChange,
       counts: subGroupCounts,
     };
-  }, [subGroupConfig, subGroupCounts]);
+  }, [parsedSubGroup, subGroupConfig, subGroupCounts, subGroupSortMap]);
 
   // Get group options from property config
   const groupOptions = useMemo(() => {
@@ -355,7 +400,7 @@ export function BoardView<
       getBadgeBgTransparentClass(color as BadgeColor);
 
     // For status properties with showAs: "group"
-    if (groupByProperty.type === "status" && groupConfig?.showAs === "group") {
+    if (groupByProperty.type === "status" && parsedGroup?.showAs === "group") {
       const statusGroupMap: Record<string, BadgeColor> = {
         "To Do": "gray",
         "In Progress": "blue",
@@ -383,7 +428,7 @@ export function BoardView<
 
   // Get column header content using property-based rendering
   const getColumnHeader = (groupName: string, count: number) => {
-    const showAggregation = groupConfig?.showAggregation ?? true;
+    const showAggregation = groupConfig?.showCount ?? true;
     const displayCount = count > 99 ? "99+" : count;
 
     return (
@@ -596,8 +641,8 @@ export function BoardView<
             <Accordion
               defaultValue={effectiveSubGroupConfig.defaultExpanded}
               multiple
-              onValueChange={effectiveSubGroupConfig.onExpandedSubGroupsChange}
-              value={effectiveSubGroupConfig.expandedSubGroups}
+              onValueChange={effectiveSubGroupConfig.onExpandedChange}
+              value={effectiveSubGroupConfig.expanded}
             >
               {visibleSubGroups.map((subGroup) => (
                 <GroupSection
