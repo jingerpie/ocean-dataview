@@ -146,13 +146,11 @@ export function DataTable<TData>({
       />
 
       {/* Original Table */}
-      <div
-        className={cn("overflow-clip rounded-md border shadow-sm", className)}
-      >
+      <div className={cn("overflow-clip", className)}>
         <div className="overflow-x-auto" ref={tableContainerRef}>
           <Table>
             {headerConfig.enabled && (
-              <TableHeader className="bg-muted" ref={tableHeaderRef}>
+              <TableHeader ref={tableHeaderRef}>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
