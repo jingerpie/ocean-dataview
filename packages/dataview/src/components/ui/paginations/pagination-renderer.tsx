@@ -32,7 +32,11 @@ export function renderPagination(
 
   switch (mode) {
     case "page":
-      return <PagePagination {...context} />;
+      return (
+        <div className="sticky bottom-0 z-10 border-t bg-background py-2">
+          <PagePagination {...context} />
+        </div>
+      );
     case "loadMore":
       return <LoadMorePagination {...context} />;
     case "infiniteScroll":
