@@ -19,7 +19,8 @@ export type PropertyType =
   | "url"
   | "email"
   | "phone"
-  | "formula";
+  | "formula"
+  | "button";
 
 // Base property structure (using _T for type consistency across property types)
 export interface BaseProperty<_T> {
@@ -141,6 +142,24 @@ export interface DateConfig {
 
 export interface UrlConfig {
   showFullUrl?: boolean;
+}
+
+/**
+ * Individual button action configuration.
+ */
+export interface ButtonAction<T = unknown> {
+  disabled?: boolean;
+  icon?: IconComponent;
+  isPending?: boolean;
+  label: string;
+  onClick: (item: T) => void;
+}
+
+/**
+ * Configuration for button property type.
+ */
+export interface ButtonConfig<T = unknown> {
+  buttons: ButtonAction<T>[];
 }
 
 /**
@@ -360,6 +379,16 @@ export type FormulaPropertyType<T> = BaseProperty<T> & {
 };
 
 /**
+ * Button property type - renders action buttons in any column position.
+ * Unlike rowActions which are tied to row selection and bulk operations,
+ * button properties are independent per-row actions.
+ */
+export type ButtonPropertyType<T> = BaseProperty<T> & {
+  type: "button";
+  config: ButtonConfig<T>;
+};
+
+/**
  * Main type for defining data view properties
  * Union of all property types
  * Use this when defining property arrays: DataViewProperty<YourType>[]
@@ -376,7 +405,8 @@ export type DataViewProperty<T> =
   | UrlPropertyType<T>
   | EmailPropertyType<T>
   | PhonePropertyType<T>
-  | FormulaPropertyType<T>;
+  | FormulaPropertyType<T>
+  | ButtonPropertyType<T>;
 
 /**
  * Extract property IDs from a property array
@@ -401,6 +431,7 @@ const EXCLUDED_SEARCH_TYPES: PropertyType[] = [
   "filesMedia",
   "checkbox",
   "formula",
+  "button",
 ];
 
 /**

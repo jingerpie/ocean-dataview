@@ -54,11 +54,12 @@ function SortPropertyPicker({
   const [open, setOpen] = useState(false);
   const { sort: sorts, setSort } = useSortParams();
 
-  // Filter out formula properties (can't sort computed values) and properties with enableSort: false
+  // Filter out formula/button properties (can't sort computed values or actions) and properties with enableSort: false
   // Then sort alphabetically by label (like Notion)
   const sortableProperties = useMemo(() => {
     const filtered = properties.filter(
-      (p) => p.type !== "formula" && p.enableSort !== false
+      (p) =>
+        p.type !== "formula" && p.type !== "button" && p.enableSort !== false
     );
     // Sort alphabetically by label (like Notion)
     return [...filtered].sort((a, b) =>

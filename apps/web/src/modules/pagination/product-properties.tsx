@@ -2,7 +2,8 @@ import { FilesMediaProperty } from "@sparkyidea/dataview/properties";
 import type { DataViewProperty } from "@sparkyidea/dataview/types";
 import type { AppRouter } from "@sparkyidea/trpc/routers/index";
 import type { inferRouterOutputs } from "@trpc/server";
-import { AlertCircle, CheckCircle2, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Edit, Eye, XCircle } from "lucide-react";
+import { toast } from "sonner";
 
 type RouterOutput = inferRouterOutputs<AppRouter>;
 type ProductWithVariants = RouterOutput["product"]["getMany"]["items"][number];
@@ -159,5 +160,28 @@ export const productProperties = [
         </div>
       </div>
     ),
+  },
+  {
+    id: "actions",
+    label: "Actions",
+    type: "button",
+    config: {
+      buttons: [
+        {
+          label: "View",
+          icon: Eye,
+          onClick: (item: Product) => {
+            toast.info(`Viewing: ${item.productName}`);
+          },
+        },
+        {
+          label: "Edit",
+          icon: Edit,
+          onClick: (item: Product) => {
+            toast.info(`Editing: ${item.productName}`);
+          },
+        },
+      ],
+    },
   },
 ] as DataViewProperty<Product>[];

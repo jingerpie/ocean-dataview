@@ -25,7 +25,6 @@ import {
 import { Checkbox } from "../../ui/checkbox";
 import { GroupSection } from "../../ui/group-section";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
-import { SplitButton } from "../../ui/split-button";
 import { DataCell } from "../data-cell";
 import { DataTable } from "./data-table";
 
@@ -238,63 +237,8 @@ export function TableView<
     // Add property columns
     allColumns.push(...propertyColumns);
 
-    // Add actions column if rowActions provided
-    if (rowActions && rowActions.length > 0) {
-      // Find primary action
-      const primaryAction = rowActions.find((a) => a.primary);
-
-      // Get row-level actions (exclude bulkOnly actions)
-      const rowLevelActions = rowActions.filter((a) => !a.bulkOnly);
-
-      // Get dropdown actions (all row actions except primary)
-      const dropdownActions = rowLevelActions
-        .filter((a) => !a.primary)
-        .map((action) => ({
-          label: action.label,
-          onClick: () => undefined, // Will be set in cell render
-          className:
-            action.variant === "destructive"
-              ? "text-destructive focus:text-destructive"
-              : undefined,
-        }));
-
-      allColumns.push({
-        id: "actions",
-        header: "",
-        cell: ({ row }) => (
-          <SplitButton
-            dropdownActions={dropdownActions.map((dropdownAction, idx) => ({
-              ...dropdownAction,
-              onClick: () => {
-                const action = rowLevelActions.filter((a) => !a.primary)[idx];
-                if (action) {
-                  action.onClick([row.original]);
-                }
-              },
-            }))}
-            onPrimaryAction={() => {
-              if (primaryAction) {
-                primaryAction.onClick([row.original]);
-              }
-            }}
-            primaryIcon={primaryAction?.icon}
-            primaryLabel={primaryAction?.label}
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 80,
-      });
-    }
-
     return allColumns;
-  }, [
-    displayProperties,
-    properties,
-    wrapAllColumns,
-    enableRowSelection,
-    rowActions,
-  ]);
+  }, [displayProperties, properties, enableRowSelection]);
 
   // Generate action bar if rowActions provided
   const actionBar = useMemo(() => {

@@ -101,14 +101,15 @@ function FilterPropertyPicker({
   }, [advance, filter]);
 
   // Filter out:
-  // 1. Formula properties (can't filter computed values at database level)
+  // 1. Formula/button properties (can't filter computed values or actions)
   // 2. Properties with enableFilter: false
   // 3. Already-used properties (only when not in advance mode)
   // Then sort alphabetically by label (like Notion)
   const availableProperties = useMemo(() => {
-    // First, filter out formula properties and properties with enableFilter: false
+    // First, filter out formula/button properties and properties with enableFilter: false
     const filterableProperties = properties.filter(
-      (p) => p.type !== "formula" && p.enableFilter !== false
+      (p) =>
+        p.type !== "formula" && p.type !== "button" && p.enableFilter !== false
     );
 
     const filtered = advance

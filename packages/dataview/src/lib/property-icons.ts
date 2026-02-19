@@ -11,6 +11,7 @@ import {
   LinkIcon,
   ListIcon,
   type LucideIcon,
+  MousePointerClickIcon,
   PhoneIcon,
 } from "lucide-react";
 import type { PropertyType } from "../types";
@@ -31,6 +32,7 @@ export const PROPERTY_TYPE_ICONS: Record<PropertyType, LucideIcon> = {
   email: AtSignIcon,
   phone: PhoneIcon,
   formula: FunctionSquareIcon,
+  button: MousePointerClickIcon,
 };
 
 /**

@@ -81,6 +81,7 @@ export interface FilesMediaPropertyComponentProps
  * More maintainable than deeply nested conditional types
  */
 interface PropertyComponentPropsMap {
+  button: never; // Button type uses ButtonConfig with item, not value props
   checkbox: CheckboxPropertyComponentProps;
   date: DatePropertyComponentProps;
   email: EmailPropertyComponentProps;

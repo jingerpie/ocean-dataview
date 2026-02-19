@@ -1,4 +1,5 @@
 // biome-ignore lint/performance/noBarrelFile: Intentional public API barrel file
+export { ButtonProperty } from "./button-property";
 export { CheckboxProperty } from "./checkbox-property";
 export { DateProperty } from "./date-property";
 export { EmailProperty } from "./email-property";

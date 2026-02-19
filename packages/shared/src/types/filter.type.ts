@@ -175,4 +175,5 @@ export type PropertyType =
   | "email"
   | "phone"
   | "filesMedia"
-  | "formula";
+  | "formula"
+  | "button";
