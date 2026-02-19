@@ -321,6 +321,8 @@ export function BoardView<
       subGroupBy: parsedSubGroup.property,
       showAs: parsedSubGroup.showAs,
       startWeekOn: parsedSubGroup.startWeekOn,
+      textShowAs: parsedSubGroup.textShowAs,
+      numberRange: parsedSubGroup.numberRange,
       sort: subGroupConfig.sort
         ? subGroupSortMap[subGroupConfig.sort]
         : "propertyAscending",
@@ -528,8 +530,12 @@ export function BoardView<
       allItems,
       effectiveSubGroupConfig.subGroupBy,
       properties,
-      effectiveSubGroupConfig.showAs,
-      effectiveSubGroupConfig.startWeekOn
+      {
+        showAs: effectiveSubGroupConfig.showAs,
+        startWeekOn: effectiveSubGroupConfig.startWeekOn,
+        textShowAs: effectiveSubGroupConfig.textShowAs,
+        numberRange: effectiveSubGroupConfig.numberRange,
+      }
     );
 
     // Get all unique sub-group keys (from either client data or server counts)
@@ -589,8 +595,12 @@ export function BoardView<
         group.items,
         effectiveSubGroupConfig.subGroupBy,
         properties,
-        effectiveSubGroupConfig.showAs,
-        effectiveSubGroupConfig.startWeekOn
+        {
+          showAs: effectiveSubGroupConfig.showAs,
+          startWeekOn: effectiveSubGroupConfig.startWeekOn,
+          textShowAs: effectiveSubGroupConfig.textShowAs,
+          numberRange: effectiveSubGroupConfig.numberRange,
+        }
       );
 
       return (subGroups[subGroupKey] as TData[]) || [];

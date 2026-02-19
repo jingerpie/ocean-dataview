@@ -67,7 +67,7 @@ export function ListView<
     properties,
     group,
     contextPagination,
-    counts: counts?.group,
+    counts,
   });
 
   // Use shared hook for display properties filtering

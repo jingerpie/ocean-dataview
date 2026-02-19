@@ -114,7 +114,7 @@ export function TableView<
     properties,
     group,
     contextPagination,
-    counts: counts?.group,
+    counts,
   });
 
   // Enable row selection when bulkActions are provided

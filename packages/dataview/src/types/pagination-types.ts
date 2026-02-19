@@ -53,13 +53,23 @@ export interface GroupCounts {
 }
 
 /**
+ * Sort values for group ordering from server.
+ */
+export interface GroupSortValues {
+  [key: string]: string | number;
+}
+
+/**
  * Combined counts for DataViewProvider.
  * - group: Primary grouping counts (column headers in BoardView, group headers in other views)
  * - subGroup: Secondary grouping counts (row headers in BoardView with sub-groups)
+ * - groupSortValues: Sort values for ordering groups (from server-side grouping)
  */
 export interface ViewCounts {
   group: GroupCounts;
+  groupSortValues?: GroupSortValues;
   subGroup?: GroupCounts;
+  subGroupSortValues?: GroupSortValues;
 }
 
 // ============================================================================

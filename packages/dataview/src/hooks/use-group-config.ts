@@ -1,9 +1,5 @@
 import { useMemo } from "react";
-import {
-  getGroupCounts,
-  groupByProperty,
-  validateGroupConfig,
-} from "../lib/utils";
+import { getGroup, groupByProperty, validateGroupConfig } from "../lib/utils";
 import type { DataViewProperty } from "../types/property.type";
 
 export interface GroupConfig {
@@ -12,6 +8,8 @@ export interface GroupConfig {
   expandedGroups?: string[];
   groupBy: string;
   hideEmptyGroups?: boolean;
+  /** Number range config for numeric grouping */
+  numberRange?: { range: [number, number]; step: number };
   /** Callback when expansion state changes */
   onExpandedChange?: (groups: string[]) => void;
   /** Display aggregation counts in group headers (default: true) */
@@ -19,6 +17,8 @@ export interface GroupConfig {
   showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option";
   sort?: "propertyAscending" | "propertyDescending";
   startWeekOn?: "monday" | "sunday";
+  /** Text showAs for alphabetical grouping */
+  textShowAs?: "exact" | "alphabetical";
 }
 
 export interface GroupedDataItem<TData> {
@@ -141,12 +141,16 @@ export function useGroupConfig<TData>(
       data,
       activeGroupBy,
       properties,
-      effectiveShowAs,
-      groupConfig.startWeekOn
+      {
+        showAs: effectiveShowAs,
+        startWeekOn: groupConfig.startWeekOn,
+        textShowAs: groupConfig.textShowAs,
+        numberRange: groupConfig.numberRange,
+      }
     );
 
     // Get counts for sorting
-    const counts = getGroupCounts(groups);
+    const counts = getGroup(groups);
 
     // Convert to array for sorting
     let groupArray = Object.entries(groups).map(([key, items]) => ({

@@ -47,8 +47,10 @@ export function ProductGroupPaginationBoard({
   const search = buildSearchFilter(searchQuery, searchableFields);
 
   // Get group counts (for column headers)
-  const { data: groupCounts } = useSuspenseQuery(
-    trpc.product.getGroup.queryOptions({ groupBy: "category" })
+  const { data: groupData } = useSuspenseQuery(
+    trpc.product.getGroup.queryOptions({
+      groupBy: { bySelect: { property: "category" } },
+    })
   );
 
   // Infinite query - fetches all groups in one request (flat like getMany)
@@ -56,7 +58,7 @@ export function ProductGroupPaginationBoard({
   const infiniteQuery = useSuspenseInfiniteQuery(
     trpc.product.getManyByGroup.infiniteQueryOptions(
       {
-        groupBy: "category",
+        groupBy: { bySelect: { property: "category" } },
         limit,
         filter,
         sort,
@@ -99,7 +101,10 @@ export function ProductGroupPaginationBoard({
   return (
     <Suspense fallback={<BoardSkeleton columnCount={4} />}>
       <DataViewProvider
-        counts={{ group: groupCounts }}
+        counts={{
+          group: groupData.counts,
+          groupSortValues: groupData.sortValues,
+        }}
         data={items}
         filter={filter}
         group={{ bySelect: { property: "category" }, showCount: true }}

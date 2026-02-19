@@ -54,12 +54,14 @@ export function ProductGroupPaginationList({
   const search = buildSearchFilter(searchQuery, searchableFields);
 
   // 1. Group counts (Suspense OK - matches server prefetch)
-  const { data: groupCounts } = useSuspenseQuery(
-    trpc.product.getGroup.queryOptions({ groupBy: "category" })
+  const { data: groupData } = useSuspenseQuery(
+    trpc.product.getGroup.queryOptions({
+      groupBy: { bySelect: { property: "category" } },
+    })
   );
 
   // 2. Get all group keys (stable order)
-  const allGroupKeys = Object.keys(groupCounts);
+  const allGroupKeys = Object.keys(groupData.counts);
 
   // 4. Single hook call - creates queries internally using TRPC queryOptions
   // expandedGroups from hook provides local state for optimistic UI (no bouncing)
@@ -91,7 +93,10 @@ export function ProductGroupPaginationList({
   return (
     <Suspense fallback={<ListSkeleton rowCount={8} />}>
       <DataViewProvider
-        counts={{ group: groupCounts }}
+        counts={{
+          group: groupData.counts,
+          groupSortValues: groupData.sortValues,
+        }}
         data={data}
         filter={filter}
         group={{

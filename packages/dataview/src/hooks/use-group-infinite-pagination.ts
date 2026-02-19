@@ -215,29 +215,32 @@ function useGroupInfiniteQueries(
  * const ProductGroupGallery = ({ expanded: expandedProp, limit }: Props) => {
  *   const trpc = useTRPC();
  *
- *   const { data: groupCounts } = useSuspenseQuery(
- *     trpc.product.getGroup.queryOptions({ groupBy: "familyGroup" }),
+ *   const { data: groupData } = useSuspenseQuery(
+ *     trpc.product.getGroup.queryOptions({
+ *       groupBy: { bySelect: { property: "familyGroup" } },
+ *     }),
  *   );
  *
  *   const expanded = expandedProp ?? DEFAULT_EXPANDED;
- *   const allGroupKeys = Object.keys(groupCounts);
+ *   const allGroupKeys = Object.keys(groupData.counts);
  *
  *   const { data, pagination, handleAccordionChange, expandedGroups } = useGroupInfinitePagination({
  *     allGroupKeys,
  *     expanded,
  *     limit,
  *     createQueryOptions: (groupKey) =>
- *       trpc.product.getMany.infiniteQueryOptions(
+ *       trpc.product.getManyByGroup.infiniteQueryOptions(
  *         {
- *           filters: [{ property: "familyGroup", condition: "eq", value: groupKey }],
+ *           groupBy: { bySelect: { property: "familyGroup" } },
+ *           groupKeys: [groupKey],
  *           limit,
  *         },
- *         { getNextPageParam: (lastPage) => lastPage.hasNextPage ? lastPage.endCursor : undefined },
+ *         { getNextPageParam: (lastPage) => lastPage.hasNextPage[groupKey] ? { [groupKey]: lastPage.endCursor[groupKey] } : undefined },
  *       ),
  *   });
  *
  *   return (
- *     <DataViewProvider data={data} counts={{ group: groupCounts }} pagination={pagination}>
+ *     <DataViewProvider data={data} counts={{ group: groupData.counts, groupSortValues: groupData.sortValues }} pagination={pagination}>
  *       <GalleryView
  *         view={{
  *           group: {

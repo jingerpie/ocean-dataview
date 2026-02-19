@@ -8,8 +8,8 @@ export {
   getBadgeForegroundVar,
 } from "./badge-colors";
 export { buildPaginationContext } from "./build-pagination-context";
-export type { GroupedDataWithMeta } from "./compute-data";
-export { getGroupCounts, groupByProperty } from "./compute-data";
+export type { GroupedDataWithMeta, GroupingOptions } from "./compute-data";
+export { getGroup, groupByProperty } from "./compute-data";
 export {
   formatDateForDisplay,
   parseDate,

@@ -6,7 +6,7 @@ import {
   type ComputationType,
   computeData,
   computeGroupedData,
-  getGroupCounts,
+  getGroup,
   groupByProperty,
   transformToChartData,
 } from "../lib/utils/compute-data";
@@ -157,10 +157,13 @@ export function useChartTransform<
         transformedData as TData[],
         yAxisWhatToShow.property as TProperties[number]["id"],
         properties,
-        yGroupingShowAs,
-        "startWeekOn" in yAxisWhatToShow
-          ? yAxisWhatToShow.startWeekOn
-          : undefined
+        {
+          showAs: yGroupingShowAs,
+          startWeekOn:
+            "startWeekOn" in yAxisWhatToShow
+              ? yAxisWhatToShow.startWeekOn
+              : undefined,
+        }
       );
 
       const xAxisShowAs = (() => {
@@ -302,7 +305,7 @@ export function useChartTransform<
         sortValues
       );
 
-      const counts = getGroupCounts(grouped);
+      const counts = getGroup(grouped);
       return transformed.map((point) => ({
         ...point,
         count: counts[point.name] || 0,
@@ -315,8 +318,14 @@ export function useChartTransform<
         transformedData as TData[],
         whatToShow.property as TProperties[number]["id"],
         properties,
-        whatToShow.showAs as DateGroupingType | "option" | "group" | undefined,
-        whatToShow.startWeekOn
+        {
+          showAs: whatToShow.showAs as
+            | DateGroupingType
+            | "option"
+            | "group"
+            | undefined,
+          startWeekOn: whatToShow.startWeekOn,
+        }
       );
 
       const computed = computeData(
@@ -352,10 +361,13 @@ export function useChartTransform<
         transformedData as TData[],
         xAxisWhatToShow.property as TProperties[number]["id"],
         properties,
-        xGroupingShowAs,
-        "startWeekOn" in xAxisWhatToShow
-          ? xAxisWhatToShow.startWeekOn
-          : undefined
+        {
+          showAs: xGroupingShowAs,
+          startWeekOn:
+            "startWeekOn" in xAxisWhatToShow
+              ? xAxisWhatToShow.startWeekOn
+              : undefined,
+        }
       );
 
       const yAxisWhatToShow = config.yAxis.whatToShow;
@@ -498,7 +510,7 @@ export function useChartTransform<
         sortValues
       );
 
-      const counts = getGroupCounts(grouped);
+      const counts = getGroup(grouped);
       return transformed.map((point) => ({
         ...point,
         count: counts[point.name] || 0,

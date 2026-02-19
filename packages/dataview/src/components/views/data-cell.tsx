@@ -99,7 +99,7 @@ function DataCellComponent<T>({
       return (
         <DateProperty
           config={property.config}
-          value={displayValue as Date | null}
+          value={displayValue as Date | string | null}
         />
       );
 

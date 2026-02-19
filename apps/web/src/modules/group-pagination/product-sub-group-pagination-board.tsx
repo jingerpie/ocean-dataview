@@ -52,18 +52,22 @@ export function ProductSubGroupPaginationBoard({
   const search = buildSearchFilter(searchQuery, searchableFields);
 
   // Get group counts (for column headers - category)
-  const { data: groupCounts } = useSuspenseQuery(
-    trpc.product.getGroup.queryOptions({ groupBy: "category" })
+  const { data: groupData } = useSuspenseQuery(
+    trpc.product.getGroup.queryOptions({
+      groupBy: { bySelect: { property: "category" } },
+    })
   );
 
   // Get sub-group counts (for row headers - availability)
   // These are the actual pagination groups
-  const { data: subGroupCounts } = useSuspenseQuery(
-    trpc.product.getGroup.queryOptions({ groupBy: "availability" })
+  const { data: subGroupData } = useSuspenseQuery(
+    trpc.product.getGroup.queryOptions({
+      groupBy: { bySelect: { property: "availability" } },
+    })
   );
 
   // Get all sub-group keys (rows) - these are the pagination groups
-  const allSubGroupKeys = Object.keys(subGroupCounts);
+  const allSubGroupKeys = Object.keys(subGroupData.counts);
 
   // Use grouped infinite pagination - creates separate queries per sub-group (row)
   // Each sub-group row has its own Load More
@@ -76,7 +80,7 @@ export function ProductSubGroupPaginationBoard({
       createQueryOptions: (subGroupKey) =>
         trpc.product.getManyByGroup.infiniteQueryOptions(
           {
-            groupBy: "category",
+            groupBy: { bySelect: { property: "category" } },
             filter: combineGroupFilter("availability", subGroupKey, filter),
             search,
             sort,
@@ -116,7 +120,12 @@ export function ProductSubGroupPaginationBoard({
   return (
     <Suspense fallback={<BoardSkeleton columnCount={4} />}>
       <DataViewProvider
-        counts={{ group: groupCounts, subGroup: subGroupCounts }}
+        counts={{
+          group: groupData.counts,
+          groupSortValues: groupData.sortValues,
+          subGroup: subGroupData.counts,
+          subGroupSortValues: subGroupData.sortValues,
+        }}
         data={data}
         filter={filter}
         group={{ bySelect: { property: "category" }, showCount: true }}

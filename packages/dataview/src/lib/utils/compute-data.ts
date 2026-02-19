@@ -1,6 +1,9 @@
 import type { DataViewProperty } from "../../types";
 import { getUserLocale } from "./locale-helpers";
 
+/** Regex for matching uppercase A-Z letters */
+const UPPERCASE_LETTER_REGEX = /[A-Z]/;
+
 export type ComputationType =
   | "count"
   | "sum"
@@ -135,23 +138,78 @@ function handleStatusOptionGrouping(
 }
 
 /**
+ * Handle text property grouping by first letter (alphabetical)
+ */
+function handleTextAlphabeticalGrouping(value: unknown): GroupResult {
+  const text = String(value).trim();
+  if (!text) {
+    return { groupKey: "#", sortValue: "~" }; // Sort '#' at the end
+  }
+
+  const firstChar = text.charAt(0).toUpperCase();
+
+  // Group A-Z letters, everything else as "#"
+  if (UPPERCASE_LETTER_REGEX.test(firstChar)) {
+    return { groupKey: firstChar, sortValue: firstChar };
+  }
+
+  return { groupKey: "#", sortValue: "~" }; // Sort '#' at the end
+}
+
+/**
+ * Handle number property grouping by range buckets
+ */
+function handleNumberRangeGrouping(
+  value: unknown,
+  rangeConfig: { range: [number, number]; step: number }
+): GroupResult {
+  const num = Number(value);
+  const [min, max] = rangeConfig.range;
+  const { step } = rangeConfig;
+
+  if (Number.isNaN(num)) {
+    return { groupKey: "Unknown", sortValue: Number.MAX_SAFE_INTEGER };
+  }
+
+  // Below minimum
+  if (num < min) {
+    return { groupKey: `< ${min}`, sortValue: min - 1 };
+  }
+
+  // At or above maximum
+  if (num >= max) {
+    return { groupKey: `${max}+`, sortValue: max };
+  }
+
+  // Calculate bucket
+  const bucketIndex = Math.floor((num - min) / step);
+  const bucketStart = bucketIndex * step + min;
+  const bucketEnd = bucketStart + step;
+
+  return {
+    groupKey: `${bucketStart}-${bucketEnd}`,
+    sortValue: bucketStart,
+  };
+}
+
+export interface GroupingOptions {
+  numberRange?: { range: [number, number]; step: number };
+  showAs?: "day" | "week" | "month" | "year" | "relative" | "option" | "group";
+  startWeekOn?: "monday" | "sunday";
+  textShowAs?: "exact" | "alphabetical";
+}
+
+/**
  * Get group key and sort value for a data item
  */
 function getGroupKeyAndSortValue<TData>(
   value: unknown,
   property: DataViewProperty<TData> | undefined,
-  showAs:
-    | "day"
-    | "week"
-    | "month"
-    | "year"
-    | "relative"
-    | "option"
-    | "group"
-    | undefined,
-  startWeekOn: "monday" | "sunday" | undefined,
+  options: GroupingOptions,
   emptyGroupLabel: string
 ): GroupResult {
+  const { showAs, startWeekOn, textShowAs, numberRange } = options;
+
   // Handle date grouping
   if (
     property?.type === "date" &&
@@ -175,6 +233,16 @@ function getGroupKeyAndSortValue<TData>(
     return handleStatusOptionGrouping(value, config, emptyGroupLabel);
   }
 
+  // Handle text alphabetical grouping
+  if (property?.type === "text" && textShowAs === "alphabetical" && value) {
+    return handleTextAlphabeticalGrouping(value);
+  }
+
+  // Handle number range grouping
+  if (property?.type === "number" && numberRange && value !== undefined) {
+    return handleNumberRangeGrouping(value, numberRange);
+  }
+
   // Default grouping
   return {
     groupKey: String(value || emptyGroupLabel),
@@ -189,15 +257,13 @@ function getGroupKeyAndSortValue<TData>(
  * @param data - Raw data to group
  * @param propertyId - Property ID (references property.id, not data key)
  * @param properties - Property definitions
- * @param showAs - How to group the data
- * @param startWeekOn - Week start day for week grouping
+ * @param options - Grouping options (showAs, startWeekOn, textShowAs, numberRange)
  */
 export function groupByProperty<TData>(
   data: TData[],
   propertyId: string,
   properties: readonly DataViewProperty<TData>[],
-  showAs?: "day" | "week" | "month" | "year" | "relative" | "option" | "group",
-  startWeekOn?: "monday" | "sunday"
+  options?: GroupingOptions
 ): GroupedDataWithMeta<TData> {
   const property = properties.find((p) => p.id === propertyId);
   const propertyName = property?.label || propertyId;
@@ -219,8 +285,7 @@ export function groupByProperty<TData>(
     const { groupKey, sortValue } = getGroupKeyAndSortValue(
       value,
       property,
-      showAs,
-      startWeekOn,
+      options ?? {},
       emptyGroupLabel
     );
 
@@ -595,17 +660,7 @@ export function computeGroupedData<TData>(
   properties: readonly DataViewProperty<TData>[],
   computationType: ComputationType,
   computePropertyId?: string,
-  groupByConfig?: {
-    showAs?:
-      | "day"
-      | "week"
-      | "month"
-      | "year"
-      | "relative"
-      | "option"
-      | "group";
-    startWeekOn?: "monday" | "sunday";
-  }
+  groupByConfig?: GroupingOptions
 ): Record<string, Record<string, number>> {
   const result: Record<string, Record<string, number>> = {};
 
@@ -616,8 +671,7 @@ export function computeGroupedData<TData>(
       items,
       secondaryPropertyId,
       properties,
-      groupByConfig?.showAs,
-      groupByConfig?.startWeekOn
+      groupByConfig
     );
 
     // Compute values for each secondary group
@@ -636,7 +690,7 @@ export function computeGroupedData<TData>(
 /**
  * Get the raw count of items in each group (useful for tooltips)
  */
-export function getGroupCounts<TData>(
+export function getGroup<TData>(
   groupedData: Record<string, TData[]>
 ): Record<string, number> {
   const counts: Record<string, number> = {};

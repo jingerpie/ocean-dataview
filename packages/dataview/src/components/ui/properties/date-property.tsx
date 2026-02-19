@@ -37,7 +37,7 @@ function getDateFnsLocale(localeString: string): Locale {
 
 interface DatePropertyProps {
   config?: DateConfig;
-  value: Date | null;
+  value: Date | string | null;
 }
 
 /**
@@ -60,39 +60,49 @@ export function DateProperty({
       return null;
     }
 
+    // Convert string to Date if needed
+    const dateValue = typeof value === "string" ? new Date(value) : value;
+
+    // Check for invalid date
+    if (Number.isNaN(dateValue.getTime())) {
+      return null;
+    }
+
     let formatted: string;
 
     // Format date with locale support
     switch (dateFormat) {
       case "full":
-        formatted = format(value, "MMMM d, yyyy", { locale: dateFnsLocale });
+        formatted = format(dateValue, "MMMM d, yyyy", {
+          locale: dateFnsLocale,
+        });
         break;
       case "short":
-        formatted = format(value, "MMM d, yyyy", { locale: dateFnsLocale });
+        formatted = format(dateValue, "MMM d, yyyy", { locale: dateFnsLocale });
         break;
       case "MDY":
-        formatted = format(value, "MM/dd/yyyy", { locale: dateFnsLocale });
+        formatted = format(dateValue, "MM/dd/yyyy", { locale: dateFnsLocale });
         break;
       case "DMY":
-        formatted = format(value, "dd/MM/yyyy", { locale: dateFnsLocale });
+        formatted = format(dateValue, "dd/MM/yyyy", { locale: dateFnsLocale });
         break;
       case "YMD":
-        formatted = format(value, "yyyy-MM-dd", { locale: dateFnsLocale });
+        formatted = format(dateValue, "yyyy-MM-dd", { locale: dateFnsLocale });
         break;
       case "relative":
-        formatted = formatDistanceToNow(value, {
+        formatted = formatDistanceToNow(dateValue, {
           addSuffix: true,
           locale: dateFnsLocale,
         });
         break;
       default:
-        formatted = format(value, "MMM d, yyyy", { locale: dateFnsLocale });
+        formatted = format(dateValue, "MMM d, yyyy", { locale: dateFnsLocale });
     }
 
     // Add time if not hidden
     if (timeFormat !== "hidden" && dateFormat !== "relative") {
       const timeFormatString = timeFormat === "12hour" ? "h:mm a" : "HH:mm";
-      formatted += ` ${format(value, timeFormatString, { locale: dateFnsLocale })}`;
+      formatted += ` ${format(dateValue, timeFormatString, { locale: dateFnsLocale })}`;
     }
 
     return formatted;

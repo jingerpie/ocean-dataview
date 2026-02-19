@@ -27,10 +27,14 @@ export default async function GroupPaginationBoardPage(props: PageProps) {
 
   // Prefetch group counts for columns (category) and rows (availability)
   void queryClient.prefetchQuery(
-    trpc.product.getGroup.queryOptions({ groupBy: "category" })
+    trpc.product.getGroup.queryOptions({
+      groupBy: { bySelect: { property: "category" } },
+    })
   );
   void queryClient.prefetchQuery(
-    trpc.product.getGroup.queryOptions({ groupBy: "availability" })
+    trpc.product.getGroup.queryOptions({
+      groupBy: { bySelect: { property: "availability" } },
+    })
   );
 
   // Prefetch infinite query for each expanded sub-group (must match client options)
@@ -38,7 +42,7 @@ export default async function GroupPaginationBoardPage(props: PageProps) {
     void queryClient.prefetchInfiniteQuery(
       trpc.product.getManyByGroup.infiniteQueryOptions(
         {
-          groupBy: "category",
+          groupBy: { bySelect: { property: "category" } },
           filter: combineGroupFilter("availability", subGroupKey, filter),
           search,
           sort,

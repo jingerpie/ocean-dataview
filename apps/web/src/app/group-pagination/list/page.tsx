@@ -34,7 +34,9 @@ export default async function GroupPaginationListPage(props: PageProps) {
 
   // Prefetch group counts
   void queryClient.prefetchQuery(
-    trpc.product.getGroup.queryOptions({ groupBy: "category" })
+    trpc.product.getGroup.queryOptions({
+      groupBy: { bySelect: { property: "category" } },
+    })
   );
 
   // Prefetch data for each expanded group (must match client query options)

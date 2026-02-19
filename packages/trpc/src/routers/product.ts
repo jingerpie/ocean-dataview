@@ -2,15 +2,38 @@ import { db } from "@sparkyidea/db";
 import { product } from "@sparkyidea/db/schema/product";
 import {
   getCursorParams,
+  groupByConfigSchema,
+  parseGroupByConfig,
   productSearchParamsSchema,
   searchQuerySchema,
   whereNodeSchema,
 } from "@sparkyidea/shared/types";
-import { and, count, desc, eq, isNull } from "drizzle-orm";
+import { and, count } from "drizzle-orm";
 import { z } from "zod";
 import { publicProcedure, router } from "../index";
 import { buildWhere } from "../lib/filter-columns";
+import { buildGroupBy, buildGroupWhere } from "../lib/group-columns";
 import { buildCursor } from "../lib/sort-columns";
+
+// Property configs for grouping (status needs group structure)
+const productPropertyConfigs = {
+  availability: {
+    type: "status" as const,
+    config: {
+      groups: [
+        { label: "Available", color: "green", options: ["In stock"] },
+        { label: "Warning", color: "yellow", options: ["Low stock"] },
+        { label: "Unavailable", color: "red", options: ["Out of stock"] },
+      ],
+    },
+  },
+  category: { type: "select" as const },
+  featured: { type: "checkbox" as const },
+  lastRestocked: { type: "date" as const },
+  price: { type: "number" as const },
+  productName: { type: "text" as const },
+  tags: { type: "multiSelect" as const },
+};
 
 export const productRouter = router({
   getMany: publicProcedure
@@ -84,47 +107,72 @@ export const productRouter = router({
       };
     }),
 
+  /**
+   * Get group counts with full GroupByConfig support.
+   * Supports all group strategies: byDate, byStatus, bySelect, byMultiSelect, byCheckbox, byText, byNumber
+   */
   getGroup: publicProcedure
     .input(
       z.object({
-        groupBy: z.enum(["category", "availability"]),
+        groupBy: groupByConfigSchema,
       })
     )
     .query(async ({ input }) => {
       const { groupBy } = input;
-      const groupByColumn = product[groupBy];
+      const parsed = parseGroupByConfig(groupBy);
+      const propertyConfig =
+        productPropertyConfigs[
+          parsed.property as keyof typeof productPropertyConfigs
+        ];
 
-      const groupedCounts = await db
+      // Build SQL GROUP BY expression
+      const groupByResult = buildGroupBy(product, parsed, propertyConfig);
+      if (!groupByResult) {
+        return { counts: {}, sortValues: {} };
+      }
+
+      const { groupKey, orderBy } = groupByResult;
+
+      // Execute SQL GROUP BY query
+      const results = await db
         .select({
-          group: groupByColumn,
+          groupKey,
+          sortValue: orderBy,
           count: count(),
         })
         .from(product)
-        .groupBy(groupByColumn)
-        .orderBy(desc(count()));
+        .groupBy(groupKey, orderBy)
+        .orderBy(orderBy);
 
-      // Build result with counts capped at 100 and hasMore flag
-      const result: Record<string, { count: number; hasMore: boolean }> = {};
-      for (const { group, count: groupCount } of groupedCounts) {
-        const groupKey = String(group ?? "null");
-        result[groupKey] = {
-          count: Math.min(groupCount, 100),
-          hasMore: groupCount > 100,
+      // Build counts with sortValues
+      const counts: Record<string, { count: number; hasMore: boolean }> = {};
+      const sortValues: Record<string, string | number> = {};
+
+      for (const row of results) {
+        const key = String(row.groupKey ?? `No ${parsed.property}`);
+        counts[key] = {
+          count: Math.min(Number(row.count), 100),
+          hasMore: Number(row.count) > 100,
         };
+        sortValues[key] =
+          typeof row.sortValue === "number"
+            ? row.sortValue
+            : String(row.sortValue ?? key);
       }
 
-      return result;
+      return { counts, sortValues };
     }),
 
   /**
    * Get items grouped by a property with per-group pagination.
+   * Supports full GroupByConfig for complex grouping strategies.
    * Same response shape as getMany but with per-group Records.
    * Counts handled separately by getGroup procedure.
    */
   getManyByGroup: publicProcedure
     .input(
       z.object({
-        groupBy: z.enum(["category", "availability"]),
+        groupBy: groupByConfigSchema,
         limit: z.number().int().min(1).max(100).default(10),
         cursor: z.record(z.string(), z.string().nullable()).optional(),
         filter: z.array(whereNodeSchema).nullish(),
@@ -137,6 +185,8 @@ export const productRouter = router({
           )
           .default([]),
         search: searchQuerySchema.nullish(),
+        // Group keys to fetch - required for knowing which groups to load
+        groupKeys: z.array(z.string()).optional(),
       })
     )
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Loop with cursor handling requires conditionals
@@ -148,8 +198,15 @@ export const productRouter = router({
         filter,
         sort,
         search,
+        groupKeys: requestedGroupKeys,
       } = input;
-      const groupByColumn = product[groupBy];
+
+      // Parse the GroupByConfig
+      const parsed = parseGroupByConfig(groupBy);
+      const propertyConfig =
+        productPropertyConfigs[
+          parsed.property as keyof typeof productPropertyConfigs
+        ];
 
       // Build common WHERE clauses
       const searchWhere = buildWhere(product, search ? [search] : null);
@@ -165,11 +222,38 @@ export const productRouter = router({
               { property: "id", direction: "desc" },
             ];
 
-      // Get distinct groups (counts handled by getGroup procedure)
-      const groupsResult = await db
-        .selectDistinct({ group: groupByColumn })
-        .from(product)
-        .where(and(filterWhere, searchWhere));
+      // Determine which groups to fetch
+      let groupKeysToFetch: string[];
+
+      if (requestedGroupKeys && requestedGroupKeys.length > 0) {
+        // Use explicitly requested group keys
+        groupKeysToFetch = requestedGroupKeys;
+      } else {
+        // Get distinct groups using buildGroupBy for transformed keys
+        const groupByResult = buildGroupBy(product, parsed, propertyConfig);
+
+        if (!groupByResult) {
+          return {
+            items: [],
+            startCursor: {},
+            endCursor: {},
+            hasNextPage: {},
+            hasPreviousPage: {},
+          };
+        }
+
+        const { groupKey, orderBy } = groupByResult;
+
+        const groupsResult = await db
+          .selectDistinct({ groupKey, sortValue: orderBy })
+          .from(product)
+          .where(and(filterWhere, searchWhere))
+          .orderBy(orderBy);
+
+        groupKeysToFetch = groupsResult.map((r) =>
+          String(r.groupKey ?? `No ${parsed.property}`)
+        );
+      }
 
       // Fetch items for each group
       const allItems: (typeof product.$inferSelect)[] = [];
@@ -179,8 +263,7 @@ export const productRouter = router({
       const hasPreviousPage: Record<string, boolean> = {};
       const seenIds = new Set<number>();
 
-      for (const { group } of groupsResult) {
-        const groupKey = String(group ?? "null");
+      for (const groupKey of groupKeysToFetch) {
         const cursor = inputCursors[groupKey];
 
         // Skip exhausted/empty groups (cursor === null means "don't refetch")
@@ -192,8 +275,17 @@ export const productRouter = router({
           continue;
         }
 
-        const groupWhere =
-          group === null ? isNull(groupByColumn) : eq(groupByColumn, group);
+        // Build group WHERE using buildGroupWhere
+        const groupWhere = buildGroupWhere(
+          product,
+          parsed,
+          groupKey,
+          propertyConfig
+        );
+
+        if (!groupWhere) {
+          continue;
+        }
 
         // Build cursor WHERE for this group
         const { orderBy, cursorWhere } = buildCursor(product, {

@@ -1,6 +1,8 @@
 import type { GroupByConfig } from "../../types/group-types";
 
 export interface ParsedGroupConfig {
+  /** Number-specific range config */
+  numberRange?: { range: [number, number]; step: number };
   property: string;
   propertyType:
     | "date"
@@ -12,6 +14,8 @@ export interface ParsedGroupConfig {
     | "number";
   showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option";
   startWeekOn?: "monday" | "sunday";
+  /** Text-specific showAs */
+  textShowAs?: "exact" | "alphabetical";
 }
 
 /**
@@ -55,14 +59,14 @@ export function parseGroupByConfig(config: GroupByConfig): ParsedGroupConfig {
     return {
       property: config.byText.property,
       propertyType: "text",
-      // Note: text showAs (exact/alphabetical) is a future feature, not passed to grouping
+      textShowAs: config.byText.showAs,
     };
   }
   if ("byNumber" in config) {
     return {
       property: config.byNumber.property,
       propertyType: "number",
-      // showAs for number is an object, handle separately if needed
+      numberRange: config.byNumber.showAs,
     };
   }
   throw new Error("Invalid group config: no recognized byXXX key found");

@@ -5,7 +5,7 @@ import {
   transformData,
   validatePropertyKeys,
 } from "../lib/utils";
-import type { DataViewProperty, GroupConfig, GroupCounts } from "../types";
+import type { DataViewProperty, GroupConfig, ViewCounts } from "../types";
 import type { GroupedDataItem } from "./use-group-config";
 import { useGroupConfig } from "./use-group-config";
 import type { GroupInfiniteInfo } from "./use-group-infinite-pagination";
@@ -33,8 +33,8 @@ export interface UseViewSetupOptions<
   additionalExcludeKeys?: string[];
   /** Context pagination state */
   contextPagination?: unknown;
-  /** Group counts from context (for group headers) */
-  counts?: GroupCounts;
+  /** View counts from context (group counts and sort values) */
+  counts?: ViewCounts;
   /** Raw data from context */
   data: TData[];
   /** Group configuration from context (new discriminated union format) */
@@ -149,12 +149,16 @@ export function useViewSetup<
   }, [hasGroupedPagination, parsedGroup, properties, clientGroupByProperty]);
 
   // Helper to format count for display
-  const formatDisplayCount = (countInfo: GroupCounts[string]) =>
-    countInfo.hasMore ? "99+" : String(countInfo.count);
+  const formatDisplayCount = (
+    countInfo: ViewCounts["group"][string] | undefined
+  ) => (countInfo?.hasMore ? "99+" : String(countInfo?.count ?? 0));
 
   // Pattern 9: Choose grouped data source: pagination.groups (server) or useGroupConfig (client)
   // Counts come from context (DataViewProvider.counts prop)
   const groupedData = useMemo(() => {
+    const groupCounts = counts?.group;
+    const groupSortValues = counts?.groupSortValues;
+
     if (
       hasGroupedPagination &&
       contextPagination &&
@@ -168,12 +172,12 @@ export function useViewSetup<
       return paginationWithGroups.groups.map(
         (group: GroupInfo<TData> | GroupInfiniteInfo<TData>) => {
           // Get counts from context
-          const countInfo = counts?.[group.key];
+          const countInfo = groupCounts?.[group.key];
           return {
             key: group.key,
             items: transformData(group.items, properties) as TData[],
             count: countInfo?.count ?? 0,
-            displayCount: countInfo ? formatDisplayCount(countInfo) : "0",
+            displayCount: formatDisplayCount(countInfo),
             sortValue: group.value,
           };
         }
@@ -181,18 +185,35 @@ export function useViewSetup<
     }
 
     // For client-side grouping, merge counts if available
-    if (clientGroupedData && counts) {
-      return clientGroupedData.map((group) => {
-        const countInfo = counts[group.key];
-        if (countInfo) {
-          return {
-            ...group,
-            count: countInfo.count,
-            displayCount: formatDisplayCount(countInfo),
-          };
+    // When counts are provided from server, create entries for ALL groups (even empty ones)
+    if (groupCounts) {
+      // Build a map of loaded items by group key
+      const groupedItemsMap = new Map<string, TData[]>();
+      if (clientGroupedData) {
+        for (const group of clientGroupedData) {
+          groupedItemsMap.set(group.key, group.items);
         }
-        return group;
-      });
+      }
+
+      // Create groups for all keys in counts (from server)
+      // Use sortValues from server for proper ordering
+      return Object.entries(groupCounts)
+        .map(([key, countInfo]) => ({
+          key,
+          items: groupedItemsMap.get(key) ?? [],
+          count: countInfo.count,
+          displayCount: formatDisplayCount(countInfo),
+          sortValue: groupSortValues?.[key] ?? key,
+        }))
+        .sort((a, b) => {
+          // Sort by sortValue from server
+          const aVal = a.sortValue;
+          const bVal = b.sortValue;
+          if (typeof aVal === "number" && typeof bVal === "number") {
+            return aVal - bVal;
+          }
+          return String(aVal).localeCompare(String(bVal));
+        });
     }
 
     return clientGroupedData;

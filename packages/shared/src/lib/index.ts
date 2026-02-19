@@ -1,5 +1,9 @@
 // biome-ignore lint/performance/noBarrelFile: Shared lib public API
 export {
+  type ProductGroupableColumn,
+  productGroupableColumns,
+} from "./groupable-columns";
+export {
   // TRPC zod schema
   createSearchParamsSchema,
   groupPaginationParams, // grouped pagination

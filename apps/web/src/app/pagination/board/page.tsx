@@ -24,14 +24,16 @@ export default async function PaginationBoardPage(props: PageProps) {
 
   // Prefetch group counts (for column headers)
   void queryClient.prefetchQuery(
-    trpc.product.getGroup.queryOptions({ groupBy: "category" })
+    trpc.product.getGroup.queryOptions({
+      groupBy: { bySelect: { property: "category" } },
+    })
   );
 
   // Prefetch getManyByGroup infinite query (flat data, client-side grouping)
   void queryClient.prefetchInfiniteQuery(
     trpc.product.getManyByGroup.infiniteQueryOptions(
       {
-        groupBy: "category",
+        groupBy: { bySelect: { property: "category" } },
         limit,
         filter,
         sort,
