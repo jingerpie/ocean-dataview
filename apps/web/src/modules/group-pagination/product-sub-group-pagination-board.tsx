@@ -118,13 +118,17 @@ export function ProductSubGroupPaginationBoard({
       <DataViewProvider
         counts={{ group: groupCounts, subGroup: subGroupCounts }}
         data={data}
-        defaults={{
-          filter,
-          sort,
-          search: searchQuery,
-        }}
+        filter={filter}
+        group={{ groupBy: "category", showAggregation: true }}
         pagination={pagination}
         properties={productProperties}
+        search={searchQuery}
+        sort={sort}
+        subGroup={{
+          subGroupBy: "availability",
+          expandedSubGroups: expandedGroups,
+          onExpandedSubGroupsChange: handleAccordionChange,
+        }}
       >
         <NotionToolbar properties={productProperties}>
           <ViewNav />
@@ -138,14 +142,6 @@ export function ProductSubGroupPaginationBoard({
             colorColumns: true,
           }}
           pagination="loadMore"
-          view={{
-            group: { groupBy: "category", showAggregation: true },
-            subGroup: {
-              subGroupBy: "availability",
-              expandedSubGroups: expandedGroups,
-              onExpandedSubGroupsChange: handleAccordionChange,
-            },
-          }}
         />
       </DataViewProvider>
     </Suspense>

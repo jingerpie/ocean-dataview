@@ -101,13 +101,17 @@ export function ProductGroupPaginationTable({
       <DataViewProvider
         counts={{ group: groupCounts }}
         data={data}
-        defaults={{
-          filter,
-          sort,
-          search: searchQuery,
+        filter={filter}
+        group={{
+          groupBy: "category",
+          showAggregation: true,
+          expandedGroups,
+          onExpandedChange: handleAccordionChange,
         }}
         pagination={pagination}
         properties={productProperties}
+        search={searchQuery}
+        sort={sort}
       >
         <NotionToolbar properties={productProperties}>
           <ViewNav />
@@ -117,14 +121,6 @@ export function ProductGroupPaginationTable({
           bulkActions={sampleRowActions}
           layout={{ showVerticalLines: false, wrapAllColumns: false }}
           pagination="page"
-          view={{
-            group: {
-              groupBy: "category",
-              showAggregation: true,
-              expandedGroups,
-              onExpandedChange: handleAccordionChange,
-            },
-          }}
         />
       </DataViewProvider>
     </Suspense>

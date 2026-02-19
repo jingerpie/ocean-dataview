@@ -101,13 +101,12 @@ export function ProductGroupPaginationBoard({
       <DataViewProvider
         counts={{ group: groupCounts }}
         data={items}
-        defaults={{
-          filter,
-          sort,
-          search: searchQuery,
-        }}
+        filter={filter}
+        group={{ groupBy: "category", showAggregation: true }}
         pagination={pagination}
         properties={productProperties}
+        search={searchQuery}
+        sort={sort}
       >
         <NotionToolbar properties={productProperties}>
           <ViewNav />
@@ -121,9 +120,6 @@ export function ProductGroupPaginationBoard({
             fitMedia: true,
           }}
           pagination="loadMore"
-          view={{
-            group: { groupBy: "category", showAggregation: true },
-          }}
         />
       </DataViewProvider>
     </Suspense>

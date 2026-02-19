@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { transformData, validatePropertyKeys } from "../lib/utils";
 import type { DataViewProperty, GroupCounts } from "../types";
 import type { GroupedDataItem } from "./use-group-config";
@@ -33,20 +33,14 @@ export interface UseViewSetupOptions<
   additionalExcludeKeys?: string[];
   /** Context pagination state */
   contextPagination?: unknown;
-  /** Context property visibility (current state) */
-  contextPropertyVisibility?: string[];
   /** Group counts from context (for group headers) */
   counts?: GroupCounts;
   /** Raw data from context */
   data: TData[];
-  /** Group configuration from view props */
+  /** Group configuration from context */
   groupBy?: ViewGroupConfig;
   /** Property definitions */
   properties: TProperties;
-  /** Setter for property visibility */
-  setPropertyVisibility: (visibility: string[]) => void;
-  /** Property visibility from view props (initial state) */
-  viewPropertyVisibility?: string[];
 }
 
 /**
@@ -92,23 +86,12 @@ export function useViewSetup<
   data,
   properties,
   groupBy,
-  viewPropertyVisibility,
   contextPagination,
-  setPropertyVisibility,
   counts,
 }: UseViewSetupOptions<TData, TProperties>): UseViewSetupResult<
   TData,
   TProperties
 > {
-  // Pattern 1: Sync view.propertyVisibility to context state ONLY on mount
-  const hasInitialized = useRef(false);
-  useEffect(() => {
-    if (!hasInitialized.current && viewPropertyVisibility) {
-      setPropertyVisibility(viewPropertyVisibility);
-      hasInitialized.current = true;
-    }
-  }, [viewPropertyVisibility, setPropertyVisibility]);
-
   // Pattern 3: Validate property keys
   const propertyValidationError = useMemo(
     () => validatePropertyKeys(properties),

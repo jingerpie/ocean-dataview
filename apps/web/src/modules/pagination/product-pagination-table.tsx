@@ -79,13 +79,11 @@ export function ProductPaginationTable(props: PaginationProps) {
     <Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
       <DataViewProvider
         data={data.items}
-        defaults={{
-          filter,
-          sort: sorts,
-          search: searchQuery,
-        }}
+        filter={filter}
         pagination={pagination}
         properties={productProperties}
+        search={searchQuery}
+        sort={sorts}
       >
         <NotionToolbar properties={productProperties}>
           <ViewNav />

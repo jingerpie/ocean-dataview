@@ -23,8 +23,8 @@ const SEARCH_DEBOUNCE_MS = 300;
  */
 export function useSearchParams() {
   // Read search from context (server props)
-  const { defaults } = useDataViewContext();
-  const serverSearch = defaults?.search ?? "";
+  const { search: contextSearch } = useDataViewContext();
+  const serverSearch = contextSearch ?? "";
 
   // URL state (nuqs handles URL updates)
   const [, setUrlSearchState] = useQueryState(

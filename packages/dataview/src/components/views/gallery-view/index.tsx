@@ -12,11 +12,7 @@ import { GroupSection } from "../../ui/group-section";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
 import { DataCard } from "../data-card";
 
-export interface GalleryViewProps<
-  TData,
-  TProperties extends
-    readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
-> {
+export interface GalleryViewProps<TData> {
   /**
    * Additional className
    */
@@ -26,7 +22,7 @@ export interface GalleryViewProps<
    */
   layout: {
     /** Property ID for card preview image (references property.id, not data key) */
-    cardPreview?: TProperties[number]["id"];
+    cardPreview?: string;
     cardSize?: "small" | "medium" | "large";
     fitMedia?: boolean;
     wrapAllProperties?: boolean;
@@ -49,47 +45,6 @@ export interface GalleryViewProps<
    * For flat galleries: renders below the gallery
    */
   pagination?: PaginationMode;
-
-  /**
-   * View configuration
-   */
-  view?: {
-    propertyVisibility?: TProperties[number]["id"][];
-
-    /**
-     * Group By configuration - creates collapsible groups in gallery
-     */
-    group?: {
-      /** Property ID to group by (references property.id, not data key) */
-      groupBy: TProperties[number]["id"];
-      /**
-       * How to group the data:
-       * - For date properties: 'day' | 'week' | 'month' | 'year' | 'relative' (default: 'relative')
-       * - For status properties: 'option' (group by status value) | 'group' (group by status group like todo/inProgress/complete) (default: 'option')
-       * - For select/multi-select: 'option' (group by option value) (default behavior)
-       */
-      showAs?:
-        | "day"
-        | "week"
-        | "month"
-        | "year"
-        | "relative"
-        | "group"
-        | "option";
-      /** Week start day (only for showAs: 'week') */
-      startWeekOn?: "monday" | "sunday";
-      /** Sort groups by property value (default: 'propertyAscending') */
-      sort?: "propertyAscending" | "propertyDescending";
-      /** Hide groups with no items (default: true) */
-      hideEmptyGroups?: boolean;
-      /** Display aggregation counts in group headers (default: true) */
-      showAggregation?: boolean;
-      /** Controlled expansion state (array of expanded group keys) */
-      expandedGroups?: string[];
-      /** Callback when expansion state changes */
-      onExpandedChange?: (groups: string[]) => void;
-    };
-  };
 }
 
 /**
@@ -102,19 +57,18 @@ export function GalleryView<
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
   layout = {},
-  view = {},
   onCardClick,
   pagination,
   className,
-}: GalleryViewProps<TData, TProperties>) {
+}: GalleryViewProps<TData>) {
   // Get data and properties from context
   const {
     data,
     properties,
     propertyVisibility,
     pagination: contextPagination,
-    setPropertyVisibility,
     counts,
+    group,
   } = useDataViewContext<TData, TProperties>();
 
   const {
@@ -124,7 +78,6 @@ export function GalleryView<
     wrapAllProperties = false,
     showPropertyNames = false,
   } = layout;
-  const { propertyVisibility: viewPropertyVisibility, group: groupBy } = view;
 
   // Use shared view setup hook
   const {
@@ -136,18 +89,16 @@ export function GalleryView<
   } = useViewSetup({
     data: data as TData[],
     properties,
-    groupBy: groupBy
+    groupBy: group
       ? {
-          groupBy: String(groupBy.groupBy),
-          showAs: groupBy.showAs,
-          startWeekOn: groupBy.startWeekOn,
-          sort: groupBy.sort,
-          hideEmptyGroups: groupBy.hideEmptyGroups,
+          groupBy: String(group.groupBy),
+          showAs: group.showAs,
+          startWeekOn: group.startWeekOn,
+          sort: group.sort,
+          hideEmptyGroups: group.hideEmptyGroups,
         }
       : undefined,
-    viewPropertyVisibility,
     contextPagination,
-    setPropertyVisibility,
     counts: counts?.group,
   });
 
@@ -208,32 +159,32 @@ export function GalleryView<
   // GROUPED VIEW: Render using Accordion for collapsible groups
   // Note: Check grouped view before empty state, because with lazy loading
   // data might be empty but we still want to show group headers with counts
-  if (groupBy && groupedData) {
+  if (group && groupedData) {
     return (
       <div className={cn("flex flex-col gap-4", className)}>
         <Accordion
           multiple
-          onValueChange={groupBy.onExpandedChange}
-          value={groupBy.expandedGroups ?? []}
+          onValueChange={group.onExpandedChange}
+          value={group.expandedGroups ?? []}
         >
-          {groupedData.map((group: GroupedDataItem<TData>) => {
+          {groupedData.map((groupItem: GroupedDataItem<TData>) => {
             // Build pagination context for this group using shared utility
             const paginationContext = buildPaginationContext(
               contextPagination,
-              group.key
+              groupItem.key
             );
 
             return (
               <GroupSection
-                group={group}
+                group={groupItem}
                 groupByPropertyDef={groupByProperty}
                 isLoading={false}
-                key={group.key}
+                key={groupItem.key}
                 renderFooter={renderPagination(pagination, paginationContext)}
-                showAggregation={groupBy?.showAggregation ?? true}
+                showAggregation={group.showAggregation ?? true}
                 stickyHeader={{ enabled: true, offset: 57 }}
               >
-                {renderCardGrid(group.items)}
+                {renderCardGrid(groupItem.items)}
               </GroupSection>
             );
           })}

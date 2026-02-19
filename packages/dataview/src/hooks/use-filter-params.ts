@@ -30,8 +30,8 @@ const EMPTY_FILTER: WhereNode[] = [];
  */
 export function useFilterParams() {
   // Read filter from context (server props)
-  const { defaults } = useDataViewContext();
-  const serverFilter = defaults?.filter ?? null;
+  const { filter: contextFilter } = useDataViewContext();
+  const serverFilter = contextFilter ?? null;
 
   // URL state (nuqs handles URL updates)
   const [, setUrlFilterState] = useQueryState(

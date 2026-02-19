@@ -25,51 +25,78 @@ export type PaginationOutput<TData> =
   | GroupInfinitePaginationState<TData>;
 
 /**
- * Default values for DataView state - passed from server props
- * These are the source of truth for the current view state
+ * Group configuration for views
  */
-export interface DataViewDefaults {
-  /** Current filter state (from server) - array of WhereNode (implicit AND) */
-  filter?: WhereNode[] | null;
-  /** Default page size */
-  limit?: number;
-  /** Current search string (from server) */
-  search?: string;
-  /** Current sort state (from server) */
-  sort?: SortQuery[];
-  /** Default visible property IDs */
-  visibility?: string[];
+export interface GroupConfig<TPropertyId extends string = string> {
+  /** Controlled expanded groups state */
+  expandedGroups?: string[];
+  /** Property ID to group by */
+  groupBy: TPropertyId;
+  /** Hide empty groups */
+  hideEmptyGroups?: boolean;
+  /** Callback when expanded groups change */
+  onExpandedChange?: (groups: string[]) => void;
+  /** Show aggregation/count in group headers */
+  showAggregation?: boolean;
+  /** How to display the grouping */
+  showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option";
+  /** Sort direction for groups */
+  sort?: "propertyAscending" | "propertyDescending";
+  /** Week start day for week grouping */
+  startWeekOn?: "monday" | "sunday";
+}
+
+/**
+ * Sub-group configuration for BoardView
+ */
+export interface SubGroupConfig<TPropertyId extends string = string> {
+  /** Default expanded sub-groups */
+  defaultExpanded?: string[];
+  /** Controlled expanded sub-groups state */
+  expandedSubGroups?: string[];
+  /** Hide empty sub-groups */
+  hideEmptyGroups?: boolean;
+  /** Callback when expanded sub-groups change */
+  onExpandedSubGroupsChange?: (groups: string[]) => void;
+  /** How to display the sub-grouping */
+  showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option";
+  /** Sort direction for sub-groups */
+  sort?: "propertyAscending" | "propertyDescending";
+  /** Week start day for week sub-grouping */
+  startWeekOn?: "monday" | "sunday";
+  /** Property ID to sub-group by */
+  subGroupBy: TPropertyId;
 }
 
 export interface DataViewContextValue<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
-  // Counts for group headers (and optionally sub-group headers for BoardView)
-  counts?: ViewCounts;
   // Core data
+  counts?: ViewCounts;
   data: TData[];
 
-  // Default values for URL state (when URL params are empty)
-  defaults?: DataViewDefaults;
-
-  // Excluded properties (e.g., grouped column) - set by view component
+  // Property visibility state
   excludedPropertyIds: TProperties[number]["id"][];
-  hideAllProperties: () => void;
 
-  // Pagination (flat or grouped)
+  // Query state (previously in defaults)
+  filter?: WhereNode[] | null;
+
+  // View config (previously in view prop)
+  group?: GroupConfig<TProperties[number]["id"]>;
+  hideAllProperties: () => void;
+  limit?: number;
   pagination?: PaginationOutput<TData> | undefined;
   properties: TProperties;
   /** Covariant property metadata - safe to pass to UI components */
   propertyMetas: PropertyMeta[];
-
-  // Property visibility state
   propertyVisibility: TProperties[number]["id"][];
+  search?: string;
   setExcludedPropertyIds: (ids: TProperties[number]["id"][]) => void;
   setPropertyVisibility: (visibility: TProperties[number]["id"][]) => void;
   showAllProperties: () => void;
-
-  // Helper methods
+  sort?: SortQuery[];
+  subGroup?: SubGroupConfig<TProperties[number]["id"]>;
   toggleProperty: (propertyId: TProperties[number]["id"]) => void;
 }
 

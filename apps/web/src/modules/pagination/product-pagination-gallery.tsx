@@ -70,13 +70,11 @@ export function ProductPaginationGallery({
     <Suspense fallback={<GallerySkeleton cardCount={6} />}>
       <DataViewProvider
         data={items}
-        defaults={{
-          filter,
-          sort,
-          search: searchQuery,
-        }}
+        filter={filter}
         pagination={pagination}
         properties={productProperties}
+        search={searchQuery}
+        sort={sort}
       >
         <NotionToolbar properties={productProperties}>
           <ViewNav />

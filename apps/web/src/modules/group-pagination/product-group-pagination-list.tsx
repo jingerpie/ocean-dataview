@@ -93,29 +93,23 @@ export function ProductGroupPaginationList({
       <DataViewProvider
         counts={{ group: groupCounts }}
         data={data}
-        defaults={{
-          filter,
-          sort,
-          search: searchQuery,
+        filter={filter}
+        group={{
+          groupBy: "category",
+          showAggregation: true,
+          expandedGroups,
+          onExpandedChange: handleAccordionChange,
         }}
         pagination={pagination}
         properties={productProperties}
+        search={searchQuery}
+        sort={sort}
       >
         <NotionToolbar properties={productProperties}>
           <ViewNav />
         </NotionToolbar>
 
-        <ListView
-          pagination="page"
-          view={{
-            group: {
-              groupBy: "category",
-              showAggregation: true,
-              expandedGroups,
-              onExpandedChange: handleAccordionChange,
-            },
-          }}
-        />
+        <ListView pagination="page" />
       </DataViewProvider>
     </Suspense>
   );

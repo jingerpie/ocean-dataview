@@ -31,8 +31,8 @@ const EMPTY_SORT: SortQuery[] = [];
  */
 export function useSortParams() {
   // Read sort from context (server props)
-  const { defaults } = useDataViewContext();
-  const serverSort = defaults?.sort ?? [];
+  const { sort: contextSort } = useDataViewContext();
+  const serverSort = contextSort ?? [];
 
   // URL state (nuqs handles URL updates)
   const [, setUrlSortState] = useQueryState("sort", {

@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertCircle, Columns3 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import type {
   GroupedDataItem,
   GroupInfiniteInfo,
@@ -18,7 +18,12 @@ import {
   validatePropertyKeys,
 } from "../../../lib/utils";
 import { getBoardCardDimensions } from "../../../lib/utils/get-card-sizes";
-import type { BadgeColor, DataViewProperty, GroupCounts } from "../../../types";
+import type {
+  BadgeColor,
+  DataViewProperty,
+  GroupCountInfo,
+  GroupCounts,
+} from "../../../types";
 import { Accordion } from "../../ui/accordion";
 import { Badge } from "../../ui/badge";
 import { EmptyState } from "../../ui/empty-state";
@@ -29,11 +34,7 @@ import { DataCell } from "../data-cell";
 import { BoardColumnHeaders } from "./board-column-headers";
 import { BoardColumns } from "./board-columns";
 
-export interface BoardViewProps<
-  TData,
-  TProperties extends
-    readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
-> {
+export interface BoardViewProps<TData> {
   /**
    * Additional className
    */
@@ -54,7 +55,7 @@ export interface BoardViewProps<
    */
   layout?: {
     /** Property ID for card preview image (references property.id, not data key) */
-    cardPreview?: TProperties[number]["id"];
+    cardPreview?: string;
     cardSize?: "small" | "medium" | "large"; // default: 'medium'
     fitMedia?: boolean; // default: true (object-cover vs object-contain)
     wrapAllProperties?: boolean; // default: false
@@ -77,78 +78,6 @@ export interface BoardViewProps<
    * For boards: renders at bottom of each column
    */
   pagination?: PaginationMode;
-
-  /**
-   * View configuration
-   */
-  view?: {
-    propertyVisibility?: TProperties[number]["id"][];
-
-    /**
-     * Group By configuration - creates board columns
-     * If not specified, will auto-select the first status or select property
-     */
-    group?: {
-      /** Property ID to group by (references property.id, not data key) */
-      groupBy?: TProperties[number]["id"];
-      /**
-       * How to group the data:
-       * - For date properties: 'day' | 'week' | 'month' | 'year' | 'relative' (default: 'relative')
-       * - For status properties: 'option' (group by status value) | 'group' (group by status group like todo/inProgress/complete) (default: 'option')
-       * - For select/multi-select: 'option' (group by option value) (default behavior)
-       */
-      showAs?:
-        | "day"
-        | "week"
-        | "month"
-        | "year"
-        | "relative"
-        | "group"
-        | "option";
-      /** Week start day (only for showAs: 'week') */
-      startWeekOn?: "monday" | "sunday";
-      /** Sort groups by property value (default: 'propertyAscending') */
-      sort?: "propertyAscending" | "propertyDescending";
-      /** Hide groups with no items (default: true) */
-      hideEmptyGroups?: boolean;
-      /** Display aggregation counts in column headers (default: true) */
-      showAggregation?: boolean;
-    };
-
-    /**
-     * Sub-Group By configuration - secondary grouping within columns (optional)
-     */
-    subGroup?: {
-      /** Property ID to sub-group by (references property.id, not data key) */
-      subGroupBy: TProperties[number]["id"];
-      /**
-       * How to sub-group the data:
-       * - For date properties: 'day' | 'week' | 'month' | 'year' | 'relative' (default: 'relative')
-       * - For status properties: 'option' (group by status value) | 'group' (group by status group like todo/inProgress/complete) (default: 'option')
-       * - For select/multi-select: 'option' (group by option value) (default behavior)
-       */
-      showAs?:
-        | "day"
-        | "week"
-        | "month"
-        | "year"
-        | "relative"
-        | "group"
-        | "option";
-      /** Week start day (only for showAs: 'week') */
-      startWeekOn?: "monday" | "sunday";
-      /** Sort sub-groups by property value (default: 'propertyAscending') */
-      sort?: "propertyAscending" | "propertyDescending";
-      /** Hide sub-groups with no items (default: true) */
-      hideEmptyGroups?: boolean;
-      /** Default expanded sub-groups (array of group keys) - for uncontrolled mode */
-      defaultExpanded?: string[];
-      /** Controlled sub-group expansion state (array of expanded sub-group keys) */
-      expandedSubGroups?: string[];
-      /** Callback when sub-group expansion changes */
-      onExpandedSubGroupsChange?: (groups: string[]) => void;
-    };
-  };
 }
 
 /**
@@ -161,26 +90,29 @@ export function BoardView<
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
   layout = {},
-  view = {},
   onCardClick,
-  keyExtractor = (item, index) => String((item as { id?: string }).id || index),
+  keyExtractor = (item: TData, index: number) =>
+    String((item as { id?: string }).id || index),
   pagination,
   className,
   counts: _counts,
-}: BoardViewProps<TData, TProperties>) {
+}: BoardViewProps<TData>) {
   // Get data and properties from context
   const {
     data,
     properties,
     pagination: contextPagination,
-    setPropertyVisibility,
     counts: contextCounts,
+    propertyVisibility,
+    group: groupConfig,
+    subGroup: subGroupConfig,
   } = useDataViewContext<TData, TProperties>();
 
   // Use prop counts if provided, otherwise fall back to context
   const viewCounts = _counts ? { group: _counts } : contextCounts;
   const counts = viewCounts?.group;
-  const subGroupCounts = viewCounts?.subGroup;
+  const subGroupCounts =
+    "subGroup" in (viewCounts ?? {}) ? viewCounts?.subGroup : undefined;
 
   // Check if we're using grouped pagination from context
   const hasGroupedPagination =
@@ -195,26 +127,6 @@ export function BoardView<
     colorColumns = false,
     showPropertyNames = false,
   } = layout;
-
-  // Extract view configuration with defaults
-  const {
-    propertyVisibility: viewPropertyVisibility,
-    group: groupConfig,
-    subGroup: subGroupConfig,
-  } = view;
-
-  // Sync view.propertyVisibility to context state ONLY on mount (initial state)
-  const hasInitialized = useRef(false);
-  useEffect(() => {
-    if (!hasInitialized.current && viewPropertyVisibility) {
-      setPropertyVisibility(viewPropertyVisibility);
-      hasInitialized.current = true;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewPropertyVisibility, setPropertyVisibility]);
-
-  // Always use context state (which can be controlled by DataViewOptions)
-  const { propertyVisibility } = useDataViewContext<TData, TProperties>();
 
   // Validate property keys
   const propertyValidationError = useMemo(
@@ -288,16 +200,18 @@ export function BoardView<
           (clientGroupedData ?? []).map((g) => [g.key, g])
         );
 
-        return Object.entries(counts).map(([key, countInfo]) => {
-          const clientGroup = clientDataMap.get(key);
-          return {
-            key,
-            items: clientGroup?.items ?? [],
-            count: countInfo.count,
-            displayCount: countInfo.hasMore ? "99+" : String(countInfo.count),
-            sortValue: clientGroup?.sortValue ?? key,
-          };
-        });
+        return Object.entries(counts).map(
+          ([key, countInfo]: [string, GroupCountInfo]) => {
+            const clientGroup = clientDataMap.get(key);
+            return {
+              key,
+              items: clientGroup?.items ?? [],
+              count: countInfo.count,
+              displayCount: countInfo.hasMore ? "99+" : String(countInfo.count),
+              sortValue: clientGroup?.sortValue ?? key,
+            };
+          }
+        );
       }
       return clientGroupedData;
     }

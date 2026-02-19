@@ -4,15 +4,18 @@ import type { ReactNode } from "react";
 import { useCallback, useMemo, useState } from "react";
 import {
   type DataViewProperty,
+  type SortQuery,
   toPropertyMetaArray,
   type ViewCounts,
+  type WhereNode,
 } from "../../types";
 import { cn } from "../utils";
 import {
   DataViewContext,
   type DataViewContextValue,
-  type DataViewDefaults,
+  type GroupConfig,
   type PaginationOutput,
+  type SubGroupConfig,
 } from "./data-view-context";
 
 export interface DataViewProviderProps<
@@ -28,15 +31,27 @@ export interface DataViewProviderProps<
    */
   counts?: ViewCounts;
   data: TData[];
-  /**
-   * Default values for URL state when URL params are empty
-   * - visibility: Default visible property IDs
-   * - filter: Default filter state
-   * - sort: Default sort state
-   */
-  defaults?: DataViewDefaults;
+
+  // Query state (flattened from defaults)
+  /** Current filter state (from server) - array of WhereNode (implicit AND) */
+  filter?: WhereNode[] | null;
+
+  // View config (flattened from view prop)
+  /** Group configuration */
+  group?: GroupConfig<TProperties[number]["id"]>;
+  /** Default page size */
+  limit?: number;
+
   pagination?: PaginationOutput<TData> | undefined;
   properties: TProperties;
+  /** Default visible property IDs */
+  propertyVisibility?: TProperties[number]["id"][];
+  /** Current search string (from server) */
+  search?: string;
+  /** Current sort state (from server) */
+  sort?: SortQuery[];
+  /** Sub-group configuration (BoardView only) */
+  subGroup?: SubGroupConfig<TProperties[number]["id"]>;
 }
 
 export function DataViewProvider<
@@ -49,8 +64,16 @@ export function DataViewProvider<
   children,
   className,
   pagination,
-  defaults,
   counts,
+  // Query state (flattened)
+  filter,
+  sort,
+  search,
+  limit,
+  // View config (flattened)
+  group,
+  subGroup,
+  propertyVisibility: defaultVisibility,
 }: DataViewProviderProps<TData, TProperties>) {
   // Get all property IDs that CAN be visible (hidden !== true in definition)
   const visiblePropertyIds = useMemo(
@@ -71,10 +94,10 @@ export function DataViewProvider<
       .filter((p) => p.hidden !== true)
       .map((p) => p.id) as TProperties[number]["id"][];
 
-    if (defaults?.visibility) {
-      // defaults.visibility = IDs that should be visible
+    if (defaultVisibility) {
+      // defaultVisibility = IDs that should be visible
       // hiddenByUser = IDs that should be hidden (inverse)
-      const defaultVisible = new Set(defaults.visibility);
+      const defaultVisible = new Set(defaultVisibility);
       return new Set(canBeVisible.filter((id) => !defaultVisible.has(id)));
     }
     return new Set();
@@ -137,10 +160,21 @@ export function DataViewProvider<
 
   const contextValue = useMemo<DataViewContextValue<TData, TProperties>>(
     () => ({
+      // Core data
       data,
       properties,
       propertyMetas,
-      defaults,
+      pagination,
+      counts,
+      // Query state (flattened)
+      filter,
+      sort,
+      search,
+      limit,
+      // View config (flattened)
+      group,
+      subGroup,
+      // Property visibility state
       propertyVisibility,
       setPropertyVisibility,
       excludedPropertyIds,
@@ -148,22 +182,25 @@ export function DataViewProvider<
       toggleProperty,
       showAllProperties,
       hideAllProperties,
-      pagination,
-      counts,
     }),
     [
       data,
       properties,
       propertyMetas,
-      defaults,
+      pagination,
+      counts,
+      filter,
+      sort,
+      search,
+      limit,
+      group,
+      subGroup,
       propertyVisibility,
       setPropertyVisibility,
       excludedPropertyIds,
       toggleProperty,
       showAllProperties,
       hideAllProperties,
-      pagination,
-      counts,
     ]
   );
 
