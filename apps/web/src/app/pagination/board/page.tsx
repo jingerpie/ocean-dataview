@@ -43,11 +43,13 @@ export default async function PaginationBoardPage(props: PageProps) {
           if (!hasAnyMore) {
             return undefined;
           }
-          // Relay pattern: use endCursor where hasNextPage is true
+          // Pass ALL groups with cursors (or null for exhausted/empty groups)
+          // Server will skip groups with null cursor
           return Object.fromEntries(
-            Object.entries(lastPage.hasNextPage)
-              .filter(([key, hasMore]) => hasMore && lastPage.endCursor[key])
-              .map(([key]) => [key, lastPage.endCursor[key] as string])
+            Object.entries(lastPage.endCursor).map(([key, cursor]) => [
+              key,
+              cursor,
+            ])
           );
         },
       }

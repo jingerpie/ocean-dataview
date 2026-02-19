@@ -33,19 +33,41 @@ type PaginationOutput<TData> =
   | GroupedPaginationOutput<TData>;
 
 /**
+ * Resolves hasNext to a boolean value.
+ * - If hasNext is boolean, returns it directly
+ * - If hasNext is Record<string, boolean>, looks up by groupKey
+ *
+ * @param hasNext - The hasNext value (boolean or Record)
+ * @param groupKey - The key to look up if hasNext is a Record
+ * @returns boolean indicating if there are more items
+ */
+function resolveHasNext(
+  hasNext: boolean | Record<string, boolean>,
+  groupKey?: string
+): boolean {
+  if (typeof hasNext === "boolean") {
+    return hasNext;
+  }
+  // Record<string, boolean> - look up by key
+  return groupKey ? (hasNext[groupKey] ?? false) : false;
+}
+
+/**
  * Builds a PaginationContext for a specific group from pagination output.
- * Used by views (List, Gallery, Table) to provide pagination controls per-group.
+ * Used by views (List, Gallery, Table, Board) to provide pagination controls per-group.
  *
  * For grouped pagination: returns context for the specific group
- * For flat pagination: returns context directly (groupKey is ignored)
+ * For flat pagination: returns context directly (groupKey used for hasNext lookup)
  *
  * @param pagination - The pagination output (flat or grouped)
- * @param groupKey - The key of the group to build context for (ignored for flat)
+ * @param groupKey - The key of the group to build context for
+ * @param columnKey - Optional column key for per-group hasNext in sub-grouped boards
  * @returns PaginationContext if available, undefined otherwise
  */
 export function buildPaginationContext<TData>(
   pagination: PaginationOutput<TData> | undefined,
-  groupKey: string
+  groupKey: string,
+  columnKey?: string
 ): PaginationContext | undefined {
   if (!pagination) {
     return undefined;
@@ -58,9 +80,14 @@ export function buildPaginationContext<TData>(
       return undefined;
     }
 
+    // For sub-grouped boards: use columnKey to resolve per-column hasNext
+    // For regular grouped views: use group.hasNext directly
+    const hasNext = resolveHasNext(group.hasNext, columnKey);
+
     return {
-      hasNext: group.hasNext,
-      hasPrev: "hasPrev" in group ? group.hasPrev : false,
+      hasNext,
+      hasPrev:
+        "hasPrev" in group ? resolveHasNext(group.hasPrev, columnKey) : false,
       onNext: group.onNext,
       onPrev: "onPrev" in group ? group.onPrev : () => undefined,
       isLoading: group.isLoading,
@@ -83,9 +110,12 @@ export function buildPaginationContext<TData>(
   }
 
   // Handle flat pagination
+  // For flat boards: groupKey is the column key for hasNext lookup
+  const hasNext = resolveHasNext(pagination.hasNext, groupKey);
+
   return {
-    hasNext: pagination.hasNext,
-    hasPrev: pagination.hasPrev,
+    hasNext,
+    hasPrev: resolveHasNext(pagination.hasPrev, groupKey),
     onNext: pagination.onNext,
     onPrev: pagination.onPrev,
     isLoading: pagination.isLoading,

@@ -59,7 +59,12 @@ export interface UseInfinitePaginationOptions<
  */
 export interface InfinitePaginationState {
   // Navigation
-  hasNext: boolean;
+  /**
+   * Whether there are more items to load.
+   * - boolean: from getMany (single pagination unit)
+   * - Record<string, boolean>: from getManyByGroup (per-group pagination)
+   */
+  hasNext: boolean | Record<string, boolean>;
   hasPrev: false;
   onNext: () => void;
   onPrev: () => void;
@@ -167,6 +172,15 @@ export function useInfinitePagination<
     );
   }, [data.pages]);
 
+  // Extract hasNext from the last page
+  // Can be boolean (getMany) or Record<string, boolean> (getManyByGroup)
+  const hasNext = useMemo(() => {
+    const lastPage = data.pages.at(-1) as
+      | BasePaginatedResponse<TData>
+      | undefined;
+    return lastPage?.hasNextPage ?? false;
+  }, [data.pages]);
+
   const onNext = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
@@ -177,7 +191,7 @@ export function useInfinitePagination<
     items,
     pagination: {
       // Navigation
-      hasNext: hasNextPage ?? false,
+      hasNext,
       hasPrev: false,
       onNext,
       onPrev: () => undefined,

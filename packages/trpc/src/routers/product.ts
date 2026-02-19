@@ -126,7 +126,7 @@ export const productRouter = router({
       z.object({
         groupBy: z.enum(["category", "availability"]),
         limit: z.number().int().min(1).max(100).default(10),
-        cursor: z.record(z.string(), z.string()).optional(),
+        cursor: z.record(z.string(), z.string().nullable()).optional(),
         filter: z.array(whereNodeSchema).nullish(),
         sort: z
           .array(
@@ -182,6 +182,16 @@ export const productRouter = router({
       for (const { group } of groupsResult) {
         const groupKey = String(group ?? "null");
         const cursor = inputCursors[groupKey];
+
+        // Skip exhausted/empty groups (cursor === null means "don't refetch")
+        if (cursor === null) {
+          startCursor[groupKey] = null;
+          endCursor[groupKey] = null;
+          hasNextPage[groupKey] = false;
+          hasPreviousPage[groupKey] = true;
+          continue;
+        }
+
         const groupWhere =
           group === null ? isNull(groupByColumn) : eq(groupByColumn, group);
 

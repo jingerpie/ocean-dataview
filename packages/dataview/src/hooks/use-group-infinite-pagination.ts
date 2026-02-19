@@ -68,7 +68,12 @@ export interface GroupInfiniteInfo<TData> {
   key: string;
   value: string;
   items: TData[];
-  hasNext: boolean;
+  /**
+   * Whether there are more items to load.
+   * - boolean: from getMany (single pagination unit)
+   * - Record<string, boolean>: from getManyByGroup (per-group pagination)
+   */
+  hasNext: boolean | Record<string, boolean>;
   onNext: () => void;
   totalLoaded: number;
   isFetchingNextPage: boolean;
@@ -328,11 +333,18 @@ export function useGroupInfinitePagination<
         (page) => (page as BasePaginatedResponse<TData>).items
       ) ?? []) as TData[];
 
+      // Extract hasNext from the last page
+      // Can be boolean (getMany) or Record<string, boolean> (getManyByGroup)
+      const lastPage = query?.data?.pages?.at(-1) as
+        | BasePaginatedResponse<TData>
+        | undefined;
+      const hasNext = lastPage?.hasNextPage ?? false;
+
       const group: GroupInfiniteInfo<TData> = {
         key: groupKey,
         value: groupKey,
         items,
-        hasNext: query?.hasNextPage ?? false,
+        hasNext,
         totalLoaded: items.length,
         isFetchingNextPage: query?.isFetchingNextPage ?? false,
         isLoading: query?.isLoading ?? false,

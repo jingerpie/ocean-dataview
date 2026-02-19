@@ -526,12 +526,16 @@ export function BoardView<
   const groups: GroupedDataItem<TData>[] = groupedData || [];
 
   // Build footer renderer using pagination mode
-  // For sub-grouped boards: key is subGroupKey (e.g., "In stock")
-  // For non-sub-grouped boards: key is columnKey (e.g., "Accessories")
+  // For sub-grouped boards: groupKey is subGroupKey (e.g., "In stock"), columnKey for per-column hasNext
+  // For non-sub-grouped boards: groupKey is columnKey (e.g., "Accessories")
   // hasNext is automatically handled by buildPaginationContext from pagination.groups[].hasNext
   const renderFooter = pagination
-    ? (key: string) => {
-        const ctx = buildPaginationContext(contextPagination, key);
+    ? (groupKey: string, columnKey?: string) => {
+        const ctx = buildPaginationContext(
+          contextPagination,
+          groupKey,
+          columnKey
+        );
         return renderPagination(pagination, ctx);
       }
     : undefined;
@@ -702,7 +706,9 @@ export function BoardView<
                     }
                     groups={groups}
                     keyExtractor={keyExtractor}
-                    renderFooter={() => renderFooter?.(subGroup.key)}
+                    renderFooter={(columnKey) =>
+                      renderFooter?.(subGroup.key, columnKey)
+                    }
                     rounded="all"
                   />
                 </GroupSection>

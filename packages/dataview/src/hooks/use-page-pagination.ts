@@ -29,7 +29,12 @@ export interface UsePagePaginationOptions<TData> {
  */
 export interface PagePaginationResult {
   // Navigation
-  hasNext: boolean;
+  /**
+   * Whether there are more items to load.
+   * - boolean: from getMany (single pagination unit)
+   * - Record<string, boolean>: from getManyByGroup (per-group pagination)
+   */
+  hasNext: boolean | Record<string, boolean>;
   hasPrev: boolean;
   onNext: () => void;
   onPrev: () => void;
