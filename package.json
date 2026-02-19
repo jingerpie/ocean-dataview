@@ -90,7 +90,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "turbo": "2.8.9",
-    "ultracite": "7.2.1"
+    "ultracite": "7.2.3"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,jsonc,css,scss,md,mdx}": [
