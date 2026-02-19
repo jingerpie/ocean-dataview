@@ -19,6 +19,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { productProperties } from "./product-properties";
+import { sampleRowActions } from "./sample-row-actions";
 import { ViewNav } from "./view-nav";
 
 /**
@@ -92,6 +93,7 @@ export function ProductPaginationTable(props: PaginationProps) {
         <TableView
           layout={{ showVerticalLines: false, wrapAllColumns: false }}
           pagination="page"
+          rowActions={sampleRowActions}
         />
       </DataViewProvider>
     </Suspense>

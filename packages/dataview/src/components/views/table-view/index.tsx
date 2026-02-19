@@ -35,15 +35,6 @@ export interface TableViewProps<
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 > {
   /**
-   * Actions for rows and bulk operations
-   * When provided, automatically enables:
-   * - Row selection with checkboxes
-   * - Actions column with row-level actions
-   * - Floating action bar for bulk operations
-   */
-  actions?: Action<TData>[];
-
-  /**
    * Additional className
    */
   className?: string;
@@ -71,6 +62,14 @@ export interface TableViewProps<
    * For flat tables: renders below the table
    */
   pagination?: PaginationMode;
+  /**
+   * Row actions for individual and bulk operations
+   * When provided, automatically enables:
+   * - Row selection with checkboxes
+   * - Actions column with row-level actions
+   * - Floating action bar for bulk operations
+   */
+  rowActions?: Action<TData>[];
 
   /**
    * View configuration
@@ -128,7 +127,7 @@ export function TableView<
   view = {},
   onRowClick,
   pagination,
-  actions,
+  rowActions,
   className,
 }: TableViewProps<TData, TProperties>) {
   // Get data and properties from context
@@ -170,10 +169,10 @@ export function TableView<
     counts: counts?.group,
   });
 
-  // Enable row selection when actions are provided
-  const enableRowSelection = Boolean(actions && actions.length > 0);
+  // Enable row selection when rowActions are provided
+  const enableRowSelection = Boolean(rowActions && rowActions.length > 0);
 
-  // Internal row selection state (always internal when using actions)
+  // Internal row selection state (always internal when using rowActions)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   // Use shared hook for display properties filtering
@@ -206,7 +205,7 @@ export function TableView<
 
     const allColumns: ColumnDef<TData>[] = [];
 
-    // Add selection column if actions provided
+    // Add selection column if rowActions provided
     if (enableRowSelection) {
       allColumns.push({
         id: "select",
@@ -239,16 +238,16 @@ export function TableView<
     // Add property columns
     allColumns.push(...propertyColumns);
 
-    // Add actions column if actions provided
-    if (actions && actions.length > 0) {
+    // Add actions column if rowActions provided
+    if (rowActions && rowActions.length > 0) {
       // Find primary action
-      const primaryAction = actions.find((a) => a.primary);
+      const primaryAction = rowActions.find((a) => a.primary);
 
       // Get row-level actions (exclude bulkOnly actions)
-      const rowActions = actions.filter((a) => !a.bulkOnly);
+      const rowLevelActions = rowActions.filter((a) => !a.bulkOnly);
 
       // Get dropdown actions (all row actions except primary)
-      const dropdownActions = rowActions
+      const dropdownActions = rowLevelActions
         .filter((a) => !a.primary)
         .map((action) => ({
           label: action.label,
@@ -267,7 +266,7 @@ export function TableView<
             dropdownActions={dropdownActions.map((dropdownAction, idx) => ({
               ...dropdownAction,
               onClick: () => {
-                const action = rowActions.filter((a) => !a.primary)[idx];
+                const action = rowLevelActions.filter((a) => !a.primary)[idx];
                 if (action) {
                   action.onClick([row.original]);
                 }
@@ -294,17 +293,17 @@ export function TableView<
     properties,
     wrapAllColumns,
     enableRowSelection,
-    actions,
+    rowActions,
   ]);
 
-  // Generate action bar if actions provided
+  // Generate action bar if rowActions provided
   const actionBar = useMemo(() => {
-    if (!actions || actions.length === 0) {
+    if (!rowActions || rowActions.length === 0) {
       return undefined;
     }
 
-    // Capture actions in closure to satisfy TypeScript
-    const definedActions = actions;
+    // Capture rowActions in closure to satisfy TypeScript
+    const definedActions = rowActions;
 
     function TableActionBar(table: TanStackTable<TData>) {
       const selectedRows = table
@@ -333,7 +332,7 @@ export function TableView<
     }
 
     return TableActionBar;
-  }, [actions]);
+  }, [rowActions]);
 
   // Error state
   if (validationError || propertyValidationError) {
