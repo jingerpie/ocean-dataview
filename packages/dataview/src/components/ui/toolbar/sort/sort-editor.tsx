@@ -20,7 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 import { PropertyIcon } from "../../property-icon";
 import { DirectionPicker } from "./direction-picker";
 
-interface SortRuleProps {
+interface SortEditorProps {
   /** Additional class names */
   className?: string;
   /** Whether to enable drag-and-drop (default: true) */
@@ -29,7 +29,7 @@ interface SortRuleProps {
   onRemove: () => void;
   /** Callback when sort rule changes */
   onUpdate: (updates: Partial<SortQuery>) => void;
-  /** All available properties */
+  /** All available properties (for property picker dropdown) */
   properties: readonly PropertyMeta[];
   /** The current property for this sort */
   property: PropertyMeta;
@@ -38,11 +38,15 @@ interface SortRuleProps {
 }
 
 /**
- * Single sort rule row with property picker, direction picker, and remove button.
+ * Editor for a single sort rule.
  *
- * When `draggable` is true (default), includes a drag handle for reordering.
+ * Displays:
+ * - Drag handle (when draggable=true)
+ * - Property dropdown
+ * - Direction dropdown (Ascending/Descending)
+ * - Remove button
  */
-function SortRule({
+function SortEditor({
   sort,
   property,
   properties,
@@ -50,7 +54,7 @@ function SortRule({
   onRemove,
   draggable = true,
   className,
-}: SortRuleProps) {
+}: SortEditorProps) {
   const [open, setOpen] = useState(false);
 
   const {
@@ -134,6 +138,7 @@ function SortRule({
           value={sort.direction}
         />
       </div>
+
       {/* Remove Button */}
       <Button
         aria-label="Remove sort"
@@ -147,4 +152,4 @@ function SortRule({
   );
 }
 
-export { SortRule, type SortRuleProps };
+export { SortEditor, type SortEditorProps };

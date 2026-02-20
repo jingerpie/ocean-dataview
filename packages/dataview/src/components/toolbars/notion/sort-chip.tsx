@@ -1,0 +1,38 @@
+"use client";
+
+import { useSortBuilder, useSortParams } from "../../../hooks";
+import type { PropertyMeta } from "../../../types";
+import { SortBulkEditor } from "../../ui/toolbar/sort/sort-bulk-editor";
+import { SortTrigger } from "../../ui/toolbar/sort/sort-trigger";
+
+interface SortChipProps {
+  /** Available properties to sort by */
+  properties: readonly PropertyMeta[];
+}
+
+/**
+ * Sort chip that shows sort count and opens the sort builder.
+ * Appearance: [↕ N sorts ▾]
+ *
+ * Composes SortTrigger + SortBulkEditor.
+ */
+function SortChip({ properties }: SortChipProps) {
+  const { sort: sorts } = useSortParams();
+  const { isOpen, setOpen } = useSortBuilder();
+
+  return (
+    <SortTrigger
+      count={sorts.length}
+      onOpenChange={setOpen}
+      open={isOpen}
+      variant="count"
+    >
+      <SortBulkEditor
+        onDeleteAll={() => setOpen(false)}
+        properties={properties}
+      />
+    </SortTrigger>
+  );
+}
+
+export { SortChip, type SortChipProps };

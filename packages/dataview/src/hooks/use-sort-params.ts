@@ -72,25 +72,23 @@ export function useSortParams() {
 
   const addSort = useCallback(
     (prop: string, direction: "asc" | "desc" = "asc") => {
-      setLocalSort((currentSort) => {
-        const existing = currentSort.find((s) => s.property === prop);
-        let newSort: SortQuery[];
-        if (existing) {
-          // Toggle direction
-          newSort = currentSort.map((s) =>
-            s.property === prop
-              ? { ...s, direction: s.direction === "asc" ? "desc" : "asc" }
-              : s
-          );
-        } else {
-          newSort = [...currentSort, { property: prop, direction }];
-        }
-        isInternalChange.current = true;
-        debouncedUrlUpdate(newSort);
-        return newSort;
-      });
+      const existing = localSort.find((s) => s.property === prop);
+      let newSort: SortQuery[];
+      if (existing) {
+        // Toggle direction
+        newSort = localSort.map((s) =>
+          s.property === prop
+            ? { ...s, direction: s.direction === "asc" ? "desc" : "asc" }
+            : s
+        );
+      } else {
+        newSort = [...localSort, { property: prop, direction }];
+      }
+      setLocalSort(newSort);
+      isInternalChange.current = true;
+      debouncedUrlUpdate(newSort);
     },
-    [debouncedUrlUpdate]
+    [localSort, debouncedUrlUpdate]
   );
 
   const removeSort = useCallback(

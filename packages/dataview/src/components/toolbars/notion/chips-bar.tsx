@@ -1,11 +1,11 @@
 "use client";
 
 import type {
-  SortQuery,
   WhereExpression,
   WhereNode,
   WhereRule,
 } from "@sparkyidea/shared/types";
+import { useSortParams } from "../../../hooks";
 import { cn } from "../../../lib/utils";
 import type { PropertyMeta } from "../../../types";
 import { Button } from "../../ui/button";
@@ -13,7 +13,7 @@ import { Separator } from "../../ui/separator";
 import { AdvancedFilterChip } from "../../ui/toolbar/filter/advanced/filter-chip";
 import { FilterPropertyPicker } from "../../ui/toolbar/filter/pickers/filter-property-picker";
 import { FilterChip } from "../../ui/toolbar/filter/simple/filter-chip";
-import { SortChip } from "../../ui/toolbar/sort/sort-chip";
+import { SortChip } from "./sort-chip";
 
 interface ChipsBarProps {
   /** Advanced filter (WhereExpression at root level) */
@@ -28,30 +28,24 @@ interface ChipsBarProps {
   onFilterChange: (filter: WhereNode[] | null) => void;
   /** Callback to reset all filters and sorts (removes from URL) */
   onReset: () => void;
-  /** Callback when sorts change */
-  onSortsChange: (sorts: SortQuery[]) => void;
   /** Available properties */
   properties: readonly PropertyMeta[];
   /** Total rule count in advanced filter */
   ruleCount: number;
   /** Simple filter rules (WhereRules at root level) */
   simpleFilterConditions: Array<{ condition: WhereRule; index: number }>;
-  /** Current sorts (multiple sorts supported) */
-  sorts: SortQuery[];
 }
 
 /**
  * Bar displaying active sort/filter chips.
  *
  * Display Order (Fixed):
- * 1. Sort list (multi-sort with drag-and-drop)
+ * 1. Sort chip (multi-sort with drag-and-drop)
  * 2. Advanced filter chip (if exists)
  * 3. Simple filter chips (in array order)
  * 4. "+ Filter" button
  */
 export function ChipsBar({
-  sorts,
-  onSortsChange,
   filter,
   onFilterChange,
   onReset,
@@ -62,7 +56,8 @@ export function ChipsBar({
   ruleCount,
   className,
 }: ChipsBarProps) {
-  // Handle updating a simple filter rule
+  const { sort: sorts } = useSortParams();
+
   const handleRuleChange = (index: number, newRule: WhereRule) => {
     if (!filter) {
       return;
@@ -72,7 +67,6 @@ export function ChipsBar({
     onFilterChange(newFilter);
   };
 
-  // Handle removing a simple filter rule
   const handleRuleRemove = (index: number) => {
     if (!filter) {
       return;
@@ -81,37 +75,30 @@ export function ChipsBar({
     onFilterChange(newFilter.length > 0 ? newFilter : null);
   };
 
-  // Handle adding a simple rule to advanced filter
   const handleAddToAdvanced = (index: number, rule: WhereRule) => {
     if (!filter) {
       return;
     }
 
     const items = [...filter];
-
-    // Remove the rule from root level
     items.splice(index, 1);
 
     if (advancedFilter && advancedFilterIndex !== null) {
-      // Add to existing advanced filter
       const advancedItems = advancedFilter.and ?? advancedFilter.or ?? [];
       const newAdvanced: WhereExpression = advancedFilter.and
         ? { and: [...advancedItems, rule] }
         : { or: [...advancedItems, rule] };
       items[advancedFilterIndex] = newAdvanced;
     } else {
-      // Create new advanced filter with wrapped structure
       const newAdvanced: WhereExpression = { and: [rule] };
-      items.unshift(newAdvanced); // Add at beginning
+      items.unshift(newAdvanced);
     }
 
     onFilterChange(items.length > 0 ? items : null);
   };
 
-  // Handle advanced filter changes
   const handleAdvancedFilterChange = (newAdvanced: WhereNode | null) => {
     if (!filter || advancedFilterIndex === null) {
-      // No existing filter or advanced filter - set as new root
       if (newAdvanced) {
         onFilterChange([newAdvanced]);
       } else {
@@ -123,11 +110,9 @@ export function ChipsBar({
     const items = [...filter];
 
     if (newAdvanced === null) {
-      // Remove advanced filter
       items.splice(advancedFilterIndex, 1);
       onFilterChange(items.length > 0 ? items : null);
     } else {
-      // Update advanced filter at its index
       items[advancedFilterIndex] = newAdvanced;
       onFilterChange(items);
     }
@@ -135,16 +120,9 @@ export function ChipsBar({
 
   return (
     <div className={cn("flex items-start gap-1.5", className)}>
-      {/* Scrollable chips container */}
       <div className="flex min-w-0 items-center gap-2 overflow-x-auto">
         {/* 1. Sort Chip */}
-        {sorts.length > 0 && (
-          <SortChip
-            onSortsChange={onSortsChange}
-            properties={properties}
-            sorts={sorts}
-          />
-        )}
+        {sorts.length > 0 && <SortChip properties={properties} />}
 
         {/* Separator between sorts and filters */}
         {sorts.length > 0 &&
@@ -190,7 +168,7 @@ export function ChipsBar({
         </div>
       </div>
 
-      {/* 5. Reset Button - always visible */}
+      {/* 5. Reset Button */}
       <Button
         className="ml-auto shrink-0"
         onClick={onReset}

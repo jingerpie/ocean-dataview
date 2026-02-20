@@ -13,9 +13,9 @@ import type { PropertyMeta } from "../../../types";
 import { Separator } from "../../ui/separator";
 import { FilterPropertyPicker } from "../../ui/toolbar/filter/pickers/filter-property-picker";
 import { SearchInput } from "../../ui/toolbar/search/search-input";
-import { SortPropertyPicker } from "../../ui/toolbar/sort/sort-property-picker";
 import { Visibility } from "../../ui/toolbar/visibility";
 import { ChipsBar } from "./chips-bar";
+import { SortTool } from "./sort-tool";
 
 interface NotionToolbarProps extends ComponentProps<"div"> {
   /** Children (tabs, etc.) - always visible on left */
@@ -80,7 +80,7 @@ export function NotionToolbar({
   // State managed via hooks that read from context defaults, write to URL
   const { filter, setFilter: onFilterChange, resetFilter } = useFilterParams();
   const { search, setSearch: onSearchChange } = useSearchParams();
-  const { sort: sorts, setSort: onSortsChange, resetSort } = useSortParams();
+  const { sort: sorts, resetSort } = useSortParams();
 
   const {
     hasActiveControls,
@@ -115,13 +115,9 @@ export function NotionToolbar({
             />
           )}
 
-          {/* Sort - single picker with conditional onClick */}
+          {/* Sort */}
           {enableSort && (
-            <SortPropertyPicker
-              onClick={sorts.length > 0 ? toggleRow2 : undefined}
-              properties={properties}
-              variant="icon"
-            />
+            <SortTool onToggle={toggleRow2} properties={properties} />
           )}
 
           {/* Search Input */}
@@ -152,11 +148,9 @@ export function NotionToolbar({
               resetFilter();
               resetSort();
             }}
-            onSortsChange={onSortsChange}
             properties={properties}
             ruleCount={ruleCount}
             simpleFilterConditions={simpleFilterConditions}
-            sorts={sorts}
           />
         </>
       )}
