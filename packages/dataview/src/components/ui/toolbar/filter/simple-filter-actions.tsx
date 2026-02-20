@@ -1,15 +1,15 @@
 "use client";
 
 import { ListFilterIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
-import { useAdvanceFilterBuilder } from "../../../../../hooks/use-advance-filter-builder";
-import { cn } from "../../../../../lib/utils";
-import { Button } from "../../../button";
+import { useAdvanceFilterBuilder } from "../../../../hooks/use-advance-filter-builder";
+import { cn } from "../../../../lib/utils";
+import { Button } from "../../button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../../../dropdown-menu";
+} from "../../dropdown-menu";
 
 interface FilterActionsProps {
   /** Additional class names */

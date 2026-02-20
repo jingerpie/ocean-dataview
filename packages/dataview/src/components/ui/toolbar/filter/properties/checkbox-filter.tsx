@@ -12,20 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../select";
-import { SimpleFilterPopover } from "../simple/simple-filter-popover";
 
 // ============================================================================
 // Types
 // ============================================================================
-
-interface CheckboxFilterChipProps {
-  onAddToAdvanced?: () => void;
-  onRemove: () => void;
-  onRuleChange: (rule: WhereRule) => void;
-  property: PropertyMeta;
-  rule: WhereRule;
-  variant?: "compact" | "detailed";
-}
 
 interface CheckboxFilterValueProps {
   onValueChange: (value: unknown) => void;
@@ -62,40 +52,6 @@ function CheckboxBody({ value, onChange }: CheckboxBodyProps) {
         {value === false && <CheckIcon className="size-4" />}
       </Button>
     </div>
-  );
-}
-
-// ============================================================================
-// CheckboxSimpleFilter - Chip mode using SimpleFilterPopover
-// ============================================================================
-
-function CheckboxSimpleFilter({
-  rule,
-  property,
-  onRuleChange,
-  onRemove,
-  onAddToAdvanced,
-  variant,
-}: CheckboxFilterChipProps) {
-  const handleValueChange = (value: boolean) => {
-    onRuleChange({ ...rule, value });
-  };
-
-  return (
-    <SimpleFilterPopover
-      classNames="p-0"
-      onAddToAdvanced={onAddToAdvanced}
-      onRemove={onRemove}
-      onRuleChange={onRuleChange}
-      property={property}
-      rule={rule}
-      variant={variant}
-    >
-      <CheckboxBody
-        onChange={handleValueChange}
-        value={rule.value as boolean | undefined}
-      />
-    </SimpleFilterPopover>
   );
 }
 
@@ -140,5 +96,21 @@ function CheckboxAdvanceFilter({
   );
 }
 
-export { CheckboxSimpleFilter, CheckboxAdvanceFilter };
-export type { CheckboxFilterChipProps, CheckboxFilterValueProps };
+// ============================================================================
+// CheckboxValueEditor - Inline editor for SimpleFilterEditor
+// ============================================================================
+
+function CheckboxValueEditor({
+  rule,
+  onValueChange,
+}: CheckboxFilterValueProps) {
+  return (
+    <CheckboxBody
+      onChange={(value) => onValueChange(value)}
+      value={rule.value as boolean | undefined}
+    />
+  );
+}
+
+export { CheckboxAdvanceFilter, CheckboxValueEditor };
+export type { CheckboxFilterValueProps };

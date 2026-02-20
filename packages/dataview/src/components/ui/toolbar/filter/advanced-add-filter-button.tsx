@@ -3,15 +3,15 @@
 import type { WhereRule } from "@sparkyidea/shared/types";
 import { createRuleFromProperty } from "@sparkyidea/shared/utils";
 import { ChevronDownIcon, CopyPlusIcon, PlusIcon } from "lucide-react";
-import { cn } from "../../../../../lib/utils";
-import type { PropertyMeta } from "../../../../../types";
-import { Button } from "../../../button";
+import { cn } from "../../../../lib/utils";
+import type { PropertyMeta } from "../../../../types";
+import { Button } from "../../button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../../../dropdown-menu";
+} from "../../dropdown-menu";
 
 interface AddFilterButtonProps {
   /** Whether adding a group is allowed (false at max depth) */

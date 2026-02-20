@@ -11,10 +11,10 @@ import { useDataViewContext } from "../../../lib/providers";
 import { cn } from "../../../lib/utils";
 import type { PropertyMeta } from "../../../types";
 import { Separator } from "../../ui/separator";
-import { FilterPropertyPicker } from "../../ui/toolbar/filter/pickers/filter-property-picker";
 import { SearchInput } from "../../ui/toolbar/search/search-input";
 import { Visibility } from "../../ui/toolbar/visibility";
 import { ChipsBar } from "./chips-bar";
+import { FilterTool } from "./filter-tool";
 import { SortTool } from "./sort-tool";
 
 interface NotionToolbarProps extends ComponentProps<"div"> {
@@ -106,13 +106,9 @@ export function NotionToolbar({
 
         {/* Right side: Controls */}
         <div className="ml-auto flex items-center">
-          {/* Filter - single picker with conditional onClick */}
+          {/* Filter */}
           {enableFilter && (
-            <FilterPropertyPicker
-              onClick={filter && filter.length > 0 ? toggleRow2 : undefined}
-              properties={properties}
-              variant="icon"
-            />
+            <FilterTool onToggle={toggleRow2} properties={properties} />
           )}
 
           {/* Sort */}

@@ -5,17 +5,17 @@ import {
   applyConditionChange,
   createRuleFromProperty,
 } from "@sparkyidea/shared/utils";
-import { cn } from "../../../../../lib/utils";
-import type { PropertyMeta } from "../../../../../types";
-import { CheckboxAdvanceFilter } from "../filters/checkbox-filter";
-import { DateAdvanceFilter } from "../filters/date-filter";
-import { SelectAdvanceFilter } from "../filters/select-filter";
-import { StatusAdvanceFilter } from "../filters/status-filter";
-import { TextAdvanceFilter } from "../filters/text-filter";
-import { ConditionPicker } from "../pickers/condition-picker";
-import { FilterPropertyPicker } from "../pickers/filter-property-picker";
-import { LogicPicker } from "../pickers/logic-picker";
-import { FilterActions } from "./filter-actions";
+import { cn } from "../../../../lib/utils";
+import type { PropertyMeta } from "../../../../types";
+import { FilterActions } from "./advanced-filter-actions";
+import { LogicPicker } from "./advanced-filter-logic-picker";
+import { AdvancedFilterPicker } from "./advanced-filter-picker";
+import { ConditionPicker } from "./condition-picker";
+import { CheckboxAdvanceFilter } from "./properties/checkbox-filter";
+import { DateAdvanceFilter } from "./properties/date-filter";
+import { SelectAdvanceFilter } from "./properties/select-filter";
+import { StatusAdvanceFilter } from "./properties/status-filter";
+import { TextAdvanceFilter } from "./properties/text-filter";
 
 // ============================================================================
 // FilterRule Component
@@ -95,12 +95,10 @@ function FilterRule({
       />
 
       {/* Property Selector */}
-      <FilterPropertyPicker
-        advance
+      <AdvancedFilterPicker
         onPropertyChange={handlePropertySelect}
         properties={properties}
         value={property}
-        variant="rule"
       />
 
       {/* Condition Picker */}

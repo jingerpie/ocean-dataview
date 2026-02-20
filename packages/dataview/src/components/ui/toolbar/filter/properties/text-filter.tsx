@@ -5,22 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import { useDebouncedCallback } from "../../../../../hooks/use-debounced-callback";
 import type { PropertyMeta } from "../../../../../types";
 import { Input } from "../../../input";
-import { SimpleFilterPopover } from "../simple/simple-filter-popover";
 
 const FILTER_INPUT_DEBOUNCE_MS = 300;
 
 // ============================================================================
 // Types
 // ============================================================================
-
-interface TextFilterChipProps {
-  onAddToAdvanced?: () => void;
-  onRemove: () => void;
-  onRuleChange: (rule: WhereRule) => void;
-  property: PropertyMeta;
-  rule: WhereRule;
-  variant?: "compact" | "detailed";
-}
 
 interface TextFilterValueProps {
   onValueChange: (value: unknown) => void;
@@ -85,47 +75,6 @@ function DebouncedTextInput({
 }
 
 // ============================================================================
-// TextSimpleFilter - Chip mode using SimpleFilterPopover
-// ============================================================================
-
-function TextSimpleFilter({
-  rule,
-  property,
-  onRuleChange,
-  onRemove,
-  onAddToAdvanced,
-  variant,
-}: TextFilterChipProps) {
-  const isNumber = property.type === "number";
-
-  const handleValueChange = (value: string) => {
-    onRuleChange({ ...rule, value });
-  };
-
-  return (
-    <SimpleFilterPopover
-      onAddToAdvanced={onAddToAdvanced}
-      onRemove={onRemove}
-      onRuleChange={onRuleChange}
-      property={property}
-      rule={rule}
-      variant={variant}
-    >
-      <div className="p-1">
-        <Input
-          className="h-8"
-          inputMode={isNumber ? "numeric" : undefined}
-          onChange={(e) => handleValueChange(e.target.value)}
-          placeholder="Enter value..."
-          type={isNumber ? "number" : "text"}
-          value={rule.value != null ? String(rule.value) : ""}
-        />
-      </div>
-    </SimpleFilterPopover>
-  );
-}
-
-// ============================================================================
 // TextAdvanceFilter - Row mode (inline DebouncedTextInput)
 // ============================================================================
 
@@ -148,5 +97,30 @@ function TextAdvanceFilter({
   );
 }
 
-export { TextSimpleFilter, TextAdvanceFilter, DebouncedTextInput };
-export type { TextFilterChipProps, TextFilterValueProps };
+// ============================================================================
+// TextValueEditor - Inline editor for SimpleFilterEditor
+// ============================================================================
+
+function TextValueEditor({
+  rule,
+  property,
+  onValueChange,
+}: TextFilterValueProps) {
+  const isNumber = property.type === "number";
+
+  return (
+    <div className="p-1">
+      <Input
+        className="h-8"
+        inputMode={isNumber ? "numeric" : undefined}
+        onChange={(e) => onValueChange(e.target.value)}
+        placeholder="Enter value..."
+        type={isNumber ? "number" : "text"}
+        value={rule.value != null ? String(rule.value) : ""}
+      />
+    </div>
+  );
+}
+
+export { TextAdvanceFilter, TextValueEditor, DebouncedTextInput };
+export type { TextFilterValueProps };

@@ -21,20 +21,10 @@ import {
 } from "../../../command";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
 import { Separator } from "../../../separator";
-import { SimpleFilterPopover } from "../simple/simple-filter-popover";
 
 // ============================================================================
 // Types
 // ============================================================================
-
-interface StatusFilterChipProps {
-  onAddToAdvanced?: () => void;
-  onRemove: () => void;
-  onRuleChange: (rule: WhereRule) => void;
-  property: PropertyMeta;
-  rule: WhereRule;
-  variant?: "compact" | "detailed";
-}
 
 interface StatusFilterValueProps {
   onValueChange: (value: unknown) => void;
@@ -202,63 +192,6 @@ function StatusBody({
 }
 
 // ============================================================================
-// StatusSimpleFilter - Chip mode using SimpleFilterPopover
-// ============================================================================
-
-function StatusSimpleFilter({
-  rule,
-  property,
-  onRuleChange,
-  onRemove,
-  onAddToAdvanced,
-  variant,
-}: StatusFilterChipProps) {
-  const config = property.config as StatusConfig | undefined;
-  const groups = config?.groups ?? [];
-  const selectedValues = extractSelectValues(rule.value);
-
-  const handleToggle = (value: string) => {
-    const newValues = selectedValues.includes(value)
-      ? selectedValues.filter((v) => v !== value)
-      : [...selectedValues, value];
-    onRuleChange({ ...rule, value: newValues });
-  };
-
-  const handleToggleGroup = (groupOptions: string[], checked: boolean) => {
-    if (checked) {
-      const newValues = [...new Set([...selectedValues, ...groupOptions])];
-      onRuleChange({ ...rule, value: newValues });
-    } else {
-      const newValues = selectedValues.filter((v) => !groupOptions.includes(v));
-      onRuleChange({ ...rule, value: newValues });
-    }
-  };
-
-  const handleClearAll = () => {
-    onRuleChange({ ...rule, value: [] });
-  };
-
-  return (
-    <SimpleFilterPopover
-      onAddToAdvanced={onAddToAdvanced}
-      onRemove={onRemove}
-      onRuleChange={onRuleChange}
-      property={property}
-      rule={rule}
-      variant={variant}
-    >
-      <StatusBody
-        groups={groups}
-        onClearAll={handleClearAll}
-        onToggle={handleToggle}
-        onToggleGroup={handleToggleGroup}
-        selectedValues={selectedValues}
-      />
-    </SimpleFilterPopover>
-  );
-}
-
-// ============================================================================
 // StatusAdvanceFilter - Row mode (Popover only, no header)
 // ============================================================================
 
@@ -337,5 +270,50 @@ function StatusAdvanceFilter({
   );
 }
 
-export { StatusSimpleFilter, StatusAdvanceFilter };
-export type { StatusFilterChipProps, StatusFilterValueProps };
+// ============================================================================
+// StatusValueEditor - Inline editor for SimpleFilterEditor
+// ============================================================================
+
+function StatusValueEditor({
+  rule,
+  property,
+  onValueChange,
+}: StatusFilterValueProps) {
+  const config = property.config as StatusConfig | undefined;
+  const groups = config?.groups ?? [];
+  const selectedValues = extractSelectValues(rule.value);
+
+  const handleToggle = (value: string) => {
+    const newValues = selectedValues.includes(value)
+      ? selectedValues.filter((v) => v !== value)
+      : [...selectedValues, value];
+    onValueChange(newValues);
+  };
+
+  const handleToggleGroup = (groupOptions: string[], checked: boolean) => {
+    if (checked) {
+      const newValues = [...new Set([...selectedValues, ...groupOptions])];
+      onValueChange(newValues);
+    } else {
+      const newValues = selectedValues.filter((v) => !groupOptions.includes(v));
+      onValueChange(newValues);
+    }
+  };
+
+  const handleClearAll = () => {
+    onValueChange([]);
+  };
+
+  return (
+    <StatusBody
+      groups={groups}
+      onClearAll={handleClearAll}
+      onToggle={handleToggle}
+      onToggleGroup={handleToggleGroup}
+      selectedValues={selectedValues}
+    />
+  );
+}
+
+export { StatusAdvanceFilter, StatusValueEditor };
+export type { StatusFilterValueProps };

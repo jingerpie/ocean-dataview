@@ -17,12 +17,12 @@ import {
   updateCondition,
   wrapInGroup,
 } from "@sparkyidea/shared/utils";
-import { cn } from "../../../../../lib/utils";
-import type { PropertyMeta } from "../../../../../types";
-import { LogicPicker } from "../pickers/logic-picker";
-import { AddFilterButton } from "./add-filter-button";
-import { FilterActions } from "./filter-actions";
-import { FilterRule } from "./filter-rule";
+import { cn } from "../../../../lib/utils";
+import type { PropertyMeta } from "../../../../types";
+import { AddFilterButton } from "./advanced-add-filter-button";
+import { FilterActions } from "./advanced-filter-actions";
+import { LogicPicker } from "./advanced-filter-logic-picker";
+import { FilterRule } from "./advanced-filter-rule";
 
 interface FilterGroupProps {
   /** Additional class names */

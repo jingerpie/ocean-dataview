@@ -86,11 +86,12 @@ export function useFilterParams() {
 
   /** Remove filter param from URL entirely, restoring to server defaults */
   const resetFilter = useCallback(() => {
-    setLocalFilter(serverFilter);
-    isInternalChange.current = true;
+    // Clear local filter immediately for UI feedback
+    setLocalFilter(null);
+    // Don't set isInternalChange - allow effect to sync to server defaults after re-render
     // Immediate URL update for reset
     void setUrlFilterState(null);
-  }, [serverFilter, setUrlFilterState]);
+  }, [setUrlFilterState]);
 
   return {
     filter: localFilter,

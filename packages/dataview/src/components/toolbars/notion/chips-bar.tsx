@@ -10,9 +10,10 @@ import { cn } from "../../../lib/utils";
 import type { PropertyMeta } from "../../../types";
 import { Button } from "../../ui/button";
 import { Separator } from "../../ui/separator";
-import { AdvancedFilterChip } from "../../ui/toolbar/filter/advanced/filter-chip";
-import { FilterPropertyPicker } from "../../ui/toolbar/filter/pickers/filter-property-picker";
-import { FilterChip } from "../../ui/toolbar/filter/simple/filter-chip";
+import { FilterTrigger } from "../../ui/toolbar/filter/filter-trigger";
+import { SimpleFilterPicker } from "../../ui/toolbar/filter/simple-filter-picker";
+import { AdvancedFilterChip } from "./advanced-filter-chip";
+import { SimpleFilterChip } from "./simple-filter-chip";
 import { SortChip } from "./sort-chip";
 
 interface ChipsBarProps {
@@ -151,7 +152,7 @@ export function ChipsBar({
             }
 
             return (
-              <FilterChip
+              <SimpleFilterChip
                 key={`filter-${condition.property}-${index}`}
                 onAddToAdvanced={() => handleAddToAdvanced(index, condition)}
                 onRemove={() => handleRuleRemove(index)}
@@ -164,7 +165,14 @@ export function ChipsBar({
           })}
 
           {/* 4. + Filter Button */}
-          <FilterPropertyPicker properties={properties} variant="inline" />
+          <FilterTrigger variant="add">
+            <SimpleFilterPicker
+              excludeIds={simpleFilterConditions.map(
+                ({ condition }) => condition.property
+              )}
+              properties={properties}
+            />
+          </FilterTrigger>
         </div>
       </div>
 

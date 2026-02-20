@@ -24,20 +24,10 @@ import {
   CommandList,
 } from "../../../command";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
-import { SimpleFilterPopover } from "../simple/simple-filter-popover";
 
 // ============================================================================
 // Types
 // ============================================================================
-
-interface SelectFilterChipProps {
-  onAddToAdvanced?: () => void;
-  onRemove: () => void;
-  onRuleChange: (rule: WhereRule) => void;
-  property: PropertyMeta;
-  rule: WhereRule;
-  variant?: "compact" | "detailed";
-}
 
 interface SelectFilterValueProps {
   onValueChange: (value: unknown) => void;
@@ -140,57 +130,6 @@ function SelectBody({
 }
 
 // ============================================================================
-// SelectSimpleFilter - Chip mode using SimpleFilterPopover
-// ============================================================================
-
-function SelectSimpleFilter({
-  rule,
-  property,
-  onRuleChange,
-  onRemove,
-  onAddToAdvanced,
-  variant,
-}: SelectFilterChipProps) {
-  const config = property.config as SelectConfig | undefined;
-  const options: SelectOption[] = config?.options ?? [];
-  const selectedValues = extractSelectValues(rule.value);
-
-  const handleToggle = (value: string) => {
-    const newValues = selectedValues.includes(value)
-      ? selectedValues.filter((v) => v !== value)
-      : [...selectedValues, value];
-    onRuleChange({ ...rule, value: newValues });
-  };
-
-  const handleRemove = (value: string) => {
-    onRuleChange({ ...rule, value: selectedValues.filter((v) => v !== value) });
-  };
-
-  const handleClearAll = () => {
-    onRuleChange({ ...rule, value: [] });
-  };
-
-  return (
-    <SimpleFilterPopover
-      onAddToAdvanced={onAddToAdvanced}
-      onRemove={onRemove}
-      onRuleChange={onRuleChange}
-      property={property}
-      rule={rule}
-      variant={variant}
-    >
-      <SelectBody
-        onClearAll={handleClearAll}
-        onRemove={handleRemove}
-        onToggle={handleToggle}
-        options={options}
-        selectedValues={selectedValues}
-      />
-    </SimpleFilterPopover>
-  );
-}
-
-// ============================================================================
 // SelectAdvanceFilter - Row mode (Popover only, no header)
 // ============================================================================
 
@@ -261,5 +200,44 @@ function SelectAdvanceFilter({
   );
 }
 
-export { SelectSimpleFilter, SelectAdvanceFilter };
-export type { SelectFilterChipProps, SelectFilterValueProps };
+// ============================================================================
+// SelectValueEditor - Inline editor for SimpleFilterEditor
+// ============================================================================
+
+function SelectValueEditor({
+  rule,
+  property,
+  onValueChange,
+}: SelectFilterValueProps) {
+  const config = property.config as SelectConfig | undefined;
+  const options: SelectOption[] = config?.options ?? [];
+  const selectedValues = extractSelectValues(rule.value);
+
+  const handleToggle = (value: string) => {
+    const newValues = selectedValues.includes(value)
+      ? selectedValues.filter((v) => v !== value)
+      : [...selectedValues, value];
+    onValueChange(newValues);
+  };
+
+  const handleRemove = (value: string) => {
+    onValueChange(selectedValues.filter((v) => v !== value));
+  };
+
+  const handleClearAll = () => {
+    onValueChange([]);
+  };
+
+  return (
+    <SelectBody
+      onClearAll={handleClearAll}
+      onRemove={handleRemove}
+      onToggle={handleToggle}
+      options={options}
+      selectedValues={selectedValues}
+    />
+  );
+}
+
+export { SelectAdvanceFilter, SelectValueEditor };
+export type { SelectFilterValueProps };

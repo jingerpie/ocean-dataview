@@ -4,16 +4,11 @@ import type { FilterCondition } from "@sparkyidea/shared/types";
 import { getFilterConditions } from "@sparkyidea/shared/utils";
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
-import { cn } from "../../../../../lib/utils";
-import type { PropertyType } from "../../../../../types";
-import { Button } from "../../../button";
-import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from "../../../command";
-import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
+import { cn } from "../../../../lib/utils";
+import type { PropertyType } from "../../../../types";
+import { Button } from "../../button";
+import { Command, CommandGroup, CommandItem, CommandList } from "../../command";
+import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 
 interface ConditionPickerProps {
   className?: string;
