@@ -3,7 +3,7 @@
 import type { SortQuery } from "@sparkyidea/shared/types";
 import { SortAscIcon } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useSortParams } from "../../../../hooks";
+import { useSortBuilder, useSortParams } from "../../../../hooks";
 import type { PropertyMeta } from "../../../../types";
 import { Button } from "../../button";
 import {
@@ -53,6 +53,7 @@ function SortPropertyPicker({
 }: SortPropertyPickerProps) {
   const [open, setOpen] = useState(false);
   const { sort: sorts, setSort } = useSortParams();
+  const openSortBuilder = useSortBuilder((state) => state.open);
 
   // Filter out formula/button properties (can't sort computed values or actions) and properties with enableSort: false
   // Then sort alphabetically by label (like Notion)
@@ -67,16 +68,17 @@ function SortPropertyPicker({
     );
   }, [properties]);
 
-  // Handle property selection - adds new sort
+  // Handle property selection - adds new sort and opens sort builder
   const handleSelect = (property: PropertyMeta) => {
     const newSort: SortQuery = {
       property: String(property.id),
       direction: "asc",
     };
 
-    // Add to existing sorts
+    // Add to existing sorts and open sort builder
     setSort([...sorts, newSort]);
     setOpen(false);
+    openSortBuilder();
   };
 
   // Render trigger based on variant
