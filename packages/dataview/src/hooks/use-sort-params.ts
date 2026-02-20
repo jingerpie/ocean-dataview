@@ -112,11 +112,12 @@ export function useSortParams() {
 
   /** Remove sort param from URL entirely, restoring to server defaults */
   const resetSort = useCallback(() => {
-    setLocalSort(serverSort);
-    isInternalChange.current = true;
+    // Clear local sort immediately for UI feedback
+    setLocalSort([]);
+    // Don't set isInternalChange - allow effect to sync to server defaults after re-render
     // Immediate URL update for reset
     void setUrlSortState(null);
-  }, [serverSort, setUrlSortState]);
+  }, [setUrlSortState]);
 
   return {
     sort: localSort,

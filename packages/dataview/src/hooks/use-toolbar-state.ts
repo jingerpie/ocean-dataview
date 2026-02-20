@@ -28,7 +28,7 @@ export interface UseToolbarStateReturn {
   ruleCount: number;
   /** Set Row 2 visibility */
   setRow2Visible: (visible: boolean) => void;
-  /** Simple filter conditions at root level (displayed as FilterChip) */
+  /** Simple filter conditions at root level (displayed as SimpleFilterChip) */
   simpleFilterConditions: Array<{ condition: WhereRule; index: number }>;
   /** Toggle Row 2 visibility */
   toggleRow2: () => void;
