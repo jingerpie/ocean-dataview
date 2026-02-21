@@ -111,7 +111,12 @@ export function ProductGroupPaginationList({
         search={searchQuery}
         sort={sort}
       >
-        <NotionToolbar properties={productProperties}>
+        <NotionToolbar
+          enableSettings
+          groupProperty="Category"
+          layout="List"
+          properties={productProperties}
+        >
           <ViewNav />
         </NotionToolbar>
 

@@ -139,7 +139,12 @@ export function ProductSubGroupPaginationBoard({
           onExpandedChange: handleAccordionChange,
         }}
       >
-        <NotionToolbar properties={productProperties}>
+        <NotionToolbar
+          enableSettings
+          groupProperty="Category"
+          layout="Board"
+          properties={productProperties}
+        >
           <ViewNav />
         </NotionToolbar>
 

@@ -23,7 +23,7 @@ interface SortToolProps {
  * - If no sorts → clicking opens picker to add first sort
  */
 function SortTool({ properties, onToggle }: SortToolProps) {
-  const { sort: sorts, addSort } = useSortParams();
+  const { sort: sorts } = useSortParams();
   const { open: openSortBuilder } = useSortBuilder();
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -37,13 +37,11 @@ function SortTool({ properties, onToggle }: SortToolProps) {
   }
 
   // No sorts - render trigger with picker
-  // Pass addSort from this component's useSortParams instance
-  // so the debounced update persists when picker unmounts
+  // SortPicker handles addSort internally, callback for additional action
   return (
     <SortTrigger onOpenChange={setPickerOpen} open={pickerOpen} variant="icon">
       <SortPicker
-        addSort={addSort}
-        onSelect={() => {
+        onAddSort={() => {
           setPickerOpen(false);
           openSortBuilder();
         }}

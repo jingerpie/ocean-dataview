@@ -15,12 +15,17 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import type { SortQuery } from "@sparkyidea/shared/types";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useSortParams } from "../../../../hooks";
 import type { PropertyMeta } from "../../../../types";
-import { Button } from "../../button";
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "../../command";
 import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 import { SortEditor } from "./sort-editor";
 import { SortPicker } from "./sort-picker";
@@ -28,8 +33,6 @@ import { SortPicker } from "./sort-picker";
 interface SortBulkEditorProps {
   /** Additional callback after delete all (e.g., close popover) */
   onDeleteAll?: () => void;
-  /** Additional callback after sorts change */
-  onSortsChange?: (sorts: SortQuery[]) => void;
   /** Available properties to sort by */
   properties: readonly PropertyMeta[];
 }
@@ -37,16 +40,12 @@ interface SortBulkEditorProps {
 /**
  * Bulk editor for managing multiple sort rules.
  *
- * Shows list of SortEditors with DnD, Add button, and Delete all.
- * Parent component decides when to show this vs SortPicker.
+ * Shows list of SortEditors with DnD, Add button (popover), and Delete all.
+ * Uses Command for consistent UI.
  */
-function SortBulkEditor({
-  properties,
-  onSortsChange,
-  onDeleteAll,
-}: SortBulkEditorProps) {
-  const { sort: sorts, setSort, addSort, clearSort } = useSortParams();
-  const [addPickerOpen, setAddPickerOpen] = useState(false);
+function SortBulkEditor({ properties, onDeleteAll }: SortBulkEditorProps) {
+  const { sort: sorts, setSort, clearSort } = useSortParams();
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -57,109 +56,81 @@ function SortBulkEditor({
 
   const sortIds = useMemo(() => sorts.map((s) => s.property), [sorts]);
 
-  const updateSorts = useCallback(
-    (newSorts: SortQuery[]) => {
-      setSort(newSorts);
-      onSortsChange?.(newSorts);
-    },
-    [setSort, onSortsChange]
-  );
-
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
       if (over && active.id !== over.id) {
         const oldIndex = sorts.findIndex((s) => s.property === active.id);
         const newIndex = sorts.findIndex((s) => s.property === over.id);
-        updateSorts(arrayMove(sorts, oldIndex, newIndex));
+        setSort(arrayMove(sorts, oldIndex, newIndex));
       }
     },
-    [sorts, updateSorts]
-  );
-
-  const handleUpdateSort = useCallback(
-    (propertyId: string, updates: Partial<SortQuery>) => {
-      const updatedSorts = sorts.map((sort) =>
-        sort.property === propertyId ? { ...sort, ...updates } : sort
-      );
-      updateSorts(updatedSorts);
-    },
-    [sorts, updateSorts]
-  );
-
-  const handleRemoveSort = useCallback(
-    (propertyId: string) => {
-      updateSorts(sorts.filter((s) => s.property !== propertyId));
-    },
-    [sorts, updateSorts]
+    [sorts, setSort]
   );
 
   const handleDeleteAll = useCallback(() => {
     clearSort();
-    onSortsChange?.([]);
     onDeleteAll?.();
-  }, [clearSort, onSortsChange, onDeleteAll]);
+  }, [clearSort, onDeleteAll]);
 
   return (
-    <div className="flex flex-col gap-1">
-      <DndContext
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-        sensors={sensors}
-      >
-        <SortableContext items={sortIds} strategy={verticalListSortingStrategy}>
-          <div className="flex flex-col gap-2 py-2 pl-1">
-            {sorts.map((sort) => {
-              const property = properties.find((p) => p.id === sort.property);
-              if (!property) {
-                return null;
-              }
-
-              return (
-                <SortEditor
-                  key={sort.property}
-                  onRemove={() => handleRemoveSort(sort.property)}
-                  onUpdate={(updates) =>
-                    handleUpdateSort(sort.property, updates)
-                  }
-                  properties={properties}
-                  property={property}
-                  sort={sort}
-                />
-              );
-            })}
-          </div>
-        </SortableContext>
-      </DndContext>
-
-      <div className="flex flex-col">
-        <Popover onOpenChange={setAddPickerOpen} open={addPickerOpen}>
-          <PopoverTrigger
-            className="w-full justify-start text-muted-foreground"
-            render={<Button variant="ghost" />}
+    <Command className="p-0">
+      <CommandList>
+        {/* Sort list with DnD */}
+        <CommandGroup>
+          <DndContext
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+            sensors={sensors}
           >
-            <PlusIcon />
-            Add sort
-          </PopoverTrigger>
-          <PopoverContent align="start" className="w-56 p-0">
-            <SortPicker
-              addSort={addSort}
-              onSelect={() => setAddPickerOpen(false)}
-              properties={properties}
-            />
-          </PopoverContent>
-        </Popover>
+            <SortableContext
+              items={sortIds}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="flex flex-col gap-2 py-1">
+                {sorts.map((sort) => (
+                  <SortEditor
+                    key={sort.property}
+                    properties={properties}
+                    sort={sort}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </CommandGroup>
 
-        <Button
-          className="justify-start"
-          onClick={handleDeleteAll}
-          variant="destructive"
-        >
-          <Trash2Icon />
-          <span>Delete sort</span>
-        </Button>
-      </div>
-    </div>
+        <CommandSeparator />
+
+        {/* Actions */}
+        <CommandGroup>
+          <Popover onOpenChange={setPickerOpen} open={pickerOpen}>
+            <PopoverTrigger
+              nativeButton={false}
+              render={
+                <CommandItem
+                  onSelect={() => setPickerOpen((prev) => !prev)}
+                  value="add-sort"
+                />
+              }
+            >
+              <PlusIcon />
+              <span>Add sort</span>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-56 p-0">
+              <SortPicker
+                onAddSort={() => setPickerOpen(false)}
+                properties={properties}
+              />
+            </PopoverContent>
+          </Popover>
+          <CommandItem className="text-destructive" onSelect={handleDeleteAll}>
+            <Trash2Icon />
+            <span>Delete sort</span>
+          </CommandItem>
+        </CommandGroup>
+      </CommandList>
+    </Command>
   );
 }
 

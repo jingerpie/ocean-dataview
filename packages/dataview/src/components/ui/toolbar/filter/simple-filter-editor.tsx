@@ -9,15 +9,11 @@ import { DateValueEditor } from "./properties/date-filter";
 import { SelectValueEditor } from "./properties/select-filter";
 import { StatusValueEditor } from "./properties/status-filter";
 import { TextValueEditor } from "./properties/text-filter";
-import { FilterActions } from "./simple-filter-actions";
+import { SimpleFilterActions } from "./simple-filter-actions";
 
 interface SimpleFilterEditorProps {
-  /** Callback to add this filter to advanced filter */
-  onAddToAdvanced?: () => void;
   /** Callback when popover should close */
   onClose?: () => void;
-  /** Callback to remove this filter */
-  onRemove: () => void;
   /** Callback when rule changes */
   onRuleChange: (rule: WhereRule) => void;
   /** The property being filtered */
@@ -39,8 +35,6 @@ function SimpleFilterEditor({
   rule,
   property,
   onRuleChange,
-  onRemove,
-  onAddToAdvanced,
   onClose,
 }: SimpleFilterEditorProps) {
   const label = property.label ?? String(property.id);
@@ -53,17 +47,10 @@ function SimpleFilterEditor({
     onRuleChange({ ...rule, value });
   };
 
-  const handleRemove = () => {
-    onRemove();
+  // Close popover after actions (called as additional callback)
+  const handleAfterAction = () => {
     onClose?.();
   };
-
-  const handleAddToAdvanced = onAddToAdvanced
-    ? () => {
-        onAddToAdvanced();
-        onClose?.();
-      }
-    : undefined;
 
   // Check if value input should be hidden (isEmpty/isNotEmpty conditions)
   const hideValueInput =
@@ -85,9 +72,10 @@ function SimpleFilterEditor({
             propertyType={property.type}
           />
         </div>
-        <FilterActions
-          onAddToAdvanced={handleAddToAdvanced}
-          onRemove={handleRemove}
+        <SimpleFilterActions
+          onAddToAdvanced={handleAfterAction}
+          onRemove={handleAfterAction}
+          rule={rule}
         />
       </div>
 

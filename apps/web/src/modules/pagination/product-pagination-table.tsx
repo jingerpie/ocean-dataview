@@ -78,7 +78,7 @@ export function ProductPaginationTable(props: PaginationProps) {
         search={searchQuery}
         sort={sorts}
       >
-        <NotionToolbar properties={productProperties}>
+        <NotionToolbar enableSettings properties={productProperties}>
           <ViewNav />
         </NotionToolbar>
         <TableView

@@ -61,7 +61,7 @@ export function useFilterParams() {
     isInternalChange.current = false;
   }, [serverFilter]);
 
-  // Set the entire filter array (replaces previous filter)
+  // Set the entire filter array - debounced (for value editing)
   const setFilter = useCallback(
     (newFilter: WhereNode[] | null) => {
       setLocalFilter(newFilter);
@@ -75,6 +75,38 @@ export function useFilterParams() {
       debouncedUrlUpdate(newFilter);
     },
     [debouncedUrlUpdate]
+  );
+
+  // Add filter - immediate (discrete action, popover closes)
+  const addFilter = useCallback(
+    (node: WhereNode) => {
+      const newFilter = localFilter ? [...localFilter, node] : [node];
+      setLocalFilter(newFilter);
+      isInternalChange.current = true;
+      void setUrlFilterState(newFilter);
+    },
+    [localFilter, setUrlFilterState]
+  );
+
+  // Remove filter - immediate (discrete action)
+  const removeFilter = useCallback(
+    (propertyId: string) => {
+      setLocalFilter((currentFilter) => {
+        if (!currentFilter) {
+          return null;
+        }
+        const newFilter = currentFilter.filter((node) => {
+          if ("property" in node) {
+            return node.property !== propertyId;
+          }
+          return true;
+        });
+        isInternalChange.current = true;
+        void setUrlFilterState(newFilter.length > 0 ? newFilter : EMPTY_FILTER);
+        return newFilter.length > 0 ? newFilter : null;
+      });
+    },
+    [setUrlFilterState]
   );
 
   const clearFilter = useCallback(() => {
@@ -96,6 +128,8 @@ export function useFilterParams() {
   return {
     filter: localFilter,
     setFilter,
+    addFilter,
+    removeFilter,
     clearFilter,
     resetFilter,
     isFiltered: localFilter !== null && localFilter.length > 0,

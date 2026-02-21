@@ -1,7 +1,10 @@
 "use client";
 
+import type { WhereExpression, WhereRule } from "@sparkyidea/shared/types";
+import { isWhereRule } from "@sparkyidea/shared/types";
 import { ListFilterIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
-import { useAdvanceFilterBuilder } from "../../../../hooks/use-advance-filter-builder";
+import { useCallback } from "react";
+import { useAdvanceFilterBuilder, useFilterParams } from "../../../../hooks";
 import { cn } from "../../../../lib/utils";
 import { Button } from "../../button";
 import {
@@ -11,30 +14,70 @@ import {
   DropdownMenuTrigger,
 } from "../../dropdown-menu";
 
-interface FilterActionsProps {
+interface SimpleFilterActionsProps {
   /** Additional class names */
   className?: string;
-  /** Callback to add this filter to advanced filter */
+  /** Additional callback after adding to advanced filter */
   onAddToAdvanced?: () => void;
-  /** Callback to remove this filter */
-  onRemove: () => void;
+  /** Additional callback after removing filter */
+  onRemove?: () => void;
+  /** The filter rule (required for internal handling) */
+  rule: WhereRule;
 }
 
 /**
  * Actions menu for simple filter chips.
- * Shows Delete and optionally Add to advanced filter.
+ *
+ * Handles internally:
+ * - Delete: Removes this rule from filter array
+ * - Add to advanced: Moves rule to advanced filter group, opens builder
+ *
+ * Optional callbacks are for additional actions after defaults.
  */
-export function FilterActions({
+export function SimpleFilterActions({
+  rule,
   onRemove,
   onAddToAdvanced,
   className,
-}: FilterActionsProps) {
+}: SimpleFilterActionsProps) {
+  const { filter, setFilter, removeFilter } = useFilterParams();
   const openAdvanceFilterBuilder = useAdvanceFilterBuilder((s) => s.open);
 
-  const handleAddToAdvanced = () => {
-    onAddToAdvanced?.();
+  // Remove this rule from filter array - uses immediate removeFilter
+  const handleRemove = useCallback(() => {
+    removeFilter(rule.property);
+    onRemove?.();
+  }, [removeFilter, rule.property, onRemove]);
+
+  // Move rule to advanced filter, then open builder
+  const handleAddToAdvanced = useCallback(() => {
+    if (!filter) {
+      return;
+    }
+
+    // Find existing advanced filter or create new one
+    const advancedIndex = filter.findIndex((node) => !isWhereRule(node));
+    const items = filter.filter(
+      (node) => !isWhereRule(node) || node.property !== rule.property
+    );
+
+    if (advancedIndex !== -1) {
+      // Add to existing advanced filter
+      const existing = filter[advancedIndex] as WhereExpression;
+      const advancedItems = existing.and ?? existing.or ?? [];
+      const newAdvanced: WhereExpression = existing.and
+        ? { and: [...advancedItems, rule] }
+        : { or: [...advancedItems, rule] };
+      items[advancedIndex] = newAdvanced;
+    } else {
+      // Create new advanced filter with this rule
+      items.unshift({ and: [rule] });
+    }
+
+    setFilter(items.length > 0 ? items : null);
     openAdvanceFilterBuilder();
-  };
+    onAddToAdvanced?.();
+  }, [filter, setFilter, rule, openAdvanceFilterBuilder, onAddToAdvanced]);
 
   return (
     <DropdownMenu>
@@ -45,19 +88,17 @@ export function FilterActions({
         <span className="sr-only">Actions</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-auto" side="bottom">
-        <DropdownMenuItem onClick={onRemove} variant="destructive">
+        <DropdownMenuItem onClick={handleRemove} variant="destructive">
           <TrashIcon />
           Delete filter
         </DropdownMenuItem>
-        {onAddToAdvanced && (
-          <DropdownMenuItem onClick={handleAddToAdvanced}>
-            <ListFilterIcon />
-            Add to advanced filter
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuItem onClick={handleAddToAdvanced}>
+          <ListFilterIcon />
+          Add to advanced filter
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
-export type { FilterActionsProps };
+export type { SimpleFilterActionsProps };

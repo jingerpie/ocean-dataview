@@ -12,9 +12,9 @@ import { cn } from "../../../lib/utils";
 import type { PropertyMeta } from "../../../types";
 import { Separator } from "../../ui/separator";
 import { SearchInput } from "../../ui/toolbar/search/search-input";
-import { Visibility } from "../../ui/toolbar/visibility";
 import { ChipsBar } from "./chips-bar";
 import { FilterTool } from "./filter-tool";
+import { SettingsTool } from "./settings-tool";
 import { SortTool } from "./sort-tool";
 
 interface NotionToolbarProps extends ComponentProps<"div"> {
@@ -22,12 +22,14 @@ interface NotionToolbarProps extends ComponentProps<"div"> {
   children?: ReactNode;
   /** Enable filter functionality */
   enableFilter?: boolean;
-  /** Enable properties visibility button */
-  enableProperties?: boolean;
   /** Enable search functionality */
   enableSearch?: boolean;
+  /** Enable view settings panel */
+  enableSettings?: boolean;
   /** Enable sort functionality */
   enableSort?: boolean;
+  /** Current group property name (displayed in settings panel) */
+  groupProperty?: string;
   /**
    * Available properties for filtering/sorting.
    * Optional - defaults to propertyMetas from DataViewContext.
@@ -45,7 +47,7 @@ interface NotionToolbarProps extends ComponentProps<"div"> {
  *
  * Reads defaults from DataViewContext if available.
  *
- * Row 1: [children] -------- [Filter] [Sort] [Search] [Properties]
+ * Row 1: [children] -------- [Filter] [Sort] [Search] [Properties] [Settings]
  * Row 2: [SortList] [Filter Chips...] [+ Filter] (conditional)
  *
  * @example
@@ -66,7 +68,8 @@ export function NotionToolbar({
   enableFilter = true,
   enableSort = true,
   enableSearch = true,
-  enableProperties = true,
+  enableSettings = false,
+  groupProperty,
   children,
   className,
   ...props
@@ -126,8 +129,10 @@ export function NotionToolbar({
             />
           )}
 
-          {/* Properties Visibility */}
-          {enableProperties && <Visibility variant="icon" />}
+          {/* Settings */}
+          {enableSettings && (
+            <SettingsTool groupProperty={groupProperty} variant="icon" />
+          )}
         </div>
       </div>
 

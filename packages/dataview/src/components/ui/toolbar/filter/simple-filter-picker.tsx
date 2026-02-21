@@ -1,9 +1,10 @@
 "use client";
 
+import { isWhereRule } from "@sparkyidea/shared/types";
 import { createRuleFromProperty } from "@sparkyidea/shared/utils";
 import { PlusIcon } from "lucide-react";
 import { useCallback, useMemo } from "react";
-import { useFilterParams } from "../../../../hooks";
+import { useAdvanceFilterBuilder, useFilterParams } from "../../../../hooks";
 import type { PropertyMeta } from "../../../../types";
 import {
   Command,
@@ -16,81 +17,85 @@ import {
 } from "../../command";
 import { PropertyIcon } from "../../property-icon";
 
-interface SimpleSimpleFilterPickerProps {
-  /** Override addFilter function (uses useFilterParams internally if not provided) */
-  addFilter?: (property: PropertyMeta) => void;
-  /** Property IDs to exclude (already in use) */
-  excludeIds?: string[];
-  /** Callback when "Add advanced filter" is clicked */
+interface SimpleFilterPickerProps {
+  /** Additional callback after adding filter */
+  onAddFilter?: (property: PropertyMeta) => void;
+  /** Additional callback after adding advanced filter */
   onAdvancedClick?: () => void;
-  /** Additional callback after selecting a property */
-  onSelect?: (property: PropertyMeta) => void;
   /** Available properties to filter by */
   properties: readonly PropertyMeta[];
-  /** Show "Add advanced filter" option */
-  showAdvancedOption?: boolean;
 }
 
 /**
  * Property picker for selecting which property to filter by.
  *
- * Uses useFilterParams() internally by default, but can receive addFilter from parent
- * to share state (avoiding unmount issues with debounced updates).
+ * Handles internally:
+ * - Add filter: Creates rule from property, adds to filter array
+ * - Add advanced filter: Creates { and: [rule] } with first property, opens builder
  *
  * Features:
  * - Searchable Command-based list
  * - Excludes formula/button properties (can't filter)
- * - Excludes already-used properties via excludeIds
+ * - Excludes already-used simple filter properties (computed internally)
  * - Sorted alphabetically by label
- * - Optional "Add advanced filter" option
  */
 function SimpleFilterPicker({
   properties,
-  excludeIds = [],
-  onSelect,
-  addFilter: addFilterProp,
-  showAdvancedOption = false,
+  onAddFilter,
   onAdvancedClick,
-}: SimpleSimpleFilterPickerProps) {
-  const { filter, setFilter } = useFilterParams();
+}: SimpleFilterPickerProps) {
+  const { filter, addFilter } = useFilterParams();
+  const { open: openAdvancedFilter } = useAdvanceFilterBuilder();
 
-  // Default addFilter implementation
-  const addFilterInternal = useCallback(
-    (property: PropertyMeta) => {
-      const rule = createRuleFromProperty(property);
-      if (filter) {
-        setFilter([...filter, rule]);
-      } else {
-        setFilter([rule]);
-      }
-    },
-    [filter, setFilter]
-  );
+  // Get used property IDs from current simple filters
+  const usedPropertyIds = useMemo(() => {
+    if (!filter) {
+      return [];
+    }
+    return filter.filter(isWhereRule).map((rule) => rule.property);
+  }, [filter]);
 
-  const addFilter = addFilterProp ?? addFilterInternal;
-
-  // Filter and sort properties
+  // Filter and sort properties (excludes already-used simple filter properties)
   const availableProperties = useMemo(() => {
     const filtered = properties.filter(
       (p) =>
         p.type !== "formula" &&
         p.type !== "button" &&
         p.enableFilter !== false &&
-        !excludeIds.includes(String(p.id))
+        !usedPropertyIds.includes(String(p.id))
     );
 
     return [...filtered].sort((a, b) =>
       (a.label ?? String(a.id)).localeCompare(b.label ?? String(b.id))
     );
-  }, [properties, excludeIds]);
+  }, [properties, usedPropertyIds]);
 
-  const handleSelect = useCallback(
+  // Add filter rule for selected property - uses immediate addFilter
+  const handleAddFilter = useCallback(
     (property: PropertyMeta) => {
-      addFilter(property);
-      onSelect?.(property);
+      const rule = createRuleFromProperty(property);
+      addFilter(rule);
+      onAddFilter?.(property);
     },
-    [addFilter, onSelect]
+    [addFilter, onAddFilter]
   );
+
+  // Add advanced filter with initial rule from first property, then open the editor
+  // Note: Advanced filters can use any property (no excludeIds check)
+  const handleAdvancedClick = useCallback(() => {
+    const firstProperty = properties.find(
+      (p) =>
+        p.type !== "formula" && p.type !== "button" && p.enableFilter !== false
+    );
+    if (!firstProperty) {
+      return;
+    }
+    const rule = createRuleFromProperty(firstProperty);
+    const advancedFilter = { and: [rule] };
+    addFilter(advancedFilter);
+    openAdvancedFilter();
+    onAdvancedClick?.();
+  }, [properties, addFilter, openAdvancedFilter, onAdvancedClick]);
 
   return (
     <Command className="p-0">
@@ -101,7 +106,7 @@ function SimpleFilterPicker({
           {availableProperties.map((property) => (
             <CommandItem
               key={String(property.id)}
-              onSelect={() => handleSelect(property)}
+              onSelect={() => handleAddFilter(property)}
               value={String(property.label ?? property.id)}
             >
               <PropertyIcon type={property.type} />
@@ -112,19 +117,15 @@ function SimpleFilterPicker({
           ))}
         </CommandGroup>
       </CommandList>
-      {showAdvancedOption && onAdvancedClick && (
-        <>
-          <CommandSeparator />
-          <CommandGroup>
-            <CommandItem onSelect={onAdvancedClick}>
-              <PlusIcon />
-              <span>Add advanced filter</span>
-            </CommandItem>
-          </CommandGroup>
-        </>
-      )}
+      <CommandSeparator />
+      <CommandGroup>
+        <CommandItem onSelect={handleAdvancedClick}>
+          <PlusIcon />
+          <span>Add advanced filter</span>
+        </CommandItem>
+      </CommandGroup>
     </Command>
   );
 }
 
-export { SimpleFilterPicker, type SimpleSimpleFilterPickerProps };
+export { SimpleFilterPicker, type SimpleFilterPickerProps };

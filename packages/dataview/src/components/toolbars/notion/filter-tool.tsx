@@ -1,6 +1,5 @@
 "use client";
 
-import { createRuleFromProperty } from "@sparkyidea/shared/utils";
 import { ListFilterIcon } from "lucide-react";
 import { useState } from "react";
 import { useFilterParams, useSimpleFilterChip } from "../../../hooks";
@@ -24,7 +23,7 @@ interface FilterToolProps {
  * - If no filters → clicking opens picker to add first filter
  */
 function FilterTool({ properties, onToggle }: FilterToolProps) {
-  const { filter, setFilter } = useFilterParams();
+  const { filter } = useFilterParams();
   const { open: openFilterChip } = useSimpleFilterChip();
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -40,9 +39,8 @@ function FilterTool({ properties, onToggle }: FilterToolProps) {
   }
 
   // No filters - render trigger with picker
+  // SimpleFilterPicker handles setFilter internally
   const handleAddFilter = (property: PropertyMeta) => {
-    const rule = createRuleFromProperty(property);
-    setFilter([rule]);
     setPickerOpen(false);
     openFilterChip(String(property.id));
   };
@@ -53,7 +51,10 @@ function FilterTool({ properties, onToggle }: FilterToolProps) {
       open={pickerOpen}
       variant="icon"
     >
-      <SimpleFilterPicker onSelect={handleAddFilter} properties={properties} />
+      <SimpleFilterPicker
+        onAddFilter={handleAddFilter}
+        properties={properties}
+      />
     </FilterTrigger>
   );
 }

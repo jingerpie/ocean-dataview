@@ -68,36 +68,6 @@ export function ChipsBar({
     onFilterChange(newFilter);
   };
 
-  const handleRuleRemove = (index: number) => {
-    if (!filter) {
-      return;
-    }
-    const newFilter = filter.filter((_, i) => i !== index);
-    onFilterChange(newFilter.length > 0 ? newFilter : null);
-  };
-
-  const handleAddToAdvanced = (index: number, rule: WhereRule) => {
-    if (!filter) {
-      return;
-    }
-
-    const items = [...filter];
-    items.splice(index, 1);
-
-    if (advancedFilter && advancedFilterIndex !== null) {
-      const advancedItems = advancedFilter.and ?? advancedFilter.or ?? [];
-      const newAdvanced: WhereExpression = advancedFilter.and
-        ? { and: [...advancedItems, rule] }
-        : { or: [...advancedItems, rule] };
-      items[advancedFilterIndex] = newAdvanced;
-    } else {
-      const newAdvanced: WhereExpression = { and: [rule] };
-      items.unshift(newAdvanced);
-    }
-
-    onFilterChange(items.length > 0 ? items : null);
-  };
-
   const handleAdvancedFilterChange = (newAdvanced: WhereNode | null) => {
     if (!filter || advancedFilterIndex === null) {
       if (newAdvanced) {
@@ -154,8 +124,6 @@ export function ChipsBar({
             return (
               <SimpleFilterChip
                 key={`filter-${condition.property}-${index}`}
-                onAddToAdvanced={() => handleAddToAdvanced(index, condition)}
-                onRemove={() => handleRuleRemove(index)}
                 onRuleChange={(newRule) => handleRuleChange(index, newRule)}
                 property={property}
                 rule={condition}
@@ -166,12 +134,7 @@ export function ChipsBar({
 
           {/* 4. + Filter Button */}
           <FilterTrigger variant="add">
-            <SimpleFilterPicker
-              excludeIds={simpleFilterConditions.map(
-                ({ condition }) => condition.property
-              )}
-              properties={properties}
-            />
+            <SimpleFilterPicker properties={properties} />
           </FilterTrigger>
         </div>
       </div>

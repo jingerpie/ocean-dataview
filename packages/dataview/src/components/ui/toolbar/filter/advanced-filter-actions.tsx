@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "../../dropdown-menu";
 
-interface FilterActionsProps {
+interface AdvancedFilterActionsProps {
   /** Additional class names */
   className?: string;
   /** Callback to duplicate this item */
@@ -26,13 +26,13 @@ interface FilterActionsProps {
  * Unified actions menu for filter rules and groups.
  * Shows Remove, Duplicate, and optionally Wrap/Unwrap actions.
  */
-export function FilterActions({
+export function AdvancedFilterActions({
   onRemove,
   onDuplicate,
   onWrapInGroup,
   onUnwrap,
   className,
-}: FilterActionsProps) {
+}: AdvancedFilterActionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -74,4 +74,4 @@ export function FilterActions({
   );
 }
 
-export type { FilterActionsProps };
+export type { AdvancedFilterActionsProps };

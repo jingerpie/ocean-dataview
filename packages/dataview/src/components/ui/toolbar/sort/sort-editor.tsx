@@ -4,7 +4,8 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { SortQuery } from "@sparkyidea/shared/types";
 import { GripVerticalIcon, XIcon } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useSortParams } from "../../../../hooks";
 import { cn } from "../../../../lib/utils";
 import type { PropertyMeta } from "../../../../types";
 import { Button } from "../../button";
@@ -25,20 +26,21 @@ interface SortEditorProps {
   className?: string;
   /** Whether to enable drag-and-drop (default: true) */
   draggable?: boolean;
-  /** Callback to remove this sort rule */
-  onRemove: () => void;
-  /** Callback when sort rule changes */
-  onUpdate: (updates: Partial<SortQuery>) => void;
+  /** Additional callback after removing this sort rule */
+  onRemove?: () => void;
+  /** Additional callback after sort rule changes */
+  onUpdate?: (updates: Partial<SortQuery>) => void;
   /** All available properties (for property picker dropdown) */
   properties: readonly PropertyMeta[];
-  /** The current property for this sort */
-  property: PropertyMeta;
   /** The sort rule */
   sort: SortQuery;
 }
 
 /**
  * Editor for a single sort rule.
+ *
+ * Handles remove and update internally via useSortParams.
+ * Callbacks are for additional actions only.
  *
  * Displays:
  * - Drag handle (when draggable=true)
@@ -48,14 +50,29 @@ interface SortEditorProps {
  */
 function SortEditor({
   sort,
-  property,
   properties,
   onUpdate,
   onRemove,
   draggable = true,
   className,
 }: SortEditorProps) {
+  const { updateSort, removeSort } = useSortParams();
   const [open, setOpen] = useState(false);
+
+  const property = properties.find((p) => String(p.id) === sort.property);
+
+  const handleUpdate = useCallback(
+    (updates: Partial<SortQuery>) => {
+      updateSort(sort.property, updates);
+      onUpdate?.(updates);
+    },
+    [sort.property, updateSort, onUpdate]
+  );
+
+  const handleRemove = useCallback(() => {
+    removeSort(sort.property);
+    onRemove?.();
+  }, [sort.property, removeSort, onRemove]);
 
   const {
     attributes,
@@ -103,8 +120,10 @@ function SortEditor({
         {/* Property Selector */}
         <Popover onOpenChange={setOpen} open={open}>
           <PopoverTrigger render={<Button variant="outline" />}>
-            <PropertyIcon type={property.type} />
-            <span className="truncate">{property.label ?? property.id}</span>
+            {property && <PropertyIcon type={property.type} />}
+            <span className="truncate">
+              {property?.label ?? property?.id ?? sort.property}
+            </span>
           </PopoverTrigger>
           <PopoverContent align="start" className="w-48 p-0">
             <Command className="p-0">
@@ -117,7 +136,7 @@ function SortEditor({
                       data-checked={prop.id === sort.property}
                       key={String(prop.id)}
                       onSelect={() => {
-                        onUpdate({ property: String(prop.id) });
+                        handleUpdate({ property: String(prop.id) });
                         setOpen(false);
                       }}
                       value={String(prop.label ?? prop.id)}
@@ -134,7 +153,7 @@ function SortEditor({
 
         {/* Direction Picker */}
         <DirectionPicker
-          onValueChange={(direction) => onUpdate({ direction })}
+          onValueChange={(direction) => handleUpdate({ direction })}
           value={sort.direction}
         />
       </div>
@@ -142,8 +161,8 @@ function SortEditor({
       {/* Remove Button */}
       <Button
         aria-label="Remove sort"
-        onClick={onRemove}
-        size="icon-sm"
+        onClick={handleRemove}
+        size="icon-xs"
         variant="ghost"
       >
         <XIcon />

@@ -113,7 +113,12 @@ export function ProductGroupPaginationGallery({
         search={searchQuery}
         sort={sort}
       >
-        <NotionToolbar properties={productProperties}>
+        <NotionToolbar
+          enableSettings
+          groupProperty="Category"
+          layout="Gallery"
+          properties={productProperties}
+        >
           <ViewNav />
         </NotionToolbar>
 

@@ -20,7 +20,7 @@ import {
 import { cn } from "../../../../lib/utils";
 import type { PropertyMeta } from "../../../../types";
 import { AddFilterButton } from "./advanced-add-filter-button";
-import { FilterActions } from "./advanced-filter-actions";
+import { AdvancedFilterActions } from "./advanced-filter-actions";
 import { LogicPicker } from "./advanced-filter-logic-picker";
 import { FilterRule } from "./advanced-filter-rule";
 
@@ -234,7 +234,7 @@ export function FilterGroup({
 
         {/* Group actions menu (next to the group) */}
         {onRemove && (
-          <FilterActions
+          <AdvancedFilterActions
             onDuplicate={onDuplicate ?? (() => undefined)}
             onRemove={onRemove}
             onUnwrap={canUnwrap ? handleUnwrap : undefined}

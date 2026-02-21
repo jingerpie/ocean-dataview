@@ -7,7 +7,7 @@ import {
 } from "@sparkyidea/shared/utils";
 import { cn } from "../../../../lib/utils";
 import type { PropertyMeta } from "../../../../types";
-import { FilterActions } from "./advanced-filter-actions";
+import { AdvancedFilterActions } from "./advanced-filter-actions";
 import { LogicPicker } from "./advanced-filter-logic-picker";
 import { AdvancedFilterPicker } from "./advanced-filter-picker";
 import { ConditionPicker } from "./condition-picker";
@@ -120,7 +120,7 @@ function FilterRule({
       )}
 
       {/* Actions Menu */}
-      <FilterActions
+      <AdvancedFilterActions
         onDuplicate={onDuplicate}
         onRemove={onRemove}
         onWrapInGroup={canWrapInGroup ? onWrapInGroup : undefined}

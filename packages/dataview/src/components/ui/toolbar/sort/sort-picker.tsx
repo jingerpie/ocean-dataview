@@ -14,10 +14,8 @@ import {
 import { PropertyIcon } from "../../property-icon";
 
 interface SortPickerProps {
-  /** Override addSort function (uses useSortParams internally if not provided) */
-  addSort?: (prop: string, direction?: "asc" | "desc") => void;
-  /** Additional callback after selecting a property */
-  onSelect?: (property: PropertyMeta) => void;
+  /** Additional callback after adding a sort */
+  onAddSort?: (property: PropertyMeta) => void;
   /** Available properties to sort by */
   properties: readonly PropertyMeta[];
 }
@@ -25,8 +23,8 @@ interface SortPickerProps {
 /**
  * Property picker for selecting which property to sort by.
  *
- * Uses useSortParams() internally by default, but can receive addSort from parent
- * to share state (avoiding unmount issues with debounced updates).
+ * Handles add sort internally via useSortParams().
+ * useDebouncedCallback flushes on unmount, so no need for parent override.
  *
  * Features:
  * - Searchable Command-based list
@@ -34,13 +32,8 @@ interface SortPickerProps {
  * - Excludes already-used properties
  * - Sorted alphabetically by label
  */
-function SortPicker({
-  properties,
-  onSelect,
-  addSort: addSortProp,
-}: SortPickerProps) {
-  const { sort: sorts, addSort: addSortInternal } = useSortParams();
-  const addSort = addSortProp ?? addSortInternal;
+function SortPicker({ properties, onAddSort }: SortPickerProps) {
+  const { sort: sorts, addSort } = useSortParams();
 
   // Get already-used property IDs
   const usedPropertyIds = useMemo(() => sorts.map((s) => s.property), [sorts]);
@@ -63,9 +56,9 @@ function SortPicker({
   const handleSelect = useCallback(
     (property: PropertyMeta) => {
       addSort(String(property.id), "asc");
-      onSelect?.(property);
+      onAddSort?.(property);
     },
-    [addSort, onSelect]
+    [addSort, onAddSort]
   );
 
   return (

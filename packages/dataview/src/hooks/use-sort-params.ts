@@ -70,6 +70,7 @@ export function useSortParams() {
     [debouncedUrlUpdate]
   );
 
+  // Add sort - immediate (discrete action, popover closes)
   const addSort = useCallback(
     (prop: string, direction: "asc" | "desc" = "asc") => {
       const existing = localSort.find((s) => s.property === prop);
@@ -86,15 +87,31 @@ export function useSortParams() {
       }
       setLocalSort(newSort);
       isInternalChange.current = true;
-      debouncedUrlUpdate(newSort);
+      void setUrlSortState(newSort);
     },
-    [localSort, debouncedUrlUpdate]
+    [localSort, setUrlSortState]
   );
 
+  // Remove sort - immediate (discrete action)
   const removeSort = useCallback(
     (prop: string) => {
       setLocalSort((currentSort) => {
         const newSort = currentSort.filter((s) => s.property !== prop);
+        isInternalChange.current = true;
+        void setUrlSortState(newSort);
+        return newSort;
+      });
+    },
+    [setUrlSortState]
+  );
+
+  // Update sort - debounced (editing property/direction)
+  const updateSort = useCallback(
+    (prop: string, updates: Partial<SortQuery>) => {
+      setLocalSort((currentSort) => {
+        const newSort = currentSort.map((s) =>
+          s.property === prop ? { ...s, ...updates } : s
+        );
         isInternalChange.current = true;
         debouncedUrlUpdate(newSort);
         return newSort;
@@ -123,6 +140,7 @@ export function useSortParams() {
     sort: localSort,
     setSort,
     addSort,
+    updateSort,
     removeSort,
     clearSort,
     resetSort,

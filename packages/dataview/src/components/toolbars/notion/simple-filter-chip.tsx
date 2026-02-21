@@ -11,10 +11,6 @@ import { PropertyIcon } from "../../ui/property-icon";
 import { SimpleFilterEditor } from "../../ui/toolbar/filter/simple-filter-editor";
 
 interface SimpleFilterChipProps {
-  /** Callback to add this filter to advanced filter */
-  onAddToAdvanced?: () => void;
-  /** Callback to remove this filter */
-  onRemove: () => void;
   /** Callback when rule changes */
   onRuleChange: (rule: WhereRule) => void;
   /** The property being filtered */
@@ -40,8 +36,6 @@ function SimpleFilterChip({
   rule,
   property,
   onRuleChange,
-  onRemove,
-  onAddToAdvanced,
   variant = "compact",
 }: SimpleFilterChipProps) {
   const { openPropertyId, setOpen } = useSimpleFilterChip();
@@ -81,9 +75,7 @@ function SimpleFilterChip({
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64 gap-0 p-1">
         <SimpleFilterEditor
-          onAddToAdvanced={onAddToAdvanced}
           onClose={close}
-          onRemove={onRemove}
           onRuleChange={onRuleChange}
           property={property}
           rule={rule}

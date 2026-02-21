@@ -90,7 +90,7 @@ function SortTrigger({
   return (
     <Popover onOpenChange={setOpen} open={open}>
       {renderTrigger()}
-      <PopoverContent align="start" className="w-auto p-1">
+      <PopoverContent align="start" className="w-auto p-0">
         {children}
       </PopoverContent>
     </Popover>

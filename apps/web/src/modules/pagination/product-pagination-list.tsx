@@ -68,7 +68,11 @@ export function ProductPaginationList({
         search={searchQuery}
         sort={sort}
       >
-        <NotionToolbar properties={productProperties}>
+        <NotionToolbar
+          enableSettings
+          layout="List"
+          properties={productProperties}
+        >
           <ViewNav />
         </NotionToolbar>
 
