@@ -99,13 +99,13 @@ export function ProductGroupPaginationList({
           groupSortValues: groupData.sortValues,
         }}
         data={data}
+        expandedGroups={expandedGroups}
         filter={filter}
         group={{
           bySelect: { property: "category" },
           showCount: true,
-          expanded: expandedGroups,
-          onExpandedChange: handleAccordionChange,
         }}
+        onExpandedGroupsChange={handleAccordionChange}
         pagination={pagination}
         properties={productProperties}
         search={searchQuery}
@@ -114,7 +114,6 @@ export function ProductGroupPaginationList({
         <NotionToolbar
           enableSettings
           groupProperty="Category"
-          layout="List"
           properties={productProperties}
         >
           <ViewNav />

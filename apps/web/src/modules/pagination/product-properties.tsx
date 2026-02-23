@@ -129,6 +129,7 @@ export const productProperties = [
     id: "productLink",
     label: "URL",
     type: "url",
+    enableGroup: false,
   },
   {
     id: "supplierPhone",

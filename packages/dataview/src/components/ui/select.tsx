@@ -31,10 +31,25 @@ function SelectTrigger({
   className,
   size = "default",
   children,
+  render,
   ...props
 }: SelectPrimitive.Trigger.Props & {
   size?: "sm" | "default";
 }) {
+  // If render prop is provided, use custom trigger
+  if (render) {
+    return (
+      <SelectPrimitive.Trigger render={render} {...props}>
+        {children}
+        <SelectPrimitive.Icon
+          render={
+            <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
+          }
+        />
+      </SelectPrimitive.Trigger>
+    );
+  }
+
   return (
     <SelectPrimitive.Trigger
       className={cn(

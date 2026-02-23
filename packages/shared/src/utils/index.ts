@@ -49,6 +49,6 @@ export {
   type RelativeToTodayValue,
   type RelativeUnit,
 } from "./get-relative-date-range";
-export { combineGroupFilter } from "./group-filter";
+export { combineGroupFilter, getGroupProperty } from "./group-filter";
 export { buildSearchFilter } from "./search";
 export { validateSort } from "./sort-validation";

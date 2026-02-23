@@ -94,26 +94,26 @@ export function ProductGroupByTable({
         ),
     });
 
-  // Merge groupConfig with expanded state
+  // Merge groupConfig with showCount
   const fullGroupConfig = useMemo(() => {
     if (!groupConfig) {
       return undefined;
     }
     return {
       ...groupConfig,
-      expanded: expandedGroups,
-      onExpandedChange: handleAccordionChange,
       showCount: true,
     };
-  }, [groupConfig, expandedGroups, handleAccordionChange]);
+  }, [groupConfig]);
 
   return (
     <Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
       <DataViewProvider
         counts={counts}
         data={data}
+        expandedGroups={expandedGroups}
         filter={filter}
         group={fullGroupConfig}
+        onExpandedGroupsChange={handleAccordionChange}
         pagination={pagination}
         properties={productProperties}
         search={searchQuery}

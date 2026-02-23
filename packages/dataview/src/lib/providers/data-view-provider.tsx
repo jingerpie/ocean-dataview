@@ -32,6 +32,13 @@ export interface DataViewProviderProps<
   counts?: ViewCounts;
   data: TData[];
 
+  /**
+   * Currently expanded groups (view-level concern - accordion open/close)
+   * - Board view: expanded subGroup rows
+   * - Table/List/Gallery: expanded group rows
+   */
+  expandedGroups?: string[];
+
   // Query state (flattened from defaults)
   /** Current filter state (from server) - array of WhereNode (implicit AND) */
   filter?: WhereNode[] | null;
@@ -39,8 +46,12 @@ export interface DataViewProviderProps<
   // View config (flattened from view prop)
   /** Group configuration */
   group?: GroupConfig;
+
   /** Default page size */
   limit?: number;
+
+  /** Callback when expanded groups change */
+  onExpandedGroupsChange?: (groups: string[]) => void;
 
   pagination?: PaginationOutput<TData> | undefined;
   properties: TProperties;
@@ -65,6 +76,9 @@ export function DataViewProvider<
   className,
   pagination,
   counts,
+  // Expanded groups state (view-level - accordion open/close)
+  expandedGroups,
+  onExpandedGroupsChange,
   // Query state (flattened)
   filter,
   sort,
@@ -166,6 +180,9 @@ export function DataViewProvider<
       propertyMetas,
       pagination,
       counts,
+      // Expanded groups state (view-level - accordion open/close)
+      expandedGroups,
+      onExpandedGroupsChange,
       // Query state (flattened)
       filter,
       sort,
@@ -189,6 +206,8 @@ export function DataViewProvider<
       propertyMetas,
       pagination,
       counts,
+      expandedGroups,
+      onExpandedGroupsChange,
       filter,
       sort,
       search,

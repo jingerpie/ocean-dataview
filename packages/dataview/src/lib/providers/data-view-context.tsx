@@ -1,12 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type {
-  GroupInfinitePaginationState,
-  GroupPagePaginationState,
-  InfinitePaginationState,
-  PagePaginationResult,
-} from "../../hooks";
+import type { InfinitePaginationState, PagePaginationState } from "../../hooks";
 import type {
   DataViewProperty,
   GroupConfig,
@@ -18,13 +13,12 @@ import type {
 } from "../../types";
 
 /**
- * Union type for pagination - supports flat, grouped, and infinite pagination
+ * Union type for pagination - supports page and infinite pagination.
+ * Both types have `groups` array (flat mode uses single "__all__" group).
  */
 export type PaginationOutput<TData> =
-  | PagePaginationResult
-  | InfinitePaginationState
-  | GroupPagePaginationState<TData>
-  | GroupInfinitePaginationState<TData>;
+  | PagePaginationState<TData>
+  | InfinitePaginationState<TData>;
 
 // Re-export for convenience
 export type { GroupConfig, SubGroupConfig } from "../../types";
@@ -40,13 +34,18 @@ export interface DataViewContextValue<
   // Property visibility state
   excludedPropertyIds: TProperties[number]["id"][];
 
+  // Expanded groups state (view-level concern - accordion open/close)
+  expandedGroups?: string[];
+
   // Query state (previously in defaults)
   filter?: WhereNode[] | null;
 
   // View config (previously in view prop)
   group?: GroupConfig;
   hideAllProperties: () => void;
+
   limit?: number;
+  onExpandedGroupsChange?: (groups: string[]) => void;
   pagination?: PaginationOutput<TData> | undefined;
   properties: TProperties;
   /** Covariant property metadata - safe to pass to UI components */

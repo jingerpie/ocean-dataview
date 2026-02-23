@@ -157,7 +157,7 @@ function buildCondition<T extends Table>(
     // ============================================
     // Equality conditions (with date-only midnight boundary support)
     // ============================================
-    case "eq":
+    case "eq": {
       // Date-only strings: match entire day (>= day 00:00 AND < nextDay 00:00)
       if (isDateOnlyString(value)) {
         return and(
@@ -165,9 +165,18 @@ function buildCondition<T extends Table>(
           lt(column, toNextMidnight(value))
         );
       }
+      // Boolean columns: normalize "Checked"/"Unchecked" group keys to booleans
+      if (isBooleanColumn(table, property as keyof T)) {
+        return eq(column, normalizeBooleanValue(value));
+      }
       return eq(column, value);
+    }
 
     case "ne":
+      // Boolean columns: normalize "Checked"/"Unchecked" group keys to booleans
+      if (isBooleanColumn(table, property as keyof T)) {
+        return ne(column, normalizeBooleanValue(value));
+      }
       return ne(column, value);
 
     // ============================================
@@ -360,4 +369,35 @@ function isArrayColumn<T extends Table>(table: T, columnKey: keyof T): boolean {
 
   const columnType = (column as { columnType?: string }).columnType;
   return columnType === "PgArray";
+}
+
+/**
+ * Check if a column is a PostgreSQL boolean type.
+ * Used to convert checkbox group keys ("Checked"/"Unchecked") to booleans.
+ */
+function isBooleanColumn<T extends Table>(
+  table: T,
+  columnKey: keyof T
+): boolean {
+  const column = table[columnKey] as AnyColumn;
+  if (!column) {
+    return false;
+  }
+
+  const columnType = (column as { columnType?: string }).columnType;
+  return columnType === "PgBoolean";
+}
+
+/**
+ * Normalize a filter value for boolean columns.
+ * Converts checkbox group keys ("Checked"/"Unchecked") to actual booleans.
+ */
+function normalizeBooleanValue(value: unknown): unknown {
+  if (value === "Checked") {
+    return true;
+  }
+  if (value === "Unchecked") {
+    return false;
+  }
+  return value;
 }

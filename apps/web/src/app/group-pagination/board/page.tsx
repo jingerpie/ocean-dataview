@@ -16,9 +16,13 @@ interface PageProps {
 
 export default async function GroupPaginationBoardPage(props: PageProps) {
   const searchParams = await props.searchParams;
-  const params = groupPaginationParams.parse(searchParams);
-
-  const { expanded, limit, filter, sort, search: searchQuery } = params;
+  const {
+    expanded,
+    limit,
+    filter,
+    sort,
+    search: searchQuery,
+  } = groupPaginationParams.parse(searchParams);
 
   const searchableFields = getSearchableProperties(productProperties);
   const search = buildSearchFilter(searchQuery ?? "", searchableFields);

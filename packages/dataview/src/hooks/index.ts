@@ -12,6 +12,7 @@ export type {
   UseGroupConfigResult,
 } from "./use-group-config";
 export { useGroupConfig } from "./use-group-config";
+export { useGroupParams } from "./use-group-params";
 export { useInteractiveLegend } from "./use-interactive-legend";
 export { useSearchParams } from "./use-search-params";
 export { useSimpleFilterChip } from "./use-simple-filter-chip";
@@ -30,26 +31,33 @@ export { useViewSetup } from "./use-view-setup";
 // ============================================================================
 
 // useInfinitePagination - Infinite scroll / load-more (flat + grouped)
+// Two variants: useInfinitePagination (client-side) and useSuspenseInfinitePagination (SSR/prefetch)
 export type {
   GroupByOptions,
   GroupInfo,
   InfinitePaginationResult,
   InfinitePaginationState,
   InfiniteQueryOptions,
+  SuspenseInfinitePaginationResult,
   UseInfinitePaginationOptions,
 } from "./use-infinite-pagination";
 export {
   useInfinitePagination,
-  useLoadMorePagination,
+  useSuspenseInfinitePagination,
 } from "./use-infinite-pagination";
 
 // usePagePagination - Page navigation (flat + grouped)
+// Two variants: usePagePagination (client-side) and useSuspensePagePagination (SSR/prefetch)
 export type {
   PageGroupByOptions,
   PageGroupInfo,
   PagePaginationResult,
   PagePaginationState,
   PageQueryOptions,
+  SuspensePagePaginationResult,
   UsePagePaginationOptions,
 } from "./use-page-pagination";
-export { usePagePagination } from "./use-page-pagination";
+export {
+  usePagePagination,
+  useSuspensePagePagination,
+} from "./use-page-pagination";

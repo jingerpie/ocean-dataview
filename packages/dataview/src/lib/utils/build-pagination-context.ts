@@ -1,36 +1,25 @@
-import type { GroupInfinitePaginationState } from "../../hooks/use-group-infinite-pagination";
-import type { GroupPagePaginationState } from "../../hooks/use-group-page-pagination";
-import type { InfinitePaginationState } from "../../hooks/use-infinite-pagination";
-import type { PagePaginationResult } from "../../hooks/use-page-pagination";
+import type {
+  GroupInfo,
+  InfinitePaginationState,
+} from "../../hooks/use-infinite-pagination";
+import type {
+  PageGroupInfo,
+  PagePaginationState,
+} from "../../hooks/use-page-pagination";
 import type { PaginationContext } from "../../types/pagination";
 
 /**
- * Flat pagination output types (from new hooks)
- */
-type FlatPaginationOutput = PagePaginationResult | InfinitePaginationState;
-
-/**
- * Grouped pagination output types (from new hooks)
- */
-type GroupedPaginationOutput<TData> =
-  | GroupPagePaginationState<TData>
-  | GroupInfinitePaginationState<TData>;
-
-/**
- * Type guard to check if pagination is grouped (has groups array)
- */
-function isGroupedPagination<TData>(
-  pagination: FlatPaginationOutput | GroupedPaginationOutput<TData>
-): pagination is GroupedPaginationOutput<TData> {
-  return "groups" in pagination && Array.isArray(pagination.groups);
-}
-
-/**
- * Union type for pagination - supports both flat and grouped pagination
+ * Union type for all pagination state types.
+ * All pagination states have `groups` array (flat mode uses single "__all__" group).
  */
 type PaginationOutput<TData> =
-  | FlatPaginationOutput
-  | GroupedPaginationOutput<TData>;
+  | PagePaginationState<TData>
+  | InfinitePaginationState<TData>;
+
+/**
+ * Union type for group info
+ */
+type GroupInfoUnion<TData> = PageGroupInfo<TData> | GroupInfo<TData>;
 
 /**
  * Resolves hasNext to a boolean value.
@@ -56,11 +45,12 @@ function resolveHasNext(
  * Builds a PaginationContext for a specific group from pagination output.
  * Used by views (List, Gallery, Table, Board) to provide pagination controls per-group.
  *
- * For grouped pagination: returns context for the specific group
- * For flat pagination: returns context directly (groupKey used for hasNext lookup)
+ * All pagination states have `groups` array:
+ * - Flat mode: single group with key "__all__"
+ * - Grouped mode: multiple groups with actual keys
  *
- * @param pagination - The pagination output (flat or grouped)
- * @param groupKey - The key of the group to build context for
+ * @param pagination - The pagination output (any pagination state)
+ * @param groupKey - The key of the group to build context for (use "__all__" for flat mode)
  * @param columnKey - Optional column key for per-group hasNext in sub-grouped boards
  * @returns PaginationContext if available, undefined otherwise
  */
@@ -73,66 +63,37 @@ export function buildPaginationContext<TData>(
     return undefined;
   }
 
-  // Handle grouped pagination
-  if (isGroupedPagination(pagination)) {
-    const group = pagination.groups.find((g) => g.key === groupKey);
-    if (!group) {
-      return undefined;
-    }
-
-    // For sub-grouped boards: use columnKey to resolve per-column hasNext
-    // For regular grouped views: use group.hasNext directly
-    const hasNext = resolveHasNext(group.hasNext, columnKey);
-
-    return {
-      hasNext,
-      hasPrev:
-        "hasPrev" in group ? resolveHasNext(group.hasPrev, columnKey) : false,
-      onNext: group.onNext,
-      onPrev: "onPrev" in group ? group.onPrev : () => undefined,
-      isLoading: group.isLoading,
-      isFetching: "isFetching" in group ? group.isFetching : undefined,
-      isFetchingNextPage:
-        "isFetchingNextPage" in group ? group.isFetchingNextPage : undefined,
-      limit: pagination.limit,
-      onLimitChange: pagination.onLimitChange,
-      displayStart: "displayStart" in group ? group.displayStart : 1,
-      displayEnd: (() => {
-        if ("displayEnd" in group) {
-          return group.displayEnd;
-        }
-        if ("totalLoaded" in group) {
-          return group.totalLoaded;
-        }
-        return 0;
-      })(),
-    };
+  // All pagination states have groups array
+  const group = pagination.groups.find(
+    (g: GroupInfoUnion<TData>) => g.key === groupKey
+  );
+  if (!group) {
+    return undefined;
   }
 
-  // Handle flat pagination
-  // For flat boards: groupKey is the column key for hasNext lookup
-  const hasNext = resolveHasNext(pagination.hasNext, groupKey);
+  // For sub-grouped boards: use columnKey to resolve per-column hasNext
+  // For regular views: use group.hasNext directly
+  const hasNext = resolveHasNext(group.hasNext, columnKey);
 
   return {
     hasNext,
-    hasPrev: resolveHasNext(pagination.hasPrev, groupKey),
-    onNext: pagination.onNext,
-    onPrev: pagination.onPrev,
-    isLoading: pagination.isLoading,
-    isFetching: "isFetching" in pagination ? pagination.isFetching : undefined,
+    hasPrev:
+      "hasPrev" in group ? resolveHasNext(group.hasPrev, columnKey) : false,
+    onNext: group.onNext,
+    onPrev: "onPrev" in group ? group.onPrev : () => undefined,
+    isLoading: group.isLoading,
+    isFetching: group.isFetching,
     isFetchingNextPage:
-      "isFetchingNextPage" in pagination
-        ? pagination.isFetchingNextPage
-        : undefined,
+      "isFetchingNextPage" in group ? group.isFetchingNextPage : undefined,
     limit: pagination.limit,
     onLimitChange: pagination.onLimitChange,
-    displayStart: "displayStart" in pagination ? pagination.displayStart : 1,
+    displayStart: "displayStart" in group ? group.displayStart : 1,
     displayEnd: (() => {
-      if ("displayEnd" in pagination) {
-        return pagination.displayEnd;
+      if ("displayEnd" in group) {
+        return group.displayEnd;
       }
-      if ("totalLoaded" in pagination) {
-        return pagination.totalLoaded;
+      if ("totalLoaded" in group) {
+        return group.totalLoaded;
       }
       return 0;
     })(),

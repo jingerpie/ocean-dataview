@@ -2,12 +2,12 @@
 
 import { AlertCircle, Columns3 } from "lucide-react";
 import { useCallback, useMemo, useRef } from "react";
-import type {
-  GroupedDataItem,
-  GroupInfiniteInfo,
-  GroupInfo,
+import type { GroupedDataItem, GroupInfo } from "../../../hooks";
+import {
+  useDisplayProperties,
+  useGroupConfig,
+  useGroupParams,
 } from "../../../hooks";
-import { useDisplayProperties, useGroupConfig } from "../../../hooks";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import {
   buildPaginationContext,
@@ -135,11 +135,17 @@ export function BoardView<
     propertyVisibility,
     group: groupConfig,
     subGroup: subGroupConfig,
+    expandedGroups,
+    onExpandedGroupsChange,
   } = useDataViewContext<TData, TProperties>();
+
+  // Get sort order and hideEmpty from URL params (managed by useGroupParams)
+  const { groupSortOrder, hideEmptyGroups } = useGroupParams();
 
   // Use prop counts if provided, otherwise fall back to context
   const viewCounts = _counts ? { group: _counts } : contextCounts;
   const counts = viewCounts?.group;
+  const groupSortValues = viewCounts?.groupSortValues;
   const subGroupCounts =
     "subGroup" in (viewCounts ?? {}) ? viewCounts?.subGroup : undefined;
 
@@ -176,11 +182,11 @@ export function BoardView<
     if (!parsedGroup) {
       return undefined;
     }
-    // Map sort values from new format to internal format
+    // Map sort values from URL format (asc/desc) to internal format
     const sortMap: Record<string, "propertyAscending" | "propertyDescending"> =
       {
-        ascending: "propertyAscending",
-        descending: "propertyDescending",
+        asc: "propertyAscending",
+        desc: "propertyDescending",
       };
     // Always use client-side grouping when sub-groups are present
     // because pagination.groups represents sub-groups, not columns
@@ -189,12 +195,18 @@ export function BoardView<
         groupBy: parsedGroup.property,
         showAs: parsedGroup.showAs,
         startWeekOn: parsedGroup.startWeekOn,
-        sort: groupConfig?.sort ? sortMap[groupConfig.sort] : undefined,
-        hideEmptyGroups: groupConfig?.hideEmpty,
+        sort: sortMap[groupSortOrder],
+        hideEmptyGroups,
       };
     }
     return undefined;
-  }, [parsedGroup, hasGroupedPagination, subGroupConfig, groupConfig]);
+  }, [
+    parsedGroup,
+    hasGroupedPagination,
+    subGroupConfig,
+    groupSortOrder,
+    hideEmptyGroups,
+  ]);
 
   // Use shared hook for primary group configuration (with auto-selection)
   // For sub-grouped boards: always required (columns are client-side)
@@ -233,18 +245,29 @@ export function BoardView<
           (clientGroupedData ?? []).map((g) => [g.key, g])
         );
 
-        return Object.entries(counts).map(
-          ([key, countInfo]: [string, GroupCountInfo]) => {
+        return Object.entries(counts)
+          .map(([key, countInfo]: [string, GroupCountInfo]) => {
             const clientGroup = clientDataMap.get(key);
             return {
               key,
               items: clientGroup?.items ?? [],
               count: countInfo.count,
               displayCount: countInfo.hasMore ? "99+" : String(countInfo.count),
-              sortValue: clientGroup?.sortValue ?? key,
+              sortValue:
+                groupSortValues?.[key] ?? clientGroup?.sortValue ?? key,
             };
-          }
-        );
+          })
+          .sort((a, b) => {
+            const aVal = a.sortValue;
+            const bVal = b.sortValue;
+            let result: number;
+            if (typeof aVal === "number" && typeof bVal === "number") {
+              result = aVal - bVal;
+            } else {
+              result = String(aVal).localeCompare(String(bVal));
+            }
+            return groupSortOrder === "desc" ? -result : result;
+          });
       }
       return clientGroupedData;
     }
@@ -252,10 +275,12 @@ export function BoardView<
     // Non-sub-grouped boards with grouped pagination: use pagination.groups as columns
     if (hasGroupedPagination && "groups" in contextPagination) {
       // Convert pagination.groups to GroupedDataItem format
-      // Groups can be either GroupInfo (page) or GroupInfiniteInfo (infinite)
       // Counts come from context.counts, not from group objects
-      return contextPagination.groups.map(
-        (group: GroupInfo<TData> | GroupInfiniteInfo<TData>) => {
+      // Use Pick to only require the common properties across pagination types
+      return (
+        contextPagination.groups as Pick<GroupInfo<TData>, "key" | "items">[]
+      )
+        .map((group) => {
           const countInfo = counts?.[group.key];
           return {
             key: group.key,
@@ -264,10 +289,20 @@ export function BoardView<
             displayCount: countInfo?.hasMore
               ? "99+"
               : String(countInfo?.count ?? group.items.length),
-            sortValue: group.value,
+            sortValue: groupSortValues?.[group.key] ?? group.key,
           };
-        }
-      );
+        })
+        .sort((a, b) => {
+          const aVal = a.sortValue;
+          const bVal = b.sortValue;
+          let result: number;
+          if (typeof aVal === "number" && typeof bVal === "number") {
+            result = aVal - bVal;
+          } else {
+            result = String(aVal).localeCompare(String(bVal));
+          }
+          return groupSortOrder === "desc" ? -result : result;
+        });
     }
 
     return clientGroupedData;
@@ -278,6 +313,8 @@ export function BoardView<
     clientGroupedData,
     properties,
     counts,
+    groupSortValues,
+    groupSortOrder,
   ]);
 
   // Use shared hook for sub-group configuration (if present)
@@ -327,12 +364,18 @@ export function BoardView<
         ? subGroupSortMap[subGroupConfig.sort]
         : "propertyAscending",
       hideEmptyGroups: subGroupConfig.hideEmpty ?? true,
-      defaultExpanded: subGroupConfig.defaultExpanded,
-      expanded: subGroupConfig.expanded,
-      onExpandedChange: subGroupConfig.onExpandedChange,
+      expanded: expandedGroups,
+      onExpandedChange: onExpandedGroupsChange,
       counts: subGroupCounts,
     };
-  }, [parsedSubGroup, subGroupConfig, subGroupCounts, subGroupSortMap]);
+  }, [
+    parsedSubGroup,
+    subGroupConfig,
+    subGroupCounts,
+    subGroupSortMap,
+    expandedGroups,
+    onExpandedGroupsChange,
+  ]);
 
   // Get group options from property config
   const groupOptions = useMemo(() => {
@@ -649,7 +692,6 @@ export function BoardView<
 
             {/* Sub-group rows using GroupSection */}
             <Accordion
-              defaultValue={effectiveSubGroupConfig.defaultExpanded}
               multiple
               onValueChange={effectiveSubGroupConfig.onExpandedChange}
               value={effectiveSubGroupConfig.expanded}

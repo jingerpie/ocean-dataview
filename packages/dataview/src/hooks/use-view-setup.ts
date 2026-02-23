@@ -8,8 +8,8 @@ import {
 import type { DataViewProperty, GroupConfig, ViewCounts } from "../types";
 import type { GroupedDataItem } from "./use-group-config";
 import { useGroupConfig } from "./use-group-config";
-import type { GroupInfiniteInfo } from "./use-group-infinite-pagination";
-import type { GroupInfo } from "./use-group-page-pagination";
+import { useGroupParams } from "./use-group-params";
+import type { GroupInfo } from "./use-infinite-pagination";
 
 /**
  * Internal group config format used by useGroupConfig hook
@@ -86,6 +86,9 @@ export function useViewSetup<
   TData,
   TProperties
 > {
+  // Get sort order and hideEmpty from URL params (managed by useGroupParams)
+  const { groupSortOrder, hideEmptyGroups } = useGroupParams();
+
   // Parse the discriminated union group config
   const parsedGroup = useMemo(
     () => (group ? parseGroupByConfig(group) : undefined),
@@ -111,25 +114,25 @@ export function useViewSetup<
   );
 
   // Prepare internal group configuration (only needed for client-side grouping)
-  // Maps new format (ascending/descending) to old format (propertyAscending/propertyDescending)
+  // Maps URL format (asc/desc) to internal format (propertyAscending/propertyDescending)
   const groupConfig = useMemo((): InternalGroupConfig | undefined => {
     if (!parsedGroup || hasGroupedPagination) {
       return undefined;
     }
-    // Map sort values from new format to internal format
+    // Map sort values from URL format to internal format
     const sortMap: Record<string, "propertyAscending" | "propertyDescending"> =
       {
-        ascending: "propertyAscending",
-        descending: "propertyDescending",
+        asc: "propertyAscending",
+        desc: "propertyDescending",
       };
     return {
       groupBy: parsedGroup.property,
       showAs: parsedGroup.showAs,
       startWeekOn: parsedGroup.startWeekOn,
-      sort: group?.sort ? sortMap[group.sort] : undefined,
-      hideEmptyGroups: group?.hideEmpty,
+      sort: sortMap[groupSortOrder],
+      hideEmptyGroups,
     };
-  }, [parsedGroup, hasGroupedPagination, group?.sort, group?.hideEmpty]);
+  }, [parsedGroup, hasGroupedPagination, groupSortOrder, hideEmptyGroups]);
 
   // Use shared hook for group configuration and processing (client-side grouping)
   const {
@@ -153,6 +156,21 @@ export function useViewSetup<
     countInfo: ViewCounts["group"][string] | undefined
   ) => (countInfo?.hasMore ? "99+" : String(countInfo?.count ?? 0));
 
+  // Helper to compare sort values with direction
+  const compareSortValues = (
+    aVal: string | number,
+    bVal: string | number,
+    direction: "asc" | "desc"
+  ) => {
+    let result: number;
+    if (typeof aVal === "number" && typeof bVal === "number") {
+      result = aVal - bVal;
+    } else {
+      result = String(aVal).localeCompare(String(bVal));
+    }
+    return direction === "desc" ? -result : result;
+  };
+
   // Pattern 9: Choose grouped data source: pagination.groups (server) or useGroupConfig (client)
   // Counts come from context (DataViewProvider.counts prop)
   const groupedData = useMemo(() => {
@@ -167,10 +185,10 @@ export function useViewSetup<
     ) {
       // Convert pagination.groups to GroupedDataItem format
       const paginationWithGroups = contextPagination as {
-        groups: Array<GroupInfo<TData> | GroupInfiniteInfo<TData>>;
+        groups: GroupInfo<TData>[];
       };
-      return paginationWithGroups.groups.map(
-        (group: GroupInfo<TData> | GroupInfiniteInfo<TData>) => {
+      return paginationWithGroups.groups
+        .map((group: GroupInfo<TData>) => {
           // Get counts from context
           const countInfo = groupCounts?.[group.key];
           return {
@@ -178,10 +196,12 @@ export function useViewSetup<
             items: transformData(group.items, properties) as TData[],
             count: countInfo?.count ?? 0,
             displayCount: formatDisplayCount(countInfo),
-            sortValue: group.value,
+            sortValue: groupSortValues?.[group.key] ?? group.key,
           };
-        }
-      );
+        })
+        .sort((a, b) =>
+          compareSortValues(a.sortValue, b.sortValue, groupSortOrder)
+        );
     }
 
     // For client-side grouping, merge counts if available
@@ -205,15 +225,9 @@ export function useViewSetup<
           displayCount: formatDisplayCount(countInfo),
           sortValue: groupSortValues?.[key] ?? key,
         }))
-        .sort((a, b) => {
-          // Sort by sortValue from server
-          const aVal = a.sortValue;
-          const bVal = b.sortValue;
-          if (typeof aVal === "number" && typeof bVal === "number") {
-            return aVal - bVal;
-          }
-          return String(aVal).localeCompare(String(bVal));
-        });
+        .sort((a, b) =>
+          compareSortValues(a.sortValue, b.sortValue, groupSortOrder)
+        );
     }
 
     return clientGroupedData;
@@ -223,6 +237,7 @@ export function useViewSetup<
     clientGroupedData,
     properties,
     counts,
+    groupSortOrder,
   ]);
 
   return {

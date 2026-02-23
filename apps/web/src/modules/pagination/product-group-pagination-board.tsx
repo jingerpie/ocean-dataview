@@ -110,7 +110,6 @@ export function ProductGroupPaginationBoard({
         <NotionToolbar
           enableSettings
           groupProperty="Category"
-          layout="Board"
           properties={productProperties}
         >
           <ViewNav />

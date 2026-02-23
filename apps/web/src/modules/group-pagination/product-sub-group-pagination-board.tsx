@@ -127,22 +127,19 @@ export function ProductSubGroupPaginationBoard({
           subGroupSortValues: subGroupData.sortValues,
         }}
         data={data}
+        expandedGroups={expandedGroups}
         filter={filter}
         group={{ bySelect: { property: "category" }, showCount: true }}
+        onExpandedGroupsChange={handleAccordionChange}
         pagination={pagination}
         properties={productProperties}
         search={searchQuery}
         sort={sort}
-        subGroup={{
-          bySelect: { property: "availability" },
-          expanded: expandedGroups,
-          onExpandedChange: handleAccordionChange,
-        }}
+        subGroup={{ bySelect: { property: "availability" } }}
       >
         <NotionToolbar
           enableSettings
           groupProperty="Category"
-          layout="Board"
           properties={productProperties}
         >
           <ViewNav />

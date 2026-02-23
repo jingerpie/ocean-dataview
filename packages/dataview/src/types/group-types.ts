@@ -52,9 +52,7 @@ export type GroupByConfig =
 
 // Shared options for all group configs
 export interface SharedGroupOptions {
-  expanded?: string[];
   hideEmpty?: boolean;
-  onExpandedChange?: (groups: string[]) => void;
   showCount?: boolean;
   sort?: "ascending" | "descending";
 }
@@ -63,7 +61,4 @@ export interface SharedGroupOptions {
 export type GroupConfig = GroupByConfig & SharedGroupOptions;
 
 // SubGroup uses same structure
-export type SubGroupConfig = GroupByConfig &
-  SharedGroupOptions & {
-    defaultExpanded?: string[];
-  };
+export type SubGroupConfig = GroupByConfig & SharedGroupOptions;

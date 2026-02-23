@@ -99,6 +99,8 @@ export function TableView<
     pagination: contextPagination,
     counts,
     group,
+    expandedGroups,
+    onExpandedGroupsChange,
   } = useDataViewContext<TData, TProperties>();
 
   // Use shared view setup hook
@@ -247,8 +249,8 @@ export function TableView<
       <div className={cn("flex flex-col gap-4", className)}>
         <Accordion
           multiple
-          onValueChange={group.onExpandedChange}
-          value={group.expanded ?? []}
+          onValueChange={onExpandedGroupsChange}
+          value={expandedGroups ?? []}
         >
           {groupedData.map((groupItem: GroupedDataItem<TData>) => {
             // Build pagination context for this group using the utility function
@@ -309,7 +311,7 @@ export function TableView<
   // Build pagination context for flat view
   const flatPaginationContext = buildPaginationContext(
     contextPagination,
-    "$all"
+    "__all__"
   );
 
   // STANDARD VIEW: Flat table without grouping

@@ -2,16 +2,9 @@
 
 import { parseAsCursors, parseAsExpanded } from "@sparkyidea/shared/lib";
 import type { Cursors, CursorValue, Limit } from "@sparkyidea/shared/types";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useSuspenseQueries } from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useTransition,
-} from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import type { BidirectionalPaginatedResponse } from "../types/pagination-types";
 
 // ============================================================================
@@ -116,60 +109,55 @@ export interface PagePaginationResult<TData> {
   pagination: PagePaginationState<TData>;
 }
 
-// ============================================================================
-// Main Hook
-// ============================================================================
+/**
+ * Output type for useSuspensePagePagination hook
+ * Same as PagePaginationResult but without loading states (data is always ready)
+ */
+export interface SuspensePagePaginationResult<TData> {
+  /** Flattened data from all groups */
+  data: TData[];
+  /** Current expanded groups (empty for flat mode) */
+  expandedGroups: string[];
+  /** Handler for accordion expand/collapse (no-op for flat mode) */
+  handleAccordionChange: (newExpanded: string[]) => void;
+  /** Pagination state for DataViewProvider */
+  pagination: PagePaginationState<TData>;
+}
 
 /**
- * Unified hook for page-based pagination.
- * Handles both flat and grouped modes with a single API.
- *
- * Uses `useQueries` internally which supports dynamic arrays natively.
- * No maxGroups limitation like infinite pagination.
- *
- * Flat mode (groupBy undefined):
- * - Uses single "__all__" group internally
- * - queryOptions receives "__all__" as groupKey
- *
- * Grouped mode (groupBy defined):
- * - Uses provided allGroupKeys
- * - Per-group pagination with prev/next navigation
- *
- * @example
- * ```tsx
- * // Flat mode
- * const { data, pagination } = usePagePagination({
- *   limit: 10,
- *   cursors,
- *   queryOptions: (groupKey, cursor) =>
- *     trpc.product.getMany.queryOptions({ limit: 10, cursor }),
- * });
- *
- * // Grouped mode
- * const { data, pagination, handleAccordionChange, expandedGroups } =
- *   usePagePagination({
- *     limit: 10,
- *     cursors,
- *     groupBy: {
- *       allGroupKeys: ["A", "B", "C"],
- *       expanded: ["A"],
- *     },
- *     queryOptions: (groupKey, cursor) =>
- *       trpc.product.getManyByGroup.queryOptions({
- *         groupKeys: [groupKey],
- *         limit: 10,
- *         cursor,
- *       }),
- *   });
- * ```
+ * Internal query result shape for processing
  */
-export function usePagePagination<
-  TQueryOptions extends PageQueryOptions,
-  TData = unknown,
->(
+interface QueryResultLike<TData> {
+  data?: BidirectionalPaginatedResponse<TData>;
+  isFetching?: boolean;
+  isLoading?: boolean;
+}
+
+// ============================================================================
+// Shared State Hook
+// ============================================================================
+
+interface SharedPaginationState {
+  allGroupKeys: string[];
+  cursors: Cursors;
+  fetchedGroups: Set<string>;
+  handleAccordionChange: (newExpanded: string[]) => void;
+  isGrouped: boolean;
+  limit: Limit;
+  localExpanded: string[];
+  onLimitChange: (limit: Limit) => void;
+  setCursors: (cursors: Cursors | null) => void;
+  startTransition: (callback: () => void) => void;
+}
+
+/**
+ * Shared state management for page pagination hooks.
+ * Handles expanded state, fetched groups tracking, and URL state.
+ */
+function usePagePaginationState<TQueryOptions extends PageQueryOptions>(
   options: UsePagePaginationOptions<TQueryOptions>
-): PagePaginationResult<TData> {
-  const { limit, groupBy, queryOptions, cursors = {} } = options;
+): SharedPaginationState {
+  const { limit, groupBy, cursors = {} } = options;
 
   // Determine mode: flat vs grouped
   const isGrouped = groupBy != null;
@@ -204,7 +192,7 @@ export function usePagePagination<
 
   const [, startTransition] = useTransition();
 
-  // URL state for expanded groups (only for grouped mode)
+  // URL state for expanded groups
   const [, setExpanded] = useQueryState(
     "expanded",
     parseAsExpanded.withOptions({ shallow: false })
@@ -221,96 +209,6 @@ export function usePagePagination<
     "limit",
     parseAsInteger.withOptions({ shallow: false })
   );
-
-  // Create queries using useQueries (supports dynamic arrays!)
-  const queries = useQueries({
-    queries: allGroupKeys.map((groupKey) => {
-      const cursor =
-        groupKey === FLAT_GROUP_KEY
-          ? cursors[FLAT_GROUP_KEY]
-          : cursors[groupKey];
-      const isEnabled =
-        localExpanded.includes(groupKey) || fetchedGroups.has(groupKey);
-
-      const opts = queryOptions(groupKey, cursor);
-
-      return {
-        queryKey: opts.queryKey,
-        queryFn: opts.queryFn,
-        enabled: isEnabled,
-      };
-    }),
-  });
-
-  // Build groups array with items and pagination info
-  const groups = useMemo(() => {
-    return allGroupKeys.map((groupKey, index) => {
-      const query = queries[index];
-      const isExpanded = localExpanded.includes(groupKey);
-      const queryData = query?.data as
-        | BidirectionalPaginatedResponse<TData>
-        | undefined;
-
-      const items: TData[] = queryData?.items ?? [];
-      const cursorState = cursors[groupKey];
-      const groupStart = cursorState?.start ?? 0;
-
-      const group: PageGroupInfo<TData> = {
-        key: groupKey,
-        isLoading: query?.isLoading ?? false,
-        isFetching: isExpanded && (query?.isFetching ?? false),
-        items,
-        hasNext: queryData?.hasNextPage ?? false,
-        hasPrev: groupStart > 0,
-        displayStart: items.length > 0 ? groupStart + 1 : 0,
-        displayEnd: groupStart + items.length,
-
-        onNext: () => {
-          const endCursor = queryData?.endCursor;
-          if (endCursor == null) {
-            return;
-          }
-          startTransition(() => {
-            setCursors({
-              ...cursors,
-              [groupKey]: {
-                after: String(endCursor),
-                start: groupStart + limit,
-              },
-            });
-          });
-        },
-
-        onPrev: () => {
-          const newStart = Math.max(0, groupStart - limit);
-          startTransition(() => {
-            if (newStart === 0) {
-              // Remove cursor for this group
-              const { [groupKey]: _, ...rest } = cursors;
-              setCursors(Object.keys(rest).length > 0 ? rest : {});
-            } else {
-              const startCursor = queryData?.startCursor;
-              if (startCursor == null) {
-                return;
-              }
-              setCursors({
-                ...cursors,
-                [groupKey]: {
-                  before: String(startCursor),
-                  start: newStart,
-                },
-              });
-            }
-          });
-        },
-      };
-
-      return group;
-    });
-  }, [allGroupKeys, queries, localExpanded, cursors, limit, setCursors]);
-
-  // Flatten all items
-  const data = useMemo(() => groups.flatMap((g) => g.items), [groups]);
 
   // Limit change handler
   const onLimitChange = useCallback(
@@ -349,24 +247,284 @@ export function usePagePagination<
           const { [removed]: _, ...rest } = cursors;
           setCursors(Object.keys(rest).length > 0 ? rest : {});
         }
+        // Update URL
         setExpanded(newExpanded.length > 0 ? newExpanded : null);
       });
     },
-    [isGrouped, localExpanded, cursors, setExpanded, setCursors]
+    [isGrouped, localExpanded, cursors, setCursors, setExpanded]
   );
 
-  // Check if any group is loading
+  return {
+    allGroupKeys,
+    cursors,
+    fetchedGroups,
+    handleAccordionChange,
+    isGrouped,
+    limit,
+    localExpanded,
+    onLimitChange,
+    setCursors,
+    startTransition,
+  };
+}
+
+// ============================================================================
+// Query Building
+// ============================================================================
+
+interface QueryConfig {
+  enabled: boolean;
+  // biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
+  queryFn: any;
+  queryKey: readonly unknown[];
+}
+
+/**
+ * Build query configurations for all groups
+ */
+function buildQueryConfigs<TQueryOptions extends PageQueryOptions>(
+  options: UsePagePaginationOptions<TQueryOptions>,
+  state: SharedPaginationState
+): QueryConfig[] {
+  const { queryOptions } = options;
+  const { allGroupKeys, cursors, fetchedGroups, localExpanded } = state;
+
+  return allGroupKeys.map((groupKey) => {
+    const cursor =
+      groupKey === FLAT_GROUP_KEY ? cursors[FLAT_GROUP_KEY] : cursors[groupKey];
+    const isEnabled =
+      localExpanded.includes(groupKey) || fetchedGroups.has(groupKey);
+
+    const opts = queryOptions(groupKey, cursor);
+
+    return {
+      queryKey: opts.queryKey,
+      queryFn: opts.queryFn,
+      enabled: isEnabled,
+    };
+  });
+}
+
+// ============================================================================
+// Result Processing
+// ============================================================================
+
+/**
+ * Process query results into pagination result
+ */
+function processQueryResults<TData>(
+  queries: QueryResultLike<TData>[],
+  state: SharedPaginationState
+): {
+  data: TData[];
+  groups: PageGroupInfo<TData>[];
+  isLoading: boolean;
+} {
+  const {
+    allGroupKeys,
+    cursors,
+    limit,
+    localExpanded,
+    setCursors,
+    startTransition,
+  } = state;
+
+  const groups = allGroupKeys.map((groupKey, index) => {
+    const query = queries[index];
+    const isExpanded = localExpanded.includes(groupKey);
+    const queryData = query?.data;
+
+    const items: TData[] = queryData?.items ?? [];
+    const cursorState = cursors[groupKey];
+    const groupStart = cursorState?.start ?? 0;
+
+    const group: PageGroupInfo<TData> = {
+      key: groupKey,
+      isLoading: query?.isLoading ?? false,
+      isFetching: isExpanded && (query?.isFetching ?? false),
+      items,
+      hasNext: queryData?.hasNextPage ?? false,
+      hasPrev: groupStart > 0,
+      displayStart: items.length > 0 ? groupStart + 1 : 0,
+      displayEnd: groupStart + items.length,
+
+      onNext: () => {
+        const endCursor = queryData?.endCursor;
+        if (endCursor == null) {
+          return;
+        }
+        startTransition(() => {
+          setCursors({
+            ...cursors,
+            [groupKey]: {
+              after: String(endCursor),
+              start: groupStart + limit,
+            },
+          });
+        });
+      },
+
+      onPrev: () => {
+        const newStart = Math.max(0, groupStart - limit);
+        startTransition(() => {
+          if (newStart === 0) {
+            // Remove cursor for this group
+            const { [groupKey]: _, ...rest } = cursors;
+            setCursors(Object.keys(rest).length > 0 ? rest : {});
+          } else {
+            const startCursor = queryData?.startCursor;
+            if (startCursor == null) {
+              return;
+            }
+            setCursors({
+              ...cursors,
+              [groupKey]: {
+                before: String(startCursor),
+                start: newStart,
+              },
+            });
+          }
+        });
+      },
+    };
+
+    return group;
+  });
+
+  const data = groups.flatMap((g) => g.items);
   const isLoading = queries.some((q) => q?.isFetching);
+
+  return { data, groups, isLoading };
+}
+
+// ============================================================================
+// usePagePagination (Non-Suspense)
+// ============================================================================
+
+/**
+ * Hook for page-based pagination with loading states.
+ * Handles both flat and grouped modes with a single API.
+ *
+ * Uses `useQueries` internally which returns loading states.
+ * Use this for client-side rendering where you want to show loading spinners.
+ *
+ * For SSR/prefetch scenarios where data should be ready before render,
+ * use `useSuspensePagePagination` instead.
+ *
+ * @example
+ * ```tsx
+ * // Client-only page with loading spinner
+ * function ProductTableClient() {
+ *   const { data, pagination, isLoading } = usePagePagination({
+ *     limit: 10,
+ *     cursors,
+ *     queryOptions: (groupKey, cursor) =>
+ *       trpc.product.getMany.queryOptions({ limit: 10, cursor }),
+ *   });
+ *
+ *   if (pagination.isLoading) return <Spinner />;
+ *   return <Table data={data} pagination={pagination} />;
+ * }
+ * ```
+ */
+export function usePagePagination<
+  TQueryOptions extends PageQueryOptions,
+  TData = unknown,
+>(
+  options: UsePagePaginationOptions<TQueryOptions>
+): PagePaginationResult<TData> {
+  const state = usePagePaginationState(options);
+  const queryConfigs = buildQueryConfigs(options, state);
+
+  // Use useQueries for non-suspense queries with loading states
+  const queries = useQueries({
+    queries: queryConfigs,
+  });
+
+  // Map to internal format
+  const queryResults: QueryResultLike<TData>[] = queries.map((q) => ({
+    data: q.data as BidirectionalPaginatedResponse<TData> | undefined,
+    isFetching: q.isFetching,
+    isLoading: q.isLoading,
+  }));
+
+  const { data, groups, isLoading } = processQueryResults(queryResults, state);
 
   return {
     data,
     pagination: {
       groups,
-      limit,
-      onLimitChange,
+      limit: state.limit,
+      onLimitChange: state.onLimitChange,
       isLoading,
     },
-    handleAccordionChange,
-    expandedGroups: isGrouped ? localExpanded : [],
+    handleAccordionChange: state.handleAccordionChange,
+    expandedGroups: state.isGrouped ? state.localExpanded : [],
+  };
+}
+
+// ============================================================================
+// useSuspensePagePagination (Suspense)
+// ============================================================================
+
+/**
+ * Hook for page-based pagination with Suspense support.
+ * Handles both flat and grouped modes with a single API.
+ *
+ * Uses `useSuspenseQueries` internally which suspends until data is ready.
+ * Use this for SSR/prefetch scenarios where data should be available before render.
+ *
+ * For client-side rendering where you want to show loading spinners,
+ * use `usePagePagination` instead.
+ *
+ * @example
+ * ```tsx
+ * // SSR page with prefetch
+ * function ProductTableSSR() {
+ *   const { data, pagination } = useSuspensePagePagination({
+ *     limit: 10,
+ *     cursors,
+ *     queryOptions: (groupKey, cursor) =>
+ *       trpc.product.getMany.queryOptions({ limit: 10, cursor }),
+ *   });
+ *
+ *   // Data is always available (suspends until ready)
+ *   return <Table data={data} pagination={pagination} />;
+ * }
+ * ```
+ */
+export function useSuspensePagePagination<
+  TQueryOptions extends PageQueryOptions,
+  TData = unknown,
+>(
+  options: UsePagePaginationOptions<TQueryOptions>
+): SuspensePagePaginationResult<TData> {
+  const state = usePagePaginationState(options);
+  const queryConfigs = buildQueryConfigs(options, state);
+
+  // Use useSuspenseQueries for suspense-enabled queries
+  const queries = useSuspenseQueries({
+    queries: queryConfigs,
+  });
+
+  // Map to internal format - suspense queries always have data
+  const queryResults: QueryResultLike<TData>[] = queries.map((q) => ({
+    data: q.data as BidirectionalPaginatedResponse<TData>,
+    isFetching: q.isFetching,
+    isLoading: false, // Suspense queries are never "loading"
+  }));
+
+  const { data, groups, isLoading } = processQueryResults(queryResults, state);
+
+  return {
+    data,
+    pagination: {
+      groups,
+      limit: state.limit,
+      onLimitChange: state.onLimitChange,
+      isLoading,
+    },
+    handleAccordionChange: state.handleAccordionChange,
+    expandedGroups: state.isGrouped ? state.localExpanded : [],
   };
 }

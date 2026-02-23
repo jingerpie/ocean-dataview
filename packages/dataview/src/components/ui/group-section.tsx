@@ -2,10 +2,93 @@
 
 import { Loader2 } from "lucide-react";
 import { useRef } from "react";
+import { useGroupParams } from "../../hooks";
 import type { DataViewProperty, NumberConfig } from "../../types";
 import { DataCell } from "../views/data-cell";
 import { StickyGroupLabel } from "../views/sticky-group-label";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "./accordion";
+
+/**
+ * Get the showAs value from a date group config
+ */
+function getDateGroupShowAs(
+  group: ReturnType<typeof useGroupParams>["group"]
+): string | null {
+  if (!(group && "byDate" in group)) {
+    return null;
+  }
+  return group.byDate.showAs;
+}
+
+/**
+ * Format a date group key based on the showAs setting.
+ * - day: "Aug 2, 2025"
+ * - week: "Jul 27 - Aug 2, 2025"
+ * - month: "Aug 2025"
+ * - year: "2025"
+ *
+ * Returns null if the groupKey can't be parsed as a date.
+ */
+function formatDateGroupLabel(
+  groupKey: string,
+  showAs: string | null
+): string | null {
+  // Handle special cases
+  if (groupKey === "Unknown" || groupKey === "No Date") {
+    return groupKey;
+  }
+
+  // Try to parse the group key as a date
+  const date = new Date(groupKey);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const monthShort = date.toLocaleString("en-US", { month: "short" });
+  const day = date.getDate();
+  const year = date.getFullYear();
+
+  switch (showAs) {
+    case "day":
+      // "Aug 2, 2025"
+      return `${monthShort} ${day}, ${year}`;
+
+    case "week": {
+      // "Jul 27 - Aug 2, 2025"
+      // The group key is the start of the week, calculate end (6 days later)
+      const weekEnd = new Date(date);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+
+      const startMonth = monthShort;
+      const startDay = day;
+      const endMonth = weekEnd.toLocaleString("en-US", { month: "short" });
+      const endDay = weekEnd.getDate();
+      const endYear = weekEnd.getFullYear();
+
+      // If same month, just show "Aug 2-8, 2025"
+      if (startMonth === endMonth && year === endYear) {
+        return `${startMonth} ${startDay}-${endDay}, ${year}`;
+      }
+      // If different months but same year, show "Jul 27 - Aug 2, 2025"
+      if (year === endYear) {
+        return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${year}`;
+      }
+      // If different years, show "Dec 29, 2024 - Jan 4, 2025"
+      return `${startMonth} ${startDay}, ${year} - ${endMonth} ${endDay}, ${endYear}`;
+    }
+
+    case "month":
+      // "Aug 2025"
+      return `${monthShort} ${year}`;
+
+    case "year":
+      // "2025"
+      return String(year);
+
+    default:
+      return null;
+  }
+}
 
 // Regex patterns for parsing number range group keys
 const LESS_THAN_REGEX = /^< (\d+)$/;
@@ -147,11 +230,17 @@ export function GroupSection<TData>({
   stickyHeader,
 }: GroupSectionProps<TData>) {
   const itemRef = useRef<HTMLDivElement>(null);
+  const { group: groupConfig } = useGroupParams();
 
-  // For date properties in group headers, use "relativeGroup" format
-  // which converts bucket start dates to labels (e.g., "Today", "Last 7 days", "Aug 2025")
+  // Get the date showAs setting from group config
+  const dateShowAs = getDateGroupShowAs(groupConfig);
+
+  // For date properties with "relative" showAs, use "relativeGroup" format
+  // which converts bucket start timestamps to labels (e.g., "Today", "Last 7 days", "Aug 2025")
+  // For other date showAs values (day/week/month/year), the server returns pre-formatted strings
+  // so we display them as-is without parsing
   const dateConfigOverride =
-    groupByPropertyDef?.type === "date"
+    groupByPropertyDef?.type === "date" && dateShowAs === "relative"
       ? { dateFormat: "relativeGroup" }
       : undefined;
 
@@ -177,7 +266,20 @@ export function GroupSection<TData>({
       }
     }
 
-    // Use DataCell for property types (select, multiSelect, status, date, checkbox, etc.)
+    // For date properties with day/week/month/year showAs, format the label directly
+    // (relative showAs uses DataCell with relativeGroup format)
+    if (
+      groupByPropertyDef?.type === "date" &&
+      dateShowAs &&
+      dateShowAs !== "relative"
+    ) {
+      const dateLabel = formatDateGroupLabel(group.key, dateShowAs);
+      if (dateLabel) {
+        return <span className="font-medium text-sm">{dateLabel}</span>;
+      }
+    }
+
+    // Use DataCell for property types (select, multiSelect, status, date/relative, checkbox, etc.)
     if (groupByPropertyDef) {
       return (
         <DataCell

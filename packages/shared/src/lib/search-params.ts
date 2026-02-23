@@ -199,112 +199,46 @@ export type GroupByConfigInput =
     };
 
 /**
- * Transform URL positional array to GroupByConfig object.
- * Structural validation only - tRPC validates business logic.
+ * Group configuration with settings.
+ * Uses JSON encoding in URL.
+ *
+ * Note: `expanded` is a view-level concern (separate URL param),
+ * not part of group config, since different views expand different levels:
+ * - Board: expands subGroup rows
+ * - Table/List/Gallery: expands group rows
  */
-const transformUrlToGroupConfig = (url: unknown): GroupByConfigInput | null => {
-  if (!Array.isArray(url) || url.length < 2) {
-    return null;
-  }
-
-  const [type, property, ...rest] = url;
-
-  if (typeof type !== "string" || typeof property !== "string") {
-    return null;
-  }
-
-  switch (type) {
-    case "select":
-      return { bySelect: { property } };
-
-    case "status": {
-      const showAs = (rest[0] as "option" | "group") ?? "option";
-      return { byStatus: { property, showAs } };
-    }
-
-    case "date": {
-      const showAs =
-        (rest[0] as "day" | "week" | "month" | "year" | "relative") ?? "day";
-      const startWeekOn = rest[1] as "monday" | "sunday" | undefined;
-      return startWeekOn
-        ? { byDate: { property, showAs, startWeekOn } }
-        : { byDate: { property, showAs } };
-    }
-
-    case "checkbox":
-      return { byCheckbox: { property } };
-
-    case "multiSelect":
-      return { byMultiSelect: { property } };
-
-    case "text": {
-      const showAs = (rest[0] as "exact" | "alphabetical") ?? "exact";
-      return { byText: { property, showAs } };
-    }
-
-    case "number": {
-      const [min, max, step] = rest;
-      if (
-        typeof min === "number" &&
-        typeof max === "number" &&
-        typeof step === "number"
-      ) {
-        return {
-          byNumber: { property, showAs: { range: [min, max], step } },
-        };
-      }
-      // No range specified - exact number grouping
-      return { byNumber: { property } };
-    }
-
-    default:
-      return null;
-  }
+export type GroupConfigInput = GroupByConfigInput & {
+  sort?: "asc" | "desc";
+  hideEmpty?: boolean;
 };
 
 /**
- * Transform GroupByConfig object to URL positional array.
+ * Validate GroupConfigInput from parsed JSON.
+ * Structural check only - tRPC validates property names.
  */
-const transformGroupConfigToUrl = (config: GroupByConfigInput): unknown[] => {
-  if ("bySelect" in config) {
-    return ["select", config.bySelect.property];
+const groupConfigValidator = (value: unknown): GroupConfigInput | null => {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return null;
   }
-  if ("byStatus" in config) {
-    return ["status", config.byStatus.property, config.byStatus.showAs];
-  }
-  if ("byDate" in config) {
-    const { property, showAs, startWeekOn } = config.byDate;
-    return startWeekOn
-      ? ["date", property, showAs, startWeekOn]
-      : ["date", property, showAs];
-  }
-  if ("byCheckbox" in config) {
-    return ["checkbox", config.byCheckbox.property];
-  }
-  if ("byMultiSelect" in config) {
-    return ["multiSelect", config.byMultiSelect.property];
-  }
-  if ("byText" in config) {
-    const { property, showAs } = config.byText;
-    return showAs && showAs !== "exact"
-      ? ["text", property, showAs]
-      : ["text", property];
-  }
-  if ("byNumber" in config) {
-    const { property, showAs } = config.byNumber;
-    if (showAs) {
-      return ["number", property, ...showAs.range, showAs.step];
-    }
-    return ["number", property];
-  }
-  return [];
-};
 
-/**
- * GroupBy validator - structural check only, tRPC validates property names.
- */
-const groupByValidator = (value: unknown): GroupByConfigInput | null => {
-  return transformUrlToGroupConfig(value);
+  const obj = value as Record<string, unknown>;
+
+  // Check for valid byXXX key
+  const hasValidByKey =
+    "bySelect" in obj ||
+    "byStatus" in obj ||
+    "byDate" in obj ||
+    "byCheckbox" in obj ||
+    "byMultiSelect" in obj ||
+    "byText" in obj ||
+    "byNumber" in obj;
+
+  if (!hasValidByKey) {
+    return null;
+  }
+
+  // Pass through - tRPC validates the full shape
+  return value as GroupConfigInput;
 };
 
 /**
@@ -392,6 +326,11 @@ const parseAsLimit = createParser({
   serialize: (value: Limit) => String(value),
 });
 
+/**
+ * Parser for unified group config using JSON encoding.
+ */
+const parseAsGroupConfig = parseAsJson(groupConfigValidator);
+
 const sharedParsers = {
   limit: parseAsLimit.withDefault(25),
   filter: parseAsJson(filterValidator),
@@ -400,8 +339,8 @@ const sharedParsers = {
     parse: (v) => (typeof v === "string" ? v : ""),
     serialize: (v) => v,
   }).withDefault(""),
-  group: parseAsJson(groupByValidator),
-  subGroup: parseAsJson(groupByValidator),
+  group: parseAsGroupConfig,
+  subGroup: parseAsGroupConfig,
 };
 
 /**
@@ -414,6 +353,7 @@ export const paginationParams = createSearchParamsCache({
 
 /**
  * Grouped pagination params for server-side URL parsing.
+ * `expanded` is a view-level concern (separate from group config).
  */
 export const groupPaginationParams = createSearchParamsCache({
   cursors: parseAsJson(cursorsValidator).withDefault({}),
@@ -488,15 +428,17 @@ export const parseAsSort = createParser({
     JSON.stringify(value.map((s) => [s.property, s.direction])),
 });
 
+/**
+ * Client-side parser for unified group config using JSON encoding.
+ */
 export const parseAsGroupBy = createParser({
-  parse: (value: string): GroupByConfigInput | null => {
+  parse: (value: string): GroupConfigInput | null => {
     try {
       const parsed = JSON.parse(value);
-      return groupByValidator(parsed);
+      return groupConfigValidator(parsed);
     } catch {
       return null;
     }
   },
-  serialize: (value: GroupByConfigInput) =>
-    JSON.stringify(transformGroupConfigToUrl(value)),
+  serialize: (value: GroupConfigInput) => JSON.stringify(value),
 });

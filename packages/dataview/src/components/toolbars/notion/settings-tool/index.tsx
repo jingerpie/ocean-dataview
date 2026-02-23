@@ -32,6 +32,8 @@ type ActiveSection =
   | "filter"
   | "sort"
   | "group"
+  | "group-property"
+  | "group-showAs"
   | "color"
   | null;
 
@@ -61,6 +63,8 @@ const sectionTitles: Record<Exclude<ActiveSection, null>, string> = {
   filter: "Filter",
   sort: "Sort",
   group: "Group",
+  "group-property": "Group by",
+  "group-showAs": "Show as",
   color: "Color",
 };
 
@@ -126,9 +130,7 @@ function SettingsTool({
               <EyeIcon />
               <span className="flex-1">Property visibility</span>
               {visibleCount > 0 && (
-                <span className="text-muted-foreground text-xs">
-                  {visibleCount}
-                </span>
+                <span className="text-muted-foreground">{visibleCount}</span>
               )}
               <ChevronRightIcon className="size-4 text-muted-foreground" />
             </CommandItem>
@@ -142,9 +144,7 @@ function SettingsTool({
               <FilterIcon />
               <span className="flex-1">Filter</span>
               {filterCount > 0 && (
-                <span className="text-muted-foreground text-xs">
-                  {filterCount}
-                </span>
+                <span className="text-muted-foreground">{filterCount}</span>
               )}
               <ChevronRightIcon className="size-4 text-muted-foreground" />
             </CommandItem>
@@ -155,9 +155,7 @@ function SettingsTool({
               <ArrowDownUpIcon />
               <span className="flex-1">Sort</span>
               {sortCount > 0 && (
-                <span className="text-muted-foreground text-xs">
-                  {sortCount}
-                </span>
+                <span className="text-muted-foreground">{sortCount}</span>
               )}
               <ChevronRightIcon className="size-4 text-muted-foreground" />
             </CommandItem>
@@ -171,9 +169,7 @@ function SettingsTool({
               <GroupIcon />
               <span className="flex-1">Group</span>
               {groupProperty && (
-                <span className="text-muted-foreground text-xs">
-                  {groupProperty}
-                </span>
+                <span className="text-muted-foreground">{groupProperty}</span>
               )}
               <ChevronRightIcon className="size-4 text-muted-foreground" />
             </CommandItem>
@@ -194,6 +190,41 @@ function SettingsTool({
     </Command>
   );
 
+  // Handle group sub-section changes
+  const handleGroupSubSectionChange = (
+    subSection: "property" | "showAs" | null
+  ) => {
+    if (subSection === "property") {
+      setActiveSection("group-property");
+    } else if (subSection === "showAs") {
+      setActiveSection("group-showAs");
+    } else {
+      setActiveSection("group");
+    }
+  };
+
+  // Get the back navigation target
+  const getBackTarget = (): ActiveSection => {
+    if (
+      activeSection === "group-property" ||
+      activeSection === "group-showAs"
+    ) {
+      return "group";
+    }
+    return null;
+  };
+
+  // Get the current group sub-section for SettingsGroup
+  const getGroupSubSection = (): "property" | "showAs" | null => {
+    if (activeSection === "group-property") {
+      return "property";
+    }
+    if (activeSection === "group-showAs") {
+      return "showAs";
+    }
+    return null;
+  };
+
   const renderSectionContent = () => {
     switch (activeSection) {
       case "visibility":
@@ -203,7 +234,15 @@ function SettingsTool({
       case "sort":
         return <SettingsSort properties={propertyMetas} />;
       case "group":
-        return <SettingsGroup groupProperty={groupProperty} />;
+      case "group-property":
+      case "group-showAs":
+        return (
+          <SettingsGroup
+            onSubSectionChange={handleGroupSubSectionChange}
+            properties={propertyMetas}
+            subSection={getGroupSubSection()}
+          />
+        );
       case "color":
         return <SettingsColor />;
       default:
@@ -219,7 +258,7 @@ function SettingsTool({
         {activeSection && (
           <div className="flex items-center gap-2 px-2 pt-2">
             <Button
-              onClick={() => setActiveSection(null)}
+              onClick={() => setActiveSection(getBackTarget())}
               size="icon-xs"
               variant="ghost"
             >

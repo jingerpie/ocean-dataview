@@ -32,6 +32,13 @@ export interface BaseProperty<_T> {
   enableFilter?: boolean;
 
   /**
+   * Enable grouping for this property.
+   * When false, property won't appear in the group picker.
+   * @default true
+   */
+  enableGroup?: boolean;
+
+  /**
    * Enable search for this property.
    * - `true`: Include in search (even if type would be excluded by default)
    * - `false`: Exclude from search (even if type would be included by default)
@@ -55,6 +62,7 @@ export interface BaseProperty<_T> {
    * - Rendered via property() in formulas
    * - Available in filter picker (unless enableFilter: false)
    * - Available in sort picker (unless enableSort: false)
+   * - Available in group picker (unless enableGroup: false)
    * - Included in search (unless enableSearch: false)
    * @default false
    */
@@ -212,6 +220,8 @@ export interface PropertyMeta {
   config?: PropertyConfig;
   /** Enable filtering @default true */
   enableFilter?: boolean;
+  /** Enable grouping @default true */
+  enableGroup?: boolean;
   /** Enable search @default type-dependent */
   enableSearch?: boolean;
   /** Enable sorting @default true */
