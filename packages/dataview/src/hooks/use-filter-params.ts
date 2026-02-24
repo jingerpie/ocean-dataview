@@ -1,7 +1,7 @@
 "use client";
 
-import { parseAsFilter } from "@sparkyidea/shared/lib";
 import type { WhereNode } from "@sparkyidea/shared/types";
+import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
 import { useQueryState } from "nuqs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDataViewContext } from "../lib/providers";
@@ -91,22 +91,27 @@ export function useFilterParams() {
   // Remove filter - immediate (discrete action)
   const removeFilter = useCallback(
     (propertyId: string) => {
-      setLocalFilter((currentFilter) => {
-        if (!currentFilter) {
-          return null;
+      // Calculate new filter from current local state
+      const currentFilter = localFilter;
+      if (!currentFilter) {
+        return;
+      }
+
+      const newFilter = currentFilter.filter((node) => {
+        if ("property" in node) {
+          return node.property !== propertyId;
         }
-        const newFilter = currentFilter.filter((node) => {
-          if ("property" in node) {
-            return node.property !== propertyId;
-          }
-          return true;
-        });
-        isInternalChange.current = true;
-        void setUrlFilterState(newFilter.length > 0 ? newFilter : EMPTY_FILTER);
-        return newFilter.length > 0 ? newFilter : null;
+        return true;
       });
+
+      // Update local state
+      setLocalFilter(newFilter.length > 0 ? newFilter : null);
+
+      // Update URL state (outside of render phase)
+      isInternalChange.current = true;
+      void setUrlFilterState(newFilter.length > 0 ? newFilter : EMPTY_FILTER);
     },
-    [setUrlFilterState]
+    [localFilter, setUrlFilterState]
   );
 
   const clearFilter = useCallback(() => {

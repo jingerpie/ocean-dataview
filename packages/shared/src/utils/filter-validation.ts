@@ -1,14 +1,26 @@
 import {
   isWhereExpression,
   isWhereRule,
+  type WhereExpression,
   type WhereNode,
   type WhereRule,
 } from "../types/filter.type";
-import {
-  createCompoundFilter,
-  getFilterItems,
-  getFilterLogic,
-} from "./filter-builder";
+
+// Inline helpers (avoid circular dependency with filter-builder)
+function getFilterItems(expr: WhereExpression): WhereNode[] {
+  return expr.and ?? expr.or ?? [];
+}
+
+function getFilterLogic(expr: WhereExpression): "and" | "or" {
+  return expr.and ? "and" : "or";
+}
+
+function createCompoundFilter(
+  logic: "and" | "or",
+  items: WhereNode[]
+): WhereExpression {
+  return logic === "and" ? { and: items } : { or: items };
+}
 
 // Conditions that don't require a value
 const VALUE_OPTIONAL_CONDITIONS = new Set(["isEmpty", "isNotEmpty"]);

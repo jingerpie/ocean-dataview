@@ -1,7 +1,10 @@
 "use client";
 
-import { parseAsCursors, parseAsExpanded } from "@sparkyidea/shared/lib";
 import type { Cursors, CursorValue, Limit } from "@sparkyidea/shared/types";
+import {
+  parseAsCursors,
+  parseAsExpanded,
+} from "@sparkyidea/shared/utils/parsers/pagination";
 import { useQueries, useSuspenseQueries } from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";

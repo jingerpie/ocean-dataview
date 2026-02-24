@@ -1,7 +1,7 @@
 "use client";
 
-import { parseAsSort } from "@sparkyidea/shared/lib";
 import type { SortQuery } from "@sparkyidea/shared/types";
+import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
 import { useQueryState } from "nuqs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDataViewContext } from "../lib/providers";
@@ -60,14 +60,14 @@ export function useSortParams() {
     isInternalChange.current = false;
   }, [serverSort]);
 
+  // Set entire sort array - immediate (discrete action like reorder, preset)
   const setSort = useCallback(
     (newSort: SortQuery[]) => {
       setLocalSort(newSort);
       isInternalChange.current = true;
-      // Always write to URL (even empty array) to track explicit state
-      debouncedUrlUpdate(newSort);
+      void setUrlSortState(newSort);
     },
-    [debouncedUrlUpdate]
+    [setUrlSortState]
   );
 
   // Add sort - immediate (discrete action, popover closes)
@@ -95,29 +95,25 @@ export function useSortParams() {
   // Remove sort - immediate (discrete action)
   const removeSort = useCallback(
     (prop: string) => {
-      setLocalSort((currentSort) => {
-        const newSort = currentSort.filter((s) => s.property !== prop);
-        isInternalChange.current = true;
-        void setUrlSortState(newSort);
-        return newSort;
-      });
+      const newSort = localSort.filter((s) => s.property !== prop);
+      setLocalSort(newSort);
+      isInternalChange.current = true;
+      void setUrlSortState(newSort);
     },
-    [setUrlSortState]
+    [localSort, setUrlSortState]
   );
 
   // Update sort - debounced (editing property/direction)
   const updateSort = useCallback(
     (prop: string, updates: Partial<SortQuery>) => {
-      setLocalSort((currentSort) => {
-        const newSort = currentSort.map((s) =>
-          s.property === prop ? { ...s, ...updates } : s
-        );
-        isInternalChange.current = true;
-        debouncedUrlUpdate(newSort);
-        return newSort;
-      });
+      const newSort = localSort.map((s) =>
+        s.property === prop ? { ...s, ...updates } : s
+      );
+      setLocalSort(newSort);
+      isInternalChange.current = true;
+      debouncedUrlUpdate(newSort);
     },
-    [debouncedUrlUpdate]
+    [localSort, debouncedUrlUpdate]
   );
 
   const clearSort = useCallback(() => {

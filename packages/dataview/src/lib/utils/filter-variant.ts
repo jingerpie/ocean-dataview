@@ -2,7 +2,7 @@ import type {
   FilterCondition,
   PropertyType,
   WhereRule,
-} from "../types/filter.type";
+} from "@sparkyidea/shared/types";
 import { getDefaultFilterCondition } from "./filter";
 
 // ============================================================================

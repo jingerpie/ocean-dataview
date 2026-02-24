@@ -1,8 +1,8 @@
 "use client";
 
 import type { WhereRule } from "@sparkyidea/shared/types";
-import { extractSelectValues } from "@sparkyidea/shared/utils";
 import { ChevronDownIcon, CircleDashed } from "lucide-react";
+import { extractSelectValues } from "../../../../../lib/utils/filter-variant";
 import type {
   BadgeColor,
   PropertyMeta,

@@ -1,5 +1,5 @@
-import { dataTableConfig } from "../config/data-table";
-import type { FilterCondition, PropertyType } from "../types/filter.type";
+import { dataTableConfig } from "@sparkyidea/shared/config";
+import type { FilterCondition, PropertyType } from "@sparkyidea/shared/types";
 
 /**
  * Gets available filter conditions for a property type.

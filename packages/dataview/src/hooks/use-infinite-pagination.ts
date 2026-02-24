@@ -1,7 +1,7 @@
 "use client";
 
-import { parseAsExpanded } from "@sparkyidea/shared/lib";
 import type { Limit } from "@sparkyidea/shared/types";
+import { parseAsExpanded } from "@sparkyidea/shared/utils/parsers/pagination";
 import {
   type InfiniteData,
   type UseInfiniteQueryResult,

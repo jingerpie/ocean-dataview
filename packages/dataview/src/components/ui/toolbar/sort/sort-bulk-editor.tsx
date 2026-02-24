@@ -19,13 +19,7 @@ import { PlusIcon, Trash2Icon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useSortParams } from "../../../../hooks";
 import type { PropertyMeta } from "../../../../types";
-import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "../../command";
+import { Command, CommandGroup, CommandItem, CommandList } from "../../command";
 import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 import { SortEditor } from "./sort-editor";
 import { SortPicker } from "./sort-picker";
@@ -99,8 +93,6 @@ function SortBulkEditor({ properties, onDeleteAll }: SortBulkEditorProps) {
             </SortableContext>
           </DndContext>
         </CommandGroup>
-
-        <CommandSeparator />
 
         {/* Actions */}
         <CommandGroup>

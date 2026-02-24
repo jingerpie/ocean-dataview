@@ -11,20 +11,17 @@ import {
   TableSkeleton,
   TableView,
 } from "@sparkyidea/dataview/views/table-view";
-import type { GroupByConfigInput } from "@sparkyidea/shared/lib";
 import type {
   Cursors,
   Limit,
   SortQuery,
   WhereNode,
 } from "@sparkyidea/shared/types";
-import {
-  buildSearchFilter,
-  combineGroupFilter,
-  getGroupProperty,
-} from "@sparkyidea/shared/utils";
+import type { GroupByConfigInput } from "@sparkyidea/shared/utils/parsers/group";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
+import { combineGroupFilter, getGroupProperty } from "@/utils/group-filter";
+import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
 import { productProperties } from "./product-properties";
 import { sampleRowActions } from "./sample-row-actions";

@@ -1,4 +1,4 @@
-import type { SearchQuery, WhereRule } from "../types";
+import type { SearchQuery, WhereRule } from "@sparkyidea/shared/types";
 
 /**
  * Builds a SearchQuery from a search string and searchable fields.

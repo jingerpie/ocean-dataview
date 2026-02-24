@@ -2,8 +2,11 @@ import type {
   WhereExpression,
   WhereNode,
   WhereRule,
-} from "../types/filter.type";
-import { isWhereExpression, isWhereRule } from "../types/filter.type";
+} from "@sparkyidea/shared/types";
+import {
+  isWhereExpression,
+  isWhereRule,
+} from "@sparkyidea/shared/types/filter.type";
 
 // ============================================================================
 // Basic Helpers

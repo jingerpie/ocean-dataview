@@ -3,7 +3,7 @@
 import {
   type GroupByConfigInput,
   parseAsGroupBy,
-} from "@sparkyidea/shared/lib";
+} from "@sparkyidea/shared/utils/parsers/group";
 import {
   Select,
   SelectContent,

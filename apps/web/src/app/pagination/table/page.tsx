@@ -1,14 +1,11 @@
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import { groupPaginationParams } from "@sparkyidea/shared/lib";
 import type { SearchParams, WhereNode } from "@sparkyidea/shared/types";
-import {
-  buildSearchFilter,
-  combineGroupFilter,
-  getGroupProperty,
-} from "@sparkyidea/shared/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ProductPaginationTable } from "@/modules/pagination/product-pagination-table";
 import { productProperties } from "@/modules/pagination/product-properties";
+import { combineGroupFilter, getGroupProperty } from "@/utils/group-filter";
+import { buildSearchFilter } from "@/utils/search";
 import { getQueryClient, trpc } from "@/utils/trpc/server";
 
 const VIEW_DEFAULTS: { filter: WhereNode[] } = {

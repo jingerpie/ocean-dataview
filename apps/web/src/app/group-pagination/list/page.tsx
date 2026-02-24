@@ -1,13 +1,11 @@
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import { groupPaginationParams } from "@sparkyidea/shared/lib";
 import type { SearchParams } from "@sparkyidea/shared/types";
-import {
-  buildSearchFilter,
-  combineGroupFilter,
-} from "@sparkyidea/shared/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ProductGroupPaginationList } from "@/modules/group-pagination/product-group-pagination-list";
 import { productProperties } from "@/modules/group-pagination/product-properties";
+import { combineGroupFilter } from "@/utils/group-filter";
+import { buildSearchFilter } from "@/utils/search";
 import { getQueryClient, trpc } from "@/utils/trpc/server";
 
 interface PageProps {

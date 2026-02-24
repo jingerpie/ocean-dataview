@@ -5,8 +5,8 @@ import type {
   WhereNode,
   WhereRule,
 } from "@sparkyidea/shared/types";
-import { analyzeFilter } from "@sparkyidea/shared/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { analyzeFilter } from "../lib/utils/filter-builder";
 
 export interface UseToolbarStateOptions {
   filter: WhereNode[] | null;

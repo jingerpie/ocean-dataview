@@ -1,5 +1,5 @@
-import type { GroupByConfigInput } from "../lib/search-params";
-import type { WhereNode, WhereRule } from "../types";
+import type { WhereNode, WhereRule } from "@sparkyidea/shared/types";
+import type { GroupByConfigInput } from "@sparkyidea/shared/utils/parsers/group";
 
 /**
  * Extracts the property name from a GroupByConfigInput.

@@ -1,9 +1,9 @@
 "use client";
 
 import type { WhereRule } from "@sparkyidea/shared/types";
-import { createRuleFromProperty } from "@sparkyidea/shared/utils";
 import { ChevronDownIcon, CopyPlusIcon, PlusIcon } from "lucide-react";
 import { cn } from "../../../../lib/utils";
+import { createRuleFromProperty } from "../../../../lib/utils/filter-variant";
 import type { PropertyMeta } from "../../../../types";
 import { Button } from "../../button";
 import {

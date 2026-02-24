@@ -3,9 +3,9 @@
 import {
   type GroupByConfigInput,
   type GroupConfigInput,
-  parseAsExpanded,
   parseAsGroupBy,
-} from "@sparkyidea/shared/lib";
+} from "@sparkyidea/shared/utils/parsers/group";
+import { parseAsExpanded } from "@sparkyidea/shared/utils/parsers/pagination";
 import { useQueryState } from "nuqs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDataViewContext } from "../lib/providers";

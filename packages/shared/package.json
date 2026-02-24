@@ -5,11 +5,29 @@
     "./types": {
       "default": "./src/types/index.ts"
     },
-    "./utils": {
-      "default": "./src/utils/index.ts"
+    "./types/*": {
+      "default": "./src/types/*.ts"
+    },
+    "./utils/get-relative-date-range": {
+      "default": "./src/utils/get-relative-date-range.ts"
+    },
+    "./utils/parsers/filter": {
+      "default": "./src/utils/parsers/filter.ts"
+    },
+    "./utils/parsers/group": {
+      "default": "./src/utils/parsers/group.ts"
+    },
+    "./utils/parsers/pagination": {
+      "default": "./src/utils/parsers/pagination.ts"
+    },
+    "./utils/parsers/sort": {
+      "default": "./src/utils/parsers/sort.ts"
     },
     "./lib": {
       "default": "./src/lib/index.ts"
+    },
+    "./lib/*": {
+      "default": "./src/lib/*.ts"
     },
     "./config": {
       "default": "./src/config/index.ts"

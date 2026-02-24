@@ -1,6 +1,6 @@
 "use client";
 
-import type { GroupByConfigInput } from "@sparkyidea/shared/lib";
+import type { GroupByConfigInput } from "@sparkyidea/shared/utils/parsers/group";
 import { CheckIcon } from "lucide-react";
 import { useCallback } from "react";
 import { useGroupParams } from "../../../../hooks";

@@ -6,6 +6,7 @@ import type {
   WhereRule,
 } from "@sparkyidea/shared/types";
 import { isWhereRule } from "@sparkyidea/shared/types";
+import { cn } from "../../../../lib/utils";
 import {
   addCondition,
   addGroup,
@@ -16,8 +17,7 @@ import {
   removeItem,
   updateCondition,
   wrapInGroup,
-} from "@sparkyidea/shared/utils";
-import { cn } from "../../../../lib/utils";
+} from "../../../../lib/utils/filter-builder";
 import type { PropertyMeta } from "../../../../types";
 import { AddFilterButton } from "./advanced-add-filter-button";
 import { AdvancedFilterActions } from "./advanced-filter-actions";

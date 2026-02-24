@@ -9,9 +9,9 @@ import {
   BoardView,
 } from "@sparkyidea/dataview/views/board-view";
 import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
-import { buildSearchFilter } from "@sparkyidea/shared/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
+import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
 import { productProperties } from "./product-properties";
 import { ViewNav } from "./view-nav";

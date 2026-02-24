@@ -7,12 +7,12 @@ import {
   TableSkeleton,
   TableView,
 } from "@sparkyidea/dataview/views/table-view";
-import { parseAsExpanded } from "@sparkyidea/shared/lib";
 import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
-import { buildSearchFilter } from "@sparkyidea/shared/utils";
+import { parseAsExpanded } from "@sparkyidea/shared/utils/parsers/pagination";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useQueryState } from "nuqs";
 import { Suspense, useMemo } from "react";
+import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
 import { GroupSelector, useGroupConfig } from "./group-selector";
 import { productProperties } from "./product-properties";

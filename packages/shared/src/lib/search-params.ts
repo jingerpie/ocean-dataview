@@ -1,277 +1,80 @@
 import { getTableColumns, type Table } from "drizzle-orm";
-import {
-  createParser,
-  createSearchParamsCache,
-  parseAsJson,
-} from "nuqs/server";
+import { createParser, createSearchParamsCache } from "nuqs/server";
 import { z } from "zod";
+import { searchQuerySchema, whereNodeSchema } from "../types/filter.type";
 import {
-  isWhereExpression,
-  isWhereRule,
-  type SortQuery,
-  searchQuerySchema,
-  type WhereNode,
-  whereNodeSchema,
-} from "../types/filter.type";
-import {
-  type Cursors,
-  type CursorValue,
   cursorValueSchema,
   LIMIT_OPTIONS,
   type Limit,
 } from "../types/pagination.type";
 import { validateFilter } from "../utils/filter-validation";
+import { filterServerParser } from "../utils/parsers/filter";
+import { groupServerParser } from "../utils/parsers/group";
+import {
+  cursorServerParser,
+  cursorsServerParser,
+  expandedServerParser,
+} from "../utils/parsers/pagination";
+import { sortServerParser } from "../utils/parsers/sort";
 import { validateSort } from "../utils/sort-validation";
 
 // ============================================================================
-// Filter URL Transformation Helpers
+// Server-side Limit Parser
 // ============================================================================
 
-/**
- * Transform URL node to code node.
- *
- * NUQS validators handle parsing and structural transformation only.
- * Semantic validation (enum values, business rules) happens in tRPC.
- * This avoids redundant validation across RSC and Client paths.
- *
- * URL format uses compact positional arrays for rules:
- *   [property, condition, value?]
- *
- * Code format uses objects:
- *   { property, condition, value? }
- */
-const transformUrlToCode = (node: unknown): WhereNode | null => {
-  // Rule: positional array [property, condition, value?]
-  if (Array.isArray(node)) {
-    const [property, condition, value] = node;
-
-    // Only structural checks - let tRPC validate condition enum
-    if (typeof property !== "string" || !property) {
-      return null;
+const parseAsLimit = createParser({
+  parse: (value: string): Limit | null => {
+    const num = Number.parseInt(value, 10);
+    if (LIMIT_OPTIONS.includes(num as Limit)) {
+      return num as Limit;
     }
-    if (typeof condition !== "string") {
-      return null;
-    }
-
-    return { property, condition, value } as WhereNode;
-  }
-
-  if (typeof node !== "object" || node === null) {
     return null;
-  }
-
-  // Expression: { and: [...] } or { or: [...] }
-  if ("and" in node || "or" in node) {
-    const expr = node as { and?: unknown[]; or?: unknown[] };
-    if (expr.and) {
-      const transformedAnd = expr.and
-        .map(transformUrlToCode)
-        .filter((n): n is WhereNode => n !== null);
-      return { and: transformedAnd };
-    }
-    if (expr.or) {
-      const transformedOr = expr.or
-        .map(transformUrlToCode)
-        .filter((n): n is WhereNode => n !== null);
-      return { or: transformedOr };
-    }
-  }
-
-  return null;
-};
-
-/**
- * Transform code node to URL node.
- *
- * Code format uses objects:
- *   { property, condition, value? }
- *
- * URL format uses compact positional arrays for rules:
- *   [property, condition, value?]
- */
-const transformCodeToUrl = (node: WhereNode): unknown => {
-  if (isWhereRule(node)) {
-    // Compact array format: [property, condition, value?]
-    // Omit value if null/undefined for shorter URLs
-    if (node.value == null) {
-      return [node.property, node.condition];
-    }
-    return [node.property, node.condition, node.value];
-  }
-
-  if (isWhereExpression(node)) {
-    if (node.and) {
-      return { and: node.and.map(transformCodeToUrl) };
-    }
-    if (node.or) {
-      return { or: node.or.map(transformCodeToUrl) };
-    }
-  }
-
-  return node;
-};
+  },
+  serialize: (value: Limit) => String(value),
+});
 
 // ============================================================================
-// Validators (for NUQS JSON parsing)
+// Server-side Search Parser
 // ============================================================================
 
-const filterValidator = (value: unknown): WhereNode[] | null => {
-  // URL format is just an array (root AND is implicit)
-  if (!Array.isArray(value)) {
-    return null;
-  }
-
-  // Transform URL format to code format
-  const transformed = value
-    .map(transformUrlToCode)
-    .filter((n): n is WhereNode => n !== null);
-
-  return transformed;
-};
-
-/**
- * Transform URL sort format to code format.
- * Permissive: drops invalid entries instead of failing entire array.
- *
- * URL format: ["property", "asc"|"desc"]
- * Code format: { property, direction: "asc" | "desc" }
- */
-const sortValidator = (value: unknown): SortQuery[] | null => {
-  if (!Array.isArray(value)) {
-    return null;
-  }
-
-  return value
-    .map((item) => {
-      if (!Array.isArray(item) || item.length !== 2) {
-        return null;
-      }
-
-      const [property, direction] = item;
-      // Only structural checks - let tRPC validate direction enum
-      if (typeof property !== "string" || typeof direction !== "string") {
-        return null;
-      }
-
-      return { property, direction: direction as "asc" | "desc" };
-    })
-    .filter((s): s is SortQuery => s !== null);
-};
+const parseAsSearch = createParser({
+  parse: (v) => (typeof v === "string" ? v : ""),
+  serialize: (v) => v,
+}).withDefault("");
 
 // ============================================================================
-// GroupBy URL Transformation Helpers
+// Server-side Search Params Caches (for RSC)
 // ============================================================================
 
-/**
- * GroupBy URL format (compact positional arrays):
- *   ["select", property]
- *   ["status", property, showAs]
- *   ["date", property, showAs, startWeekOn?]
- *   ["checkbox", property]
- *   ["multiSelect", property]
- *   ["text", property, showAs?]
- *   ["number", property, min, max, step]
- *
- * Code format (discriminated union):
- *   { bySelect: { property } }
- *   { byStatus: { property, showAs } }
- *   etc.
- */
-
-export type GroupByConfigInput =
-  | { bySelect: { property: string } }
-  | { byStatus: { property: string; showAs: "option" | "group" } }
-  | {
-      byDate: {
-        property: string;
-        showAs: "day" | "week" | "month" | "year" | "relative";
-        startWeekOn?: "monday" | "sunday";
-      };
-    }
-  | { byCheckbox: { property: string } }
-  | { byMultiSelect: { property: string } }
-  | { byText: { property: string; showAs?: "exact" | "alphabetical" } }
-  | {
-      byNumber: {
-        property: string;
-        showAs?: { range: [number, number]; step: number };
-      };
-    };
-
-/**
- * Group configuration with settings.
- * Uses JSON encoding in URL.
- *
- * Note: `expanded` is a view-level concern (separate URL param),
- * not part of group config, since different views expand different levels:
- * - Board: expands subGroup rows
- * - Table/List/Gallery: expands group rows
- */
-export type GroupConfigInput = GroupByConfigInput & {
-  sort?: "asc" | "desc";
-  hideEmpty?: boolean;
+const sharedParsers = {
+  limit: parseAsLimit.withDefault(25),
+  filter: filterServerParser,
+  sort: sortServerParser,
+  search: parseAsSearch,
+  group: groupServerParser,
+  subGroup: groupServerParser,
 };
 
 /**
- * Validate GroupConfigInput from parsed JSON.
- * Structural check only - tRPC validates property names.
+ * Flat pagination params for server-side URL parsing.
  */
-const groupConfigValidator = (value: unknown): GroupConfigInput | null => {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return null;
-  }
-
-  const obj = value as Record<string, unknown>;
-
-  // Check for valid byXXX key
-  const hasValidByKey =
-    "bySelect" in obj ||
-    "byStatus" in obj ||
-    "byDate" in obj ||
-    "byCheckbox" in obj ||
-    "byMultiSelect" in obj ||
-    "byText" in obj ||
-    "byNumber" in obj;
-
-  if (!hasValidByKey) {
-    return null;
-  }
-
-  // Pass through - tRPC validates the full shape
-  return value as GroupConfigInput;
-};
+export const paginationParams = createSearchParamsCache({
+  cursor: cursorServerParser,
+  ...sharedParsers,
+});
 
 /**
- * Cursor validator - structural check only, tRPC validates shape.
+ * Grouped pagination params for server-side URL parsing.
+ * `expanded` is a view-level concern (separate from group config).
  */
-const cursorValidator = (value: unknown): CursorValue | null => {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return null;
-  }
-  // Just pass through - tRPC validates the shape
-  return value as CursorValue;
-};
-
-/**
- * Cursors validator - structural check only, tRPC validates shape.
- */
-const cursorsValidator = (value: unknown): Cursors | null => {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return null;
-  }
-  // Just pass through - tRPC validates the shape
-  return value as Cursors;
-};
-
-const expandedValidator = (value: unknown): string[] | null => {
-  if (!Array.isArray(value)) {
-    return null;
-  }
-  return value.every((v) => typeof v === "string") ? (value as string[]) : null;
-};
+export const groupPaginationParams = createSearchParamsCache({
+  cursors: cursorsServerParser,
+  expanded: expandedServerParser,
+  ...sharedParsers,
+});
 
 // ============================================================================
-// 1. TRPC Zod Schema (for input validation)
+// TRPC Zod Schema (for input validation)
 // ============================================================================
 
 /**
@@ -306,139 +109,3 @@ export const createSearchParamsSchema = (table: Table) => {
       .transform(validateSort),
   });
 };
-
-// ============================================================================
-// 2. Server-side NUQS Parsers (for URL params in RSC)
-// ============================================================================
-
-/**
- * Parse limit from URL, validating against allowed values.
- * Returns null for invalid values (handled by .withDefault).
- */
-const parseAsLimit = createParser({
-  parse: (value: string): Limit | null => {
-    const num = Number.parseInt(value, 10);
-    if (LIMIT_OPTIONS.includes(num as Limit)) {
-      return num as Limit;
-    }
-    return null;
-  },
-  serialize: (value: Limit) => String(value),
-});
-
-/**
- * Parser for unified group config using JSON encoding.
- */
-const parseAsGroupConfig = parseAsJson(groupConfigValidator);
-
-const sharedParsers = {
-  limit: parseAsLimit.withDefault(25),
-  filter: parseAsJson(filterValidator),
-  sort: parseAsJson(sortValidator).withDefault([]),
-  search: createParser({
-    parse: (v) => (typeof v === "string" ? v : ""),
-    serialize: (v) => v,
-  }).withDefault(""),
-  group: parseAsGroupConfig,
-  subGroup: parseAsGroupConfig,
-};
-
-/**
- * Flat pagination params for server-side URL parsing.
- */
-export const paginationParams = createSearchParamsCache({
-  cursor: parseAsJson(cursorValidator),
-  ...sharedParsers,
-});
-
-/**
- * Grouped pagination params for server-side URL parsing.
- * `expanded` is a view-level concern (separate from group config).
- */
-export const groupPaginationParams = createSearchParamsCache({
-  cursors: parseAsJson(cursorsValidator).withDefault({}),
-  expanded: parseAsJson(expandedValidator).withDefault([]),
-  ...sharedParsers,
-});
-
-// ============================================================================
-// 3. Client-side Parsers (for hooks with useQueryState)
-// ============================================================================
-
-export const parseAsCursor = createParser({
-  parse: (value: string): CursorValue | null => {
-    try {
-      const parsed = JSON.parse(value);
-      return cursorValidator(parsed);
-    } catch {
-      return null;
-    }
-  },
-  serialize: (value: CursorValue) => JSON.stringify(value),
-});
-
-export const parseAsCursors = createParser({
-  parse: (value: string): Cursors | null => {
-    try {
-      const parsed = JSON.parse(value);
-      return cursorsValidator(parsed);
-    } catch {
-      return null;
-    }
-  },
-  serialize: (value: Cursors) => JSON.stringify(value),
-});
-
-export const parseAsExpanded = createParser({
-  parse: (value: string): string[] | null => {
-    try {
-      const parsed = JSON.parse(value);
-      return expandedValidator(parsed);
-    } catch {
-      return null;
-    }
-  },
-  serialize: (value: string[]) => JSON.stringify(value),
-});
-
-export const parseAsFilter = createParser({
-  parse: (value: string): WhereNode[] | null => {
-    try {
-      const parsed = JSON.parse(value);
-      return filterValidator(parsed);
-    } catch {
-      return null;
-    }
-  },
-  serialize: (value: WhereNode[]) =>
-    JSON.stringify(value.map(transformCodeToUrl)),
-});
-
-export const parseAsSort = createParser({
-  parse: (value: string): SortQuery[] | null => {
-    try {
-      const parsed = JSON.parse(value);
-      return sortValidator(parsed);
-    } catch {
-      return null;
-    }
-  },
-  // Transform to compact positional array format: ["property", "asc"|"desc"]
-  serialize: (value: SortQuery[]) =>
-    JSON.stringify(value.map((s) => [s.property, s.direction])),
-});
-
-/**
- * Client-side parser for unified group config using JSON encoding.
- */
-export const parseAsGroupBy = createParser({
-  parse: (value: string): GroupConfigInput | null => {
-    try {
-      const parsed = JSON.parse(value);
-      return groupConfigValidator(parsed);
-    } catch {
-      return null;
-    }
-  },
-  serialize: (value: GroupConfigInput) => JSON.stringify(value),
-});

@@ -1,10 +1,10 @@
 "use client";
 
 import type { WhereRule } from "@sparkyidea/shared/types";
-import { extractSelectValues } from "@sparkyidea/shared/utils";
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 import { getBadgeClasses } from "../../../../../lib/utils";
+import { extractSelectValues } from "../../../../../lib/utils/filter-variant";
 import type {
   BadgeColor,
   PropertyMeta,
