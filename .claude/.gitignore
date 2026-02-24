@@ -3,6 +3,8 @@ plans/*
 docs/*
 tasks/*
 chats/*
+tasks-todo/*
+tasks-done/*
 
 # Keep .gitkeep files
 !plans/.gitkeep
