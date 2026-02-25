@@ -8,43 +8,37 @@ import {
   BoardSkeleton,
   BoardView,
 } from "@sparkyidea/dataview/views/board-view";
-import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { Suspense } from "react";
+import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
+import { limitServerParser } from "@sparkyidea/shared/utils/parsers/pagination";
+import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
+import { useQuery } from "@tanstack/react-query";
+import { parseAsString, useQueryState } from "nuqs";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
 import { productProperties } from "./product-properties";
 import { ViewNav } from "./view-nav";
 
-interface Props {
-  filter?: WhereNode[] | null;
-  limit: Limit;
-  /** Raw search string from URL (for UI display) */
-  search?: string;
-  sort?: SortQuery[];
-}
-
 /**
  * BoardView with infinite load-more pagination (no sub-groups)
  *
- * Uses getManyByGroup for single-request loading of all columns.
- * Groups (columns) are client-side - data is flat like getMany.
- * Single Load More triggers all columns at once.
+ * Self-contained component that reads URL params directly via nuqs.
+ * No server prefetch - uses client-side fetching with loading states.
  */
-export function ProductGroupPaginationBoard({
-  limit,
-  filter = null,
-  search: searchQuery = "",
-  sort = [],
-}: Props) {
+export function ProductGroupPaginationBoard() {
   const trpc = useTRPC();
+
+  // Read URL params directly via nuqs
+  const [filter] = useQueryState("filter", parseAsFilter);
+  const [sort] = useQueryState("sort", parseAsSort);
+  const [search] = useQueryState("search", parseAsString.withDefault(""));
+  const [limit] = useQueryState("limit", limitServerParser);
 
   // Build search filter from raw search string
   const searchableFields = getSearchableProperties(productProperties);
-  const search = buildSearchFilter(searchQuery, searchableFields);
+  const searchFilter = buildSearchFilter(search, searchableFields);
 
   // Get group counts (for column headers)
-  const { data: groupData } = useSuspenseQuery(
+  const { data: groupData, isLoading: isGroupLoading } = useQuery(
     trpc.product.getGroup.queryOptions({
       groupBy: { bySelect: { property: "category" } },
     })
@@ -59,8 +53,8 @@ export function ProductGroupPaginationBoard({
           groupBy: { bySelect: { property: "category" } },
           limit,
           filter,
-          sort,
-          search,
+          sort: sort ?? [],
+          search: searchFilter,
         },
         {
           getNextPageParam: (lastPage) => {
@@ -83,6 +77,11 @@ export function ProductGroupPaginationBoard({
       ),
   });
 
+  // Show skeleton on initial load
+  if ((pagination.isLoading || isGroupLoading) && data.length === 0) {
+    return <BoardSkeleton columnCount={4} />;
+  }
+
   // Empty state
   if (data.length === 0) {
     return (
@@ -93,36 +92,34 @@ export function ProductGroupPaginationBoard({
   }
 
   return (
-    <Suspense fallback={<BoardSkeleton columnCount={4} />}>
-      <DataViewProvider
-        counts={{
-          group: groupData.counts,
-          groupSortValues: groupData.sortValues,
-        }}
-        data={data}
-        filter={filter}
-        group={{ bySelect: { property: "category" }, showCount: true }}
-        pagination={pagination}
+    <DataViewProvider
+      counts={{
+        group: groupData?.counts ?? {},
+        groupSortValues: groupData?.sortValues ?? {},
+      }}
+      data={data}
+      filter={filter}
+      group={{ bySelect: { property: "category" }, showCount: true }}
+      pagination={pagination}
+      properties={productProperties}
+      search={search}
+      sort={sort ?? []}
+    >
+      <NotionToolbar
+        enableSettings
+        groupProperty="Category"
         properties={productProperties}
-        search={searchQuery}
-        sort={sort}
       >
-        <NotionToolbar
-          enableSettings
-          groupProperty="Category"
-          properties={productProperties}
-        >
-          <ViewNav />
-        </NotionToolbar>
+        <ViewNav />
+      </NotionToolbar>
 
-        <BoardView
-          cardPreview="productImage"
-          cardSize="medium"
-          colorColumns
-          fitMedia
-          pagination="loadMore"
-        />
-      </DataViewProvider>
-    </Suspense>
+      <BoardView
+        cardPreview="productImage"
+        cardSize="medium"
+        colorColumns
+        fitMedia
+        pagination="loadMore"
+      />
+    </DataViewProvider>
   );
 }

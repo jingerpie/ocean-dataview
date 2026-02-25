@@ -5,14 +5,15 @@ import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import { ListSkeleton, ListView } from "@sparkyidea/dataview/views/list-view";
-import type {
-  Cursors,
-  Limit,
-  SortQuery,
-  WhereNode,
-} from "@sparkyidea/shared/types";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { Suspense } from "react";
+import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
+import {
+  limitServerParser,
+  parseAsCursors,
+  parseAsExpanded,
+} from "@sparkyidea/shared/utils/parsers/pagination";
+import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
+import { useQuery } from "@tanstack/react-query";
+import { parseAsString, useQueryState } from "nuqs";
 import { combineGroupFilter } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
@@ -20,46 +21,35 @@ import { productProperties } from "./product-properties";
 import { ViewNav } from "./view-nav";
 
 /**
- * Props passed from server (parsed URL params)
- */
-interface Props {
-  cursors: Cursors;
-  expanded: string[];
-  filter?: WhereNode[] | null;
-  limit: Limit;
-  /** Raw search string from URL (for UI display) */
-  search?: string;
-  sort?: SortQuery[];
-}
-
-/**
  * Product Group List with cursor-based pagination.
  *
- * Pattern: Uses usePagePagination with groupBy for per-group pagination
+ * Self-contained component that reads URL params directly via nuqs.
+ * No server prefetch - uses client-side fetching with loading states.
  */
-export function ProductGroupPaginationList({
-  expanded,
-  cursors,
-  limit,
-  filter = null,
-  search: searchQuery = "",
-  sort = [],
-}: Props) {
+export function ProductGroupPaginationList() {
   const trpc = useTRPC();
+
+  // Read URL params directly via nuqs
+  const [filter] = useQueryState("filter", parseAsFilter);
+  const [sort] = useQueryState("sort", parseAsSort);
+  const [search] = useQueryState("search", parseAsString.withDefault(""));
+  const [limit] = useQueryState("limit", limitServerParser);
+  const [cursors] = useQueryState("cursors", parseAsCursors.withDefault({}));
+  const [expanded] = useQueryState("expanded", parseAsExpanded.withDefault([]));
 
   // Build search filter from raw search string
   const searchableFields = getSearchableProperties(productProperties);
-  const search = buildSearchFilter(searchQuery, searchableFields);
+  const searchFilter = buildSearchFilter(search, searchableFields);
 
-  // 1. Group counts (Suspense OK - matches server prefetch)
-  const { data: groupData } = useSuspenseQuery(
+  // Group counts (for accordion headers)
+  const { data: groupData, isLoading: isGroupLoading } = useQuery(
     trpc.product.getGroup.queryOptions({
       groupBy: { bySelect: { property: "category" } },
     })
   );
 
-  // 2. Get all group keys (stable order)
-  const allGroupKeys = Object.keys(groupData.counts);
+  // Get all group keys (stable order)
+  const allGroupKeys = Object.keys(groupData?.counts ?? {});
 
   // Use unified page pagination with groupBy for per-group prev/next
   const { data, pagination, handleAccordionChange, expandedGroups } =
@@ -73,12 +63,17 @@ export function ProductGroupPaginationList({
       queryOptions: (groupKey, cursor) =>
         trpc.product.getMany.queryOptions({
           filter: combineGroupFilter("category", groupKey, filter),
-          search,
-          sort,
+          search: searchFilter,
+          sort: sort ?? [],
           cursor,
           limit,
         }),
     });
+
+  // Show skeleton on initial load
+  if ((pagination.isLoading || isGroupLoading) && data.length === 0) {
+    return <ListSkeleton rowCount={8} />;
+  }
 
   // Empty state
   if (pagination.groups.length === 0) {
@@ -90,35 +85,33 @@ export function ProductGroupPaginationList({
   }
 
   return (
-    <Suspense fallback={<ListSkeleton rowCount={8} />}>
-      <DataViewProvider
-        counts={{
-          group: groupData.counts,
-          groupSortValues: groupData.sortValues,
-        }}
-        data={data}
-        expandedGroups={expandedGroups}
-        filter={filter}
-        group={{
-          bySelect: { property: "category" },
-          showCount: true,
-        }}
-        onExpandedGroupsChange={handleAccordionChange}
-        pagination={pagination}
+    <DataViewProvider
+      counts={{
+        group: groupData?.counts ?? {},
+        groupSortValues: groupData?.sortValues ?? {},
+      }}
+      data={data}
+      expandedGroups={expandedGroups}
+      filter={filter}
+      group={{
+        bySelect: { property: "category" },
+        showCount: true,
+      }}
+      onExpandedGroupsChange={handleAccordionChange}
+      pagination={pagination}
+      properties={productProperties}
+      search={search}
+      sort={sort ?? []}
+    >
+      <NotionToolbar
+        enableSettings
+        groupProperty="Category"
         properties={productProperties}
-        search={searchQuery}
-        sort={sort}
       >
-        <NotionToolbar
-          enableSettings
-          groupProperty="Category"
-          properties={productProperties}
-        >
-          <ViewNav />
-        </NotionToolbar>
+        <ViewNav />
+      </NotionToolbar>
 
-        <ListView pagination="page" />
-      </DataViewProvider>
-    </Suspense>
+      <ListView pagination="page" />
+    </DataViewProvider>
   );
 }

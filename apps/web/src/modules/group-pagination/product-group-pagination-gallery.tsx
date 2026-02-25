@@ -8,9 +8,14 @@ import {
   GallerySkeleton,
   GalleryView,
 } from "@sparkyidea/dataview/views/gallery-view";
-import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { Suspense } from "react";
+import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
+import {
+  limitServerParser,
+  parseAsExpanded,
+} from "@sparkyidea/shared/utils/parsers/pagination";
+import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
+import { useQuery } from "@tanstack/react-query";
+import { parseAsString, useQueryState } from "nuqs";
 import { combineGroupFilter } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
@@ -18,46 +23,34 @@ import { productProperties } from "./product-properties";
 import { ViewNav } from "./view-nav";
 
 /**
- * Props passed from server (parsed URL params)
- */
-interface Props {
-  expanded: string[];
-  filter?: WhereNode[] | null;
-  limit: Limit;
-  /** Raw search string from URL (for UI display) */
-  search?: string;
-  sort?: SortQuery[];
-}
-
-/**
  * Product Group Gallery with infinite load-more pagination per group.
  *
- * Pattern: Uses useInfinitePagination with groupBy for per-group data accumulation
- * - Each group has its own "Load More" button
- * - Data accumulates client-side per group
+ * Self-contained component that reads URL params directly via nuqs.
+ * No server prefetch - uses client-side fetching with loading states.
  */
-export function ProductGroupPaginationGallery({
-  expanded,
-  limit,
-  filter = null,
-  search: searchQuery = "",
-  sort = [],
-}: Props) {
+export function ProductGroupPaginationGallery() {
   const trpc = useTRPC();
+
+  // Read URL params directly via nuqs
+  const [filter] = useQueryState("filter", parseAsFilter);
+  const [sort] = useQueryState("sort", parseAsSort);
+  const [search] = useQueryState("search", parseAsString.withDefault(""));
+  const [limit] = useQueryState("limit", limitServerParser);
+  const [expanded] = useQueryState("expanded", parseAsExpanded.withDefault([]));
 
   // Build search filter from raw search string
   const searchableFields = getSearchableProperties(productProperties);
-  const search = buildSearchFilter(searchQuery, searchableFields);
+  const searchFilter = buildSearchFilter(search, searchableFields);
 
-  // 1. Group counts (Suspense OK - matches server prefetch)
-  const { data: groupData } = useSuspenseQuery(
+  // Group counts (for accordion headers)
+  const { data: groupData, isLoading: isGroupLoading } = useQuery(
     trpc.product.getGroup.queryOptions({
       groupBy: { bySelect: { property: "category" } },
     })
   );
 
-  // 2. Get all group keys
-  const allGroupKeys = Object.keys(groupData.counts);
+  // Get all group keys
+  const allGroupKeys = Object.keys(groupData?.counts ?? {});
 
   // Use unified infinite pagination with groupBy for per-group load more
   const { data, pagination, handleAccordionChange, expandedGroups } =
@@ -71,8 +64,8 @@ export function ProductGroupPaginationGallery({
         trpc.product.getMany.infiniteQueryOptions(
           {
             filter: combineGroupFilter("category", groupKey, filter),
-            search,
-            sort,
+            search: searchFilter,
+            sort: sort ?? [],
             limit,
           },
           {
@@ -81,6 +74,11 @@ export function ProductGroupPaginationGallery({
           }
         ),
     });
+
+  // Show skeleton on initial load
+  if ((pagination.isLoading || isGroupLoading) && data.length === 0) {
+    return <GallerySkeleton cardCount={6} />;
+  }
 
   // Empty state
   if (pagination.groups.length === 0) {
@@ -92,40 +90,38 @@ export function ProductGroupPaginationGallery({
   }
 
   return (
-    <Suspense fallback={<GallerySkeleton cardCount={6} />}>
-      <DataViewProvider
-        counts={{
-          group: groupData.counts,
-          groupSortValues: groupData.sortValues,
-        }}
-        data={data}
-        expandedGroups={expandedGroups}
-        filter={filter}
-        group={{
-          bySelect: { property: "category" },
-          showCount: true,
-        }}
-        onExpandedGroupsChange={handleAccordionChange}
-        pagination={pagination}
+    <DataViewProvider
+      counts={{
+        group: groupData?.counts ?? {},
+        groupSortValues: groupData?.sortValues ?? {},
+      }}
+      data={data}
+      expandedGroups={expandedGroups}
+      filter={filter}
+      group={{
+        bySelect: { property: "category" },
+        showCount: true,
+      }}
+      onExpandedGroupsChange={handleAccordionChange}
+      pagination={pagination}
+      properties={productProperties}
+      search={search}
+      sort={sort ?? []}
+    >
+      <NotionToolbar
+        enableSettings
+        groupProperty="Category"
         properties={productProperties}
-        search={searchQuery}
-        sort={sort}
       >
-        <NotionToolbar
-          enableSettings
-          groupProperty="Category"
-          properties={productProperties}
-        >
-          <ViewNav />
-        </NotionToolbar>
+        <ViewNav />
+      </NotionToolbar>
 
-        <GalleryView
-          cardPreview="productImage"
-          cardSize="medium"
-          fitMedia
-          pagination="loadMore"
-        />
-      </DataViewProvider>
-    </Suspense>
+      <GalleryView
+        cardPreview="productImage"
+        cardSize="medium"
+        fitMedia
+        pagination="loadMore"
+      />
+    </DataViewProvider>
   );
 }

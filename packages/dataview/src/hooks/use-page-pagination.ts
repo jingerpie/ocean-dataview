@@ -5,7 +5,7 @@ import {
   parseAsCursors,
   parseAsExpanded,
 } from "@sparkyidea/shared/utils/parsers/pagination";
-import { useQueries, useSuspenseQueries } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import type { BidirectionalPaginatedResponse } from "../types/pagination-types";
@@ -102,21 +102,6 @@ export interface PagePaginationState<TData> {
  * Output type for usePagePagination hook
  */
 export interface PagePaginationResult<TData> {
-  /** Flattened data from all groups */
-  data: TData[];
-  /** Current expanded groups (empty for flat mode) */
-  expandedGroups: string[];
-  /** Handler for accordion expand/collapse (no-op for flat mode) */
-  handleAccordionChange: (newExpanded: string[]) => void;
-  /** Pagination state for DataViewProvider */
-  pagination: PagePaginationState<TData>;
-}
-
-/**
- * Output type for useSuspensePagePagination hook
- * Same as PagePaginationResult but without loading states (data is always ready)
- */
-export interface SuspensePagePaginationResult<TData> {
   /** Flattened data from all groups */
   data: TData[];
   /** Current expanded groups (empty for flat mode) */
@@ -449,72 +434,6 @@ export function usePagePagination<
     data: q.data as BidirectionalPaginatedResponse<TData> | undefined,
     isFetching: q.isFetching,
     isLoading: q.isLoading,
-  }));
-
-  const { data, groups, isLoading } = processQueryResults(queryResults, state);
-
-  return {
-    data,
-    pagination: {
-      groups,
-      limit: state.limit,
-      onLimitChange: state.onLimitChange,
-      isLoading,
-    },
-    handleAccordionChange: state.handleAccordionChange,
-    expandedGroups: state.isGrouped ? state.localExpanded : [],
-  };
-}
-
-// ============================================================================
-// useSuspensePagePagination (Suspense)
-// ============================================================================
-
-/**
- * Hook for page-based pagination with Suspense support.
- * Handles both flat and grouped modes with a single API.
- *
- * Uses `useSuspenseQueries` internally which suspends until data is ready.
- * Use this for SSR/prefetch scenarios where data should be available before render.
- *
- * For client-side rendering where you want to show loading spinners,
- * use `usePagePagination` instead.
- *
- * @example
- * ```tsx
- * // SSR page with prefetch
- * function ProductTableSSR() {
- *   const { data, pagination } = useSuspensePagePagination({
- *     limit: 10,
- *     cursors,
- *     queryOptions: (groupKey, cursor) =>
- *       trpc.product.getMany.queryOptions({ limit: 10, cursor }),
- *   });
- *
- *   // Data is always available (suspends until ready)
- *   return <Table data={data} pagination={pagination} />;
- * }
- * ```
- */
-export function useSuspensePagePagination<
-  TQueryOptions extends PageQueryOptions,
-  TData = unknown,
->(
-  options: UsePagePaginationOptions<TQueryOptions>
-): SuspensePagePaginationResult<TData> {
-  const state = usePagePaginationState(options);
-  const queryConfigs = buildQueryConfigs(options, state);
-
-  // Use useSuspenseQueries for suspense-enabled queries
-  const queries = useSuspenseQueries({
-    queries: queryConfigs,
-  });
-
-  // Map to internal format - suspense queries always have data
-  const queryResults: QueryResultLike<TData>[] = queries.map((q) => ({
-    data: q.data as BidirectionalPaginatedResponse<TData>,
-    isFetching: q.isFetching,
-    isLoading: false, // Suspense queries are never "loading"
   }));
 
   const { data, groups, isLoading } = processQueryResults(queryResults, state);

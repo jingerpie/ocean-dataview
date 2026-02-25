@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  usePagePagination,
-  useSuspensePagePagination,
-} from "@sparkyidea/dataview/hooks";
+import { usePagePagination } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
@@ -11,15 +8,20 @@ import {
   TableSkeleton,
   TableView,
 } from "@sparkyidea/dataview/views/table-view";
-import type {
-  Cursors,
-  Limit,
-  SortQuery,
-  WhereNode,
-} from "@sparkyidea/shared/types";
-import type { GroupByConfigInput } from "@sparkyidea/shared/utils/parsers/group";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { Suspense } from "react";
+import type { Cursors, Limit, WhereNode } from "@sparkyidea/shared/types";
+import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
+import {
+  type GroupConfigInput,
+  groupServerParser,
+} from "@sparkyidea/shared/utils/parsers/group";
+import {
+  limitServerParser,
+  parseAsCursors,
+  parseAsExpanded,
+} from "@sparkyidea/shared/utils/parsers/pagination";
+import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
+import { useQuery } from "@tanstack/react-query";
+import { parseAsString, useQueryState } from "nuqs";
 import { combineGroupFilter, getGroupProperty } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
@@ -28,38 +30,20 @@ import { sampleRowActions } from "./sample-row-actions";
 import { ViewNav } from "./view-nav";
 
 /**
- * Props passed from server (with defaults already applied)
- */
-interface PaginationProps {
-  cursors: Cursors;
-  /** Expanded group keys (for grouped mode) */
-  expanded: string[];
-  filter: WhereNode[] | null;
-  /** Group configuration from URL */
-  group: GroupByConfigInput | null;
-  limit: Limit;
-  /** Raw search string from URL (for UI display) */
-  search: string;
-  sorts: SortQuery[];
-}
-
-/**
  * Product Table with cursor-based pagination.
  *
- * Supports both flat and grouped modes:
- * - Flat mode: Single __all__ group (no grouping)
- * - Grouped mode: Data grouped by property with per-group pagination
+ * Self-contained component that reads URL params directly via nuqs.
+ * Supports both flat and grouped modes based on URL group param.
  */
-export function ProductPaginationTable(props: PaginationProps) {
-  const {
-    cursors,
-    expanded,
-    limit,
-    filter,
-    group,
-    search: searchQuery,
-    sorts,
-  } = props;
+export function ProductPaginationTable() {
+  // Read URL params directly via nuqs
+  const [filter] = useQueryState("filter", parseAsFilter);
+  const [sort] = useQueryState("sort", parseAsSort);
+  const [search] = useQueryState("search", parseAsString.withDefault(""));
+  const [limit] = useQueryState("limit", limitServerParser);
+  const [cursors] = useQueryState("cursors", parseAsCursors.withDefault({}));
+  const [expanded] = useQueryState("expanded", parseAsExpanded.withDefault([]));
+  const [group] = useQueryState("group", groupServerParser);
 
   const groupProperty = getGroupProperty(group);
 
@@ -72,8 +56,8 @@ export function ProductPaginationTable(props: PaginationProps) {
         group={group}
         groupProperty={groupProperty}
         limit={limit}
-        searchQuery={searchQuery}
-        sorts={sorts}
+        search={search}
+        sort={sort ?? []}
       />
     );
   }
@@ -82,10 +66,9 @@ export function ProductPaginationTable(props: PaginationProps) {
     <FlatTable
       cursors={cursors}
       filter={filter}
-      group={group}
       limit={limit}
-      searchQuery={searchQuery}
-      sorts={sorts}
+      search={search}
+      sort={sort ?? []}
     />
   );
 }
@@ -96,24 +79,22 @@ export function ProductPaginationTable(props: PaginationProps) {
 function FlatTable({
   cursors,
   filter,
-  group,
   limit,
-  searchQuery,
-  sorts,
+  search,
+  sort,
 }: {
   cursors: Cursors;
   filter: WhereNode[] | null;
-  group: GroupByConfigInput | null;
   limit: Limit;
-  searchQuery: string;
-  sorts: SortQuery[];
+  search: string;
+  sort: { property: string; direction: "asc" | "desc" }[];
 }) {
   const trpc = useTRPC();
 
   const searchableFields = getSearchableProperties(productProperties);
-  const search = buildSearchFilter(searchQuery, searchableFields);
+  const searchFilter = buildSearchFilter(search, searchableFields);
 
-  const { data, pagination } = useSuspensePagePagination({
+  const { data, pagination } = usePagePagination({
     limit,
     cursors,
     queryOptions: (_groupKey, cursor) =>
@@ -121,33 +102,35 @@ function FlatTable({
         cursor,
         limit,
         filter,
-        search,
-        sort: sorts,
+        search: searchFilter,
+        sort,
       }),
   });
 
+  // Show skeleton on initial load
+  if (pagination.isLoading && data.length === 0) {
+    return <TableSkeleton columnCount={5} rowCount={10} />;
+  }
+
   return (
-    <Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
-      <DataViewProvider
-        data={data}
-        filter={filter}
-        group={group ?? undefined}
-        pagination={pagination}
-        properties={productProperties}
-        search={searchQuery}
-        sort={sorts}
-      >
-        <NotionToolbar enableSettings properties={productProperties}>
-          <ViewNav />
-        </NotionToolbar>
-        <TableView
-          bulkActions={sampleRowActions}
-          pagination="page"
-          showVerticalLines={false}
-          wrapAllColumns={false}
-        />
-      </DataViewProvider>
-    </Suspense>
+    <DataViewProvider
+      data={data}
+      filter={filter}
+      pagination={pagination}
+      properties={productProperties}
+      search={search}
+      sort={sort}
+    >
+      <NotionToolbar enableSettings properties={productProperties}>
+        <ViewNav />
+      </NotionToolbar>
+      <TableView
+        bulkActions={sampleRowActions}
+        pagination="page"
+        showVerticalLines={false}
+        wrapAllColumns={false}
+      />
+    </DataViewProvider>
   );
 }
 
@@ -161,32 +144,32 @@ function GroupedTable({
   group,
   groupProperty,
   limit,
-  searchQuery,
-  sorts,
+  search,
+  sort,
 }: {
   cursors: Cursors;
   expanded: string[];
   filter: WhereNode[] | null;
-  group: GroupByConfigInput;
+  group: GroupConfigInput;
   groupProperty: string;
   limit: Limit;
-  searchQuery: string;
-  sorts: SortQuery[];
+  search: string;
+  sort: { property: string; direction: "asc" | "desc" }[];
 }) {
   const trpc = useTRPC();
 
   const searchableFields = getSearchableProperties(productProperties);
-  const search = buildSearchFilter(searchQuery, searchableFields);
+  const searchFilter = buildSearchFilter(search, searchableFields);
 
   // Fetch group counts
-  const { data: groupData } = useSuspenseQuery(
+  const { data: groupData, isLoading: isGroupLoading } = useQuery(
     trpc.product.getGroup.queryOptions({
       groupBy: group,
     })
   );
 
   // Get all group keys
-  const allGroupKeys = Object.keys(groupData.counts);
+  const allGroupKeys = Object.keys(groupData?.counts ?? {});
 
   // Use page pagination with groupBy for per-group pagination
   const { data, pagination, handleAccordionChange, expandedGroups } =
@@ -200,12 +183,17 @@ function GroupedTable({
       queryOptions: (groupKey, cursor) =>
         trpc.product.getMany.queryOptions({
           filter: combineGroupFilter(groupProperty, groupKey, filter),
-          search,
-          sort: sorts,
+          search: searchFilter,
+          sort,
           cursor,
           limit,
         }),
     });
+
+  // Show skeleton on initial load
+  if ((pagination.isLoading || isGroupLoading) && data.length === 0) {
+    return <TableSkeleton columnCount={5} rowCount={10} />;
+  }
 
   // Empty state
   if (pagination.groups.length === 0) {
@@ -220,40 +208,43 @@ function GroupedTable({
   const propertyMeta = productProperties.find((p) => p.id === groupProperty);
   const groupPropertyLabel = propertyMeta?.label ?? groupProperty;
 
+  // Transform sort option from URL format to DataView format
+  const sortMap = { asc: "ascending", desc: "descending" } as const;
+  const groupConfig = {
+    ...group,
+    showCount: true,
+    sort: group.sort ? sortMap[group.sort] : undefined,
+  } as const;
+
   return (
-    <Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
-      <DataViewProvider
-        counts={{
-          group: groupData.counts,
-          groupSortValues: groupData.sortValues,
-        }}
-        data={data}
-        expandedGroups={expandedGroups}
-        filter={filter}
-        group={{
-          ...group,
-          showCount: true,
-        }}
-        onExpandedGroupsChange={handleAccordionChange}
-        pagination={pagination}
+    <DataViewProvider
+      counts={{
+        group: groupData?.counts ?? {},
+        groupSortValues: groupData?.sortValues ?? {},
+      }}
+      data={data}
+      expandedGroups={expandedGroups}
+      filter={filter}
+      group={groupConfig}
+      onExpandedGroupsChange={handleAccordionChange}
+      pagination={pagination}
+      properties={productProperties}
+      search={search}
+      sort={sort}
+    >
+      <NotionToolbar
+        enableSettings
+        groupProperty={groupPropertyLabel}
         properties={productProperties}
-        search={searchQuery}
-        sort={sorts}
       >
-        <NotionToolbar
-          enableSettings
-          groupProperty={groupPropertyLabel}
-          properties={productProperties}
-        >
-          <ViewNav />
-        </NotionToolbar>
-        <TableView
-          bulkActions={sampleRowActions}
-          pagination="page"
-          showVerticalLines={false}
-          wrapAllColumns={false}
-        />
-      </DataViewProvider>
-    </Suspense>
+        <ViewNav />
+      </NotionToolbar>
+      <TableView
+        bulkActions={sampleRowActions}
+        pagination="page"
+        showVerticalLines={false}
+        wrapAllColumns={false}
+      />
+    </DataViewProvider>
   );
 }

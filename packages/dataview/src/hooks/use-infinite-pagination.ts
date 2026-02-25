@@ -5,9 +5,7 @@ import { parseAsExpanded } from "@sparkyidea/shared/utils/parsers/pagination";
 import {
   type InfiniteData,
   type UseInfiniteQueryResult,
-  type UseSuspenseInfiniteQueryResult,
   useInfiniteQuery,
-  useSuspenseInfiniteQuery,
 } from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
 import {
@@ -115,21 +113,6 @@ export interface InfinitePaginationState<TData> {
  * Output type for useInfinitePagination hook
  */
 export interface InfinitePaginationResult<TData> {
-  /** Flattened data from all groups */
-  data: TData[];
-  /** Current expanded groups (empty for flat mode) */
-  expandedGroups: string[];
-  /** Handler for accordion expand/collapse (no-op for flat mode) */
-  handleAccordionChange: (newExpanded: string[]) => void;
-  /** Pagination state for DataViewProvider */
-  pagination: InfinitePaginationState<TData>;
-}
-
-/**
- * Output type for useSuspenseInfinitePagination hook
- * Same as InfinitePaginationResult but data is always available (suspends until ready)
- */
-export interface SuspenseInfinitePaginationResult<TData> {
   /** Flattened data from all groups */
   data: TData[];
   /** Current expanded groups (empty for flat mode) */
@@ -342,47 +325,6 @@ function useFixedInfinitePagination(
   return queries;
 }
 
-/**
- * Creates fixed number of suspense infinite queries to satisfy React hooks rules.
- * Always calls maxGroups hooks. Suspends until data is ready.
- */
-function useFixedSuspenseInfinitePagination(
-  state: SharedInfinitePaginationState,
-  createQueryOptions: (groupKey: string) => InfiniteQueryOptions
-): UseSuspenseInfiniteQueryResult<
-  InfiniteData<BasePaginatedResponse<unknown>>,
-  Error
->[] {
-  const { allGroupKeys, maxGroups } = state;
-
-  const queries: UseSuspenseInfiniteQueryResult<
-    InfiniteData<BasePaginatedResponse<unknown>>,
-    Error
-  >[] = [];
-
-  for (let i = 0; i < maxGroups; i++) {
-    const groupKey = allGroupKeys[i];
-
-    const options = groupKey
-      ? createQueryOptions(groupKey)
-      : { queryKey: ["__placeholder", i] as const };
-
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const query = useSuspenseInfiniteQuery({
-      queryKey: options.queryKey,
-      queryFn: options.queryFn ?? placeholderQueryFn,
-      getNextPageParam:
-        (options.getNextPageParam as typeof defaultGetNextPageParam) ??
-        defaultGetNextPageParam,
-      initialPageParam: options.initialPageParam,
-    });
-
-    queries.push(query);
-  }
-
-  return queries;
-}
-
 // ============================================================================
 // Result Processing
 // ============================================================================
@@ -445,22 +387,17 @@ function processInfiniteResults<TData>(
  * Handles both flat and grouped modes with a single API.
  *
  * Uses `useInfiniteQuery` internally which returns loading states.
- * Use this for client-side rendering where you want to show loading spinners.
- *
- * For SSR/prefetch scenarios where data should be ready before render,
- * use `useSuspenseInfinitePagination` instead.
  *
  * @example
  * ```tsx
- * // Client-only page with loading spinner
- * function ProductListClient() {
+ * function ProductList() {
  *   const { data, pagination } = useInfinitePagination({
  *     limit: 10,
  *     queryOptions: (groupKey) =>
  *       trpc.product.getMany.infiniteQueryOptions({ limit: 10 }),
  *   });
  *
- *   if (pagination.isLoading) return <Spinner />;
+ *   if (pagination.isLoading && data.length === 0) return <Spinner />;
  *   return <List data={data} pagination={pagination} />;
  * }
  * ```
@@ -491,83 +428,6 @@ export function useInfinitePagination<
         isFetching: q.isFetching,
         isFetchingNextPage: q.isFetchingNextPage,
         isLoading: q.isLoading,
-      })),
-    [infiniteQueries]
-  );
-
-  const { data, groups, isLoading } = useMemo(
-    () => processInfiniteResults(queryResults, state),
-    [queryResults, state]
-  );
-
-  return {
-    data,
-    pagination: {
-      groups,
-      limit: state.limit,
-      onLimitChange: state.onLimitChange,
-      isLoading,
-    },
-    handleAccordionChange: state.handleAccordionChange,
-    expandedGroups: state.isGrouped ? state.localExpanded : [],
-  };
-}
-
-// ============================================================================
-// useSuspenseInfinitePagination (Suspense)
-// ============================================================================
-
-/**
- * Hook for infinite scroll / load-more pagination with Suspense support.
- * Handles both flat and grouped modes with a single API.
- *
- * Uses `useSuspenseInfiniteQuery` internally which suspends until data is ready.
- * Use this for SSR/prefetch scenarios where data should be available before render.
- *
- * For client-side rendering where you want to show loading spinners,
- * use `useInfinitePagination` instead.
- *
- * @example
- * ```tsx
- * // SSR page with prefetch
- * function ProductListSSR() {
- *   const { data, pagination } = useSuspenseInfinitePagination({
- *     limit: 10,
- *     queryOptions: (groupKey) =>
- *       trpc.product.getMany.infiniteQueryOptions({ limit: 10 }),
- *   });
- *
- *   // Data is always available (suspends until ready)
- *   return <List data={data} pagination={pagination} />;
- * }
- * ```
- */
-export function useSuspenseInfinitePagination<
-  TQueryOptions extends InfiniteQueryOptions,
-  TData = unknown,
->(
-  options: UseInfinitePaginationOptions<TQueryOptions>
-): SuspenseInfinitePaginationResult<TData> {
-  const state = useInfinitePaginationState(options);
-
-  // Create fixed number of suspense infinite queries
-  const infiniteQueries = useFixedSuspenseInfinitePagination(
-    state,
-    options.queryOptions
-  );
-
-  // Map to internal format - suspense queries always have data
-  const queryResults: InfiniteQueryResultLike<TData>[] = useMemo(
-    () =>
-      infiniteQueries.map((q) => ({
-        data: q.data as InfiniteData<BasePaginatedResponse<TData>>,
-        error: q.error,
-        fetchNextPage: q.fetchNextPage,
-        hasNextPage: q.hasNextPage,
-        isError: q.isError,
-        isFetching: q.isFetching,
-        isFetchingNextPage: q.isFetchingNextPage,
-        isLoading: false, // Suspense queries are never "loading"
       })),
     [infiniteQueries]
   );
