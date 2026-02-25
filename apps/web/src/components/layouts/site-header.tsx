@@ -17,10 +17,10 @@ export function SiteHeader() {
           <LayoutGrid />
         </Button>
         <nav className="flex w-full items-center gap-4 text-sm">
-          {/* <Link href="/simple">Simple</Link> */}
-          {/* <Link href="/group">Group</Link> */}
-          <Link href="/pagination">Pagination</Link>
-          <Link href="/group-pagination">Group Pagination</Link>
+          <Link href="/table">Table</Link>
+          <Link href="/list">List</Link>
+          <Link href="/gallery">Gallery</Link>
+          <Link href="/board">Board</Link>
           <Link href="/charts">Charts</Link>
         </nav>
         <nav className="flex flex-1 items-center md:justify-end">
