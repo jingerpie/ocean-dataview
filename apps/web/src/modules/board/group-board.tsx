@@ -67,39 +67,40 @@ export function GroupBoard() {
   );
 
   // One getManyByGroup query per subGroup row
-  const { DataViewProvider } = useInfinitePagination<Product>({
-    groupKeys: rowKeys,
-    groupCounts: subGroupData?.counts,
-    groupSortValues: subGroupData?.sortValues,
-    defaultLimit: limit,
-    defaultExpanded: expanded.length > 0 ? expanded : [],
-    queryOptionsFactory: (subGroupKey, limitParam) =>
-      trpc.product.getManyByGroup.infiniteQueryOptions(
-        {
-          groupBy: columnGroupConfig,
-          filter: combineGroupFilter(rowGroupConfig, subGroupKey, filter),
-          search: searchFilter,
-          sort: sort ?? [],
-          limit: limitParam ?? limit,
-        },
-        {
-          getNextPageParam: (lastPage) => {
-            const hasAnyMore = Object.values(lastPage.hasNextPage).some(
-              Boolean
-            );
-            if (!hasAnyMore) {
-              return undefined;
-            }
-            return Object.fromEntries(
-              Object.entries(lastPage.endCursor).map(([key, cursor]) => [
-                key,
-                cursor,
-              ])
-            );
+  const { DataViewProvider, isPlaceholderData } =
+    useInfinitePagination<Product>({
+      groupKeys: rowKeys,
+      groupCounts: subGroupData?.counts,
+      groupSortValues: subGroupData?.sortValues,
+      defaultLimit: limit,
+      defaultExpanded: expanded.length > 0 ? expanded : [],
+      queryOptionsFactory: (subGroupKey, limitParam) =>
+        trpc.product.getManyByGroup.infiniteQueryOptions(
+          {
+            groupBy: columnGroupConfig,
+            filter: combineGroupFilter(rowGroupConfig, subGroupKey, filter),
+            search: searchFilter,
+            sort: sort ?? [],
+            limit: limitParam ?? limit,
           },
-        }
-      ),
-  });
+          {
+            getNextPageParam: (lastPage) => {
+              const hasAnyMore = Object.values(lastPage.hasNextPage).some(
+                Boolean
+              );
+              if (!hasAnyMore) {
+                return undefined;
+              }
+              return Object.fromEntries(
+                Object.entries(lastPage.endCursor).map(([key, cursor]) => [
+                  key,
+                  cursor,
+                ])
+              );
+            },
+          }
+        ),
+    });
 
   // Loading states - show skeleton only while fetching group structure
   // Once we have rowKeys (subgroup structure), let each group handle its own loading
@@ -130,13 +131,15 @@ export function GroupBoard() {
         >
           <ViewTabs />
         </NotionToolbar>
-        <BoardView
-          cardPreview="productImage"
-          cardSize="medium"
-          colorColumns
-          fitMedia
-          pagination="loadMore"
-        />
+        <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
+          <BoardView
+            cardPreview="productImage"
+            cardSize="medium"
+            colorColumns
+            fitMedia
+            pagination="loadMore"
+          />
+        </div>
       </>
     );
   };

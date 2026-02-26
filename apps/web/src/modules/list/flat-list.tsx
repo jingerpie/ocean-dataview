@@ -36,7 +36,7 @@ export function FlatList() {
   const searchableFields = getSearchableProperties(productProperties);
   const searchFilter = buildSearchFilter(search, searchableFields);
 
-  const { DataViewProvider, isLoading, isEmpty } =
+  const { DataViewProvider, isLoading, isEmpty, isPlaceholderData } =
     useInfinitePagination<Product>({
       groupKeys: [INFINITE_FLAT_GROUP_KEY],
       defaultLimit: limit,
@@ -71,13 +71,15 @@ export function FlatList() {
             <ViewTabs />
           </NotionToolbar>
 
-          {isEmpty ? (
-            <div className="flex min-h-100 items-center justify-center">
-              <p className="text-muted-foreground">No products found</p>
-            </div>
-          ) : (
-            <ListView pagination="loadMore" />
-          )}
+          <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
+            {isEmpty ? (
+              <div className="flex min-h-100 items-center justify-center">
+                <p className="text-muted-foreground">No products found</p>
+              </div>
+            ) : (
+              <ListView pagination="loadMore" />
+            )}
+          </div>
         </>
       )}
     </DataViewProvider>

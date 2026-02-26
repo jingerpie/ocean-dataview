@@ -129,6 +129,8 @@ export interface UseInfinitePaginationResult<
   isEmpty: boolean;
   /** True when any group is loading */
   isLoading: boolean;
+  /** True when showing stale data while refetching (for smooth transitions) */
+  isPlaceholderData: boolean;
 }
 
 // ============================================================================
@@ -138,6 +140,7 @@ export interface UseInfinitePaginationResult<
 interface InternalInfinitePaginationState<TData> {
   data: TData[];
   expandedGroups: string[];
+  isPlaceholderData: boolean;
   pagination: InfinitePaginationState<TData>;
   setExpandedGroups: (groups: string[]) => void;
 }
@@ -202,6 +205,7 @@ export function useInfinitePagination<
         onLimitChange: noop,
       },
       expandedGroups: defaultExpanded ?? [],
+      isPlaceholderData: false,
       setExpandedGroups: noop,
     })
   );
@@ -240,6 +244,7 @@ export function useInfinitePagination<
     DataViewProvider,
     isEmpty: state.data.length === 0,
     isLoading: state.pagination.isLoading,
+    isPlaceholderData: state.isPlaceholderData,
   };
 }
 
@@ -294,7 +299,7 @@ function InfiniteQueryBridge<
   );
 
   // Build pagination state from collected results
-  const { data, pagination } = useMemo(() => {
+  const { data, pagination, isPlaceholderData } = useMemo(() => {
     // For client-side grouping, collect all items from all queries (deduped)
     const allItems: TData[] = [];
     const seenItems = new Set<TData>();
@@ -344,6 +349,7 @@ function InfiniteQueryBridge<
         limit,
         onLimitChange: results[0]?.onLimitChange ?? noop,
       },
+      isPlaceholderData: results.some((q) => q?.isPlaceholderData),
     };
   }, [groupKeys, queryResults, groupCounts, limit, clientSideGroupBy]);
 
@@ -352,10 +358,18 @@ function InfiniteQueryBridge<
     onStateChange({
       data,
       pagination,
+      isPlaceholderData,
       expandedGroups,
       setExpandedGroups,
     });
-  }, [data, pagination, expandedGroups, setExpandedGroups, onStateChange]);
+  }, [
+    data,
+    pagination,
+    isPlaceholderData,
+    expandedGroups,
+    setExpandedGroups,
+    onStateChange,
+  ]);
 
   // Merge counts - viewProps.counts takes precedence over hook's groupCounts
   const mergedCounts: ViewCounts = useMemo(

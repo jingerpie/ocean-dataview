@@ -1,7 +1,7 @@
 import type {
   GroupInfo,
   InfinitePaginationState,
-} from "../../hooks/use-infinite-pagination";
+} from "../../hooks/use-infinite-pagination-legacy";
 import type {
   PageGroupInfo,
   PagePaginationState,

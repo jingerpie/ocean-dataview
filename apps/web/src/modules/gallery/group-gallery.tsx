@@ -56,26 +56,27 @@ export function GroupGallery() {
     [groupData?.counts]
   );
 
-  const { DataViewProvider } = useInfinitePagination<Product>({
-    groupKeys,
-    groupCounts: groupData?.counts,
-    groupSortValues: groupData?.sortValues,
-    defaultLimit: limit,
-    defaultExpanded: expanded.length > 0 ? expanded : [],
-    queryOptionsFactory: (groupKey) =>
-      trpc.product.getMany.infiniteQueryOptions(
-        {
-          filter: combineGroupFilter(groupConfig, groupKey, filter),
-          search: searchFilter,
-          sort: sort ?? [],
-          limit,
-        },
-        {
-          getNextPageParam: (lastPage) =>
-            lastPage.hasNextPage ? lastPage.endCursor : undefined,
-        }
-      ),
-  });
+  const { DataViewProvider, isPlaceholderData } =
+    useInfinitePagination<Product>({
+      groupKeys,
+      groupCounts: groupData?.counts,
+      groupSortValues: groupData?.sortValues,
+      defaultLimit: limit,
+      defaultExpanded: expanded.length > 0 ? expanded : [],
+      queryOptionsFactory: (groupKey) =>
+        trpc.product.getMany.infiniteQueryOptions(
+          {
+            filter: combineGroupFilter(groupConfig, groupKey, filter),
+            search: searchFilter,
+            sort: sort ?? [],
+            limit,
+          },
+          {
+            getNextPageParam: (lastPage) =>
+              lastPage.hasNextPage ? lastPage.endCursor : undefined,
+          }
+        ),
+    });
 
   // Show skeleton while fetching group counts
   if (isGroupLoading && groupKeys.length === 0) {
@@ -110,12 +111,14 @@ export function GroupGallery() {
       >
         <ViewTabs />
       </NotionToolbar>
-      <GalleryView
-        cardPreview="productImage"
-        cardSize="medium"
-        fitMedia
-        pagination="loadMore"
-      />
+      <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
+        <GalleryView
+          cardPreview="productImage"
+          cardSize="medium"
+          fitMedia
+          pagination="loadMore"
+        />
+      </div>
     </DataViewProvider>
   );
 }

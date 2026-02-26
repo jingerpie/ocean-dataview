@@ -98,12 +98,14 @@ function EmptyState() {
 function BoardContent({
   isEmpty,
   isGrouped,
+  isPlaceholderData,
   groupPropertyLabel,
   subGroupPropertyLabel,
 }: {
   groupPropertyLabel: string | undefined;
   isGrouped: boolean;
   isEmpty: boolean;
+  isPlaceholderData: boolean;
   subGroupPropertyLabel: string | undefined;
 }) {
   return (
@@ -118,17 +120,19 @@ function BoardContent({
         <ViewTabs />
       </NotionToolbar>
 
-      {isEmpty && !isGrouped ? (
-        <EmptyState />
-      ) : (
-        <BoardView
-          cardPreview="productImage"
-          cardSize="medium"
-          colorColumns
-          fitMedia
-          pagination="loadMore"
-        />
-      )}
+      <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
+        {isEmpty && !isGrouped ? (
+          <EmptyState />
+        ) : (
+          <BoardView
+            cardPreview="productImage"
+            cardSize="medium"
+            colorColumns
+            fitMedia
+            pagination="loadMore"
+          />
+        )}
+      </div>
     </>
   );
 }
@@ -202,26 +206,27 @@ export function HybridBoard() {
   // Compute default expanded (expand all columns when using default group)
   const defaultExpanded = expanded.length > 0 ? expanded : columnKeys;
 
-  const { DataViewProvider, isEmpty } = useInfinitePagination<Product>({
-    groupKeys: columnKeys,
-    groupCounts: groupData?.counts,
-    groupSortValues: groupData?.sortValues,
-    defaultLimit: limit,
-    defaultExpanded,
-    queryOptionsFactory: (groupKey, limitParam) =>
-      trpc.product.getMany.infiniteQueryOptions(
-        {
-          filter: combineGroupFilter(effectiveGroupConfig, groupKey, filter),
-          search: searchFilter,
-          sort: sort ?? [],
-          limit: limitParam ?? limit,
-        },
-        {
-          getNextPageParam: (lastPage) =>
-            lastPage.hasNextPage ? lastPage.endCursor : undefined,
-        }
-      ),
-  });
+  const { DataViewProvider, isEmpty, isPlaceholderData } =
+    useInfinitePagination<Product>({
+      groupKeys: columnKeys,
+      groupCounts: groupData?.counts,
+      groupSortValues: groupData?.sortValues,
+      defaultLimit: limit,
+      defaultExpanded,
+      queryOptionsFactory: (groupKey, limitParam) =>
+        trpc.product.getMany.infiniteQueryOptions(
+          {
+            filter: combineGroupFilter(effectiveGroupConfig, groupKey, filter),
+            search: searchFilter,
+            sort: sort ?? [],
+            limit: limitParam ?? limit,
+          },
+          {
+            getNextPageParam: (lastPage) =>
+              lastPage.hasNextPage ? lastPage.endCursor : undefined,
+          }
+        ),
+    });
 
   // Prepare view configs and labels (always use effective group config for boards)
   const groupConfigForView = toViewConfig(effectiveGroupConfig);
@@ -258,6 +263,7 @@ export function HybridBoard() {
           groupPropertyLabel={groupPropertyLabel}
           isEmpty={isEmpty}
           isGrouped={true}
+          isPlaceholderData={isPlaceholderData}
           subGroupPropertyLabel={subGroupPropertyLabel}
         />
       )}

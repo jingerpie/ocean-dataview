@@ -1,7 +1,7 @@
 "use client";
 
 import type { Limit } from "@sparkyidea/shared/types";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { useInfinitePaginationContext } from "../lib/providers/infinite-pagination-provider";
 import type { BasePaginatedResponse } from "../types/pagination-types";
@@ -35,6 +35,8 @@ export interface InfiniteGroupQueryState {
   isFetchingNextPage: boolean;
   /** True only during initial load (no cached data) */
   isPending: boolean;
+  /** True when showing stale data while refetching */
+  isPlaceholderData: boolean;
 }
 
 /**
@@ -137,12 +139,13 @@ export function useInfiniteGroupQuery<TData = unknown>(
     [queryOptionsFactory, groupKey, limit]
   );
 
-  // Execute infinite query
+  // Execute infinite query with keepPreviousData for smooth transitions
   const query = useInfiniteQuery({
     queryKey: queryOptions.queryKey,
     queryFn: queryOptions.queryFn,
     getNextPageParam: queryOptions.getNextPageParam ?? defaultGetNextPageParam,
     initialPageParam: queryOptions.initialPageParam ?? undefined,
+    placeholderData: keepPreviousData,
     enabled,
   });
 
@@ -188,6 +191,7 @@ export function useInfiniteGroupQuery<TData = unknown>(
     isPending: query.isPending,
     isFetching: query.isFetching,
     isFetchingNextPage: query.isFetchingNextPage,
+    isPlaceholderData: query.isPlaceholderData,
     error: query.error,
 
     // Pagination controls

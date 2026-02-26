@@ -49,7 +49,7 @@ export function FlatBoard() {
 
   // Flat board: single query for all columns (no subGroup rows)
   // getManyByGroup returns flat items, client-side groups into columns
-  const { DataViewProvider, isLoading, isEmpty } =
+  const { DataViewProvider, isLoading, isEmpty, isPlaceholderData } =
     useInfinitePagination<Product>({
       groupKeys: columnKeys,
       groupCounts: groupData?.counts,
@@ -112,13 +112,15 @@ export function FlatBoard() {
           >
             <ViewTabs />
           </NotionToolbar>
-          <BoardView
-            cardPreview="productImage"
-            cardSize="medium"
-            colorColumns
-            fitMedia
-            pagination="loadMore"
-          />
+          <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
+            <BoardView
+              cardPreview="productImage"
+              cardSize="medium"
+              colorColumns
+              fitMedia
+              pagination="loadMore"
+            />
+          </div>
         </>
       )}
     </DataViewProvider>
