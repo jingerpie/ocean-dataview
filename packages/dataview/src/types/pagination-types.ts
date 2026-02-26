@@ -15,10 +15,13 @@
 /**
  * Base paginated response shape from API.
  * Used by infinite pagination (forward-only navigation).
+ *
+ * For getManyByGroup queries, hasNextPage and endCursor are Record<string, ...>
+ * where keys are group keys (column keys for board views).
  */
 export interface BasePaginatedResponse<TData> {
-  endCursor?: string | number | null;
-  hasNextPage?: boolean;
+  endCursor?: string | number | null | Record<string, string | number | null>;
+  hasNextPage?: boolean | Record<string, boolean>;
   items: TData[];
 }
 

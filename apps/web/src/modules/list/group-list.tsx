@@ -1,6 +1,6 @@
 "use client";
 
-import { usePagePagination } from "@sparkyidea/dataview/hooks";
+import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import { ListSkeleton, ListView } from "@sparkyidea/dataview/views/list-view";
@@ -23,9 +23,9 @@ import { useTRPC } from "@/utils/trpc/client";
 import { ViewTabs } from "./view-tabs";
 
 /**
- * Grouped List - grouped by category with per-group pagination.
+ * Grouped List - grouped by category with per-group load more.
  *
- * Uses usePagePagination hook that returns a DataViewProvider
+ * Uses useInfinitePagination hook that returns a DataViewProvider
  * with pagination baked in.
  */
 export function GroupList() {
@@ -40,10 +40,12 @@ export function GroupList() {
   const searchableFields = getSearchableProperties(productProperties);
   const searchFilter = buildSearchFilter(search, searchableFields);
 
+  // Group config
+  const groupConfig = { bySelect: { property: "category" } } as const;
+
+  // Fetch group counts
   const { data: groupData, isLoading: isGroupLoading } = useQuery(
-    trpc.product.getGroup.queryOptions({
-      groupBy: { bySelect: { property: "category" } },
-    })
+    trpc.product.getGroup.queryOptions({ groupBy: groupConfig })
   );
 
   const groupKeys = useMemo(
@@ -51,22 +53,26 @@ export function GroupList() {
     [groupData?.counts]
   );
 
-  const { DataViewProvider, isPlaceholderData, isLoading, isEmpty } =
-    usePagePagination<Product>({
-      groupKeys,
-      groupCounts: groupData?.counts,
-      groupSortValues: groupData?.sortValues,
-      defaultLimit: limit,
-      defaultExpanded: expanded.length > 0 ? expanded : groupKeys.slice(0, 1),
-      queryOptionsFactory: (groupKey, cursor) =>
-        trpc.product.getMany.queryOptions({
-          filter: combineGroupFilter("category", groupKey, filter),
+  const { DataViewProvider } = useInfinitePagination<Product>({
+    groupKeys,
+    groupCounts: groupData?.counts,
+    groupSortValues: groupData?.sortValues,
+    defaultLimit: limit,
+    defaultExpanded: expanded.length > 0 ? expanded : [],
+    queryOptionsFactory: (groupKey) =>
+      trpc.product.getMany.infiniteQueryOptions(
+        {
+          filter: combineGroupFilter(groupConfig, groupKey, filter),
           search: searchFilter,
           sort: sort ?? [],
-          cursor,
           limit,
-        }),
-    });
+        },
+        {
+          getNextPageParam: (lastPage) =>
+            lastPage.hasNextPage ? lastPage.endCursor : undefined,
+        }
+      ),
+  });
 
   // Show skeleton while fetching group counts
   if (isGroupLoading && groupKeys.length === 0) {
@@ -94,22 +100,14 @@ export function GroupList() {
       search={search}
       sort={sort ?? []}
     >
-      {isLoading && isEmpty ? (
-        <ListSkeleton rowCount={8} />
-      ) : (
-        <>
-          <NotionToolbar
-            enableSettings
-            groupProperty="Category"
-            properties={productProperties}
-          >
-            <ViewTabs />
-          </NotionToolbar>
-          <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
-            <ListView pagination="page" />
-          </div>
-        </>
-      )}
+      <NotionToolbar
+        enableSettings
+        groupProperty="Category"
+        properties={productProperties}
+      >
+        <ViewTabs />
+      </NotionToolbar>
+      <ListView pagination="loadMore" />
     </DataViewProvider>
   );
 }

@@ -1,13 +1,19 @@
 "use client";
 
-import { FLAT_GROUP_KEY, usePagePagination } from "@sparkyidea/dataview/hooks";
+import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
+import type {
+  GroupCounts,
+  GroupSortValues,
+  ViewCounts,
+} from "@sparkyidea/dataview/types";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
   BoardSkeleton,
   BoardView,
 } from "@sparkyidea/dataview/views/board-view";
 import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
+import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
 import { groupServerParser } from "@sparkyidea/shared/utils/parsers/group";
 import {
   limitServerParser,
@@ -26,133 +32,234 @@ import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
 import { ViewTabs } from "./view-tabs";
 
-/**
- * Hybrid Board - auto flat/grouped based on URL group param.
- *
- * Uses usePagePagination hook that returns a DataViewProvider
- * with pagination baked in.
- */
-export function HybridBoard() {
-  const trpc = useTRPC();
+const sortMap = { asc: "ascending", desc: "descending" } as const;
 
-  // URL params
+/** Transform GroupConfigInput to view format with showCount */
+function toViewConfig(config: GroupConfigInput | null) {
+  if (!config) {
+    return undefined;
+  }
+  return {
+    ...config,
+    showCount: true,
+    sort: config.sort ? sortMap[config.sort] : undefined,
+  };
+}
+
+/** Get property label from properties array */
+function getPropertyLabel(propertyId: string | null) {
+  if (!propertyId) {
+    return "";
+  }
+  const meta = productProperties.find((p) => p.id === propertyId);
+  return meta?.label ?? propertyId;
+}
+
+/** Custom hook for board URL params */
+function useBoardParams() {
   const [filter] = useQueryState("filter", parseAsFilter);
   const [sort] = useQueryState("sort", parseAsSort);
   const [search] = useQueryState("search", parseAsString.withDefault(""));
   const [limit] = useQueryState("limit", limitServerParser);
   const [expanded] = useQueryState("expanded", parseAsExpanded.withDefault([]));
   const [group] = useQueryState("group", groupServerParser);
+  const [subGroup] = useQueryState("subGroup", groupServerParser);
 
   const groupProperty = getGroupProperty(group);
+  const subGroupProperty = getGroupProperty(subGroup);
   const isGrouped = Boolean(group && groupProperty);
+  const isSubGrouped = Boolean(subGroup && subGroupProperty);
+
+  return {
+    filter,
+    sort,
+    search,
+    limit,
+    expanded,
+    group,
+    subGroup,
+    groupProperty,
+    subGroupProperty,
+    isGrouped,
+    isSubGrouped,
+  };
+}
+
+/** Empty state component */
+function EmptyState() {
+  return (
+    <div className="flex min-h-100 items-center justify-center">
+      <p className="text-muted-foreground">No products found</p>
+    </div>
+  );
+}
+
+/** Board content component */
+function BoardContent({
+  isEmpty,
+  isGrouped,
+  groupPropertyLabel,
+  subGroupPropertyLabel,
+}: {
+  groupPropertyLabel: string | undefined;
+  isGrouped: boolean;
+  isEmpty: boolean;
+  subGroupPropertyLabel: string | undefined;
+}) {
+  return (
+    <>
+      <NotionToolbar
+        enableSettings
+        enableSubGroup
+        groupProperty={groupPropertyLabel}
+        properties={productProperties}
+        subGroupProperty={subGroupPropertyLabel}
+      >
+        <ViewTabs />
+      </NotionToolbar>
+
+      {isEmpty && !isGrouped ? (
+        <EmptyState />
+      ) : (
+        <BoardView
+          cardPreview="productImage"
+          cardSize="medium"
+          colorColumns
+          fitMedia
+          pagination="loadMore"
+        />
+      )}
+    </>
+  );
+}
+
+/** Build counts object for DataViewProvider */
+function buildCounts(
+  isSubGrouped: boolean,
+  groupData: { counts?: GroupCounts; sortValues?: GroupSortValues } | undefined,
+  subGroupData:
+    | { counts?: GroupCounts; sortValues?: GroupSortValues }
+    | undefined
+): ViewCounts | undefined {
+  if (!isSubGrouped) {
+    return undefined;
+  }
+  return {
+    group: groupData?.counts ?? {},
+    groupSortValues: groupData?.sortValues ?? {},
+    subGroup: subGroupData?.counts ?? {},
+    subGroupSortValues: subGroupData?.sortValues ?? {},
+  };
+}
+
+/**
+ * Hybrid Board - auto flat/grouped based on URL group param.
+ *
+ * Board grouping model:
+ * - group = columns (primary grouping)
+ * - subGroup = rows (secondary grouping, board-specific)
+ */
+export function HybridBoard() {
+  const trpc = useTRPC();
+  const params = useBoardParams();
+  const { filter, sort, search, limit, expanded, group, subGroup } = params;
+  const { groupProperty, subGroupProperty, isSubGrouped } = params;
 
   const searchableFields = getSearchableProperties(productProperties);
   const searchFilter = buildSearchFilter(search, searchableFields);
 
-  // Fetch group counts (only when grouped)
-  const { data: groupData, isLoading: isGroupLoading } = useQuery({
+  // Default group config for boards (always need columns)
+  const defaultGroupConfig = { bySelect: { property: "category" } } as const;
+  const effectiveGroupConfig = group ?? defaultGroupConfig;
+
+  // Fetch group counts (always fetch for boards - they always need columns)
+  const { data: groupData, isLoading: isGroupLoading } = useQuery(
+    trpc.product.getGroup.queryOptions({
+      groupBy: effectiveGroupConfig,
+    })
+  );
+
+  // Fetch subGroup counts (only when sub-grouped)
+  const { data: subGroupData, isLoading: isSubGroupLoading } = useQuery({
     ...trpc.product.getGroup.queryOptions({
-      groupBy: group ?? { bySelect: { property: "category" } },
+      groupBy: subGroup ?? { bySelect: { property: "category" } },
     }),
-    enabled: isGrouped,
+    enabled: isSubGrouped,
   });
 
-  // Group keys: flat uses "__all__", grouped uses keys from server
-  const groupKeys = useMemo(() => {
-    if (!isGrouped) {
-      return [FLAT_GROUP_KEY];
-    }
-    return Object.keys(groupData?.counts ?? {});
-  }, [isGrouped, groupData?.counts]);
+  // Column keys from group counts (boards always need columns)
+  const columnKeys = useMemo(
+    () => Object.keys(groupData?.counts ?? {}),
+    [groupData?.counts]
+  );
 
-  // Transform GroupConfigInput to GroupConfig format (only when grouped)
-  const sortMap = { asc: "ascending", desc: "descending" } as const;
-  const groupConfigForView = useMemo(() => {
-    if (!group) {
-      return undefined;
-    }
-    return {
-      ...group,
-      showCount: true,
-      sort: group.sort ? sortMap[group.sort] : undefined,
-    };
-  }, [group]);
+  // SubGroup keys from subGroup counts (for sub-grouped boards)
+  const subGroupKeys = useMemo(
+    () => Object.keys(subGroupData?.counts ?? {}),
+    [subGroupData?.counts]
+  );
 
-  // Get property label for toolbar display
-  const propertyMeta = productProperties.find((p) => p.id === groupProperty);
-  const groupPropertyLabel = propertyMeta?.label ?? groupProperty ?? "";
+  // Compute default expanded (expand all columns when using default group)
+  const defaultExpanded = expanded.length > 0 ? expanded : columnKeys;
 
-  const { DataViewProvider, isPlaceholderData, isLoading, isEmpty } =
-    usePagePagination<Product>({
-      groupKeys,
-      groupCounts: isGrouped ? groupData?.counts : undefined,
-      groupSortValues: isGrouped ? groupData?.sortValues : undefined,
-      defaultLimit: limit,
-      defaultExpanded:
-        isGrouped && expanded.length > 0 ? expanded : groupKeys.slice(0, 1),
-      queryOptionsFactory: (groupKey, cursor) =>
-        trpc.product.getMany.queryOptions({
-          cursor,
-          filter: isGrouped
-            ? combineGroupFilter(groupProperty ?? "category", groupKey, filter)
-            : filter,
-          limit,
+  const { DataViewProvider, isEmpty } = useInfinitePagination<Product>({
+    groupKeys: columnKeys,
+    groupCounts: groupData?.counts,
+    groupSortValues: groupData?.sortValues,
+    defaultLimit: limit,
+    defaultExpanded,
+    queryOptionsFactory: (groupKey) =>
+      trpc.product.getMany.infiniteQueryOptions(
+        {
+          filter: combineGroupFilter(effectiveGroupConfig, groupKey, filter),
           search: searchFilter,
           sort: sort ?? [],
-        }),
-    });
+          limit,
+        },
+        {
+          getNextPageParam: (lastPage) =>
+            lastPage.hasNextPage ? lastPage.endCursor : undefined,
+        }
+      ),
+  });
 
-  // Show skeleton while fetching group counts (grouped mode only)
-  if (isGrouped && isGroupLoading && groupKeys.length === 0) {
-    return <BoardSkeleton columnCount={4} />;
-  }
+  // Prepare view configs and labels (always use effective group config for boards)
+  const groupConfigForView = toViewConfig(effectiveGroupConfig);
+  const subGroupConfigForView = toViewConfig(subGroup);
+  const effectiveGroupProperty = groupProperty ?? "category";
+  const groupPropertyLabel = getPropertyLabel(effectiveGroupProperty);
+  const subGroupPropertyLabel = isSubGrouped
+    ? getPropertyLabel(subGroupProperty)
+    : undefined;
+  const counts = buildCounts(isSubGrouped, groupData, subGroupData);
 
-  // Empty state for grouped mode with no groups
-  if (isGrouped && groupKeys.length === 0) {
-    return (
-      <div className="flex min-h-100 items-center justify-center">
-        <p className="text-muted-foreground">No products found</p>
-      </div>
-    );
-  }
+  // Loading states - show skeleton only while fetching group structure
+  // Once we have columnKeys/subGroupKeys, let each group handle its own loading
+  const showLoadingSkeleton =
+    (isGroupLoading && columnKeys.length === 0) ||
+    (isSubGrouped && isSubGroupLoading && subGroupKeys.length === 0);
+  const showEmpty = columnKeys.length === 0 && !showLoadingSkeleton;
 
-  // DataViewProvider MUST render for queries to execute
+  // DataViewProvider MUST always render for queries to execute
   return (
     <DataViewProvider
+      counts={counts}
       filter={filter}
       group={groupConfigForView}
       properties={productProperties}
       search={search}
-      sort={sort ?? undefined}
+      sort={sort ?? []}
+      subGroup={subGroupConfigForView}
     >
-      {isLoading && isEmpty ? (
-        <BoardSkeleton columnCount={4} />
-      ) : (
-        <>
-          <NotionToolbar
-            enableSettings
-            groupProperty={isGrouped ? groupPropertyLabel : undefined}
-            properties={productProperties}
-          >
-            <ViewTabs />
-          </NotionToolbar>
-
-          <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
-            {isEmpty ? (
-              <div className="flex min-h-100 items-center justify-center">
-                <p className="text-muted-foreground">No products found</p>
-              </div>
-            ) : (
-              <BoardView
-                cardPreview="productImage"
-                cardSize="medium"
-                colorColumns
-                fitMedia
-                pagination="page"
-              />
-            )}
-          </div>
-        </>
+      {showLoadingSkeleton && <BoardSkeleton columnCount={4} />}
+      {showEmpty && <EmptyState />}
+      {!(showLoadingSkeleton || showEmpty) && (
+        <BoardContent
+          groupPropertyLabel={groupPropertyLabel}
+          isEmpty={isEmpty}
+          isGrouped={true}
+          subGroupPropertyLabel={subGroupPropertyLabel}
+        />
       )}
     </DataViewProvider>
   );

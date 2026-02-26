@@ -94,9 +94,10 @@ export function HybridTable() {
       queryOptionsFactory: (groupKey, cursor) =>
         trpc.product.getMany.queryOptions({
           cursor,
-          filter: isGrouped
-            ? combineGroupFilter(groupProperty ?? "category", groupKey, filter)
-            : filter,
+          filter:
+            isGrouped && group
+              ? combineGroupFilter(group, groupKey, filter)
+              : filter,
           limit,
           search: searchFilter,
           sort: sort ?? [],
@@ -126,7 +127,7 @@ export function HybridTable() {
       search={search}
       sort={sort ?? undefined}
     >
-      {isLoading && isEmpty ? (
+      {isLoading && isEmpty && !isGrouped ? (
         <TableSkeleton columnCount={5} rowCount={10} />
       ) : (
         <>

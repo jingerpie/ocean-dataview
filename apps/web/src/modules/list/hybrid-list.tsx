@@ -1,6 +1,9 @@
 "use client";
 
-import { FLAT_GROUP_KEY, usePagePagination } from "@sparkyidea/dataview/hooks";
+import {
+  INFINITE_FLAT_GROUP_KEY,
+  useInfinitePagination,
+} from "@sparkyidea/dataview/hooks";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import { ListSkeleton, ListView } from "@sparkyidea/dataview/views/list-view";
@@ -26,7 +29,7 @@ import { ViewTabs } from "./view-tabs";
 /**
  * Hybrid List - auto flat/grouped based on URL group param.
  *
- * Uses usePagePagination hook that returns a DataViewProvider
+ * Uses useInfinitePagination hook that returns a DataViewProvider
  * with pagination baked in.
  */
 export function HybridList() {
@@ -57,7 +60,7 @@ export function HybridList() {
   // Group keys: flat uses "__all__", grouped uses keys from server
   const groupKeys = useMemo(() => {
     if (!isGrouped) {
-      return [FLAT_GROUP_KEY];
+      return [INFINITE_FLAT_GROUP_KEY];
     }
     return Object.keys(groupData?.counts ?? {});
   }, [isGrouped, groupData?.counts]);
@@ -79,24 +82,29 @@ export function HybridList() {
   const propertyMeta = productProperties.find((p) => p.id === groupProperty);
   const groupPropertyLabel = propertyMeta?.label ?? groupProperty ?? "";
 
-  const { DataViewProvider, isPlaceholderData, isLoading, isEmpty } =
-    usePagePagination<Product>({
+  const { DataViewProvider, isLoading, isEmpty } =
+    useInfinitePagination<Product>({
       groupKeys,
       groupCounts: isGrouped ? groupData?.counts : undefined,
       groupSortValues: isGrouped ? groupData?.sortValues : undefined,
       defaultLimit: limit,
-      defaultExpanded:
-        isGrouped && expanded.length > 0 ? expanded : groupKeys.slice(0, 1),
-      queryOptionsFactory: (groupKey, cursor) =>
-        trpc.product.getMany.queryOptions({
-          cursor,
-          filter: isGrouped
-            ? combineGroupFilter(groupProperty ?? "category", groupKey, filter)
-            : filter,
-          limit,
-          search: searchFilter,
-          sort: sort ?? [],
-        }),
+      defaultExpanded: isGrouped && expanded.length > 0 ? expanded : [],
+      queryOptionsFactory: (groupKey) =>
+        trpc.product.getMany.infiniteQueryOptions(
+          {
+            filter:
+              isGrouped && group
+                ? combineGroupFilter(group, groupKey, filter)
+                : filter,
+            search: searchFilter,
+            sort: sort ?? [],
+            limit,
+          },
+          {
+            getNextPageParam: (lastPage) =>
+              lastPage.hasNextPage ? lastPage.endCursor : undefined,
+          }
+        ),
     });
 
   // Show skeleton while fetching group counts (grouped mode only)
@@ -120,9 +128,9 @@ export function HybridList() {
       group={groupConfigForView}
       properties={productProperties}
       search={search}
-      sort={sort ?? undefined}
+      sort={sort ?? []}
     >
-      {isLoading && isEmpty ? (
+      {isLoading && isEmpty && !isGrouped ? (
         <ListSkeleton rowCount={8} />
       ) : (
         <>
@@ -134,15 +142,13 @@ export function HybridList() {
             <ViewTabs />
           </NotionToolbar>
 
-          <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
-            {isEmpty ? (
-              <div className="flex min-h-100 items-center justify-center">
-                <p className="text-muted-foreground">No products found</p>
-              </div>
-            ) : (
-              <ListView pagination="page" />
-            )}
-          </div>
+          {isEmpty && !isGrouped ? (
+            <div className="flex min-h-100 items-center justify-center">
+              <p className="text-muted-foreground">No products found</p>
+            </div>
+          ) : (
+            <ListView pagination="loadMore" />
+          )}
         </>
       )}
     </DataViewProvider>

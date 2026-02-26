@@ -28,6 +28,8 @@ interface NotionToolbarProps extends ComponentProps<"div"> {
   enableSettings?: boolean;
   /** Enable sort functionality */
   enableSort?: boolean;
+  /** Enable sub-group setting in settings panel (board view only) */
+  enableSubGroup?: boolean;
   /** Current group property name (displayed in settings panel) */
   groupProperty?: string;
   /**
@@ -35,6 +37,8 @@ interface NotionToolbarProps extends ComponentProps<"div"> {
    * Optional - defaults to propertyMetas from DataViewContext.
    */
   properties?: readonly PropertyMeta[];
+  /** Current sub-group property name (board view only) */
+  subGroupProperty?: string;
 }
 
 /**
@@ -69,7 +73,9 @@ export function NotionToolbar({
   enableSort = true,
   enableSearch = true,
   enableSettings = false,
+  enableSubGroup = false,
   groupProperty,
+  subGroupProperty,
   children,
   className,
   ...props
@@ -131,7 +137,12 @@ export function NotionToolbar({
 
           {/* Settings */}
           {enableSettings && (
-            <SettingsTool groupProperty={groupProperty} variant="icon" />
+            <SettingsTool
+              enableSubGroup={enableSubGroup}
+              groupProperty={groupProperty}
+              subGroupProperty={subGroupProperty}
+              variant="icon"
+            />
           )}
         </div>
       </div>

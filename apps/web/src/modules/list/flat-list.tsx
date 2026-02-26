@@ -1,7 +1,9 @@
 "use client";
 
-import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
+import {
+  INFINITE_FLAT_GROUP_KEY,
+  useInfinitePagination,
+} from "@sparkyidea/dataview/hooks";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import { ListSkeleton, ListView } from "@sparkyidea/dataview/views/list-view";
@@ -9,13 +11,19 @@ import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
 import { limitServerParser } from "@sparkyidea/shared/utils/parsers/pagination";
 import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
 import { parseAsString, useQueryState } from "nuqs";
-import { productProperties } from "@/properties/product-properties";
+import {
+  type Product,
+  productProperties,
+} from "@/properties/product-properties";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
 import { ViewTabs } from "./view-tabs";
 
 /**
  * Flat List - no grouping, infinite scroll pagination.
+ *
+ * Uses useInfinitePagination hook that returns a DataViewProvider
+ * with pagination baked in.
  */
 export function FlatList() {
   const trpc = useTRPC();
@@ -28,46 +36,49 @@ export function FlatList() {
   const searchableFields = getSearchableProperties(productProperties);
   const searchFilter = buildSearchFilter(search, searchableFields);
 
-  const { data, pagination } = useInfinitePagination({
-    limit,
-    queryOptions: () =>
-      trpc.product.getMany.infiniteQueryOptions(
-        {
-          limit,
-          filter,
-          search: searchFilter,
-          sort: sort ?? [],
-        },
-        {
-          getNextPageParam: (lastPage) =>
-            lastPage.hasNextPage ? lastPage.endCursor : undefined,
-        }
-      ),
-  });
+  const { DataViewProvider, isLoading, isEmpty } =
+    useInfinitePagination<Product>({
+      groupKeys: [INFINITE_FLAT_GROUP_KEY],
+      defaultLimit: limit,
+      queryOptionsFactory: (_groupKey) =>
+        trpc.product.getMany.infiniteQueryOptions(
+          {
+            limit,
+            filter,
+            search: searchFilter,
+            sort: sort ?? [],
+          },
+          {
+            getNextPageParam: (lastPage) =>
+              lastPage.hasNextPage ? lastPage.endCursor : undefined,
+          }
+        ),
+    });
 
-  if (pagination.isLoading && data.length === 0) {
-    return <ListSkeleton rowCount={8} />;
-  }
-
+  // DataViewProvider MUST render for queries to execute
   return (
     <DataViewProvider
-      data={data}
       filter={filter}
-      pagination={pagination}
       properties={productProperties}
       search={search}
       sort={sort ?? []}
     >
-      <NotionToolbar enableSettings properties={productProperties}>
-        <ViewTabs />
-      </NotionToolbar>
-
-      {data.length === 0 ? (
-        <div className="flex min-h-100 items-center justify-center">
-          <p className="text-muted-foreground">No products found</p>
-        </div>
+      {isLoading && isEmpty ? (
+        <ListSkeleton rowCount={8} />
       ) : (
-        <ListView pagination="loadMore" />
+        <>
+          <NotionToolbar enableSettings properties={productProperties}>
+            <ViewTabs />
+          </NotionToolbar>
+
+          {isEmpty ? (
+            <div className="flex min-h-100 items-center justify-center">
+              <p className="text-muted-foreground">No products found</p>
+            </div>
+          ) : (
+            <ListView pagination="loadMore" />
+          )}
+        </>
       )}
     </DataViewProvider>
   );

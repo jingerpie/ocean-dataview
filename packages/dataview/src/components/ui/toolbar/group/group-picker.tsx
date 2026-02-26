@@ -2,7 +2,10 @@
 
 import { CheckIcon } from "lucide-react";
 import { useCallback, useMemo } from "react";
-import { useGroupParams } from "../../../../hooks";
+import {
+  type GroupingMode,
+  useGroupingParams,
+} from "../../../../hooks/use-grouping-params";
 import type { PropertyMeta } from "../../../../types";
 import {
   Command,
@@ -15,6 +18,8 @@ import {
 import { PropertyIcon } from "../../property-icon";
 
 interface GroupPickerProps {
+  /** Mode: "group" or "subGroup" (default: "group") */
+  mode?: GroupingMode;
   /** Additional callback after setting the group */
   onSetGroup?: (property: PropertyMeta | null) => void;
   /** Available properties to group by */
@@ -24,7 +29,8 @@ interface GroupPickerProps {
 /**
  * Property picker for selecting which property to group by.
  *
- * Handles group selection internally via useGroupParams().
+ * Handles group selection internally via useGroupingParams().
+ * Can be used for both primary group and sub-group via the `mode` prop.
  *
  * Features:
  * - Searchable Command-based list
@@ -33,8 +39,12 @@ interface GroupPickerProps {
  * - Shows checkmark for currently selected property
  * - Sorted alphabetically by label
  */
-function GroupPicker({ properties, onSetGroup }: GroupPickerProps) {
-  const { groupProperty, setGroup, clearGroup } = useGroupParams();
+function GroupPicker({
+  mode = "group",
+  onSetGroup,
+  properties,
+}: GroupPickerProps) {
+  const { property, setConfig, clearConfig } = useGroupingParams(mode);
 
   // Filter and sort properties that can be grouped
   // Excludes formula, button, filesMedia (can't group by these)
@@ -54,44 +64,44 @@ function GroupPicker({ properties, onSetGroup }: GroupPickerProps) {
   }, [properties]);
 
   const handleSelectNone = useCallback(() => {
-    clearGroup();
+    clearConfig();
     onSetGroup?.(null);
-  }, [clearGroup, onSetGroup]);
+  }, [clearConfig, onSetGroup]);
 
   const handleSelect = useCallback(
-    (property: PropertyMeta) => {
+    (prop: PropertyMeta) => {
       // Build the group config based on property type
-      switch (property.type) {
+      switch (prop.type) {
         case "select":
-          setGroup({ bySelect: { property: property.id } });
+          setConfig({ bySelect: { property: prop.id } });
           break;
         case "multiSelect":
-          setGroup({ byMultiSelect: { property: property.id } });
+          setConfig({ byMultiSelect: { property: prop.id } });
           break;
         case "status":
-          setGroup({ byStatus: { property: property.id, showAs: "option" } });
+          setConfig({ byStatus: { property: prop.id, showAs: "option" } });
           break;
         case "checkbox":
-          setGroup({ byCheckbox: { property: property.id } });
+          setConfig({ byCheckbox: { property: prop.id } });
           break;
         case "date":
-          setGroup({ byDate: { property: property.id, showAs: "day" } });
+          setConfig({ byDate: { property: prop.id, showAs: "day" } });
           break;
         case "number":
-          setGroup({ byNumber: { property: property.id } });
+          setConfig({ byNumber: { property: prop.id } });
           break;
         case "text":
         case "url":
         case "email":
         case "phone":
-          setGroup({ byText: { property: property.id, showAs: "exact" } });
+          setConfig({ byText: { property: prop.id, showAs: "exact" } });
           break;
         default:
           return;
       }
-      onSetGroup?.(property);
+      onSetGroup?.(prop);
     },
-    [setGroup, onSetGroup]
+    [setConfig, onSetGroup]
   );
 
   return (
@@ -103,19 +113,19 @@ function GroupPicker({ properties, onSetGroup }: GroupPickerProps) {
           {/* None option to clear grouping */}
           <CommandItem onSelect={handleSelectNone} value="none">
             <span className="text-muted-foreground">None</span>
-            {!groupProperty && <CheckIcon className="ml-auto size-4" />}
+            {!property && <CheckIcon className="ml-auto size-4" />}
           </CommandItem>
-          {groupableProperties.map((property) => {
-            const isSelected = property.id === groupProperty;
+          {groupableProperties.map((prop) => {
+            const isSelected = prop.id === property;
             return (
               <CommandItem
-                key={String(property.id)}
-                onSelect={() => handleSelect(property)}
-                value={String(property.label ?? property.id)}
+                key={String(prop.id)}
+                onSelect={() => handleSelect(prop)}
+                value={String(prop.label ?? prop.id)}
               >
-                <PropertyIcon type={property.type} />
+                <PropertyIcon type={prop.type} />
                 <span className="flex-1 truncate">
-                  {property.label ?? String(property.id)}
+                  {prop.label ?? String(prop.id)}
                 </span>
                 {isSelected && <CheckIcon className="size-4" />}
               </CommandItem>

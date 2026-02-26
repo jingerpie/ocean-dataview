@@ -1,7 +1,6 @@
 "use client";
 
 import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
@@ -13,13 +12,21 @@ import { limitServerParser } from "@sparkyidea/shared/utils/parsers/pagination";
 import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsString, useQueryState } from "nuqs";
-import { productProperties } from "@/properties/product-properties";
+import {
+  type Product,
+  productProperties,
+} from "@/properties/product-properties";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
 import { ViewTabs } from "./view-tabs";
 
+const groupConfig = { bySelect: { property: "category" } } as const;
+
 /**
  * Flat Board - columns by category, infinite load-more pagination.
+ *
+ * Uses getManyByGroup to fetch all columns in a single query.
+ * No subGroup (rows) - flat display.
  */
 export function FlatBoard() {
   const trpc = useTRPC();
@@ -32,82 +39,88 @@ export function FlatBoard() {
   const searchableFields = getSearchableProperties(productProperties);
   const searchFilter = buildSearchFilter(search, searchableFields);
 
+  // Fetch group counts for column headers
   const { data: groupData, isLoading: isGroupLoading } = useQuery(
-    trpc.product.getGroup.queryOptions({
-      groupBy: { bySelect: { property: "category" } },
-    })
+    trpc.product.getGroup.queryOptions({ groupBy: groupConfig })
   );
 
-  const { data, pagination } = useInfinitePagination({
-    limit,
-    queryOptions: () =>
-      trpc.product.getManyByGroup.infiniteQueryOptions(
-        {
-          groupBy: { bySelect: { property: "category" } },
-          limit,
-          filter,
-          sort: sort ?? [],
-          search: searchFilter,
-        },
-        {
-          getNextPageParam: (lastPage) => {
-            const hasAnyMore = Object.values(lastPage.hasNextPage).some(
-              Boolean
-            );
-            if (!hasAnyMore) {
-              return undefined;
-            }
-            return Object.fromEntries(
-              Object.entries(lastPage.endCursor).map(([key, cursor]) => [
-                key,
-                cursor,
-              ])
-            );
+  // Column keys from group counts
+  const columnKeys = Object.keys(groupData?.counts ?? {});
+
+  // Flat board: single query for all columns (no subGroup rows)
+  // getManyByGroup returns flat items, client-side groups into columns
+  const { DataViewProvider, isLoading, isEmpty } =
+    useInfinitePagination<Product>({
+      groupKeys: columnKeys,
+      groupCounts: groupData?.counts,
+      groupSortValues: groupData?.sortValues,
+      defaultLimit: limit,
+      defaultExpanded: columnKeys, // Expand all columns for flat board
+      clientSideGroupBy: "category", // Group flat items by category property
+      queryOptionsFactory: () =>
+        trpc.product.getManyByGroup.infiniteQueryOptions(
+          {
+            groupBy: groupConfig,
+            limit,
+            filter,
+            sort: sort ?? [],
+            search: searchFilter,
           },
-        }
-      ),
-  });
+          {
+            getNextPageParam: (lastPage) => {
+              const hasAnyMore = Object.values(lastPage.hasNextPage).some(
+                Boolean
+              );
+              if (!hasAnyMore) {
+                return undefined;
+              }
+              return Object.fromEntries(
+                Object.entries(lastPage.endCursor).map(([key, cursor]) => [
+                  key,
+                  cursor,
+                ])
+              );
+            },
+          }
+        ),
+    });
 
-  if ((pagination.isLoading || isGroupLoading) && data.length === 0) {
-    return <BoardSkeleton columnCount={4} />;
-  }
+  const showLoadingSkeleton = (isLoading || isGroupLoading) && isEmpty;
+  const showEmptyState = !showLoadingSkeleton && isEmpty;
 
-  if (data.length === 0) {
-    return (
-      <div className="flex min-h-100 items-center justify-center">
-        <p className="text-muted-foreground">No products found</p>
-      </div>
-    );
-  }
-
+  // DataViewProvider MUST always render for queries to execute
   return (
     <DataViewProvider
-      counts={{
-        group: groupData?.counts ?? {},
-        groupSortValues: groupData?.sortValues ?? {},
-      }}
-      data={data}
       filter={filter}
-      group={{ bySelect: { property: "category" }, showCount: true }}
-      pagination={pagination}
+      group={{ ...groupConfig, showCount: true }}
       properties={productProperties}
       search={search}
       sort={sort ?? []}
     >
-      <NotionToolbar
-        enableSettings
-        groupProperty="Category"
-        properties={productProperties}
-      >
-        <ViewTabs />
-      </NotionToolbar>
-      <BoardView
-        cardPreview="productImage"
-        cardSize="medium"
-        colorColumns
-        fitMedia
-        pagination="loadMore"
-      />
+      {showLoadingSkeleton && <BoardSkeleton columnCount={4} />}
+      {showEmptyState && (
+        <div className="flex min-h-100 items-center justify-center">
+          <p className="text-muted-foreground">No products found</p>
+        </div>
+      )}
+      {!(showLoadingSkeleton || showEmptyState) && (
+        <>
+          <NotionToolbar
+            enableSettings
+            groupProperty="Category"
+            properties={productProperties}
+          >
+            <ViewTabs />
+          </NotionToolbar>
+          <BoardView
+            cardPreview="productImage"
+            cardSize="medium"
+            colorColumns
+            fitMedia
+            pagination="loadMore"
+          />
+        </>
+      )}
     </DataViewProvider>
   );
 }

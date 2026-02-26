@@ -3,7 +3,10 @@
 import type { GroupByConfigInput } from "@sparkyidea/shared/utils/parsers/group";
 import { CheckIcon } from "lucide-react";
 import { useCallback } from "react";
-import { useGroupParams } from "../../../../hooks";
+import {
+  type GroupingMode,
+  useGroupingParams,
+} from "../../../../hooks/use-grouping-params";
 import { Command, CommandGroup, CommandItem, CommandList } from "../../command";
 
 // Property types that support "Show As" options
@@ -37,6 +40,8 @@ const SHOW_AS_OPTIONS: Record<
 };
 
 interface GroupShowAsPickerProps {
+  /** Mode: "group" or "subGroup" (default: "group") */
+  mode?: GroupingMode;
   /** Additional callback after setting the show-as option */
   onSetShowAs?: (value: string) => void;
 }
@@ -45,34 +50,38 @@ interface GroupShowAsPickerProps {
  * Picker for selecting the "Show As" option for group display.
  *
  * Applicable for status, date, text, and number group types.
- * Handles update internally via useGroupParams().
+ * Handles update internally via useGroupingParams().
+ * Can be used for both primary group and sub-group via the `mode` prop.
  */
-function GroupShowAsPicker({ onSetShowAs }: GroupShowAsPickerProps) {
-  const { group, groupType, setGroup } = useGroupParams();
+function GroupShowAsPicker({
+  mode = "group",
+  onSetShowAs,
+}: GroupShowAsPickerProps) {
+  const { config, type, setConfig } = useGroupingParams(mode);
 
   // Get show-as options based on group type
   const showAsOptions =
-    groupType && groupType in SHOW_AS_OPTIONS
-      ? SHOW_AS_OPTIONS[groupType as ShowAsGroupType]
+    type && type in SHOW_AS_OPTIONS
+      ? SHOW_AS_OPTIONS[type as ShowAsGroupType]
       : null;
 
   // Get current show-as value
   const getCurrentShowAs = () => {
-    if (!group) {
+    if (!config) {
       return null;
     }
-    if ("byStatus" in group) {
-      return group.byStatus.showAs;
+    if ("byStatus" in config) {
+      return config.byStatus.showAs;
     }
-    if ("byDate" in group) {
-      return group.byDate.showAs;
+    if ("byDate" in config) {
+      return config.byDate.showAs;
     }
-    if ("byText" in group) {
-      return group.byText.showAs ?? "exact";
+    if ("byText" in config) {
+      return config.byText.showAs ?? "exact";
     }
-    if ("byNumber" in group) {
+    if ("byNumber" in config) {
       // Number uses step value as the showAs identifier
-      return String(group.byNumber.showAs?.step ?? 100);
+      return String(config.byNumber.showAs?.step ?? 100);
     }
     return null;
   };
@@ -81,37 +90,37 @@ function GroupShowAsPicker({ onSetShowAs }: GroupShowAsPickerProps) {
 
   const handleSelect = useCallback(
     (value: string) => {
-      if (!group) {
+      if (!config) {
         return;
       }
 
-      let newGroup: GroupByConfigInput;
-      if ("byStatus" in group) {
-        newGroup = {
+      let newConfig: GroupByConfigInput;
+      if ("byStatus" in config) {
+        newConfig = {
           byStatus: {
-            ...group.byStatus,
+            ...config.byStatus,
             showAs: value as "option" | "group",
           },
         };
-      } else if ("byDate" in group) {
-        newGroup = {
+      } else if ("byDate" in config) {
+        newConfig = {
           byDate: {
-            ...group.byDate,
+            ...config.byDate,
             showAs: value as "day" | "week" | "month" | "year" | "relative",
           },
         };
-      } else if ("byText" in group) {
-        newGroup = {
+      } else if ("byText" in config) {
+        newConfig = {
           byText: {
-            ...group.byText,
+            ...config.byText,
             showAs: value as "exact" | "alphabetical",
           },
         };
-      } else if ("byNumber" in group) {
+      } else if ("byNumber" in config) {
         const step = Number.parseInt(value, 10);
-        newGroup = {
+        newConfig = {
           byNumber: {
-            ...group.byNumber,
+            ...config.byNumber,
             showAs: { range: [0, 1000], step },
           },
         };
@@ -119,10 +128,10 @@ function GroupShowAsPicker({ onSetShowAs }: GroupShowAsPickerProps) {
         return;
       }
 
-      setGroup(newGroup);
+      setConfig(newConfig);
       onSetShowAs?.(value);
     },
-    [group, setGroup, onSetShowAs]
+    [config, setConfig, onSetShowAs]
   );
 
   if (!showAsOptions) {

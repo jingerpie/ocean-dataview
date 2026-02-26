@@ -30,6 +30,7 @@ export type {
   BidirectionalPaginatedResponse,
   GroupCountInfo,
   GroupCounts,
+  GroupSortValues,
   InferItemsFromQueryOptions,
   ViewCounts,
 } from "./pagination-types";

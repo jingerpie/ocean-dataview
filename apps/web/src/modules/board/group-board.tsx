@@ -1,7 +1,6 @@
 "use client";
 
 import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
@@ -16,14 +15,28 @@ import {
 import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsString, useQueryState } from "nuqs";
-import { productProperties } from "@/properties/product-properties";
+import { useMemo } from "react";
+import {
+  type Product,
+  productProperties,
+} from "@/properties/product-properties";
 import { combineGroupFilter } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
 import { ViewTabs } from "./view-tabs";
 
+// Group configs (hardcoded for this demo)
+const columnGroupConfig = { bySelect: { property: "category" } } as const;
+const rowGroupConfig = {
+  byStatus: { property: "availability", showAs: "option" },
+} as const;
+
 /**
  * Grouped Board - columns by category, rows by availability (sub-groups).
+ *
+ * Board grouping model:
+ * - group (columns) = flat, uses getManyByGroup to get all columns in one query
+ * - subGroup (rows) = like group in other views, one getManyByGroup per row
  */
 export function GroupBoard() {
   const trpc = useTRPC();
@@ -39,70 +52,96 @@ export function GroupBoard() {
 
   // Group counts (columns - category)
   const { data: groupData, isLoading: isGroupLoading } = useQuery(
-    trpc.product.getGroup.queryOptions({
-      groupBy: { bySelect: { property: "category" } },
-    })
+    trpc.product.getGroup.queryOptions({ groupBy: columnGroupConfig })
   );
 
   // Sub-group counts (rows - availability)
   const { data: subGroupData, isLoading: isSubGroupLoading } = useQuery(
-    trpc.product.getGroup.queryOptions({
-      groupBy: { bySelect: { property: "availability" } },
-    })
+    trpc.product.getGroup.queryOptions({ groupBy: rowGroupConfig })
   );
 
-  const allSubGroupKeys = Object.keys(subGroupData?.counts ?? {});
+  // Row keys from subGroup counts
+  const rowKeys = useMemo(
+    () => Object.keys(subGroupData?.counts ?? {}),
+    [subGroupData?.counts]
+  );
 
-  const { data, pagination, handleAccordionChange, expandedGroups } =
-    useInfinitePagination({
-      limit,
-      groupBy: {
-        allGroupKeys: allSubGroupKeys,
-        expanded,
-      },
-      queryOptions: (subGroupKey) =>
-        trpc.product.getManyByGroup.infiniteQueryOptions(
-          {
-            groupBy: { bySelect: { property: "category" } },
-            filter: combineGroupFilter("availability", subGroupKey, filter),
-            search: searchFilter,
-            sort: sort ?? [],
-            limit,
+  // One getManyByGroup query per subGroup row
+  const { DataViewProvider } = useInfinitePagination<Product>({
+    groupKeys: rowKeys,
+    groupCounts: subGroupData?.counts,
+    groupSortValues: subGroupData?.sortValues,
+    defaultLimit: limit,
+    defaultExpanded: expanded.length > 0 ? expanded : [],
+    queryOptionsFactory: (subGroupKey) =>
+      trpc.product.getManyByGroup.infiniteQueryOptions(
+        {
+          groupBy: columnGroupConfig,
+          filter: combineGroupFilter(rowGroupConfig, subGroupKey, filter),
+          search: searchFilter,
+          sort: sort ?? [],
+          limit,
+        },
+        {
+          getNextPageParam: (lastPage) => {
+            const hasAnyMore = Object.values(lastPage.hasNextPage).some(
+              Boolean
+            );
+            if (!hasAnyMore) {
+              return undefined;
+            }
+            return Object.fromEntries(
+              Object.entries(lastPage.endCursor).map(([key, cursor]) => [
+                key,
+                cursor,
+              ])
+            );
           },
-          {
-            getNextPageParam: (lastPage) => {
-              const hasAnyMore = Object.values(lastPage.hasNextPage).some(
-                Boolean
-              );
-              if (!hasAnyMore) {
-                return undefined;
-              }
-              return Object.fromEntries(
-                Object.entries(lastPage.endCursor).map(([key, cursor]) => [
-                  key,
-                  cursor,
-                ])
-              );
-            },
-          }
-        ),
-    });
+        }
+      ),
+  });
 
-  if (
-    (pagination.isLoading || isGroupLoading || isSubGroupLoading) &&
-    data.length === 0
-  ) {
-    return <BoardSkeleton columnCount={4} />;
-  }
+  // Loading states - show skeleton only while fetching group structure
+  // Once we have rowKeys (subgroup structure), let each group handle its own loading
+  const showSkeleton =
+    isGroupLoading || (isSubGroupLoading && rowKeys.length === 0);
+  const showEmpty = rowKeys.length === 0 && !showSkeleton;
 
-  if (pagination.groups.length === 0) {
+  // Render content based on state
+  const renderContent = () => {
+    if (showSkeleton) {
+      return <BoardSkeleton columnCount={4} />;
+    }
+    if (showEmpty) {
+      return (
+        <div className="flex min-h-100 items-center justify-center">
+          <p className="text-muted-foreground">No products found</p>
+        </div>
+      );
+    }
     return (
-      <div className="flex min-h-100 items-center justify-center">
-        <p className="text-muted-foreground">No products found</p>
-      </div>
+      <>
+        <NotionToolbar
+          enableSettings
+          enableSubGroup
+          groupProperty="Category"
+          properties={productProperties}
+          subGroupProperty="Availability"
+        >
+          <ViewTabs />
+        </NotionToolbar>
+        <BoardView
+          cardPreview="productImage"
+          cardSize="medium"
+          colorColumns
+          fitMedia
+          pagination="loadMore"
+        />
+      </>
     );
-  }
+  };
 
+  // DataViewProvider MUST always render for queries to execute
   return (
     <DataViewProvider
       counts={{
@@ -111,31 +150,14 @@ export function GroupBoard() {
         subGroup: subGroupData?.counts ?? {},
         subGroupSortValues: subGroupData?.sortValues ?? {},
       }}
-      data={data}
-      expandedGroups={expandedGroups}
       filter={filter}
-      group={{ bySelect: { property: "category" }, showCount: true }}
-      onExpandedGroupsChange={handleAccordionChange}
-      pagination={pagination}
+      group={{ ...columnGroupConfig, showCount: true }}
       properties={productProperties}
       search={search}
       sort={sort ?? []}
-      subGroup={{ bySelect: { property: "availability" } }}
+      subGroup={rowGroupConfig}
     >
-      <NotionToolbar
-        enableSettings
-        groupProperty="Category"
-        properties={productProperties}
-      >
-        <ViewTabs />
-      </NotionToolbar>
-      <BoardView
-        cardPreview="productImage"
-        cardSize="medium"
-        colorColumns
-        fitMedia
-        pagination="loadMore"
-      />
+      {renderContent()}
     </DataViewProvider>
   );
 }

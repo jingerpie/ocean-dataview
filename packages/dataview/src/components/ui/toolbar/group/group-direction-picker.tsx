@@ -2,7 +2,10 @@
 
 import { CheckIcon } from "lucide-react";
 import { useCallback } from "react";
-import { useGroupParams } from "../../../../hooks";
+import {
+  type GroupingMode,
+  useGroupingParams,
+} from "../../../../hooks/use-grouping-params";
 import { Command, CommandGroup, CommandItem, CommandList } from "../../command";
 
 type GroupSortOrder = "asc" | "desc";
@@ -13,6 +16,8 @@ const DIRECTION_OPTIONS: { value: GroupSortOrder; label: string }[] = [
 ];
 
 interface GroupDirectionPickerProps {
+  /** Mode: "group" or "subGroup" (default: "group") */
+  mode?: GroupingMode;
   /** Additional callback after setting the direction */
   onSetDirection?: (direction: GroupSortOrder) => void;
 }
@@ -20,21 +25,25 @@ interface GroupDirectionPickerProps {
 /**
  * Direction picker for selecting group sort order.
  *
- * Handles direction selection internally via useGroupParams().
+ * Handles direction selection internally via useGroupingParams().
+ * Can be used for both primary group and sub-group via the `mode` prop.
  *
  * Features:
  * - Command-based list
  * - Shows checkmark for currently selected direction
  */
-function GroupDirectionPicker({ onSetDirection }: GroupDirectionPickerProps) {
-  const { groupSortOrder, setGroupSortOrder } = useGroupParams();
+function GroupDirectionPicker({
+  mode = "group",
+  onSetDirection,
+}: GroupDirectionPickerProps) {
+  const { sortOrder, setSortOrder } = useGroupingParams(mode);
 
   const handleSelect = useCallback(
     (direction: GroupSortOrder) => {
-      setGroupSortOrder(direction);
+      setSortOrder(direction);
       onSetDirection?.(direction);
     },
-    [setGroupSortOrder, onSetDirection]
+    [setSortOrder, onSetDirection]
   );
 
   return (
@@ -48,9 +57,7 @@ function GroupDirectionPicker({ onSetDirection }: GroupDirectionPickerProps) {
               value={option.value}
             >
               <span className="flex-1">{option.label}</span>
-              {groupSortOrder === option.value && (
-                <CheckIcon className="size-4" />
-              )}
+              {sortOrder === option.value && <CheckIcon className="size-4" />}
             </CommandItem>
           ))}
         </CommandGroup>

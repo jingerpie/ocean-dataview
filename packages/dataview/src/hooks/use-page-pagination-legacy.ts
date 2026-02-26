@@ -180,23 +180,18 @@ function usePagePaginationState<TQueryOptions extends PageQueryOptions>(
 
   const [, startTransition] = useTransition();
 
-  // URL state for expanded groups
-  const [, setExpanded] = useQueryState(
-    "expanded",
-    parseAsExpanded.withOptions({ shallow: false })
-  );
+  // URL state - using shallow: true (default) for fast client-side updates
+  // React Query handles refetching via queryKey changes
+  const [, setExpanded] = useQueryState("expanded", parseAsExpanded);
 
   // URL state for cursors
   const [, setCursors] = useQueryState(
     "cursors",
-    parseAsCursors.withDefault({}).withOptions({ shallow: false })
+    parseAsCursors.withDefault({})
   );
 
   // URL state for limit
-  const [, setUrlLimit] = useQueryState(
-    "limit",
-    parseAsInteger.withOptions({ shallow: false })
-  );
+  const [, setUrlLimit] = useQueryState("limit", parseAsInteger);
 
   // Limit change handler
   const onLimitChange = useCallback(

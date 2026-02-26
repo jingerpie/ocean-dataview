@@ -1,10 +1,7 @@
 "use client";
 
-import type { Cursors, CursorValue, Limit } from "@sparkyidea/shared/types";
-import {
-  parseAsCursors,
-  parseAsExpanded,
-} from "@sparkyidea/shared/utils/parsers/pagination";
+import type { Limit } from "@sparkyidea/shared/types";
+import { parseAsExpanded } from "@sparkyidea/shared/utils/parsers/pagination";
 import { parseAsInteger, useQueryState } from "nuqs";
 import {
   createContext,
@@ -31,22 +28,24 @@ export const FLAT_GROUP_KEY = "__all__";
 // ============================================================================
 
 /**
- * Query options compatible with TRPC's queryOptions return type.
- * tRPC automatically provides queryFn.
+ * Query options compatible with TRPC's infiniteQueryOptions return type.
  */
-export interface GroupQueryOptions {
+export interface InfiniteGroupQueryOptions {
   // biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
-  queryFn?: (...args: any[]) => any;
+  getNextPageParam?: any;
+  // biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
+  initialPageParam?: any;
+  // biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
+  queryFn?: any;
   queryKey: readonly unknown[];
 }
 
 /**
  * Query options factory function type.
  */
-export type QueryOptionsFactory<TQueryOptions extends GroupQueryOptions> = (
-  groupKey: string,
-  cursor?: CursorValue
-) => TQueryOptions;
+export type InfiniteQueryOptionsFactory<
+  TQueryOptions extends InfiniteGroupQueryOptions,
+> = (groupKey: string) => TQueryOptions;
 
 /**
  * Group counts from server (optional).
@@ -56,20 +55,17 @@ export interface GroupCounts {
 }
 
 /**
- * Context value for GroupPaginationProvider.
- * Provides state management - queries are handled by useGroupQuery hook.
+ * Context value for InfinitePaginationProvider.
  */
-export interface GroupPaginationContextValue<
-  TQueryOptions extends GroupQueryOptions = GroupQueryOptions,
+export interface InfinitePaginationContextValue<
+  TQueryOptions extends InfiniteGroupQueryOptions = InfiniteGroupQueryOptions,
 > {
-  cursors: Cursors;
   expandedGroups: string[];
   groupCounts?: GroupCounts;
   groupKeys: string[];
   isPending: boolean;
   limit: Limit;
-  queryOptionsFactory: QueryOptionsFactory<TQueryOptions>;
-  setCursor: (groupKey: string, cursor: CursorValue | null) => void;
+  queryOptionsFactory: InfiniteQueryOptionsFactory<TQueryOptions>;
   setExpandedGroups: (groups: string[]) => void;
   setLimit: (limit: Limit) => void;
 }
@@ -78,28 +74,28 @@ export interface GroupPaginationContextValue<
 // Context
 // ============================================================================
 
-const GroupPaginationContext = createContext<
-  GroupPaginationContextValue | undefined
+const InfinitePaginationContext = createContext<
+  InfinitePaginationContextValue | undefined
 >(undefined);
 
-export function useGroupPaginationContext<
-  TQueryOptions extends GroupQueryOptions = GroupQueryOptions,
->(): GroupPaginationContextValue<TQueryOptions> {
-  const context = useContext(GroupPaginationContext);
+export function useInfinitePaginationContext<
+  TQueryOptions extends InfiniteGroupQueryOptions = InfiniteGroupQueryOptions,
+>(): InfinitePaginationContextValue<TQueryOptions> {
+  const context = useContext(InfinitePaginationContext);
   if (!context) {
     throw new Error(
-      "useGroupPaginationContext must be used within a GroupPaginationProvider"
+      "useInfinitePaginationContext must be used within an InfinitePaginationProvider"
     );
   }
-  return context as GroupPaginationContextValue<TQueryOptions>;
+  return context as InfinitePaginationContextValue<TQueryOptions>;
 }
 
 // ============================================================================
 // Provider Props
 // ============================================================================
 
-export interface GroupPaginationProviderProps<
-  TQueryOptions extends GroupQueryOptions = GroupQueryOptions,
+export interface InfinitePaginationProviderProps<
+  TQueryOptions extends InfiniteGroupQueryOptions = InfiniteGroupQueryOptions,
 > {
   /** Children */
   children: ReactNode;
@@ -116,8 +112,8 @@ export interface GroupPaginationProviderProps<
   /** All group keys in stable order */
   groupKeys: string[];
 
-  /** Query options factory - tRPC provides queryFn automatically */
-  queryOptionsFactory: QueryOptionsFactory<TQueryOptions>;
+  /** Query options factory - receives groupKey only (no cursor for infinite) */
+  queryOptionsFactory: InfiniteQueryOptionsFactory<TQueryOptions>;
 }
 
 // ============================================================================
@@ -125,27 +121,19 @@ export interface GroupPaginationProviderProps<
 // ============================================================================
 
 /**
- * GroupPaginationProvider - Manages URL state for per-group pagination.
+ * InfinitePaginationProvider - Manages URL state for infinite pagination.
  *
- * This provider only handles state management:
- * - cursors, expanded groups, limit in URL via nuqs
- * - queryOptionsFactory for per-group queries
+ * This provider handles state management:
+ * - expanded groups, limit in URL via nuqs
+ * - queryOptionsFactory for per-group infinite queries
  *
- * Queries are handled by useGroupQuery hook in per-group components.
- * This allows unlimited groups and follows React patterns.
+ * Unlike page pagination, infinite queries don't need cursor URL state
+ * because TanStack Query's useInfiniteQuery manages pages internally.
  *
- * @example
- * ```tsx
- * <GroupPaginationProvider
- *   groupKeys={groupKeys}
- *   queryOptionsFactory={(groupKey, cursor) => trpc.product.getMany.queryOptions({...})}
- * >
- *   <FlatTableContent />
- * </GroupPaginationProvider>
- * ```
+ * Queries are handled by useInfiniteGroupQuery hook in per-group components.
  */
-export function GroupPaginationProvider<
-  TQueryOptions extends GroupQueryOptions = GroupQueryOptions,
+export function InfinitePaginationProvider<
+  TQueryOptions extends InfiniteGroupQueryOptions = InfiniteGroupQueryOptions,
 >({
   children,
   groupKeys,
@@ -153,7 +141,7 @@ export function GroupPaginationProvider<
   defaultExpanded,
   defaultLimit = 10,
   queryOptionsFactory,
-}: GroupPaginationProviderProps<TQueryOptions>) {
+}: InfinitePaginationProviderProps<TQueryOptions>) {
   const [isPending, startTransition] = useTransition();
 
   // Track if this is an internal change (user interaction) vs external (navigation)
@@ -161,10 +149,6 @@ export function GroupPaginationProvider<
 
   // URL state - using shallow: true (default) for fast client-side updates
   // React Query handles refetching via queryKey changes
-  const [cursors, setCursorsState] = useQueryState(
-    "cursors",
-    parseAsCursors.withDefault({}).withOptions({ throttleMs: THROTTLE_MS })
-  );
   const [urlExpanded, setUrlExpanded] = useQueryState(
     "expanded",
     parseAsExpanded.withOptions({ throttleMs: THROTTLE_MS })
@@ -190,12 +174,14 @@ export function GroupPaginationProvider<
     return [];
   }, [urlExpanded, defaultExpanded, groupKeys]);
 
-  // Local state for immediate UI updates (sync)
-  // URL state is updated async in transition for persistence
+  // Local state for immediate UI updates
   const [localExpanded, setLocalExpanded] =
     useState<string[]>(getInitialExpanded);
 
-  // Sync from URL when it changes externally (e.g., browser navigation)
+  // Track previous groupKeys to detect mode changes
+  const prevGroupKeysRef = useRef(groupKeys);
+
+  // Sync from URL when it changes externally
   useEffect(() => {
     if (!isInternalChange.current) {
       setLocalExpanded(getInitialExpanded());
@@ -203,23 +189,23 @@ export function GroupPaginationProvider<
     isInternalChange.current = false;
   }, [urlExpanded, getInitialExpanded]);
 
+  // Handle groupKeys changes (e.g., switching between flat and grouped mode)
+  useEffect(() => {
+    const prevKeys = prevGroupKeysRef.current;
+    const keysChanged =
+      prevKeys.length !== groupKeys.length ||
+      prevKeys.some((k, i) => k !== groupKeys[i]);
+
+    if (keysChanged) {
+      prevGroupKeysRef.current = groupKeys;
+      // Reset expanded state based on new groupKeys
+      setLocalExpanded(getInitialExpanded());
+    }
+  }, [groupKeys, getInitialExpanded]);
+
   const limit = (urlLimit ?? defaultLimit) as Limit;
 
   // State setters
-  const setCursor = useCallback(
-    (groupKey: string, cursor: CursorValue | null) => {
-      startTransition(() => {
-        if (cursor === null) {
-          const { [groupKey]: _, ...rest } = cursors;
-          setCursorsState(Object.keys(rest).length > 0 ? rest : null);
-        } else {
-          setCursorsState({ ...cursors, [groupKey]: cursor });
-        }
-      });
-    },
-    [cursors, setCursorsState]
-  );
-
   const setExpandedGroups = useCallback(
     (groups: string[]) => {
       // Update local state SYNCHRONOUSLY for immediate UI response
@@ -228,43 +214,28 @@ export function GroupPaginationProvider<
 
       // Update URL state ASYNCHRONOUSLY in transition
       startTransition(() => {
-        const collapsedGroups = localExpanded.filter(
-          (g) => !groups.includes(g)
-        );
-        if (collapsedGroups.length > 0) {
-          const newCursors = { ...cursors };
-          for (const g of collapsedGroups) {
-            delete newCursors[g];
-          }
-          setCursorsState(
-            Object.keys(newCursors).length > 0 ? newCursors : null
-          );
-        }
         setUrlExpanded(groups.length > 0 ? groups : null);
       });
     },
-    [localExpanded, cursors, setCursorsState, setUrlExpanded]
+    [setUrlExpanded]
   );
 
   const setLimit = useCallback(
     (newLimit: Limit) => {
       startTransition(() => {
         setUrlLimit(newLimit);
-        setCursorsState(null);
       });
     },
-    [setUrlLimit, setCursorsState]
+    [setUrlLimit]
   );
 
-  // Context value - uses localExpanded for immediate UI response
-  const contextValue = useMemo<GroupPaginationContextValue<TQueryOptions>>(
+  // Context value
+  const contextValue = useMemo<InfinitePaginationContextValue<TQueryOptions>>(
     () => ({
       groupKeys,
       groupCounts,
-      cursors,
       expandedGroups: localExpanded,
       limit,
-      setCursor,
       setExpandedGroups,
       setLimit,
       queryOptionsFactory,
@@ -273,10 +244,8 @@ export function GroupPaginationProvider<
     [
       groupKeys,
       groupCounts,
-      cursors,
       localExpanded,
       limit,
-      setCursor,
       setExpandedGroups,
       setLimit,
       queryOptionsFactory,
@@ -285,8 +254,8 @@ export function GroupPaginationProvider<
   );
 
   return (
-    <GroupPaginationContext.Provider value={contextValue}>
+    <InfinitePaginationContext.Provider value={contextValue}>
       {children}
-    </GroupPaginationContext.Provider>
+    </InfinitePaginationContext.Provider>
   );
 }

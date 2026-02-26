@@ -1,7 +1,6 @@
 "use client";
 
 import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
@@ -16,7 +15,11 @@ import {
 import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsString, useQueryState } from "nuqs";
-import { productProperties } from "@/properties/product-properties";
+import { useMemo } from "react";
+import {
+  type Product,
+  productProperties,
+} from "@/properties/product-properties";
 import { combineGroupFilter } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
@@ -24,6 +27,9 @@ import { ViewTabs } from "./view-tabs";
 
 /**
  * Grouped Gallery - grouped by category with per-group load more.
+ *
+ * Uses useInfinitePagination hook that returns a DataViewProvider
+ * with pagination baked in.
  */
 export function GroupGallery() {
   const trpc = useTRPC();
@@ -37,41 +43,47 @@ export function GroupGallery() {
   const searchableFields = getSearchableProperties(productProperties);
   const searchFilter = buildSearchFilter(search, searchableFields);
 
+  // Group config
+  const groupConfig = { bySelect: { property: "category" } } as const;
+
+  // Fetch group counts
   const { data: groupData, isLoading: isGroupLoading } = useQuery(
-    trpc.product.getGroup.queryOptions({
-      groupBy: { bySelect: { property: "category" } },
-    })
+    trpc.product.getGroup.queryOptions({ groupBy: groupConfig })
   );
 
-  const allGroupKeys = Object.keys(groupData?.counts ?? {});
+  const groupKeys = useMemo(
+    () => Object.keys(groupData?.counts ?? {}),
+    [groupData?.counts]
+  );
 
-  const { data, pagination, handleAccordionChange, expandedGroups } =
-    useInfinitePagination({
-      limit,
-      groupBy: {
-        allGroupKeys,
-        expanded,
-      },
-      queryOptions: (groupKey) =>
-        trpc.product.getMany.infiniteQueryOptions(
-          {
-            filter: combineGroupFilter("category", groupKey, filter),
-            search: searchFilter,
-            sort: sort ?? [],
-            limit,
-          },
-          {
-            getNextPageParam: (lastPage) =>
-              lastPage.hasNextPage ? lastPage.endCursor : undefined,
-          }
-        ),
-    });
+  const { DataViewProvider } = useInfinitePagination<Product>({
+    groupKeys,
+    groupCounts: groupData?.counts,
+    groupSortValues: groupData?.sortValues,
+    defaultLimit: limit,
+    defaultExpanded: expanded.length > 0 ? expanded : [],
+    queryOptionsFactory: (groupKey) =>
+      trpc.product.getMany.infiniteQueryOptions(
+        {
+          filter: combineGroupFilter(groupConfig, groupKey, filter),
+          search: searchFilter,
+          sort: sort ?? [],
+          limit,
+        },
+        {
+          getNextPageParam: (lastPage) =>
+            lastPage.hasNextPage ? lastPage.endCursor : undefined,
+        }
+      ),
+  });
 
-  if ((pagination.isLoading || isGroupLoading) && data.length === 0) {
+  // Show skeleton while fetching group counts
+  if (isGroupLoading && groupKeys.length === 0) {
     return <GallerySkeleton cardCount={6} />;
   }
 
-  if (pagination.groups.length === 0) {
+  // Empty state
+  if (groupKeys.length === 0) {
     return (
       <div className="flex min-h-100 items-center justify-center">
         <p className="text-muted-foreground">No products found</p>
@@ -79,21 +91,14 @@ export function GroupGallery() {
     );
   }
 
+  // DataViewProvider MUST render for queries to execute
   return (
     <DataViewProvider
-      counts={{
-        group: groupData?.counts ?? {},
-        groupSortValues: groupData?.sortValues ?? {},
-      }}
-      data={data}
-      expandedGroups={expandedGroups}
       filter={filter}
       group={{
         bySelect: { property: "category" },
         showCount: true,
       }}
-      onExpandedGroupsChange={handleAccordionChange}
-      pagination={pagination}
       properties={productProperties}
       search={search}
       sort={sort ?? []}

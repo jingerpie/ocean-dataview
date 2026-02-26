@@ -1,6 +1,9 @@
 "use client";
 
-import { FLAT_GROUP_KEY, usePagePagination } from "@sparkyidea/dataview/hooks";
+import {
+  INFINITE_FLAT_GROUP_KEY,
+  useInfinitePagination,
+} from "@sparkyidea/dataview/hooks";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
@@ -29,7 +32,7 @@ import { ViewTabs } from "./view-tabs";
 /**
  * Hybrid Gallery - auto flat/grouped based on URL group param.
  *
- * Uses usePagePagination hook that returns a DataViewProvider
+ * Uses useInfinitePagination hook that returns a DataViewProvider
  * with pagination baked in.
  */
 export function HybridGallery() {
@@ -60,7 +63,7 @@ export function HybridGallery() {
   // Group keys: flat uses "__all__", grouped uses keys from server
   const groupKeys = useMemo(() => {
     if (!isGrouped) {
-      return [FLAT_GROUP_KEY];
+      return [INFINITE_FLAT_GROUP_KEY];
     }
     return Object.keys(groupData?.counts ?? {});
   }, [isGrouped, groupData?.counts]);
@@ -82,24 +85,29 @@ export function HybridGallery() {
   const propertyMeta = productProperties.find((p) => p.id === groupProperty);
   const groupPropertyLabel = propertyMeta?.label ?? groupProperty ?? "";
 
-  const { DataViewProvider, isPlaceholderData, isLoading, isEmpty } =
-    usePagePagination<Product>({
+  const { DataViewProvider, isLoading, isEmpty } =
+    useInfinitePagination<Product>({
       groupKeys,
       groupCounts: isGrouped ? groupData?.counts : undefined,
       groupSortValues: isGrouped ? groupData?.sortValues : undefined,
       defaultLimit: limit,
-      defaultExpanded:
-        isGrouped && expanded.length > 0 ? expanded : groupKeys.slice(0, 1),
-      queryOptionsFactory: (groupKey, cursor) =>
-        trpc.product.getMany.queryOptions({
-          cursor,
-          filter: isGrouped
-            ? combineGroupFilter(groupProperty ?? "category", groupKey, filter)
-            : filter,
-          limit,
-          search: searchFilter,
-          sort: sort ?? [],
-        }),
+      defaultExpanded: isGrouped && expanded.length > 0 ? expanded : [],
+      queryOptionsFactory: (groupKey) =>
+        trpc.product.getMany.infiniteQueryOptions(
+          {
+            filter:
+              isGrouped && group
+                ? combineGroupFilter(group, groupKey, filter)
+                : filter,
+            search: searchFilter,
+            sort: sort ?? [],
+            limit,
+          },
+          {
+            getNextPageParam: (lastPage) =>
+              lastPage.hasNextPage ? lastPage.endCursor : undefined,
+          }
+        ),
     });
 
   // Show skeleton while fetching group counts (grouped mode only)
@@ -123,9 +131,9 @@ export function HybridGallery() {
       group={groupConfigForView}
       properties={productProperties}
       search={search}
-      sort={sort ?? undefined}
+      sort={sort ?? []}
     >
-      {isLoading && isEmpty ? (
+      {isLoading && isEmpty && !isGrouped ? (
         <GallerySkeleton cardCount={6} />
       ) : (
         <>
@@ -137,20 +145,18 @@ export function HybridGallery() {
             <ViewTabs />
           </NotionToolbar>
 
-          <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
-            {isEmpty ? (
-              <div className="flex min-h-100 items-center justify-center">
-                <p className="text-muted-foreground">No products found</p>
-              </div>
-            ) : (
-              <GalleryView
-                cardPreview="productImage"
-                cardSize="medium"
-                fitMedia
-                pagination="page"
-              />
-            )}
-          </div>
+          {isEmpty && !isGrouped ? (
+            <div className="flex min-h-100 items-center justify-center">
+              <p className="text-muted-foreground">No products found</p>
+            </div>
+          ) : (
+            <GalleryView
+              cardPreview="productImage"
+              cardSize="medium"
+              fitMedia
+              pagination="loadMore"
+            />
+          )}
         </>
       )}
     </DataViewProvider>

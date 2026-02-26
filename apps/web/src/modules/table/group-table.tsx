@@ -45,11 +45,12 @@ export function GroupTable() {
   const searchableFields = getSearchableProperties(productProperties);
   const searchFilter = buildSearchFilter(search, searchableFields);
 
+  // Group config
+  const groupConfig = { bySelect: { property: "category" } } as const;
+
   // Fetch group counts
   const { data: groupData, isLoading: isGroupLoading } = useQuery(
-    trpc.product.getGroup.queryOptions({
-      groupBy: { bySelect: { property: "category" } },
-    })
+    trpc.product.getGroup.queryOptions({ groupBy: groupConfig })
   );
 
   const groupKeys = useMemo(
@@ -57,22 +58,21 @@ export function GroupTable() {
     [groupData?.counts]
   );
 
-  const { DataViewProvider, isPlaceholderData, isLoading, isEmpty } =
-    usePagePagination<Product>({
-      groupKeys,
-      groupCounts: groupData?.counts,
-      groupSortValues: groupData?.sortValues,
-      defaultLimit: limit,
-      defaultExpanded: expanded,
-      queryOptionsFactory: (groupKey, cursor) =>
-        trpc.product.getMany.queryOptions({
-          cursor,
-          filter: combineGroupFilter("category", groupKey, filter),
-          limit,
-          search: searchFilter,
-          sort: sort ?? [],
-        }),
-    });
+  const { DataViewProvider, isPlaceholderData } = usePagePagination<Product>({
+    groupKeys,
+    groupCounts: groupData?.counts,
+    groupSortValues: groupData?.sortValues,
+    defaultLimit: limit,
+    defaultExpanded: expanded,
+    queryOptionsFactory: (groupKey, cursor) =>
+      trpc.product.getMany.queryOptions({
+        cursor,
+        filter: combineGroupFilter(groupConfig, groupKey, filter),
+        limit,
+        search: searchFilter,
+        sort: sort ?? [],
+      }),
+  });
 
   // Show skeleton while fetching group counts (before we know the groups)
   if (isGroupLoading && groupKeys.length === 0) {
@@ -97,28 +97,22 @@ export function GroupTable() {
       search={search}
       sort={sort ?? undefined}
     >
-      {isLoading && isEmpty ? (
-        <TableSkeleton columnCount={5} rowCount={10} />
-      ) : (
-        <>
-          <NotionToolbar
-            enableSettings
-            groupProperty="Category"
-            properties={productProperties}
-          >
-            <ViewTabs />
-          </NotionToolbar>
+      <NotionToolbar
+        enableSettings
+        groupProperty="Category"
+        properties={productProperties}
+      >
+        <ViewTabs />
+      </NotionToolbar>
 
-          <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
-            <TableView
-              bulkActions={bulkActions}
-              pagination="page"
-              showVerticalLines={false}
-              wrapAllColumns={false}
-            />
-          </div>
-        </>
-      )}
+      <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
+        <TableView
+          bulkActions={bulkActions}
+          pagination="page"
+          showVerticalLines={false}
+          wrapAllColumns={false}
+        />
+      </div>
     </DataViewProvider>
   );
 }

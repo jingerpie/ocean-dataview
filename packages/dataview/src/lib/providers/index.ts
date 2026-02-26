@@ -23,3 +23,13 @@ export {
   type QueryOptionsFactory,
   useGroupPaginationContext,
 } from "./group-pagination-provider";
+
+// Note: InfinitePaginationProvider is internal - use useInfinitePagination hook instead
+export {
+  type InfiniteGroupQueryOptions,
+  type InfinitePaginationContextValue,
+  InfinitePaginationProvider,
+  type InfinitePaginationProviderProps,
+  type InfiniteQueryOptionsFactory,
+  useInfinitePaginationContext,
+} from "./infinite-pagination-provider";
