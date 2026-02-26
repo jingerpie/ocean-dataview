@@ -91,8 +91,8 @@ export interface UseInfinitePaginationOptions<
   groupKeys: string[];
   /** Sort values for group ordering */
   groupSortValues?: Record<string, string | number>;
-  /** Query factory - receives groupKey only */
-  queryOptionsFactory: (groupKey: string) => TQueryOptions;
+  /** Query factory - receives groupKey and limit */
+  queryOptionsFactory: (groupKey: string, limit?: Limit) => TQueryOptions;
 }
 
 /**

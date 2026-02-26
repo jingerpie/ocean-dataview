@@ -73,14 +73,14 @@ export function GroupBoard() {
     groupSortValues: subGroupData?.sortValues,
     defaultLimit: limit,
     defaultExpanded: expanded.length > 0 ? expanded : [],
-    queryOptionsFactory: (subGroupKey) =>
+    queryOptionsFactory: (subGroupKey, limitParam) =>
       trpc.product.getManyByGroup.infiniteQueryOptions(
         {
           groupBy: columnGroupConfig,
           filter: combineGroupFilter(rowGroupConfig, subGroupKey, filter),
           search: searchFilter,
           sort: sort ?? [],
-          limit,
+          limit: limitParam ?? limit,
         },
         {
           getNextPageParam: (lastPage) => {

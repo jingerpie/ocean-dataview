@@ -59,13 +59,13 @@ export function GroupList() {
     groupSortValues: groupData?.sortValues,
     defaultLimit: limit,
     defaultExpanded: expanded.length > 0 ? expanded : [],
-    queryOptionsFactory: (groupKey) =>
+    queryOptionsFactory: (groupKey, limitParam) =>
       trpc.product.getMany.infiniteQueryOptions(
         {
           filter: combineGroupFilter(groupConfig, groupKey, filter),
           search: searchFilter,
           sort: sort ?? [],
-          limit,
+          limit: limitParam ?? limit,
         },
         {
           getNextPageParam: (lastPage) =>

@@ -71,14 +71,17 @@ export function buildPaginationContext<TData>(
     return undefined;
   }
 
-  // For sub-grouped boards: use columnKey to resolve per-column hasNext
-  // For regular views: use group.hasNext directly
-  const hasNext = resolveHasNext(group.hasNext, columnKey);
+  // Resolve hasNext from group:
+  // - For sub-grouped boards: columnKey is provided, use it to look up in hasNext Record
+  // - For flat boards: groupKey IS the column key, use it when columnKey is undefined
+  // - For regular list/table: hasNext is a boolean, lookup key doesn't matter
+  const lookupKey = columnKey ?? groupKey;
+  const hasNext = resolveHasNext(group.hasNext, lookupKey);
 
   return {
     hasNext,
     hasPrev:
-      "hasPrev" in group ? resolveHasNext(group.hasPrev, columnKey) : false,
+      "hasPrev" in group ? resolveHasNext(group.hasPrev, lookupKey) : false,
     onNext: group.onNext,
     onPrev: "onPrev" in group ? group.onPrev : () => undefined,
     isLoading: group.isLoading,

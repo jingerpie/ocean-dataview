@@ -89,7 +89,7 @@ export function HybridList() {
       groupSortValues: isGrouped ? groupData?.sortValues : undefined,
       defaultLimit: limit,
       defaultExpanded: isGrouped && expanded.length > 0 ? expanded : [],
-      queryOptionsFactory: (groupKey) =>
+      queryOptionsFactory: (groupKey, limitParam) =>
         trpc.product.getMany.infiniteQueryOptions(
           {
             filter:
@@ -98,7 +98,7 @@ export function HybridList() {
                 : filter,
             search: searchFilter,
             sort: sort ?? [],
-            limit,
+            limit: limitParam ?? limit,
           },
           {
             getNextPageParam: (lastPage) =>

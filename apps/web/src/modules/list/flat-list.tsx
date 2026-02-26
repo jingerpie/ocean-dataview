@@ -40,10 +40,10 @@ export function FlatList() {
     useInfinitePagination<Product>({
       groupKeys: [INFINITE_FLAT_GROUP_KEY],
       defaultLimit: limit,
-      queryOptionsFactory: (_groupKey) =>
+      queryOptionsFactory: (_groupKey, limitParam) =>
         trpc.product.getMany.infiniteQueryOptions(
           {
-            limit,
+            limit: limitParam ?? limit,
             filter,
             search: searchFilter,
             sort: sort ?? [],

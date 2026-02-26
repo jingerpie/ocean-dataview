@@ -131,10 +131,10 @@ export function useInfiniteGroupQuery<TData = unknown>(
   const isExpanded = expandedGroups.includes(groupKey);
   const enabled = enabledOption ?? isExpanded;
 
-  // Build query options
+  // Build query options - includes limit to ensure refetch on limit change
   const queryOptions = useMemo(
-    () => queryOptionsFactory(groupKey),
-    [queryOptionsFactory, groupKey]
+    () => queryOptionsFactory(groupKey, limit),
+    [queryOptionsFactory, groupKey, limit]
   );
 
   // Execute infinite query
