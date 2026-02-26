@@ -7,24 +7,18 @@ import {
 } from "@sparkyidea/shared/utils/parsers/group";
 import { parseAsExpanded } from "@sparkyidea/shared/utils/parsers/pagination";
 import { useQueryState } from "nuqs";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useDataViewContext } from "../lib/providers";
+import { useCallback } from "react";
+
+const THROTTLE_MS = 50;
 
 /**
  * Hook for managing group configuration via URL.
  *
- * Group settings stored in URL:
- * - Group config (byTYPE, property, showAs, etc.)
- * - Sort order (asc/desc)
- * - Hide empty groups
+ * Uses URL as source of truth with shallow: true (default).
+ * All actions update URL immediately (no debouncing needed).
  *
- * Note: `expanded` is a view-level concern (separate URL param),
- * managed by pagination hooks, since different views expand different levels:
- * - Board: expands subGroup rows
- * - Table/List/Gallery: expands group rows
- *
- * When group property or type changes, expanded groups are automatically cleared
- * since old group keys are no longer valid.
+ * When group property or type changes, expanded groups are automatically
+ * cleared since old group keys are no longer valid.
  *
  * @example
  * ```ts
@@ -32,183 +26,153 @@ import { useDataViewContext } from "../lib/providers";
  * ```
  */
 export function useGroupParams() {
-  // Read group from context (server props)
-  const { group: contextGroup } = useDataViewContext();
-  const serverGroup = (contextGroup as GroupConfigInput | undefined) ?? null;
-
-  // URL state (nuqs handles URL updates)
-  const [, setUrlGroupState] = useQueryState(
+  // URL state - source of truth
+  const [group, setUrlGroup] = useQueryState(
     "group",
-    parseAsGroupBy.withOptions({ shallow: false })
+    parseAsGroupBy.withOptions({ throttleMs: THROTTLE_MS })
   );
-
-  // Expanded URL state - cleared when group changes
-  const [, setUrlExpandedState] = useQueryState(
+  const [, setUrlExpanded] = useQueryState(
     "expanded",
-    parseAsExpanded.withOptions({ shallow: false })
+    parseAsExpanded.withOptions({ throttleMs: THROTTLE_MS })
   );
 
-  // Local state for immediate UI updates (initialized from server)
-  const [localGroup, setLocalGroup] = useState<GroupConfigInput | null>(
-    serverGroup
-  );
-
-  // Track if change originated internally
-  const isInternalChange = useRef(false);
-
-  // Sync local state when server value changes (navigation, refresh)
-  // Skip sync if we triggered the change ourselves
-  useEffect(() => {
-    if (!isInternalChange.current) {
-      setLocalGroup(serverGroup);
-    }
-    isInternalChange.current = false;
-  }, [serverGroup]);
-
-  // Helper to update the group config
-  const updateGroup = useCallback(
-    (updater: (prev: GroupConfigInput | null) => GroupConfigInput | null) => {
-      // Use functional update to get the new value, then update URL separately
-      let nextValue: GroupConfigInput | null = null;
-      setLocalGroup((prev) => {
-        nextValue = updater(prev);
-        return nextValue;
-      });
-      // Update URL after state update (not inside the updater)
-      isInternalChange.current = true;
-      void setUrlGroupState(nextValue);
-    },
-    [setUrlGroupState]
-  );
-
-  // Set the group configuration (replaces entire config)
-  // Clears expanded groups when group property or type changes
+  // Set group configuration (replaces entire config)
   const setGroup = useCallback(
     (newGroup: GroupByConfigInput | null) => {
       if (!newGroup) {
-        updateGroup(() => null);
-        // Clear expanded when removing grouping
-        void setUrlExpandedState(null);
+        void setUrlGroup(null);
+        void setUrlExpanded(null);
         return;
       }
+
       // Preserve existing sort/hideEmpty when changing group type
-      updateGroup((prev) => ({
+      const config: GroupConfigInput = {
         ...newGroup,
-        sort: prev?.sort,
-        hideEmpty: prev?.hideEmpty,
-      }));
-      // Clear expanded groups since old group keys are no longer valid
-      void setUrlExpandedState(null);
+        sort: group?.sort,
+        hideEmpty: group?.hideEmpty,
+      };
+
+      void setUrlGroup(config);
+      // Clear expanded - old group keys are no longer valid
+      void setUrlExpanded(null);
     },
-    [updateGroup, setUrlExpandedState]
+    [group, setUrlGroup, setUrlExpanded]
   );
 
   // Clear group (remove grouping)
   const clearGroup = useCallback(() => {
-    updateGroup(() => null);
-    // Clear expanded when removing grouping
-    void setUrlExpandedState(null);
-  }, [updateGroup, setUrlExpandedState]);
+    void setUrlGroup(null);
+    void setUrlExpanded(null);
+  }, [setUrlGroup, setUrlExpanded]);
 
   // Set sort order
   const setGroupSortOrder = useCallback(
     (sort: "asc" | "desc") => {
-      updateGroup((prev) => {
-        if (!prev) {
-          return null;
-        }
-        return { ...prev, sort };
-      });
+      if (!group) {
+        return;
+      }
+      void setUrlGroup({ ...group, sort });
     },
-    [updateGroup]
+    [group, setUrlGroup]
   );
 
   // Set hide empty groups
   const setHideEmptyGroups = useCallback(
     (hideEmpty: boolean) => {
-      updateGroup((prev) => {
-        if (!prev) {
-          return null;
-        }
-        return { ...prev, hideEmpty };
-      });
+      if (!group) {
+        return;
+      }
+      void setUrlGroup({ ...group, hideEmpty });
     },
-    [updateGroup]
+    [group, setUrlGroup]
   );
 
   // Extract property from group config
   const groupProperty = (() => {
-    if (!localGroup) {
+    if (!group) {
       return null;
     }
-    if ("bySelect" in localGroup) {
-      return localGroup.bySelect.property;
+    if ("bySelect" in group) {
+      return group.bySelect.property;
     }
-    if ("byStatus" in localGroup) {
-      return localGroup.byStatus.property;
+    if ("byStatus" in group) {
+      return group.byStatus.property;
     }
-    if ("byDate" in localGroup) {
-      return localGroup.byDate.property;
+    if ("byDate" in group) {
+      return group.byDate.property;
     }
-    if ("byCheckbox" in localGroup) {
-      return localGroup.byCheckbox.property;
+    if ("byCheckbox" in group) {
+      return group.byCheckbox.property;
     }
-    if ("byMultiSelect" in localGroup) {
-      return localGroup.byMultiSelect.property;
+    if ("byMultiSelect" in group) {
+      return group.byMultiSelect.property;
     }
-    if ("byText" in localGroup) {
-      return localGroup.byText.property;
+    if ("byText" in group) {
+      return group.byText.property;
     }
-    if ("byNumber" in localGroup) {
-      return localGroup.byNumber.property;
+    if ("byNumber" in group) {
+      return group.byNumber.property;
     }
     return null;
   })();
 
   // Extract group type from config
   const groupType = (() => {
-    if (!localGroup) {
+    if (!group) {
       return null;
     }
-    if ("bySelect" in localGroup) {
+    if ("bySelect" in group) {
       return "select";
     }
-    if ("byStatus" in localGroup) {
+    if ("byStatus" in group) {
       return "status";
     }
-    if ("byDate" in localGroup) {
+    if ("byDate" in group) {
       return "date";
     }
-    if ("byCheckbox" in localGroup) {
+    if ("byCheckbox" in group) {
       return "checkbox";
     }
-    if ("byMultiSelect" in localGroup) {
+    if ("byMultiSelect" in group) {
       return "multiSelect";
     }
-    if ("byText" in localGroup) {
+    if ("byText" in group) {
       return "text";
     }
-    if ("byNumber" in localGroup) {
+    if ("byNumber" in group) {
       return "number";
     }
     return null;
   })();
 
+  // Normalize sort order to "asc"/"desc" format
+  const groupSortOrder = (() => {
+    const sort = group?.sort;
+    if (!sort) {
+      return "asc";
+    }
+    if (sort === "asc" || sort === "desc") {
+      return sort;
+    }
+    if (sort === "ascending") {
+      return "asc";
+    }
+    if (sort === "descending") {
+      return "desc";
+    }
+    return "asc";
+  })();
+
   return {
-    // Group config
-    group: localGroup,
+    group,
     setGroup,
     clearGroup,
     groupProperty,
     groupType,
-    isGrouped: localGroup !== null,
-
-    // Sort order (from group config)
-    groupSortOrder: localGroup?.sort ?? "asc",
+    isGrouped: group !== null,
+    groupSortOrder,
     setGroupSortOrder,
-
-    // Hide empty groups (from group config)
-    hideEmptyGroups: localGroup?.hideEmpty ?? false,
+    hideEmptyGroups: group?.hideEmpty ?? false,
     setHideEmptyGroups,
   };
 }

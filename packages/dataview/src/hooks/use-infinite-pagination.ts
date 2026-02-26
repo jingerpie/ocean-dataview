@@ -24,6 +24,7 @@ import type { BasePaginatedResponse } from "../types/pagination-types";
 
 const DEFAULT_MAX_GROUPS = 50;
 const FLAT_GROUP_KEY = "__all__";
+const THROTTLE_MS = 50;
 
 // ============================================================================
 // Types
@@ -195,16 +196,17 @@ function useInfinitePaginationState<TQueryOptions extends InfiniteQueryOptions>(
 
   const [, startTransition] = useTransition();
 
-  // URL state for expanded groups
+  // URL state - using shallow: true (default) for fast client-side updates
+  // React Query handles refetching via queryKey changes
   const [, setExpanded] = useQueryState(
     "expanded",
-    parseAsExpanded.withOptions({ shallow: false })
+    parseAsExpanded.withOptions({ throttleMs: THROTTLE_MS })
   );
 
   // URL state for limit
   const [, setUrlLimit] = useQueryState(
     "limit",
-    parseAsInteger.withOptions({ shallow: false })
+    parseAsInteger.withOptions({ throttleMs: THROTTLE_MS })
   );
 
   // Determine which keys should have enabled queries

@@ -158,8 +158,8 @@ export function useGroupQuery<TData = unknown>(
     | undefined;
   const data: TData[] = responseData?.items ?? [];
 
-  // Pagination state
-  const hasNext = responseData?.hasNextPage ?? false;
+  // Pagination state (page-based pagination always uses boolean, not Record)
+  const hasNext = (responseData?.hasNextPage ?? false) as boolean;
   const hasPrev = cursorStart > 0;
 
   // Navigate to next page

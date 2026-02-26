@@ -3,140 +3,79 @@
 import type { WhereNode } from "@sparkyidea/shared/types";
 import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
 import { useQueryState } from "nuqs";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useDataViewContext } from "../lib/providers";
-import { useDebouncedCallback } from "./use-debounced-callback";
+import { useCallback } from "react";
 
-const FILTER_DEBOUNCE_MS = 300;
-
-/** Empty filter sentinel - written to URL when user explicitly clears filter */
-const EMPTY_FILTER: WhereNode[] = [];
+const THROTTLE_MS = 50;
 
 /**
- * Hook for managing filter state with debouncing.
+ * Hook for managing filter state via URL.
  *
- * - Reads from DataViewContext defaults (server props)
- * - Writes to URL via nuqs (triggers server re-render)
- * - Uses empty filter `[]` in URL to distinguish "cleared" from "use default"
- * - Uses useDebouncedCallback for debouncing (like tablecn)
+ * Uses URL as single source of truth with shallow: true (default).
+ * All components using this hook share the same URL state.
  *
  * @example
  * ```ts
- * const { filter, setFilter } = useFilterParams();
- *
- * // URL format: ?filter=[["status","eq","active"]]
- * // Empty filter: ?filter=[]
+ * const { filter, setFilter, addFilter, removeFilter } = useFilterParams();
  * ```
  */
 export function useFilterParams() {
-  // Read filter from context (server props)
-  const { filter: contextFilter } = useDataViewContext();
-  const serverFilter = contextFilter ?? null;
-
-  // URL state (nuqs handles URL updates)
-  const [, setUrlFilterState] = useQueryState(
+  // URL state - single source of truth shared across all hook instances
+  const [filter, setUrlFilter] = useQueryState(
     "filter",
-    parseAsFilter.withOptions({ shallow: false })
+    parseAsFilter.withOptions({ throttleMs: THROTTLE_MS })
   );
 
-  // Local state for immediate UI updates (initialized from server)
-  const [localFilter, setLocalFilter] = useState<WhereNode[] | null>(
-    serverFilter
-  );
-
-  // Track if change originated internally
-  const isInternalChange = useRef(false);
-
-  // Debounced URL update (like tablecn)
-  const debouncedUrlUpdate = useDebouncedCallback((filter: WhereNode[]) => {
-    setUrlFilterState(filter);
-  }, FILTER_DEBOUNCE_MS);
-
-  // Sync local state when server value changes (navigation, refresh)
-  // Skip sync if we triggered the change ourselves
-  useEffect(() => {
-    if (!isInternalChange.current) {
-      setLocalFilter(serverFilter);
-    }
-    isInternalChange.current = false;
-  }, [serverFilter]);
-
-  // Set the entire filter array - debounced (for value editing)
+  // Set filter (replaces entire filter)
   const setFilter = useCallback(
     (newFilter: WhereNode[] | null) => {
-      setLocalFilter(newFilter);
-      isInternalChange.current = true;
-
-      if (newFilter === null) {
-        // Write empty filter to URL to distinguish from "use default"
-        debouncedUrlUpdate(EMPTY_FILTER);
-        return;
-      }
-      debouncedUrlUpdate(newFilter);
+      void setUrlFilter(newFilter);
     },
-    [debouncedUrlUpdate]
+    [setUrlFilter]
   );
 
-  // Add filter - immediate (discrete action, popover closes)
+  // Add filter - immediate
   const addFilter = useCallback(
     (node: WhereNode) => {
-      const newFilter = localFilter ? [...localFilter, node] : [node];
-      setLocalFilter(newFilter);
-      isInternalChange.current = true;
-      void setUrlFilterState(newFilter);
+      const current = filter ?? [];
+      void setUrlFilter([...current, node]);
     },
-    [localFilter, setUrlFilterState]
+    [filter, setUrlFilter]
   );
 
-  // Remove filter - immediate (discrete action)
+  // Remove filter - immediate
   const removeFilter = useCallback(
     (propertyId: string) => {
-      // Calculate new filter from current local state
-      const currentFilter = localFilter;
-      if (!currentFilter) {
+      if (!filter) {
         return;
       }
 
-      const newFilter = currentFilter.filter((node) => {
+      const newFilter = filter.filter((node) => {
         if ("property" in node) {
           return node.property !== propertyId;
         }
         return true;
       });
 
-      // Update local state
-      setLocalFilter(newFilter.length > 0 ? newFilter : null);
-
-      // Update URL state (outside of render phase)
-      isInternalChange.current = true;
-      void setUrlFilterState(newFilter.length > 0 ? newFilter : EMPTY_FILTER);
+      void setUrlFilter(newFilter.length > 0 ? newFilter : null);
     },
-    [localFilter, setUrlFilterState]
+    [filter, setUrlFilter]
   );
 
+  // Clear all filters
   const clearFilter = useCallback(() => {
-    setLocalFilter(null);
-    isInternalChange.current = true;
-    // Write empty filter to URL immediately (no debounce for clear)
-    void setUrlFilterState(EMPTY_FILTER);
-  }, [setUrlFilterState]);
+    void setUrlFilter(null);
+  }, [setUrlFilter]);
 
-  /** Remove filter param from URL entirely, restoring to server defaults */
-  const resetFilter = useCallback(() => {
-    // Clear local filter immediately for UI feedback
-    setLocalFilter(null);
-    // Don't set isInternalChange - allow effect to sync to server defaults after re-render
-    // Immediate URL update for reset
-    void setUrlFilterState(null);
-  }, [setUrlFilterState]);
+  // Reset filter (same as clear)
+  const resetFilter = clearFilter;
 
   return {
-    filter: localFilter,
+    filter,
     setFilter,
     addFilter,
     removeFilter,
     clearFilter,
     resetFilter,
-    isFiltered: localFilter !== null && localFilter.length > 0,
+    isFiltered: filter !== null && filter.length > 0,
   };
 }
