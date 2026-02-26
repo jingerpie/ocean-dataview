@@ -91,14 +91,14 @@ export function HybridTable() {
       defaultLimit: limit,
       defaultExpanded:
         isGrouped && expanded.length > 0 ? expanded : groupKeys.slice(0, 1),
-      queryOptionsFactory: (groupKey, cursor) =>
+      queryOptionsFactory: (groupKey, cursor, limitParam) =>
         trpc.product.getMany.queryOptions({
           cursor,
           filter:
             isGrouped && group
               ? combineGroupFilter(group, groupKey, filter)
               : filter,
-          limit,
+          limit: limitParam ?? limit,
           search: searchFilter,
           sort: sort ?? [],
         }),

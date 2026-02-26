@@ -139,10 +139,10 @@ export function useGroupQuery<TData = unknown>(
   const isExpanded = expandedGroups.includes(groupKey);
   const enabled = enabledOption ?? isExpanded;
 
-  // Build query options
+  // Build query options - includes limit to ensure refetch on limit change
   const queryOptions = useMemo(
-    () => queryOptionsFactory(groupKey, cursor),
-    [queryOptionsFactory, groupKey, cursor]
+    () => queryOptionsFactory(groupKey, cursor, limit),
+    [queryOptionsFactory, groupKey, cursor, limit]
   );
 
   // Execute query with keepPreviousData

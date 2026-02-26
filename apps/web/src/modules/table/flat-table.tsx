@@ -42,11 +42,11 @@ export function FlatTable() {
     usePagePagination<Product>({
       groupKeys: [FLAT_GROUP_KEY],
       defaultLimit: limit,
-      queryOptionsFactory: (_groupKey, cursor) =>
+      queryOptionsFactory: (_groupKey, cursor, limitParam) =>
         trpc.product.getMany.queryOptions({
           cursor,
           filter,
-          limit,
+          limit: limitParam ?? limit,
           search: searchFilter,
           sort: sort ?? [],
         }),

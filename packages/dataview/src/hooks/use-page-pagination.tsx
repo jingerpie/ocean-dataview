@@ -77,10 +77,11 @@ export interface UsePagePaginationOptions<
   groupKeys: string[];
   /** Sort values for group ordering */
   groupSortValues?: Record<string, string | number>;
-  /** Query factory - receives groupKey and cursor */
+  /** Query factory - receives groupKey, cursor, and limit */
   queryOptionsFactory: (
     groupKey: string,
-    cursor?: CursorValue
+    cursor?: CursorValue,
+    limit?: Limit
   ) => TQueryOptions;
 }
 
