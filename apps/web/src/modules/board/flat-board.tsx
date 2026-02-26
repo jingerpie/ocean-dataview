@@ -16,6 +16,7 @@ import { parseAsString, useQueryState } from "nuqs";
 import { productProperties } from "@/properties/product-properties";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
+import { ViewTabs } from "./view-tabs";
 
 /**
  * Flat Board - columns by category, infinite load-more pagination.
@@ -97,7 +98,9 @@ export function FlatBoard() {
         enableSettings
         groupProperty="Category"
         properties={productProperties}
-      />
+      >
+        <ViewTabs />
+      </NotionToolbar>
       <BoardView
         cardPreview="productImage"
         cardSize="medium"

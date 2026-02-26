@@ -12,6 +12,7 @@ import { parseAsString, useQueryState } from "nuqs";
 import { productProperties } from "@/properties/product-properties";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
+import { ViewTabs } from "./view-tabs";
 
 /**
  * Flat List - no grouping, infinite scroll pagination.
@@ -57,7 +58,9 @@ export function FlatList() {
       search={search}
       sort={sort ?? []}
     >
-      <NotionToolbar enableSettings properties={productProperties} />
+      <NotionToolbar enableSettings properties={productProperties}>
+        <ViewTabs />
+      </NotionToolbar>
 
       {data.length === 0 ? (
         <div className="flex min-h-100 items-center justify-center">

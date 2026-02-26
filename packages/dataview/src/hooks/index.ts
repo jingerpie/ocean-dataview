@@ -41,13 +41,26 @@ export type {
 } from "./use-infinite-pagination";
 export { useInfinitePagination } from "./use-infinite-pagination";
 
-// usePagePagination - Page navigation (flat + grouped)
+// usePagePagination - Page navigation with merged DataViewProvider (primary API)
 export type {
-  PageGroupByOptions,
+  MergedDataViewProviderProps,
   PageGroupInfo,
-  PagePaginationResult,
   PagePaginationState,
   PageQueryOptions,
   UsePagePaginationOptions,
+  UsePagePaginationResult,
 } from "./use-page-pagination";
-export { usePagePagination } from "./use-page-pagination";
+export { FLAT_GROUP_KEY, usePagePagination } from "./use-page-pagination";
+
+// ============================================================================
+// Internal Exports (used by pagination hooks internally)
+// ============================================================================
+
+export { useGroupPaginationContext } from "../lib/providers/group-pagination-provider";
+export type {
+  GroupPaginationControls,
+  GroupQueryState,
+  UseGroupQueryOptions,
+  UseGroupQueryResult,
+} from "./use-group-query";
+export { useGroupQuery } from "./use-group-query";

@@ -1,26 +1,32 @@
 "use client";
 
 import { usePagePagination } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import { ListSkeleton, ListView } from "@sparkyidea/dataview/views/list-view";
 import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
 import {
   limitServerParser,
-  parseAsCursors,
   parseAsExpanded,
 } from "@sparkyidea/shared/utils/parsers/pagination";
 import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsString, useQueryState } from "nuqs";
-import { productProperties } from "@/properties/product-properties";
+import { useMemo } from "react";
+import {
+  type Product,
+  productProperties,
+} from "@/properties/product-properties";
 import { combineGroupFilter } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
+import { ViewTabs } from "./view-tabs";
 
 /**
  * Grouped List - grouped by category with per-group pagination.
+ *
+ * Uses usePagePagination hook that returns a DataViewProvider
+ * with pagination baked in.
  */
 export function GroupList() {
   const trpc = useTRPC();
@@ -29,7 +35,6 @@ export function GroupList() {
   const [sort] = useQueryState("sort", parseAsSort);
   const [search] = useQueryState("search", parseAsString.withDefault(""));
   const [limit] = useQueryState("limit", limitServerParser);
-  const [cursors] = useQueryState("cursors", parseAsCursors.withDefault({}));
   const [expanded] = useQueryState("expanded", parseAsExpanded.withDefault([]));
 
   const searchableFields = getSearchableProperties(productProperties);
@@ -41,17 +46,19 @@ export function GroupList() {
     })
   );
 
-  const allGroupKeys = Object.keys(groupData?.counts ?? {});
+  const groupKeys = useMemo(
+    () => Object.keys(groupData?.counts ?? {}),
+    [groupData?.counts]
+  );
 
-  const { data, pagination, handleAccordionChange, expandedGroups } =
-    usePagePagination({
-      limit,
-      cursors,
-      groupBy: {
-        allGroupKeys,
-        expanded,
-      },
-      queryOptions: (groupKey, cursor) =>
+  const { DataViewProvider, isPlaceholderData, isLoading, isEmpty } =
+    usePagePagination<Product>({
+      groupKeys,
+      groupCounts: groupData?.counts,
+      groupSortValues: groupData?.sortValues,
+      defaultLimit: limit,
+      defaultExpanded: expanded.length > 0 ? expanded : groupKeys.slice(0, 1),
+      queryOptionsFactory: (groupKey, cursor) =>
         trpc.product.getMany.queryOptions({
           filter: combineGroupFilter("category", groupKey, filter),
           search: searchFilter,
@@ -61,11 +68,13 @@ export function GroupList() {
         }),
     });
 
-  if ((pagination.isLoading || isGroupLoading) && data.length === 0) {
+  // Show skeleton while fetching group counts
+  if (isGroupLoading && groupKeys.length === 0) {
     return <ListSkeleton rowCount={8} />;
   }
 
-  if (pagination.groups.length === 0) {
+  // Empty state
+  if (groupKeys.length === 0) {
     return (
       <div className="flex min-h-100 items-center justify-center">
         <p className="text-muted-foreground">No products found</p>
@@ -73,31 +82,34 @@ export function GroupList() {
     );
   }
 
+  // DataViewProvider MUST render for queries to execute
   return (
     <DataViewProvider
-      counts={{
-        group: groupData?.counts ?? {},
-        groupSortValues: groupData?.sortValues ?? {},
-      }}
-      data={data}
-      expandedGroups={expandedGroups}
       filter={filter}
       group={{
         bySelect: { property: "category" },
         showCount: true,
       }}
-      onExpandedGroupsChange={handleAccordionChange}
-      pagination={pagination}
       properties={productProperties}
       search={search}
       sort={sort ?? []}
     >
-      <NotionToolbar
-        enableSettings
-        groupProperty="Category"
-        properties={productProperties}
-      />
-      <ListView pagination="page" />
+      {isLoading && isEmpty ? (
+        <ListSkeleton rowCount={8} />
+      ) : (
+        <>
+          <NotionToolbar
+            enableSettings
+            groupProperty="Category"
+            properties={productProperties}
+          >
+            <ViewTabs />
+          </NotionToolbar>
+          <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
+            <ListView pagination="page" />
+          </div>
+        </>
+      )}
     </DataViewProvider>
   );
 }

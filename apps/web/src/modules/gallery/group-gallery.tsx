@@ -20,6 +20,7 @@ import { productProperties } from "@/properties/product-properties";
 import { combineGroupFilter } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
+import { ViewTabs } from "./view-tabs";
 
 /**
  * Grouped Gallery - grouped by category with per-group load more.
@@ -101,7 +102,9 @@ export function GroupGallery() {
         enableSettings
         groupProperty="Category"
         properties={productProperties}
-      />
+      >
+        <ViewTabs />
+      </NotionToolbar>
       <GalleryView
         cardPreview="productImage"
         cardSize="medium"

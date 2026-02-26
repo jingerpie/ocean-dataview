@@ -1,7 +1,6 @@
 "use client";
 
 import { usePagePagination } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
@@ -11,13 +10,16 @@ import {
 import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
 import {
   limitServerParser,
-  parseAsCursors,
   parseAsExpanded,
 } from "@sparkyidea/shared/utils/parsers/pagination";
 import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsString, useQueryState } from "nuqs";
-import { productProperties } from "@/properties/product-properties";
+import { useMemo } from "react";
+import {
+  type Product,
+  productProperties,
+} from "@/properties/product-properties";
 import { combineGroupFilter } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
@@ -27,59 +29,58 @@ import { ViewTabs } from "./view-tabs";
 /**
  * Grouped Table - grouped by category with per-group pagination.
  *
- * Self-contained component that reads URL params directly via nuqs.
+ * Uses usePagePagination hook that returns a DataViewProvider
+ * with pagination baked in.
  */
 export function GroupTable() {
   const trpc = useTRPC();
 
-  // Read URL params directly via nuqs
+  // URL params
   const [filter] = useQueryState("filter", parseAsFilter);
   const [sort] = useQueryState("sort", parseAsSort);
   const [search] = useQueryState("search", parseAsString.withDefault(""));
   const [limit] = useQueryState("limit", limitServerParser);
-  const [cursors] = useQueryState("cursors", parseAsCursors.withDefault({}));
   const [expanded] = useQueryState("expanded", parseAsExpanded.withDefault([]));
 
-  // Build search filter from raw search string
   const searchableFields = getSearchableProperties(productProperties);
   const searchFilter = buildSearchFilter(search, searchableFields);
 
-  // Group counts (for accordion headers)
+  // Fetch group counts
   const { data: groupData, isLoading: isGroupLoading } = useQuery(
     trpc.product.getGroup.queryOptions({
       groupBy: { bySelect: { property: "category" } },
     })
   );
 
-  // Get all group keys (stable order)
-  const allGroupKeys = Object.keys(groupData?.counts ?? {});
+  const groupKeys = useMemo(
+    () => Object.keys(groupData?.counts ?? {}),
+    [groupData?.counts]
+  );
 
-  // Use unified page pagination with groupBy for per-group prev/next
-  const { data, pagination, handleAccordionChange, expandedGroups } =
-    usePagePagination({
-      limit,
-      cursors,
-      groupBy: {
-        allGroupKeys,
-        expanded,
-      },
-      queryOptions: (groupKey, cursor) =>
+  const { DataViewProvider, isPlaceholderData, isLoading, isEmpty } =
+    usePagePagination<Product>({
+      groupKeys,
+      groupCounts: groupData?.counts,
+      groupSortValues: groupData?.sortValues,
+      defaultLimit: limit,
+      defaultExpanded: expanded,
+      queryOptionsFactory: (groupKey, cursor) =>
         trpc.product.getMany.queryOptions({
+          cursor,
           filter: combineGroupFilter("category", groupKey, filter),
+          limit,
           search: searchFilter,
           sort: sort ?? [],
-          cursor,
-          limit,
         }),
     });
 
-  // Show skeleton on initial load
-  if ((pagination.isLoading || isGroupLoading) && data.length === 0) {
+  // Show skeleton while fetching group counts (before we know the groups)
+  if (isGroupLoading && groupKeys.length === 0) {
     return <TableSkeleton columnCount={5} rowCount={10} />;
   }
 
-  // Empty state
-  if (pagination.groups.length === 0) {
+  // Empty state - no groups found
+  if (groupKeys.length === 0) {
     return (
       <div className="flex min-h-100 items-center justify-center">
         <p className="text-muted-foreground">No products found</p>
@@ -87,39 +88,37 @@ export function GroupTable() {
     );
   }
 
+  // DataViewProvider MUST render for queries to execute
   return (
     <DataViewProvider
-      counts={{
-        group: groupData?.counts ?? {},
-        groupSortValues: groupData?.sortValues ?? {},
-      }}
-      data={data}
-      expandedGroups={expandedGroups}
       filter={filter}
-      group={{
-        bySelect: { property: "category" },
-        showCount: true,
-      }}
-      onExpandedGroupsChange={handleAccordionChange}
-      pagination={pagination}
+      group={{ bySelect: { property: "category" }, showCount: true }}
       properties={productProperties}
       search={search}
-      sort={sort ?? []}
+      sort={sort ?? undefined}
     >
-      <NotionToolbar
-        enableSettings
-        groupProperty="Category"
-        properties={productProperties}
-      >
-        <ViewTabs />
-      </NotionToolbar>
+      {isLoading && isEmpty ? (
+        <TableSkeleton columnCount={5} rowCount={10} />
+      ) : (
+        <>
+          <NotionToolbar
+            enableSettings
+            groupProperty="Category"
+            properties={productProperties}
+          >
+            <ViewTabs />
+          </NotionToolbar>
 
-      <TableView
-        bulkActions={bulkActions}
-        pagination="page"
-        showVerticalLines={false}
-        wrapAllColumns={false}
-      />
+          <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
+            <TableView
+              bulkActions={bulkActions}
+              pagination="page"
+              showVerticalLines={false}
+              wrapAllColumns={false}
+            />
+          </div>
+        </>
+      )}
     </DataViewProvider>
   );
 }

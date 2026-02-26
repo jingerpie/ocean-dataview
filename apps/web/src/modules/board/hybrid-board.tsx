@@ -4,9 +4,9 @@ import { FLAT_GROUP_KEY, usePagePagination } from "@sparkyidea/dataview/hooks";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
-  TableSkeleton,
-  TableView,
-} from "@sparkyidea/dataview/views/table-view";
+  BoardSkeleton,
+  BoardView,
+} from "@sparkyidea/dataview/views/board-view";
 import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
 import { groupServerParser } from "@sparkyidea/shared/utils/parsers/group";
 import {
@@ -24,16 +24,15 @@ import {
 import { combineGroupFilter, getGroupProperty } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
-import { bulkActions } from "./bulk-actions";
 import { ViewTabs } from "./view-tabs";
 
 /**
- * Hybrid Table - auto flat/grouped based on URL group param.
+ * Hybrid Board - auto flat/grouped based on URL group param.
  *
  * Uses usePagePagination hook that returns a DataViewProvider
  * with pagination baked in.
  */
-export function HybridTable() {
+export function HybridBoard() {
   const trpc = useTRPC();
 
   // URL params
@@ -105,7 +104,7 @@ export function HybridTable() {
 
   // Show skeleton while fetching group counts (grouped mode only)
   if (isGrouped && isGroupLoading && groupKeys.length === 0) {
-    return <TableSkeleton columnCount={5} rowCount={10} />;
+    return <BoardSkeleton columnCount={4} />;
   }
 
   // Empty state for grouped mode with no groups
@@ -127,7 +126,7 @@ export function HybridTable() {
       sort={sort ?? undefined}
     >
       {isLoading && isEmpty ? (
-        <TableSkeleton columnCount={5} rowCount={10} />
+        <BoardSkeleton columnCount={4} />
       ) : (
         <>
           <NotionToolbar
@@ -144,11 +143,12 @@ export function HybridTable() {
                 <p className="text-muted-foreground">No products found</p>
               </div>
             ) : (
-              <TableView
-                bulkActions={bulkActions}
+              <BoardView
+                cardPreview="productImage"
+                cardSize="medium"
+                colorColumns
+                fitMedia
                 pagination="page"
-                showVerticalLines={false}
-                wrapAllColumns={false}
               />
             )}
           </div>

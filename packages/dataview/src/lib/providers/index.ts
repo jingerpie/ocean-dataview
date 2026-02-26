@@ -13,3 +13,13 @@ export type {
 export { DataViewContext, useDataViewContext } from "./data-view-context";
 export type { DataViewProviderProps } from "./data-view-provider";
 export { DataViewProvider } from "./data-view-provider";
+// Note: GroupPaginationProvider is internal - use usePagePagination hook instead
+// Internal exports for the pagination hooks
+export {
+  type GroupCounts,
+  type GroupPaginationContextValue,
+  GroupPaginationProvider,
+  type GroupPaginationProviderProps,
+  type QueryOptionsFactory,
+  useGroupPaginationContext,
+} from "./group-pagination-provider";

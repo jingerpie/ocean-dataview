@@ -20,6 +20,7 @@ import { productProperties } from "@/properties/product-properties";
 import { combineGroupFilter } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
+import { ViewTabs } from "./view-tabs";
 
 /**
  * Grouped Board - columns by category, rows by availability (sub-groups).
@@ -125,7 +126,9 @@ export function GroupBoard() {
         enableSettings
         groupProperty="Category"
         properties={productProperties}
-      />
+      >
+        <ViewTabs />
+      </NotionToolbar>
       <BoardView
         cardPreview="productImage"
         cardSize="medium"
