@@ -11,6 +11,11 @@ export type {
   UseGroupConfigOptions,
   UseGroupConfigResult,
 } from "./use-group-config";
+
+/** Unified group info type (use this when code works with both page and infinite pagination) */
+export type GroupInfo<TData> =
+  | import("./use-page-pagination").PageGroupInfo<TData>
+  | import("./use-infinite-pagination").InfiniteGroupInfo<TData>;
 export { useGroupConfig } from "./use-group-config";
 export { useGroupParams } from "./use-group-params";
 export type { GroupingMode, GroupingParams } from "./use-grouping-params";
