@@ -73,15 +73,15 @@ export interface UsePagePaginationOptions<
   defaultLimit?: Limit;
   /** Optional group counts from server */
   groupCounts?: GroupCounts;
-  /** Group keys - use [FLAT_GROUP_KEY] for flat mode */
-  groupKeys: string[];
+  /** Group keys - defaults to [FLAT_GROUP_KEY] for flat mode */
+  groupKeys?: string[];
   /** Sort values for group ordering */
   groupSortValues?: Record<string, string | number>;
-  /** Query factory - receives groupKey, cursor, and limit */
+  /** Query factory - receives cursor, limit, and optionally groupKey (for grouped mode) */
   queryOptionsFactory: (
-    groupKey: string,
     cursor?: CursorValue,
-    limit?: Limit
+    limit?: Limit,
+    groupKey?: string
   ) => TQueryOptions;
 }
 
@@ -149,10 +149,17 @@ const noop = () => {
  *
  * @example
  * ```tsx
+ * // Flat mode - groupKey not needed
  * const { DataViewProvider, isPlaceholderData, isLoading, isEmpty } = usePagePagination({
- *   groupKeys: [FLAT_GROUP_KEY], // or actual group keys for grouped mode
- *   queryOptionsFactory: (groupKey, cursor) =>
- *     trpc.product.getMany.queryOptions({ filter, cursor }),
+ *   queryOptionsFactory: (cursor, limit) =>
+ *     trpc.product.getMany.queryOptions({ cursor, limit }),
+ * });
+ *
+ * // Grouped mode - include groupKey
+ * const { DataViewProvider } = usePagePagination({
+ *   groupKeys: ['group1', 'group2'],
+ *   queryOptionsFactory: (cursor, limit, groupKey) =>
+ *     trpc.product.getManyByGroup.queryOptions({ groupKey, cursor, limit }),
  * });
  *
  * // CORRECT: DataViewProvider always renders, skeleton is inside
@@ -181,7 +188,11 @@ export function usePagePagination<
 >(
   options: UsePagePaginationOptions<TQueryOptions>
 ): UsePagePaginationResult<TData, TProperties> {
-  const { groupKeys, defaultExpanded, defaultLimit = 10 } = options;
+  const {
+    groupKeys = [FLAT_GROUP_KEY],
+    defaultExpanded,
+    defaultLimit = 10,
+  } = options;
 
   // State synced from QueryBridge
   const [state, setState] = useState<InternalPaginationState<TData>>(() => ({
@@ -212,7 +223,7 @@ export function usePagePagination<
           defaultExpanded={opts.defaultExpanded}
           defaultLimit={opts.defaultLimit}
           groupCounts={opts.groupCounts}
-          groupKeys={opts.groupKeys}
+          groupKeys={opts.groupKeys ?? [FLAT_GROUP_KEY]}
           queryOptionsFactory={opts.queryOptionsFactory}
         >
           <QueryBridge<TData, TProperties>

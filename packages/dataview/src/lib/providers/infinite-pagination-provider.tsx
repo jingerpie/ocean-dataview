@@ -42,11 +42,11 @@ export interface InfiniteGroupQueryOptions {
 
 /**
  * Query options factory function type.
- * Receives limit as parameter to ensure queries refetch when limit changes.
+ * Receives limit and optionally groupKey (for grouped mode).
  */
 export type InfiniteQueryOptionsFactory<
   TQueryOptions extends InfiniteGroupQueryOptions,
-> = (groupKey: string, limit?: Limit) => TQueryOptions;
+> = (limit?: Limit, groupKey?: string) => TQueryOptions;
 
 /**
  * Group counts from server (optional).

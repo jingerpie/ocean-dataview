@@ -63,13 +63,13 @@ export function GroupGallery() {
       groupSortValues: groupData?.sortValues,
       defaultLimit: limit,
       defaultExpanded: expanded.length > 0 ? expanded : [],
-      queryOptionsFactory: (groupKey) =>
+      queryOptionsFactory: (limitParam, groupKey) =>
         trpc.product.getMany.infiniteQueryOptions(
           {
-            filter: combineGroupFilter(groupConfig, groupKey, filter),
+            filter: combineGroupFilter(groupConfig, groupKey ?? "", filter),
             search: searchFilter,
             sort: sort ?? [],
-            limit,
+            limit: limitParam ?? limit,
           },
           {
             getNextPageParam: (lastPage) =>

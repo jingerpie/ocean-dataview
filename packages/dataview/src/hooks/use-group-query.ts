@@ -141,8 +141,8 @@ export function useGroupQuery<TData = unknown>(
 
   // Build query options - includes limit to ensure refetch on limit change
   const queryOptions = useMemo(
-    () => queryOptionsFactory(groupKey, cursor, limit),
-    [queryOptionsFactory, groupKey, cursor, limit]
+    () => queryOptionsFactory(cursor, limit, groupKey),
+    [queryOptionsFactory, cursor, limit, groupKey]
   );
 
   // Execute query with keepPreviousData

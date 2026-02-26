@@ -135,8 +135,8 @@ export function useInfiniteGroupQuery<TData = unknown>(
 
   // Build query options - includes limit to ensure refetch on limit change
   const queryOptions = useMemo(
-    () => queryOptionsFactory(groupKey, limit),
-    [queryOptionsFactory, groupKey, limit]
+    () => queryOptionsFactory(limit, groupKey),
+    [queryOptionsFactory, limit, groupKey]
   );
 
   // Execute infinite query with keepPreviousData for smooth transitions

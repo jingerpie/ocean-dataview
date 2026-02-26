@@ -213,10 +213,14 @@ export function HybridBoard() {
       groupSortValues: groupData?.sortValues,
       defaultLimit: limit,
       defaultExpanded,
-      queryOptionsFactory: (groupKey, limitParam) =>
+      queryOptionsFactory: (limitParam, groupKey) =>
         trpc.product.getMany.infiniteQueryOptions(
           {
-            filter: combineGroupFilter(effectiveGroupConfig, groupKey, filter),
+            filter: combineGroupFilter(
+              effectiveGroupConfig,
+              groupKey ?? "",
+              filter
+            ),
             search: searchFilter,
             sort: sort ?? [],
             limit: limitParam ?? limit,

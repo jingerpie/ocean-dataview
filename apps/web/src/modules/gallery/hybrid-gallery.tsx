@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  INFINITE_FLAT_GROUP_KEY,
-  useInfinitePagination,
-} from "@sparkyidea/dataview/hooks";
+import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
@@ -61,10 +58,10 @@ export function HybridGallery() {
     enabled: isGrouped,
   });
 
-  // Group keys: flat uses "__all__", grouped uses keys from server
+  // Group keys: flat uses default ['__all__'], grouped uses keys from server
   const groupKeys = useMemo(() => {
     if (!isGrouped) {
-      return [INFINITE_FLAT_GROUP_KEY];
+      return undefined; // Use default ['__all__']
     }
     return Object.keys(groupData?.counts ?? {});
   }, [isGrouped, groupData?.counts]);
@@ -93,16 +90,16 @@ export function HybridGallery() {
       groupSortValues: isGrouped ? groupData?.sortValues : undefined,
       defaultLimit: limit,
       defaultExpanded: isGrouped && expanded.length > 0 ? expanded : [],
-      queryOptionsFactory: (groupKey) =>
+      queryOptionsFactory: (limitParam, groupKey) =>
         trpc.product.getMany.infiniteQueryOptions(
           {
             filter:
-              isGrouped && group
+              isGrouped && group && groupKey
                 ? combineGroupFilter(group, groupKey, filter)
                 : filter,
             search: searchFilter,
             sort: sort ?? [],
-            limit,
+            limit: limitParam ?? limit,
           },
           {
             getNextPageParam: (lastPage) =>

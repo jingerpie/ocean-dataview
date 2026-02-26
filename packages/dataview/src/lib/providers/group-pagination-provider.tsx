@@ -42,12 +42,12 @@ export interface GroupQueryOptions {
 
 /**
  * Query options factory function type.
- * Receives limit as parameter to ensure queries refetch when limit changes.
+ * Receives cursor, limit, and optionally groupKey (for grouped mode).
  */
 export type QueryOptionsFactory<TQueryOptions extends GroupQueryOptions> = (
-  groupKey: string,
   cursor?: CursorValue,
-  limit?: Limit
+  limit?: Limit,
+  groupKey?: string
 ) => TQueryOptions;
 
 /**

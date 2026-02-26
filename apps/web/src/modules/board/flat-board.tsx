@@ -57,7 +57,7 @@ export function FlatBoard() {
       defaultLimit: limit,
       defaultExpanded: columnKeys, // Expand all columns for flat board
       clientSideGroupBy: "category", // Group flat items by category property
-      queryOptionsFactory: (_groupKey, limitParam) =>
+      queryOptionsFactory: (limitParam) =>
         trpc.product.getManyByGroup.infiniteQueryOptions(
           {
             groupBy: groupConfig,

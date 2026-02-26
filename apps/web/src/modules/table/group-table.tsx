@@ -64,10 +64,10 @@ export function GroupTable() {
     groupSortValues: groupData?.sortValues,
     defaultLimit: limit,
     defaultExpanded: expanded,
-    queryOptionsFactory: (groupKey, cursor, limitParam) =>
+    queryOptionsFactory: (cursor, limitParam, groupKey) =>
       trpc.product.getMany.queryOptions({
         cursor,
-        filter: combineGroupFilter(groupConfig, groupKey, filter),
+        filter: combineGroupFilter(groupConfig, groupKey ?? "", filter),
         limit: limitParam ?? limit,
         search: searchFilter,
         sort: sort ?? [],

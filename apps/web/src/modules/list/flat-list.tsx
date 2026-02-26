@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  INFINITE_FLAT_GROUP_KEY,
-  useInfinitePagination,
-} from "@sparkyidea/dataview/hooks";
+import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import { ListSkeleton, ListView } from "@sparkyidea/dataview/views/list-view";
@@ -38,9 +35,8 @@ export function FlatList() {
 
   const { DataViewProvider, isLoading, isEmpty, isPlaceholderData } =
     useInfinitePagination<Product>({
-      groupKeys: [INFINITE_FLAT_GROUP_KEY],
       defaultLimit: limit,
-      queryOptionsFactory: (_groupKey, limitParam) =>
+      queryOptionsFactory: (limitParam) =>
         trpc.product.getMany.infiniteQueryOptions(
           {
             limit: limitParam ?? limit,

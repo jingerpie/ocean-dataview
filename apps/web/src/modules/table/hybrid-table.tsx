@@ -1,6 +1,6 @@
 "use client";
 
-import { FLAT_GROUP_KEY, usePagePagination } from "@sparkyidea/dataview/hooks";
+import { usePagePagination } from "@sparkyidea/dataview/hooks";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
@@ -58,10 +58,10 @@ export function HybridTable() {
     enabled: isGrouped,
   });
 
-  // Group keys: flat uses "__all__", grouped uses keys from server
+  // Group keys: flat uses default ['__all__'], grouped uses keys from server
   const groupKeys = useMemo(() => {
     if (!isGrouped) {
-      return [FLAT_GROUP_KEY];
+      return undefined; // Use default ['__all__']
     }
     return Object.keys(groupData?.counts ?? {});
   }, [isGrouped, groupData?.counts]);
@@ -91,11 +91,11 @@ export function HybridTable() {
       defaultLimit: limit,
       defaultExpanded:
         isGrouped && expanded.length > 0 ? expanded : groupKeys.slice(0, 1),
-      queryOptionsFactory: (groupKey, cursor, limitParam) =>
+      queryOptionsFactory: (cursor, limitParam, groupKey) =>
         trpc.product.getMany.queryOptions({
           cursor,
           filter:
-            isGrouped && group
+            isGrouped && group && groupKey
               ? combineGroupFilter(group, groupKey, filter)
               : filter,
           limit: limitParam ?? limit,

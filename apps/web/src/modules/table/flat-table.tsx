@@ -1,6 +1,6 @@
 "use client";
 
-import { FLAT_GROUP_KEY, usePagePagination } from "@sparkyidea/dataview/hooks";
+import { usePagePagination } from "@sparkyidea/dataview/hooks";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
@@ -40,9 +40,8 @@ export function FlatTable() {
 
   const { DataViewProvider, isPlaceholderData, isLoading, isEmpty } =
     usePagePagination<Product>({
-      groupKeys: [FLAT_GROUP_KEY],
       defaultLimit: limit,
-      queryOptionsFactory: (_groupKey, cursor, limitParam) =>
+      queryOptionsFactory: (cursor, limitParam) =>
         trpc.product.getMany.queryOptions({
           cursor,
           filter,

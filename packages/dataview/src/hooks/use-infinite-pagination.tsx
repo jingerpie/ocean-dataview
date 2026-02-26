@@ -87,12 +87,12 @@ export interface UseInfinitePaginationOptions<
   defaultLimit?: Limit;
   /** Optional group counts from server */
   groupCounts?: GroupCounts;
-  /** Group keys - use [FLAT_GROUP_KEY] for flat mode */
-  groupKeys: string[];
+  /** Group keys - defaults to [FLAT_GROUP_KEY] for flat mode */
+  groupKeys?: string[];
   /** Sort values for group ordering */
   groupSortValues?: Record<string, string | number>;
-  /** Query factory - receives groupKey and limit */
-  queryOptionsFactory: (groupKey: string, limit?: Limit) => TQueryOptions;
+  /** Query factory - receives limit and optionally groupKey (for grouped mode) */
+  queryOptionsFactory: (limit?: Limit, groupKey?: string) => TQueryOptions;
 }
 
 /**
@@ -166,10 +166,17 @@ const noop = () => {
  *
  * @example
  * ```tsx
+ * // Flat mode - groupKey not needed
  * const { DataViewProvider, isLoading, isEmpty } = useInfinitePagination({
- *   groupKeys: [FLAT_GROUP_KEY], // or actual group keys for grouped mode
- *   queryOptionsFactory: (groupKey) =>
- *     trpc.product.getMany.infiniteQueryOptions({ filter, limit }),
+ *   queryOptionsFactory: (limit) =>
+ *     trpc.product.getMany.infiniteQueryOptions({ limit }),
+ * });
+ *
+ * // Grouped mode - include groupKey
+ * const { DataViewProvider } = useInfinitePagination({
+ *   groupKeys: ['group1', 'group2'],
+ *   queryOptionsFactory: (limit, groupKey) =>
+ *     trpc.product.getManyByGroup.infiniteQueryOptions({ groupKey, limit }),
  * });
  *
  * // CORRECT: DataViewProvider always renders, skeleton is inside
@@ -225,7 +232,7 @@ export function useInfinitePagination<
           defaultExpanded={opts.defaultExpanded}
           defaultLimit={opts.defaultLimit}
           groupCounts={opts.groupCounts}
-          groupKeys={opts.groupKeys}
+          groupKeys={opts.groupKeys ?? [FLAT_GROUP_KEY]}
           queryOptionsFactory={opts.queryOptionsFactory}
         >
           <InfiniteQueryBridge<TData, TProperties>
