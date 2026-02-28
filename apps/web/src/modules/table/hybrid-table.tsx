@@ -1,160 +1,152 @@
 "use client";
 
-import { usePagePagination } from "@sparkyidea/dataview/hooks";
+import {
+  usePagePagination,
+  usePaginationState,
+} from "@sparkyidea/dataview/hooks";
+import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
   TableSkeleton,
   TableView,
 } from "@sparkyidea/dataview/views/table-view";
-import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
-import { groupServerParser } from "@sparkyidea/shared/utils/parsers/group";
-import {
-  limitServerParser,
-  parseAsExpanded,
-} from "@sparkyidea/shared/utils/parsers/pagination";
-import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
-import { useQuery } from "@tanstack/react-query";
-import { parseAsString, useQueryState } from "nuqs";
-import { useMemo } from "react";
-import {
-  type Product,
-  productProperties,
-} from "@/properties/product-properties";
+import type { WhereNode } from "@sparkyidea/shared/types";
+import type { Limit } from "@sparkyidea/shared/types/pagination.type";
+import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
+import { productProperties } from "@/properties/product-properties";
 import { combineGroupFilter, getGroupProperty } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
 import { bulkActions } from "./bulk-actions";
 import { ViewTabs } from "./view-tabs";
 
+interface HybridTableProps {
+  expanded: string[];
+  filter: WhereNode[] | null;
+  group: GroupConfigInput | null;
+  limit: Limit;
+  search: string;
+  sort: { property: string; direction: "asc" | "desc" }[];
+  subGroup: GroupConfigInput | null;
+}
+
 /**
- * Hybrid Table - auto flat/grouped based on URL group param.
+ * Hybrid Table - auto flat/grouped based on group param.
  *
- * Uses usePagePagination hook that returns a DataViewProvider
- * with pagination baked in.
+ * Uses usePagePagination hook with groupQueryOptionsFactory for internal group fetching.
+ * QueryBridge handles group data fetching and stale data detection automatically.
  */
-export function HybridTable() {
+export function HybridTable({
+  expanded,
+  filter,
+  group,
+  limit,
+  search,
+  sort,
+  subGroup,
+}: HybridTableProps) {
   const trpc = useTRPC();
 
-  // URL params
-  const [filter] = useQueryState("filter", parseAsFilter);
-  const [sort] = useQueryState("sort", parseAsSort);
-  const [search] = useQueryState("search", parseAsString.withDefault(""));
-  const [limit] = useQueryState("limit", limitServerParser);
-  const [expanded] = useQueryState("expanded", parseAsExpanded.withDefault([]));
-  const [group] = useQueryState("group", groupServerParser);
-
-  const groupProperty = getGroupProperty(group);
-  const isGrouped = Boolean(group && groupProperty);
-
   const searchableFields = getSearchableProperties(productProperties);
-  const searchFilter = buildSearchFilter(search, searchableFields);
-
-  // Fetch group counts (only when grouped)
-  const { data: groupData, isLoading: isGroupLoading } = useQuery({
-    ...trpc.product.getGroup.queryOptions({
-      groupBy: group ?? { bySelect: { property: "category" } },
-    }),
-    enabled: isGrouped,
-  });
-
-  // Group keys: flat uses default ['__all__'], grouped uses keys from server
-  const groupKeys = useMemo(() => {
-    if (!isGrouped) {
-      return undefined; // Use default ['__all__']
-    }
-    return Object.keys(groupData?.counts ?? {});
-  }, [isGrouped, groupData?.counts]);
-
-  // Transform GroupConfigInput to GroupConfig format (only when grouped)
-  const sortMap = { asc: "ascending", desc: "descending" } as const;
-  const groupConfigForView = useMemo(() => {
-    if (!group) {
-      return undefined;
-    }
-    return {
-      ...group,
-      showCount: true,
-      sort: group.sort ? sortMap[group.sort] : undefined,
-    };
-  }, [group]);
 
   // Get property label for toolbar display
+  const groupProperty = getGroupProperty(group);
   const propertyMeta = productProperties.find((p) => p.id === groupProperty);
   const groupPropertyLabel = propertyMeta?.label ?? groupProperty ?? "";
 
-  const { DataViewProvider, isPlaceholderData, isLoading, isEmpty } =
-    usePagePagination<Product>({
-      groupKeys,
-      groupCounts: isGrouped ? groupData?.counts : undefined,
-      groupSortValues: isGrouped ? groupData?.sortValues : undefined,
-      defaultLimit: limit,
-      defaultExpanded:
-        isGrouped && expanded.length > 0 ? expanded : groupKeys.slice(0, 1),
-      queryOptionsFactory: (cursor, limitParam, groupKey) =>
-        trpc.product.getMany.queryOptions({
-          cursor,
-          filter:
-            isGrouped && group && groupKey
-              ? combineGroupFilter(group, groupKey, filter)
-              : filter,
-          limit: limitParam ?? limit,
-          search: searchFilter,
-          sort: sort ?? [],
-        }),
-    });
+  const { pagination } = usePagePagination({
+    // Factory for group counts - called internally by QueryBridge when group is set
+    groupQueryOptionsFactory: (groupConfig) =>
+      trpc.product.getGroup.queryOptions({
+        groupBy: groupConfig,
+      }),
 
-  // Show skeleton while fetching group counts (grouped mode only)
-  if (isGrouped && isGroupLoading && groupKeys.length === 0) {
+    // Factory for data items - receives groupConfig from internal state
+    queryOptionsFactory: (params) =>
+      trpc.product.getMany.queryOptions({
+        cursors: params.cursor
+          ? { [params.groupKey ?? "__ungrouped__"]: params.cursor }
+          : undefined,
+        filter:
+          params.groupConfig && params.groupKey
+            ? combineGroupFilter(
+                params.groupConfig,
+                params.groupKey,
+                params.filter
+              )
+            : params.filter,
+        limit: params.limit,
+        search: buildSearchFilter(params.search, searchableFields),
+        sort: params.sort ?? [],
+      }),
+  });
+
+  // Add view options to group config
+  const groupConfigForView = group ? { ...group, showCount: true } : undefined;
+
+  return (
+    <DataViewProvider
+      defaults={{
+        expanded: expanded.length > 0 ? expanded : undefined,
+        filter,
+        group: groupConfigForView,
+        limit,
+        search,
+        sort: sort ?? [],
+        subGroup,
+      }}
+      pagination={pagination}
+      properties={productProperties}
+    >
+      <HybridTableContent
+        groupPropertyLabel={group ? groupPropertyLabel : undefined}
+      />
+    </DataViewProvider>
+  );
+}
+
+interface HybridTableContentProps {
+  groupPropertyLabel?: string;
+}
+
+/**
+ * HybridTableContent - Inner content component that accesses loading states.
+ *
+ * Uses usePaginationState() to get loading states from context.
+ * Group loading is now handled internally by QueryBridge.
+ */
+function HybridTableContent({ groupPropertyLabel }: HybridTableContentProps) {
+  const { isLoading, isEmpty, isPlaceholderData } = usePaginationState();
+
+  if (isLoading && isEmpty) {
     return <TableSkeleton columnCount={5} rowCount={10} />;
   }
 
-  // Empty state for grouped mode with no groups
-  if (isGrouped && groupKeys.length === 0) {
-    return (
-      <div className="flex min-h-100 items-center justify-center">
-        <p className="text-muted-foreground">No products found</p>
-      </div>
-    );
-  }
-
-  // DataViewProvider MUST render for queries to execute
   return (
-    <DataViewProvider
-      filter={filter}
-      group={groupConfigForView}
-      properties={productProperties}
-      search={search}
-      sort={sort ?? undefined}
-    >
-      {isLoading && isEmpty && !isGrouped ? (
-        <TableSkeleton columnCount={5} rowCount={10} />
-      ) : (
-        <>
-          <NotionToolbar
-            enableSettings
-            groupProperty={isGrouped ? groupPropertyLabel : undefined}
-            properties={productProperties}
-          >
-            <ViewTabs />
-          </NotionToolbar>
+    <>
+      <NotionToolbar
+        enableSettings
+        groupProperty={groupPropertyLabel}
+        properties={productProperties}
+      >
+        <ViewTabs />
+      </NotionToolbar>
 
-          <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
-            {isEmpty ? (
-              <div className="flex min-h-100 items-center justify-center">
-                <p className="text-muted-foreground">No products found</p>
-              </div>
-            ) : (
-              <TableView
-                bulkActions={bulkActions}
-                pagination="page"
-                showVerticalLines={false}
-                wrapAllColumns={false}
-              />
-            )}
+      <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
+        {isEmpty ? (
+          <div className="flex min-h-100 items-center justify-center">
+            <p className="text-muted-foreground">No products found</p>
           </div>
-        </>
-      )}
-    </DataViewProvider>
+        ) : (
+          <TableView
+            bulkActions={bulkActions}
+            pagination="page"
+            showVerticalLines={false}
+            wrapAllColumns={false}
+          />
+        )}
+      </div>
+    </>
   );
 }

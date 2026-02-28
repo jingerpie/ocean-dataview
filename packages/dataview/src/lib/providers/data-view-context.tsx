@@ -14,7 +14,7 @@ import type {
 
 /**
  * Union type for pagination - supports page and infinite pagination.
- * Both types have `groups` array (flat mode uses single "__all__" group).
+ * Both types have `groups` array (flat mode uses single "__ungrouped__" group).
  */
 export type PaginationOutput<TData> =
   | PagePaginationState<TData>
@@ -41,7 +41,7 @@ export interface DataViewContextValue<
   filter?: WhereNode[] | null;
 
   // View config (previously in view prop)
-  group?: GroupConfig;
+  group?: GroupConfig | null;
   hideAllProperties: () => void;
 
   limit?: number;
@@ -56,7 +56,7 @@ export interface DataViewContextValue<
   setPropertyVisibility: (visibility: TProperties[number]["id"][]) => void;
   showAllProperties: () => void;
   sort?: SortQuery[];
-  subGroup?: SubGroupConfig;
+  subGroup?: SubGroupConfig | null;
   toggleProperty: (propertyId: TProperties[number]["id"]) => void;
 }
 

@@ -26,6 +26,17 @@ export {
   type PaginationContext,
 } from "./pagination";
 export type {
+  BaseQueryOptions,
+  GroupQueryOptionsFactory,
+  InfinitePaginationController,
+  InfiniteQueryOptionsFactory,
+  InfiniteQueryOptionsFactoryParams,
+  PagePaginationController,
+  PageQueryOptionsFactory,
+  PageQueryOptionsFactoryParams,
+  PaginationController,
+} from "./pagination-controller";
+export type {
   BasePaginatedResponse,
   BidirectionalPaginatedResponse,
   GroupCountInfo,

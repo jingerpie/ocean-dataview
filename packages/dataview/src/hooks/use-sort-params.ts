@@ -3,15 +3,17 @@
 import type { SortQuery } from "@sparkyidea/shared/types";
 import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
 import { useQueryState } from "nuqs";
-import { useCallback } from "react";
+import { useCallback, useContext } from "react";
+import { DataViewContext } from "../lib/providers/data-view-context";
 
 const THROTTLE_MS = 50;
 
 /**
  * Hook for managing sort state via URL.
  *
- * Uses URL as single source of truth with shallow: true (default).
- * All components using this hook share the same URL state.
+ * When used inside DataViewProvider, reads from context (which has defaults applied).
+ * When used outside, reads directly from URL.
+ * Writes always go to URL.
  *
  * @example
  * ```ts
@@ -19,11 +21,17 @@ const THROTTLE_MS = 50;
  * ```
  */
 export function useSortParams() {
-  // URL state - single source of truth shared across all hook instances
-  const [sort, setUrlSort] = useQueryState(
+  // Try to read from context (has defaults applied)
+  const context = useContext(DataViewContext);
+
+  // URL state for writes and fallback reads
+  const [urlSort, setUrlSort] = useQueryState(
     "sort",
     parseAsSort.withDefault([]).withOptions({ throttleMs: THROTTLE_MS })
   );
+
+  // Use context value if available (has defaults), otherwise URL value
+  const sort = context?.sort ?? urlSort;
 
   // Set entire sort array
   const setSort = useCallback(

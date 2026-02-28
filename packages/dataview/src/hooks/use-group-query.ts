@@ -3,7 +3,7 @@
 import type { Limit } from "@sparkyidea/shared/types";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
-import { useGroupPaginationContext } from "../lib/providers/group-pagination-provider";
+import { useQueryControllerContext } from "../lib/providers/query-bridge";
 import type { BidirectionalPaginatedResponse } from "../types/pagination-types";
 
 // ============================================================================
@@ -85,7 +85,7 @@ export interface UseGroupQueryResult<TData>
  * Each group accordion owns its useQuery with `placeholderData: keepPreviousData`,
  * which keeps showing stale data with reduced opacity while refetching.
  *
- * Must be used within a GroupPaginationProvider.
+ * Must be used within a QueryBridge (via DataViewProvider with pagination prop).
  *
  * @example
  * ```tsx
@@ -120,16 +120,21 @@ export function useGroupQuery<TData = unknown>(
 ): UseGroupQueryResult<TData> {
   const { groupKey, enabled: enabledOption } = options;
 
-  // Get context from provider
-  // Note: context is loosely typed to allow TRPC's complex query options
+  // Get runtime state from context (provided by QueryBridge)
+  const state = useQueryControllerContext();
+
   const {
     cursors,
     expandedGroups,
+    filter,
+    group,
     limit,
     queryOptionsFactory,
+    search,
     setCursor,
     setLimit,
-  } = useGroupPaginationContext();
+    sort,
+  } = state;
 
   // Get cursor for this group
   const cursor = cursors[groupKey];
@@ -139,15 +144,28 @@ export function useGroupQuery<TData = unknown>(
   const isExpanded = expandedGroups.includes(groupKey);
   const enabled = enabledOption ?? isExpanded;
 
-  // Build query options - includes limit to ensure refetch on limit change
+  // Build query options - pass all params as object to factory
   const queryOptions = useMemo(
-    () => queryOptionsFactory(cursor, limit, groupKey),
-    [queryOptionsFactory, cursor, limit, groupKey]
+    () =>
+      queryOptionsFactory({
+        cursor,
+        filter,
+        groupConfig: group,
+        groupKey,
+        limit,
+        search,
+        sort,
+      }),
+    [queryOptionsFactory, cursor, filter, group, groupKey, limit, search, sort]
   );
 
   // Execute query with keepPreviousData
+  // Cast queryOptions to work with useQuery - factory returns TRPC's queryOptions shape
   const query = useQuery({
-    ...queryOptions,
+    ...(queryOptions as {
+      queryKey: readonly unknown[];
+      queryFn: () => Promise<unknown>;
+    }),
     placeholderData: keepPreviousData,
     enabled,
   });

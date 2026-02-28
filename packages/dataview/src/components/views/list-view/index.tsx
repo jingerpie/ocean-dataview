@@ -151,7 +151,7 @@ export function ListView<
   // Build pagination context for flat view
   const flatPaginationContext = buildPaginationContext(
     contextPagination,
-    "__all__"
+    "__ungrouped__"
   );
 
   // STANDARD VIEW: Flat list without grouping

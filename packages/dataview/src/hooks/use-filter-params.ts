@@ -3,15 +3,17 @@
 import type { WhereNode } from "@sparkyidea/shared/types";
 import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
 import { useQueryState } from "nuqs";
-import { useCallback } from "react";
+import { useCallback, useContext } from "react";
+import { DataViewContext } from "../lib/providers/data-view-context";
 
 const THROTTLE_MS = 50;
 
 /**
  * Hook for managing filter state via URL.
  *
- * Uses URL as single source of truth with shallow: true (default).
- * All components using this hook share the same URL state.
+ * When used inside DataViewProvider, reads from context (which has defaults applied).
+ * When used outside, reads directly from URL.
+ * Writes always go to URL.
  *
  * @example
  * ```ts
@@ -19,11 +21,17 @@ const THROTTLE_MS = 50;
  * ```
  */
 export function useFilterParams() {
-  // URL state - single source of truth shared across all hook instances
-  const [filter, setUrlFilter] = useQueryState(
+  // Try to read from context (has defaults applied)
+  const context = useContext(DataViewContext);
+
+  // URL state for writes and fallback reads
+  const [urlFilter, setUrlFilter] = useQueryState(
     "filter",
     parseAsFilter.withOptions({ throttleMs: THROTTLE_MS })
   );
+
+  // Use context value if available (has defaults), otherwise URL value
+  const filter = context?.filter ?? urlFilter;
 
   // Set filter (replaces entire filter)
   const setFilter = useCallback(

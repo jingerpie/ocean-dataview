@@ -1,24 +1,30 @@
 "use client";
 
-import { usePagePagination } from "@sparkyidea/dataview/hooks";
+import {
+  usePagePagination,
+  usePaginationState,
+} from "@sparkyidea/dataview/hooks";
+import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
   TableSkeleton,
   TableView,
 } from "@sparkyidea/dataview/views/table-view";
-import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
-import { limitServerParser } from "@sparkyidea/shared/utils/parsers/pagination";
-import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
-import { parseAsString, useQueryState } from "nuqs";
-import {
-  type Product,
-  productProperties,
-} from "@/properties/product-properties";
+import type { WhereNode } from "@sparkyidea/shared/types";
+import type { Limit } from "@sparkyidea/shared/types/pagination.type";
+import { productProperties } from "@/properties/product-properties";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
 import { bulkActions } from "./bulk-actions";
 import { ViewTabs } from "./view-tabs";
+
+interface FlatTableProps {
+  filter: WhereNode[] | null;
+  limit: Limit;
+  search: string;
+  sort: { property: string; direction: "asc" | "desc" }[];
+}
 
 /**
  * Flat Table - no grouping, page-based cursor pagination.
@@ -26,64 +32,73 @@ import { ViewTabs } from "./view-tabs";
  * Uses usePagePagination hook that returns a DataViewProvider
  * with pagination baked in.
  */
-export function FlatTable() {
+export function FlatTable({ filter, sort, search, limit }: FlatTableProps) {
   const trpc = useTRPC();
 
-  // URL params
-  const [filter] = useQueryState("filter", parseAsFilter);
-  const [sort] = useQueryState("sort", parseAsSort);
-  const [search] = useQueryState("search", parseAsString.withDefault(""));
-  const [limit] = useQueryState("limit", limitServerParser);
-
   const searchableFields = getSearchableProperties(productProperties);
-  const searchFilter = buildSearchFilter(search, searchableFields);
 
-  const { DataViewProvider, isPlaceholderData, isLoading, isEmpty } =
-    usePagePagination<Product>({
-      defaultLimit: limit,
-      queryOptionsFactory: (cursor, limitParam) =>
-        trpc.product.getMany.queryOptions({
-          cursor,
-          filter,
-          limit: limitParam ?? limit,
-          search: searchFilter,
-          sort: sort ?? [],
-        }),
-    });
+  const { pagination } = usePagePagination({
+    queryOptionsFactory: (params) =>
+      trpc.product.getMany.queryOptions({
+        // Wrap cursor in __ungrouped__ key for unified cursors format
+        cursors: params.cursor ? { __ungrouped__: params.cursor } : undefined,
+        filter: params.filter,
+        limit: params.limit,
+        search: buildSearchFilter(params.search, searchableFields),
+        sort: params.sort ?? [],
+      }),
+  });
 
   // DataViewProvider MUST render for queries to execute
   return (
     <DataViewProvider
-      filter={filter}
+      defaults={{
+        filter,
+        limit,
+        search,
+        sort: sort ?? [],
+      }}
+      pagination={pagination}
       properties={productProperties}
-      search={search}
-      sort={sort ?? undefined}
     >
-      {isLoading && isEmpty ? (
-        // Show skeleton during initial load
-        <TableSkeleton columnCount={5} rowCount={10} />
-      ) : (
-        <>
-          <NotionToolbar enableSettings properties={productProperties}>
-            <ViewTabs />
-          </NotionToolbar>
-
-          <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
-            {isEmpty ? (
-              <div className="flex min-h-100 items-center justify-center">
-                <p className="text-muted-foreground">No products found</p>
-              </div>
-            ) : (
-              <TableView
-                bulkActions={bulkActions}
-                pagination="page"
-                showVerticalLines={false}
-                wrapAllColumns={false}
-              />
-            )}
-          </div>
-        </>
-      )}
+      <FlatTableContent />
     </DataViewProvider>
+  );
+}
+
+/**
+ * FlatTableContent - Inner content component that accesses loading states.
+ *
+ * Uses usePaginationState() to get loading states from context.
+ */
+function FlatTableContent() {
+  const { isLoading, isEmpty, isPlaceholderData } = usePaginationState();
+
+  if (isLoading && isEmpty) {
+    // Show skeleton during initial load
+    return <TableSkeleton columnCount={5} rowCount={10} />;
+  }
+
+  return (
+    <>
+      <NotionToolbar enableSettings properties={productProperties}>
+        <ViewTabs />
+      </NotionToolbar>
+
+      <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
+        {isEmpty ? (
+          <div className="flex min-h-100 items-center justify-center">
+            <p className="text-muted-foreground">No products found</p>
+          </div>
+        ) : (
+          <TableView
+            bulkActions={bulkActions}
+            pagination="page"
+            showVerticalLines={false}
+            wrapAllColumns={false}
+          />
+        )}
+      </div>
+    </>
   );
 }

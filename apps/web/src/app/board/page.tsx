@@ -1,23 +1,28 @@
-"use client";
-
+import { BoardSkeleton } from "@sparkyidea/dataview/views/board-view";
 import { Tabs, TabsContent } from "@sparkyidea/ui/components/tabs";
 import { Suspense } from "react";
-import { FlatBoard } from "@/modules/board/flat-board";
-import { GroupBoard } from "@/modules/board/group-board";
-import { HybridBoard } from "@/modules/board/hybrid-board";
+import { FlatBoardDemo } from "./components/flat-board-demo";
+import { GroupBoardDemo } from "./components/group-board-demo";
+import { HybridBoardDemo } from "./components/hybrid-board-demo";
 
-export default function BoardPage() {
+interface BoardPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function BoardPage({ searchParams }: BoardPageProps) {
+  const params = await searchParams;
+
   return (
-    <Suspense>
+    <Suspense fallback={<BoardSkeleton columnCount={4} />}>
       <Tabs defaultValue="flat">
         <TabsContent value="flat">
-          <FlatBoard />
+          <FlatBoardDemo params={params} />
         </TabsContent>
         <TabsContent value="group">
-          <GroupBoard />
+          <GroupBoardDemo params={params} />
         </TabsContent>
         <TabsContent value="hybrid">
-          <HybridBoard />
+          <HybridBoardDemo params={params} />
         </TabsContent>
       </Tabs>
     </Suspense>

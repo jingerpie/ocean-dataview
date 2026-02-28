@@ -39,8 +39,18 @@ export const productRouter = router({
   getMany: publicProcedure
     .input(productSearchParamsSchema)
     .query(async ({ input }) => {
-      const { cursor, limit, filter, sort, search } = input;
-      const { after, before } = getCursorParams(cursor ?? undefined);
+      const {
+        cursors,
+        cursor: simpleCursor,
+        limit,
+        filter,
+        sort,
+        search,
+      } = input;
+      // Extract cursor: prefer cursors (unified), fall back to simple cursor (infinite)
+      const UNGROUPED_KEY = "__ungrouped__";
+      const cursorValue = cursors?.[UNGROUPED_KEY] ?? simpleCursor;
+      const { after, before } = getCursorParams(cursorValue);
 
       // Build filter/search WHERE
       // search is SearchQuery ({ or: [...] }), wrap in array for buildWhere

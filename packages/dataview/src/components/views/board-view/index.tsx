@@ -163,6 +163,15 @@ export function BoardView<
   const hasGroupedPagination =
     contextPagination && "groups" in contextPagination;
 
+  // Check if pagination is flat (only __ungrouped__ group)
+  // This happens when QueryBridge fetches data without clientSideGroupBy
+  // BoardView should handle client-side grouping in this case
+  const isPaginationFlat =
+    hasGroupedPagination &&
+    "groups" in contextPagination &&
+    contextPagination.groups.length === 1 &&
+    contextPagination.groups[0]?.key === "__ungrouped__";
+
   // Validate property keys
   const propertyValidationError = useMemo(
     () => validatePropertyKeys(properties),
@@ -210,8 +219,10 @@ export function BoardView<
 
   // Use shared hook for primary group configuration (with auto-selection)
   // For sub-grouped boards: always required (columns are client-side)
-  // For non-sub-grouped boards: skip if using grouped pagination
-  const useClientGrouping = !!subGroupConfig || !hasGroupedPagination;
+  // For non-sub-grouped boards: skip if using grouped pagination (unless it's flat)
+  // isPaginationFlat means QueryBridge returned flat data (__ungrouped__) and BoardView should group
+  const useClientGrouping =
+    !!subGroupConfig || !hasGroupedPagination || isPaginationFlat;
   const {
     groupedData: clientGroupedData,
     validationError: primaryValidationError,
@@ -318,13 +329,13 @@ export function BoardView<
   ]);
 
   // Use shared hook for sub-group configuration (if present)
-  // Map sort values from new format to internal format
+  // Map sort values to internal format
   const subGroupSortMap: Record<
     string,
     "propertyAscending" | "propertyDescending"
   > = {
-    ascending: "propertyAscending",
-    descending: "propertyDescending",
+    asc: "propertyAscending",
+    desc: "propertyDescending",
   };
   const { validationError: subGroupValidationError } = useGroupConfig(
     transformedData,

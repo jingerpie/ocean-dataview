@@ -54,7 +54,7 @@ export type GroupByConfig =
 export interface SharedGroupOptions {
   hideEmpty?: boolean;
   showCount?: boolean;
-  sort?: "ascending" | "descending";
+  sort?: "asc" | "desc";
 }
 
 // Final group config type

@@ -1,86 +1,103 @@
 "use client";
 
-import { usePagePagination } from "@sparkyidea/dataview/hooks";
+import {
+  usePagePagination,
+  usePaginationState,
+} from "@sparkyidea/dataview/hooks";
+import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
   TableSkeleton,
   TableView,
 } from "@sparkyidea/dataview/views/table-view";
-import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
-import {
-  limitServerParser,
-  parseAsExpanded,
-} from "@sparkyidea/shared/utils/parsers/pagination";
-import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
-import { useQuery } from "@tanstack/react-query";
-import { parseAsString, useQueryState } from "nuqs";
-import { useMemo } from "react";
-import {
-  type Product,
-  productProperties,
-} from "@/properties/product-properties";
+import type { WhereNode } from "@sparkyidea/shared/types";
+import type { Limit } from "@sparkyidea/shared/types/pagination.type";
+import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
+import { productProperties } from "@/properties/product-properties";
 import { combineGroupFilter } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
 import { bulkActions } from "./bulk-actions";
 import { ViewTabs } from "./view-tabs";
 
+const groupConfig = { bySelect: { property: "category" } } as const;
+
+interface GroupTableProps {
+  expanded: string[];
+  filter: WhereNode[] | null;
+  group: GroupConfigInput | null;
+  limit: Limit;
+  search: string;
+  sort: { property: string; direction: "asc" | "desc" }[];
+}
+
 /**
  * Grouped Table - grouped by category with per-group pagination.
  *
- * Uses usePagePagination hook that returns a DataViewProvider
- * with pagination baked in.
+ * Uses usePagePagination hook that returns a pagination controller
+ * which is passed to DataViewProvider.
  */
-export function GroupTable() {
+export function GroupTable({
+  expanded,
+  filter,
+  limit,
+  search,
+  sort,
+}: GroupTableProps) {
   const trpc = useTRPC();
 
-  // URL params
-  const [filter] = useQueryState("filter", parseAsFilter);
-  const [sort] = useQueryState("sort", parseAsSort);
-  const [search] = useQueryState("search", parseAsString.withDefault(""));
-  const [limit] = useQueryState("limit", limitServerParser);
-  const [expanded] = useQueryState("expanded", parseAsExpanded.withDefault([]));
-
   const searchableFields = getSearchableProperties(productProperties);
-  const searchFilter = buildSearchFilter(search, searchableFields);
 
-  // Group config
-  const groupConfig = { bySelect: { property: "category" } } as const;
+  const { pagination } = usePagePagination({
+    // Factory for group counts - used internally by QueryBridge
+    groupQueryOptionsFactory: (groupCfg) =>
+      trpc.product.getGroup.queryOptions({ groupBy: groupCfg }),
 
-  // Fetch group counts
-  const { data: groupData, isLoading: isGroupLoading } = useQuery(
-    trpc.product.getGroup.queryOptions({ groupBy: groupConfig })
-  );
-
-  const groupKeys = useMemo(
-    () => Object.keys(groupData?.counts ?? {}),
-    [groupData?.counts]
-  );
-
-  const { DataViewProvider, isPlaceholderData } = usePagePagination<Product>({
-    groupKeys,
-    groupCounts: groupData?.counts,
-    groupSortValues: groupData?.sortValues,
-    defaultLimit: limit,
-    defaultExpanded: expanded,
-    queryOptionsFactory: (cursor, limitParam, groupKey) =>
+    // Factory for data items
+    queryOptionsFactory: (params) =>
       trpc.product.getMany.queryOptions({
-        cursor,
-        filter: combineGroupFilter(groupConfig, groupKey ?? "", filter),
-        limit: limitParam ?? limit,
-        search: searchFilter,
-        sort: sort ?? [],
+        cursors: params.cursor
+          ? { [params.groupKey ?? "__ungrouped__"]: params.cursor }
+          : undefined,
+        filter: combineGroupFilter(
+          params.groupConfig ?? groupConfig,
+          params.groupKey ?? "",
+          params.filter
+        ),
+        limit: params.limit,
+        search: buildSearchFilter(params.search, searchableFields),
+        sort: params.sort ?? [],
       }),
   });
 
-  // Show skeleton while fetching group counts (before we know the groups)
-  if (isGroupLoading && groupKeys.length === 0) {
+  // DataViewProvider MUST render for queries to execute
+  return (
+    <DataViewProvider
+      defaults={{
+        expanded,
+        filter,
+        group: { ...groupConfig, showCount: true },
+        limit,
+        search,
+        sort: sort ?? [],
+      }}
+      pagination={pagination}
+      properties={productProperties}
+    >
+      <GroupTableContent />
+    </DataViewProvider>
+  );
+}
+
+function GroupTableContent() {
+  const { isEmpty, isLoading, isPlaceholderData } = usePaginationState();
+
+  if (isLoading && isEmpty) {
     return <TableSkeleton columnCount={5} rowCount={10} />;
   }
 
-  // Empty state - no groups found
-  if (groupKeys.length === 0) {
+  if (isEmpty) {
     return (
       <div className="flex min-h-100 items-center justify-center">
         <p className="text-muted-foreground">No products found</p>
@@ -88,15 +105,8 @@ export function GroupTable() {
     );
   }
 
-  // DataViewProvider MUST render for queries to execute
   return (
-    <DataViewProvider
-      filter={filter}
-      group={{ bySelect: { property: "category" }, showCount: true }}
-      properties={productProperties}
-      search={search}
-      sort={sort ?? undefined}
-    >
+    <>
       <NotionToolbar
         enableSettings
         groupProperty="Category"
@@ -113,6 +123,6 @@ export function GroupTable() {
           wrapAllColumns={false}
         />
       </div>
-    </DataViewProvider>
+    </>
   );
 }

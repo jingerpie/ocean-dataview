@@ -102,7 +102,8 @@ export function decodeCursor(value: string): CursorValue | null {
 
 /**
  * Encode cursors object to DSL format.
- * Example: { groupA: { after: "abc", start: 10 } } → "groupA.after.abc.10"
+ * Flat mode (key = "__ungrouped__"): omits group key → "after.abc.10"
+ * Grouped mode: includes group key → "groupA.after.abc.10"
  */
 export function encodeCursors(cursors: Cursors): string {
   const entries = Object.entries(cursors);
@@ -112,31 +113,84 @@ export function encodeCursors(cursors: Cursors): string {
 
   return entries
     .map(([groupKey, cursor]) => {
-      if ("after" in cursor && cursor.after != null) {
-        return encodeTuple([
-          groupKey,
-          "after",
-          cursor.after,
-          cursor.start ?? 0,
-        ]);
+      const direction = cursor.after != null ? "after" : "before";
+      const value = cursor.after ?? cursor.before;
+      const start = cursor.start ?? 0;
+
+      if (value == null) {
+        return "";
       }
-      if ("before" in cursor && cursor.before != null) {
-        return encodeTuple([
-          groupKey,
-          "before",
-          cursor.before,
-          cursor.start ?? 0,
-        ]);
+
+      // Flat mode: omit group key for clean URLs
+      if (groupKey === "__ungrouped__") {
+        return encodeTuple([direction, value, start]);
       }
-      return "";
+      // Grouped mode: include group key
+      return encodeTuple([groupKey, direction, value, start]);
     })
     .filter(Boolean)
     .join(",");
 }
 
 /**
+ * Build CursorValue from direction, cursor string, and start number.
+ */
+function buildCursorValue(
+  direction: string,
+  cursorValue: string,
+  start: number
+): CursorValue | null {
+  if (direction === "after") {
+    return { after: cursorValue, start };
+  }
+  if (direction === "before") {
+    return { before: cursorValue, start };
+  }
+  return null;
+}
+
+const UNGROUPED_KEY = "__ungrouped__";
+
+/**
+ * Parse a single cursor item from DSL parts.
+ * Returns [groupKey, cursor] tuple or null if invalid.
+ */
+function parseCursorItem(parts: string[]): [string, CursorValue] | null {
+  if (parts.length === 3) {
+    // Flat mode: direction.cursor.start
+    const [direction, cursorValue, startStr] = parts;
+    if (!cursorValue) {
+      return null;
+    }
+    const cursor = buildCursorValue(
+      direction,
+      cursorValue,
+      Number(startStr) || 0
+    );
+    return cursor ? [UNGROUPED_KEY, cursor] : null;
+  }
+
+  if (parts.length >= 4) {
+    // Grouped mode: group.direction.cursor.start
+    const [groupKey, direction, cursorValue, startStr] = parts;
+    if (!(groupKey && cursorValue)) {
+      return null;
+    }
+    const cursor = buildCursorValue(
+      direction,
+      cursorValue,
+      Number(startStr) || 0
+    );
+    return cursor ? [groupKey, cursor] : null;
+  }
+
+  return null;
+}
+
+/**
  * Decode DSL format to cursors object.
- * Example: "groupA.after.abc.10,groupB.before.xyz.20" → { groupA: {...}, groupB: {...} }
+ * Flat mode (3 parts): "after.abc.10" → { "__ungrouped__": {...} }
+ * Grouped mode (4 parts): "groupA.after.abc.10" → { groupA: {...} }
  */
 export function decodeCursors(value: string): Cursors | null {
   if (!value) {
@@ -148,23 +202,10 @@ export function decodeCursors(value: string): Cursors | null {
 
   for (const item of items) {
     const parts = decodeTupleStrings(item);
-    if (parts.length < 3) {
-      continue;
-    }
-
-    const groupKey = parts[0];
-    const direction = parts[1];
-    const cursorValue = parts[2];
-    const start = parts[3] ? Number(parts[3]) : 0;
-
-    if (!(groupKey && cursorValue)) {
-      continue;
-    }
-
-    if (direction === "after") {
-      result[groupKey] = { after: cursorValue, start };
-    } else if (direction === "before") {
-      result[groupKey] = { before: cursorValue, start };
+    const parsed = parseCursorItem(parts);
+    if (parsed) {
+      const [key, cursor] = parsed;
+      result[key] = cursor;
     }
   }
 

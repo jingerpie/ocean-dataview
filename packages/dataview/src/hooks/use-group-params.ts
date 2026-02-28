@@ -145,23 +145,8 @@ export function useGroupParams() {
     return null;
   })();
 
-  // Normalize sort order to "asc"/"desc" format
-  const groupSortOrder = (() => {
-    const sort = group?.sort;
-    if (!sort) {
-      return "asc";
-    }
-    if (sort === "asc" || sort === "desc") {
-      return sort;
-    }
-    if (sort === "ascending") {
-      return "asc";
-    }
-    if (sort === "descending") {
-      return "desc";
-    }
-    return "asc";
-  })();
+  // Get sort order (defaults to "asc")
+  const groupSortOrder = group?.sort ?? "asc";
 
   return {
     group,

@@ -11,25 +11,13 @@ export type {
   SubGroupConfig,
 } from "./data-view-context";
 export { DataViewContext, useDataViewContext } from "./data-view-context";
-export type { DataViewProviderProps } from "./data-view-provider";
+export type {
+  DataViewProviderProps,
+  DefaultsConfig,
+} from "./data-view-provider";
 export { DataViewProvider } from "./data-view-provider";
-// Note: GroupPaginationProvider is internal - use usePagePagination hook instead
-// Internal exports for the pagination hooks
+// QueryBridge and controller types (used by pagination hooks)
 export {
-  type GroupCounts,
-  type GroupPaginationContextValue,
-  GroupPaginationProvider,
-  type GroupPaginationProviderProps,
-  type QueryOptionsFactory,
-  useGroupPaginationContext,
-} from "./group-pagination-provider";
-
-// Note: InfinitePaginationProvider is internal - use useInfinitePagination hook instead
-export {
-  type InfiniteGroupQueryOptions,
-  type InfinitePaginationContextValue,
-  InfinitePaginationProvider,
-  type InfinitePaginationProviderProps,
-  type InfiniteQueryOptionsFactory,
-  useInfinitePaginationContext,
-} from "./infinite-pagination-provider";
+  QueryControllerContext,
+  useQueryControllerContext,
+} from "./query-bridge";

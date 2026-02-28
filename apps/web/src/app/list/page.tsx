@@ -1,23 +1,28 @@
-"use client";
-
+import { ListSkeleton } from "@sparkyidea/dataview/views/list-view";
 import { Tabs, TabsContent } from "@sparkyidea/ui/components/tabs";
 import { Suspense } from "react";
-import { FlatList } from "@/modules/list/flat-list";
-import { GroupList } from "@/modules/list/group-list";
-import { HybridList } from "@/modules/list/hybrid-list";
+import { FlatListDemo } from "./components/flat-list-demo";
+import { GroupListDemo } from "./components/group-list-demo";
+import { HybridListDemo } from "./components/hybrid-list-demo";
 
-export default function ListPage() {
+interface ListPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function ListPage({ searchParams }: ListPageProps) {
+  const params = await searchParams;
+
   return (
-    <Suspense>
+    <Suspense fallback={<ListSkeleton rowCount={10} />}>
       <Tabs defaultValue="flat">
         <TabsContent value="flat">
-          <FlatList />
+          <FlatListDemo params={params} />
         </TabsContent>
         <TabsContent value="group">
-          <GroupList />
+          <GroupListDemo params={params} />
         </TabsContent>
         <TabsContent value="hybrid">
-          <HybridList />
+          <HybridListDemo params={params} />
         </TabsContent>
       </Tabs>
     </Suspense>

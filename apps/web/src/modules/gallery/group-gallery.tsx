@@ -1,90 +1,105 @@
 "use client";
 
-import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
+import {
+  useInfinitePagination,
+  usePaginationState,
+} from "@sparkyidea/dataview/hooks";
+import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import {
   GallerySkeleton,
   GalleryView,
 } from "@sparkyidea/dataview/views/gallery-view";
-import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
-import {
-  limitServerParser,
-  parseAsExpanded,
-} from "@sparkyidea/shared/utils/parsers/pagination";
-import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
-import { useQuery } from "@tanstack/react-query";
-import { parseAsString, useQueryState } from "nuqs";
-import { useMemo } from "react";
-import {
-  type Product,
-  productProperties,
-} from "@/properties/product-properties";
+import type { WhereNode } from "@sparkyidea/shared/types";
+import type { Limit } from "@sparkyidea/shared/types/pagination.type";
+import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
+import { productProperties } from "@/properties/product-properties";
 import { combineGroupFilter } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
 import { ViewTabs } from "./view-tabs";
 
+const groupConfig = { bySelect: { property: "category" } } as const;
+
+interface GroupGalleryProps {
+  expanded: string[];
+  filter: WhereNode[] | null;
+  group: GroupConfigInput | null;
+  limit: Limit;
+  search: string;
+  sort: { property: string; direction: "asc" | "desc" }[];
+}
+
 /**
  * Grouped Gallery - grouped by category with per-group load more.
  *
- * Uses useInfinitePagination hook that returns a DataViewProvider
- * with pagination baked in.
+ * Uses useInfinitePagination hook that returns a pagination controller
+ * which is passed to DataViewProvider.
  */
-export function GroupGallery() {
+export function GroupGallery({
+  expanded,
+  filter,
+  limit,
+  search,
+  sort,
+}: GroupGalleryProps) {
   const trpc = useTRPC();
 
-  const [filter] = useQueryState("filter", parseAsFilter);
-  const [sort] = useQueryState("sort", parseAsSort);
-  const [search] = useQueryState("search", parseAsString.withDefault(""));
-  const [limit] = useQueryState("limit", limitServerParser);
-  const [expanded] = useQueryState("expanded", parseAsExpanded.withDefault([]));
-
   const searchableFields = getSearchableProperties(productProperties);
-  const searchFilter = buildSearchFilter(search, searchableFields);
 
-  // Group config
-  const groupConfig = { bySelect: { property: "category" } } as const;
+  const { pagination } = useInfinitePagination({
+    // Factory for group counts - used internally by QueryBridge
+    groupQueryOptionsFactory: (groupCfg) =>
+      trpc.product.getGroup.queryOptions({ groupBy: groupCfg }),
 
-  // Fetch group counts
-  const { data: groupData, isLoading: isGroupLoading } = useQuery(
-    trpc.product.getGroup.queryOptions({ groupBy: groupConfig })
+    // Factory for data items
+    queryOptionsFactory: (params) =>
+      trpc.product.getMany.infiniteQueryOptions(
+        {
+          filter: combineGroupFilter(
+            params.groupConfig ?? groupConfig,
+            params.groupKey ?? "",
+            params.filter
+          ),
+          search: buildSearchFilter(params.search, searchableFields),
+          sort: params.sort ?? [],
+          limit: params.limit,
+        },
+        {
+          getNextPageParam: (lastPage) =>
+            lastPage.hasNextPage ? lastPage.endCursor : undefined,
+        }
+      ),
+  });
+
+  // DataViewProvider MUST render for queries to execute
+  return (
+    <DataViewProvider
+      defaults={{
+        expanded: expanded.length > 0 ? expanded : [],
+        filter,
+        group: { ...groupConfig, showCount: true },
+        limit,
+        search,
+        sort: sort ?? [],
+      }}
+      pagination={pagination}
+      properties={productProperties}
+    >
+      <GroupGalleryContent />
+    </DataViewProvider>
   );
+}
 
-  const groupKeys = useMemo(
-    () => Object.keys(groupData?.counts ?? {}),
-    [groupData?.counts]
-  );
+function GroupGalleryContent() {
+  const { isEmpty, isLoading, isPlaceholderData } = usePaginationState();
 
-  const { DataViewProvider, isPlaceholderData } =
-    useInfinitePagination<Product>({
-      groupKeys,
-      groupCounts: groupData?.counts,
-      groupSortValues: groupData?.sortValues,
-      defaultLimit: limit,
-      defaultExpanded: expanded.length > 0 ? expanded : [],
-      queryOptionsFactory: (limitParam, groupKey) =>
-        trpc.product.getMany.infiniteQueryOptions(
-          {
-            filter: combineGroupFilter(groupConfig, groupKey ?? "", filter),
-            search: searchFilter,
-            sort: sort ?? [],
-            limit: limitParam ?? limit,
-          },
-          {
-            getNextPageParam: (lastPage) =>
-              lastPage.hasNextPage ? lastPage.endCursor : undefined,
-          }
-        ),
-    });
-
-  // Show skeleton while fetching group counts
-  if (isGroupLoading && groupKeys.length === 0) {
+  if (isLoading && isEmpty) {
     return <GallerySkeleton cardCount={6} />;
   }
 
-  // Empty state
-  if (groupKeys.length === 0) {
+  if (isEmpty) {
     return (
       <div className="flex min-h-100 items-center justify-center">
         <p className="text-muted-foreground">No products found</p>
@@ -92,18 +107,8 @@ export function GroupGallery() {
     );
   }
 
-  // DataViewProvider MUST render for queries to execute
   return (
-    <DataViewProvider
-      filter={filter}
-      group={{
-        bySelect: { property: "category" },
-        showCount: true,
-      }}
-      properties={productProperties}
-      search={search}
-      sort={sort ?? []}
-    >
+    <>
       <NotionToolbar
         enableSettings
         groupProperty="Category"
@@ -119,6 +124,6 @@ export function GroupGallery() {
           pagination="loadMore"
         />
       </div>
-    </DataViewProvider>
+    </>
   );
 }

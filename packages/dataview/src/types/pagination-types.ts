@@ -9,6 +9,29 @@
  */
 
 // ============================================================================
+// Cursor Types
+// ============================================================================
+
+/**
+ * Cursor value for a single group.
+ * Contains information for navigating to a specific position in the result set.
+ */
+export interface CursorValue {
+  /** Cursor string for forward pagination */
+  after?: string;
+  /** Cursor string for backward pagination */
+  before?: string;
+  /** 0-indexed start position for display calculations */
+  start: number;
+}
+
+/**
+ * Map of group keys to cursor values.
+ * Used by page-based pagination to track cursor state per group.
+ */
+export type Cursors = Record<string, CursorValue>;
+
+// ============================================================================
 // Response Types
 // ============================================================================
 

@@ -1,23 +1,28 @@
-"use client";
-
+import { TableSkeleton } from "@sparkyidea/dataview/views/table-view";
 import { Tabs, TabsContent } from "@sparkyidea/ui/components/tabs";
 import { Suspense } from "react";
-import { FlatTable } from "@/modules/table/flat-table";
-import { GroupTable } from "@/modules/table/group-table";
-import { HybridTable } from "@/modules/table/hybrid-table";
+import { FlatTableDemo } from "./components/flat-table-demo";
+import { GroupTableDemo } from "./components/group-table-demo";
+import { HybridTableDemo } from "./components/hybrid-table-demo";
 
-export default function TablePage() {
+interface TablePageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function TablePage({ searchParams }: TablePageProps) {
+  const params = await searchParams;
+
   return (
-    <Suspense>
+    <Suspense fallback={<TableSkeleton columnCount={5} rowCount={10} />}>
       <Tabs defaultValue="flat">
         <TabsContent value="flat">
-          <FlatTable />
+          <FlatTableDemo params={params} />
         </TabsContent>
         <TabsContent value="group">
-          <GroupTable />
+          <GroupTableDemo params={params} />
         </TabsContent>
         <TabsContent value="hybrid">
-          <HybridTable />
+          <HybridTableDemo params={params} />
         </TabsContent>
       </Tabs>
     </Suspense>

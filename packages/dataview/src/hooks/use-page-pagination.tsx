@@ -1,24 +1,12 @@
 "use client";
 
-import type { CursorValue, Limit } from "@sparkyidea/shared/types";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  DataViewProvider as DataViewProviderCore,
-  type DataViewProviderProps,
-} from "../lib/providers/data-view-provider";
-import {
-  type GroupCounts,
-  GroupPaginationProvider,
-  useGroupPaginationContext,
-} from "../lib/providers/group-pagination-provider";
-import type { DataViewProperty, ViewCounts } from "../types";
-import { type UseGroupQueryResult, useGroupQuery } from "./use-group-query";
-
-// ============================================================================
-// Constants
-// ============================================================================
-
-export const FLAT_GROUP_KEY = "__all__";
+import type { Limit } from "@sparkyidea/shared/types/pagination.type";
+import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
+import { useCallback, useMemo, useRef } from "react";
+import type {
+  PagePaginationController,
+  PageQueryOptionsFactory,
+} from "../types/pagination-controller";
 
 // ============================================================================
 // Types
@@ -28,8 +16,7 @@ export const FLAT_GROUP_KEY = "__all__";
  * Query options compatible with TRPC's queryOptions return type.
  */
 export interface PageQueryOptions {
-  // biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex QueryFunction types
-  queryFn?: any;
+  queryFn?: unknown;
   queryKey: readonly unknown[];
 }
 
@@ -62,339 +49,165 @@ export interface PagePaginationState<TData> {
 }
 
 /**
- * Options for usePagePagination hook.
+ * Re-export types for convenience.
  */
-export interface UsePagePaginationOptions<
-  TQueryOptions extends PageQueryOptions,
-> {
-  /** Initial expanded groups (defaults to first group) */
-  defaultExpanded?: string[];
-  /** Default page size (default: 10) */
-  defaultLimit?: Limit;
-  /** Optional group counts from server */
-  groupCounts?: GroupCounts;
-  /** Group keys - defaults to [FLAT_GROUP_KEY] for flat mode */
-  groupKeys?: string[];
-  /** Sort values for group ordering */
-  groupSortValues?: Record<string, string | number>;
-  /** Query factory - receives cursor, limit, and optionally groupKey (for grouped mode) */
-  queryOptionsFactory: (
-    cursor?: CursorValue,
-    limit?: Limit,
-    groupKey?: string
-  ) => TQueryOptions;
-}
+export type { SortQuery, WhereNode } from "@sparkyidea/shared/types";
+export type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
+export type {
+  GroupQueryOptionsFactory,
+  PageQueryOptionsFactory,
+  PageQueryOptionsFactoryParams,
+} from "../types/pagination-controller";
 
 /**
- * Props for the returned DataViewProvider (excludes auto-injected props).
+ * Options for usePagePagination hook.
+ *
+ * Contains query configuration only. Defaults are passed to DataViewProvider.
  */
-export type MergedDataViewProviderProps<
-  TData,
-  TProperties extends readonly DataViewProperty<TData>[],
-> = Omit<
-  DataViewProviderProps<TData, TProperties>,
-  "data" | "pagination" | "expandedGroups" | "onExpandedGroupsChange" | "counts"
-> & {
-  /** Additional counts to merge (subGroup, etc.) */
-  counts?: Omit<ViewCounts, "group" | "groupSortValues">;
-};
+export interface UsePagePaginationOptions<
+  TQueryOptions extends PageQueryOptions = PageQueryOptions,
+> {
+  /**
+   * Factory for fetching group counts (enables grouped mode).
+   * Called by QueryBridge when group URL param is set.
+   * Returns PageQueryOptions (base type) since group queries have different return shapes.
+   */
+  groupQueryOptionsFactory?: (
+    groupConfig: GroupConfigInput
+  ) => PageQueryOptions;
+
+  /**
+   * Factory for fetching data items.
+   * Receives groupConfig and groupKey in params for building group filters.
+   */
+  queryOptionsFactory: PageQueryOptionsFactory<TQueryOptions>;
+
+  /**
+   * Factory for fetching subGroup counts (board-specific).
+   * Called by QueryBridge when subGroup URL param is set.
+   * Enables automatic subGroup count fetching for board views.
+   */
+  subGroupQueryOptionsFactory?: (
+    subGroupConfig: GroupConfigInput
+  ) => PageQueryOptions;
+}
 
 /**
  * Result of usePagePagination hook.
  */
-export interface UsePagePaginationResult<
-  TData,
-  TProperties extends readonly DataViewProperty<TData>[],
-> {
-  /** Merged DataViewProvider with pagination baked in */
-  DataViewProvider: React.FC<MergedDataViewProviderProps<TData, TProperties>>;
-  /** True when no data yet (for skeleton) */
-  isEmpty: boolean;
-  /** True when any group is loading */
-  isLoading: boolean;
-  /** True when showing stale data while refetching */
-  isPlaceholderData: boolean;
+export interface UsePagePaginationResult<TQueryOptions> {
+  /** Pagination config to pass to DataViewProvider */
+  pagination: PagePaginationController<TQueryOptions>;
 }
-
-// ============================================================================
-// Internal State Types
-// ============================================================================
-
-interface InternalPaginationState<TData> {
-  data: TData[];
-  expandedGroups: string[];
-  isPlaceholderData: boolean;
-  pagination: PagePaginationState<TData>;
-  setExpandedGroups: (groups: string[]) => void;
-}
-
-const noop = () => {
-  /* no-op */
-};
 
 // ============================================================================
 // Hook Implementation
 // ============================================================================
 
 /**
- * usePagePagination - Page-based pagination with merged DataViewProvider.
+ * usePagePagination - Page-based pagination hook that returns a config object.
  *
- * Returns a DataViewProvider component that handles:
- * - Per-group queries with keepPreviousData for smooth transitions
- * - Automatic data/pagination injection
- * - No group limit (each group is a separate component)
- *
- * IMPORTANT: DataViewProvider MUST always render for queries to execute.
- * Put loading/empty states INSIDE the provider, not outside.
+ * Returns a pagination config that should be passed to DataViewProvider.
+ * The config contains queryOptionsFactory and optional groupQueryOptionsFactory.
+ * Defaults are passed to DataViewProvider via the `defaults` prop.
+ * Actual URL state (filter, sort, search, cursors, group) is managed by QueryBridge.
  *
  * @example
  * ```tsx
- * // Flat mode - groupKey not needed
- * const { DataViewProvider, isPlaceholderData, isLoading, isEmpty } = usePagePagination({
- *   queryOptionsFactory: (cursor, limit) =>
- *     trpc.product.getMany.queryOptions({ cursor, limit }),
+ * const { pagination } = usePagePagination({
+ *   // Optional: enables grouped mode when group URL param is set
+ *   groupQueryOptionsFactory: (groupConfig) =>
+ *     trpc.product.getGroup.queryOptions({ groupBy: groupConfig }),
+ *
+ *   // Required: factory for data queries
+ *   queryOptionsFactory: (params) =>
+ *     trpc.product.getMany.queryOptions({
+ *       filter: params.groupConfig
+ *         ? combineGroupFilter(params.groupConfig, params.groupKey, params.filter)
+ *         : params.filter,
+ *       limit: params.limit,
+ *       ...
+ *     }),
  * });
  *
- * // Grouped mode - include groupKey
- * const { DataViewProvider } = usePagePagination({
- *   groupKeys: ['group1', 'group2'],
- *   queryOptionsFactory: (cursor, limit, groupKey) =>
- *     trpc.product.getManyByGroup.queryOptions({ groupKey, cursor, limit }),
- * });
- *
- * // CORRECT: DataViewProvider always renders, skeleton is inside
  * return (
- *   <DataViewProvider properties={productProperties} filter={filter}>
- *     {isLoading && isEmpty ? (
- *       <TableSkeleton />
- *     ) : (
- *       <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
- *         <TableView />
- *       </div>
- *     )}
+ *   <DataViewProvider
+ *     defaults={{ limit, filter, sort, search, group }}
+ *     pagination={pagination}
+ *     properties={productProperties}
+ *   >
+ *     <TableContent />
  *   </DataViewProvider>
  * );
- *
- * // WRONG: This will cause infinite loading because queries never start
- * // if (isLoading && isEmpty) return <TableSkeleton />;
- * // return <DataViewProvider>...</DataViewProvider>;
  * ```
  */
 export function usePagePagination<
-  TData,
-  TProperties extends
-    readonly DataViewProperty<TData>[] = readonly DataViewProperty<TData>[],
   TQueryOptions extends PageQueryOptions = PageQueryOptions,
 >(
   options: UsePagePaginationOptions<TQueryOptions>
-): UsePagePaginationResult<TData, TProperties> {
+): UsePagePaginationResult<TQueryOptions> {
   const {
-    groupKeys = [FLAT_GROUP_KEY],
-    defaultExpanded,
-    defaultLimit = 10,
+    groupQueryOptionsFactory,
+    queryOptionsFactory,
+    subGroupQueryOptionsFactory,
   } = options;
 
-  // State synced from QueryBridge
-  const [state, setState] = useState<InternalPaginationState<TData>>(() => ({
-    data: [],
-    pagination: {
-      groups: [],
-      isLoading: true,
-      limit: defaultLimit,
-      onLimitChange: noop,
-    },
-    isPlaceholderData: false,
-    expandedGroups: defaultExpanded ?? groupKeys.slice(0, 1),
-    setExpandedGroups: noop,
-  }));
-
-  // Stable ref for options (avoid recreating Provider on every render)
-  const optionsRef = useRef(options);
-  optionsRef.current = options;
-
-  // Memoized DataViewProvider component
-  const DataViewProvider = useMemo(() => {
-    return function MergedDataViewProvider(
-      props: MergedDataViewProviderProps<TData, TProperties>
-    ) {
-      const opts = optionsRef.current;
-      return (
-        <GroupPaginationProvider
-          defaultExpanded={opts.defaultExpanded}
-          defaultLimit={opts.defaultLimit}
-          groupCounts={opts.groupCounts}
-          groupKeys={opts.groupKeys ?? [FLAT_GROUP_KEY]}
-          queryOptionsFactory={opts.queryOptionsFactory}
-        >
-          <QueryBridge<TData, TProperties>
-            groupCounts={opts.groupCounts}
-            groupSortValues={opts.groupSortValues}
-            onStateChange={setState}
-            viewProps={props}
-          />
-        </GroupPaginationProvider>
-      );
-    };
-  }, []);
-
-  return {
-    DataViewProvider,
-    isEmpty: state.data.length === 0,
-    isLoading: state.pagination.isLoading,
-    isPlaceholderData: state.isPlaceholderData,
-  };
-}
-
-// ============================================================================
-// Internal Components
-// ============================================================================
-
-interface QueryBridgeProps<
-  TData,
-  TProperties extends readonly DataViewProperty<TData>[],
-> {
-  groupCounts?: GroupCounts;
-  groupSortValues?: Record<string, string | number>;
-  onStateChange: (state: InternalPaginationState<TData>) => void;
-  viewProps: MergedDataViewProviderProps<TData, TProperties>;
-}
-
-/**
- * QueryBridge - Internal component that orchestrates per-group queries.
- *
- * Renders a GroupQueryRunner for each group, collects results,
- * and passes aggregated data to DataViewProviderCore.
- */
-function QueryBridge<
-  TData,
-  TProperties extends readonly DataViewProperty<TData>[],
->({
-  groupCounts,
-  groupSortValues,
-  onStateChange,
-  viewProps,
-}: QueryBridgeProps<TData, TProperties>) {
-  const ctx = useGroupPaginationContext();
-  const { expandedGroups, setExpandedGroups, limit, groupKeys } = ctx;
-
-  // Map to collect query results from each GroupQueryRunner
-  const [queryResults, setQueryResults] = useState<
-    Map<string, UseGroupQueryResult<TData>>
-  >(() => new Map());
-
-  const handleQueryResult = useCallback(
-    (groupKey: string, result: UseGroupQueryResult<TData>) => {
-      setQueryResults((prev) => {
-        const next = new Map(prev);
-        next.set(groupKey, result);
-        return next;
-      });
-    },
+  // Stable queryOptionsFactory via ref (prevents unnecessary re-renders)
+  const factoryRef = useRef(queryOptionsFactory);
+  factoryRef.current = queryOptionsFactory;
+  const stableFactory = useCallback<PageQueryOptionsFactory<TQueryOptions>>(
+    (params) => factoryRef.current(params),
     []
   );
 
-  // Build pagination state from collected results
-  const { data, pagination, isPlaceholderData } = useMemo(() => {
-    const groups = groupKeys.map((key) => {
-      const q = queryResults.get(key);
-      const countInfo = groupCounts?.[key];
-      return {
-        key,
-        items: q?.data ?? [],
-        isLoading: q?.isPending ?? false,
-        isFetching: q?.isFetching ?? false,
-        hasNext: q?.hasNext ?? false,
-        hasPrev: q?.hasPrev ?? false,
-        onNext: q?.onNext ?? noop,
-        onPrev: q?.onPrev ?? noop,
-        displayStart: q?.displayStart ?? 0,
-        displayEnd: q?.displayEnd ?? 0,
-        count: countInfo?.count,
-        displayCount: countInfo?.hasMore ? "99+" : undefined,
-      };
-    });
-
-    const results = Array.from(queryResults.values());
-    return {
-      data: groups.flatMap((g) => g.items),
-      pagination: {
-        groups,
-        isLoading: results.length === 0 || results.some((q) => q?.isFetching),
-        limit,
-        onLimitChange: results[0]?.onLimitChange ?? noop,
-      },
-      isPlaceholderData: results.some((q) => q?.isPlaceholderData),
+  // Stable groupQueryOptionsFactory via ref
+  const groupFactoryRef = useRef(groupQueryOptionsFactory);
+  groupFactoryRef.current = groupQueryOptionsFactory;
+  const stableGroupFactory = useMemo<
+    ((groupConfig: GroupConfigInput) => PageQueryOptions) | undefined
+  >(() => {
+    if (!groupQueryOptionsFactory) {
+      return undefined;
+    }
+    return (groupConfig) => {
+      const factory = groupFactoryRef.current;
+      if (!factory) {
+        throw new Error("groupQueryOptionsFactory ref is unexpectedly null");
+      }
+      return factory(groupConfig);
     };
-  }, [groupKeys, queryResults, groupCounts, limit]);
+    // Only re-create if factory existence changes
+  }, [Boolean(groupQueryOptionsFactory)]);
 
-  // Sync state to parent hook
-  useEffect(() => {
-    onStateChange({
-      data,
-      pagination,
-      isPlaceholderData,
-      expandedGroups,
-      setExpandedGroups,
-    });
-  }, [
-    data,
-    pagination,
-    isPlaceholderData,
-    expandedGroups,
-    setExpandedGroups,
-    onStateChange,
-  ]);
+  // Stable subGroupQueryOptionsFactory via ref
+  const subGroupFactoryRef = useRef(subGroupQueryOptionsFactory);
+  subGroupFactoryRef.current = subGroupQueryOptionsFactory;
+  const stableSubGroupFactory = useMemo<
+    ((subGroupConfig: GroupConfigInput) => PageQueryOptions) | undefined
+  >(() => {
+    if (!subGroupQueryOptionsFactory) {
+      return undefined;
+    }
+    return (subGroupConfig) => {
+      const factory = subGroupFactoryRef.current;
+      if (!factory) {
+        throw new Error("subGroupQueryOptionsFactory ref is unexpectedly null");
+      }
+      return factory(subGroupConfig);
+    };
+    // Only re-create if factory existence changes
+  }, [Boolean(subGroupQueryOptionsFactory)]);
 
-  // Merge counts
-  const mergedCounts: ViewCounts = useMemo(
+  // Build config object (stable when inputs don't change)
+  const pagination = useMemo<PagePaginationController<TQueryOptions>>(
     () => ({
-      group: groupCounts ?? {},
-      groupSortValues: groupSortValues ?? {},
-      ...viewProps.counts,
+      groupQueryOptionsFactory: stableGroupFactory,
+      queryOptionsFactory: stableFactory,
+      subGroupQueryOptionsFactory: stableSubGroupFactory,
+      type: "page",
     }),
-    [groupCounts, groupSortValues, viewProps.counts]
+    [stableGroupFactory, stableFactory, stableSubGroupFactory]
   );
 
-  return (
-    <>
-      {groupKeys.map((key) => (
-        <GroupQueryRunner<TData>
-          groupKey={key}
-          key={key}
-          onResult={handleQueryResult}
-        />
-      ))}
-      <DataViewProviderCore<TData, TProperties>
-        {...(viewProps as DataViewProviderProps<TData, TProperties>)}
-        counts={mergedCounts}
-        data={data}
-        expandedGroups={expandedGroups}
-        onExpandedGroupsChange={setExpandedGroups}
-        pagination={pagination}
-      />
-    </>
-  );
-}
-
-interface GroupQueryRunnerProps<TData> {
-  groupKey: string;
-  onResult: (groupKey: string, result: UseGroupQueryResult<TData>) => void;
-}
-
-/**
- * GroupQueryRunner - Invisible component that runs a single useGroupQuery.
- *
- * Each group gets its own component instance = its own hook call = no limit.
- */
-function GroupQueryRunner<TData>({
-  groupKey,
-  onResult,
-}: GroupQueryRunnerProps<TData>) {
-  const result = useGroupQuery<TData>({ groupKey });
-
-  useEffect(() => {
-    onResult(groupKey, result);
-  }, [groupKey, result, onResult]);
-
-  return null;
+  return { pagination };
 }

@@ -3,7 +3,7 @@
 import type { Limit } from "@sparkyidea/shared/types";
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
-import { useInfinitePaginationContext } from "../lib/providers/infinite-pagination-provider";
+import { useQueryControllerContext } from "../lib/providers/query-bridge";
 import type { BasePaginatedResponse } from "../types/pagination-types";
 
 // ============================================================================
@@ -90,7 +90,7 @@ const defaultGetNextPageParam = (
  * - Independent load-more per group
  * - Proper React patterns
  *
- * Must be used within an InfinitePaginationProvider.
+ * Must be used within a QueryBridge (via DataViewProvider with pagination prop).
  *
  * @example
  * ```tsx
@@ -125,18 +125,48 @@ export function useInfiniteGroupQuery<TData = unknown>(
 ): UseInfiniteGroupQueryResult<TData> {
   const { groupKey, enabled: enabledOption } = options;
 
-  // Get context from provider
-  const { expandedGroups, limit, queryOptionsFactory, setLimit } =
-    useInfinitePaginationContext();
+  // Get runtime state from context (provided by QueryBridge)
+  const state = useQueryControllerContext();
+
+  const {
+    expandedGroups,
+    filter,
+    group,
+    limit,
+    queryOptionsFactory,
+    search,
+    setLimit,
+    sort,
+  } = state;
 
   // Determine if query should be enabled
   const isExpanded = expandedGroups.includes(groupKey);
   const enabled = enabledOption ?? isExpanded;
 
-  // Build query options - includes limit to ensure refetch on limit change
+  // Build query options - pass all params as object to factory
+  // Cast to expected shape - factory returns TRPC's infiniteQueryOptions
+  interface InfiniteQueryOptionsShape {
+    getNextPageParam?: (
+      lastPage: BasePaginatedResponse<unknown>
+    ) => string | undefined;
+    initialPageParam?: unknown;
+    queryFn: (context: {
+      pageParam: unknown;
+    }) => Promise<BasePaginatedResponse<TData>>;
+    queryKey: readonly unknown[];
+  }
+
   const queryOptions = useMemo(
-    () => queryOptionsFactory(limit, groupKey),
-    [queryOptionsFactory, limit, groupKey]
+    () =>
+      queryOptionsFactory({
+        filter,
+        groupConfig: group,
+        groupKey,
+        limit,
+        search,
+        sort,
+      }) as InfiniteQueryOptionsShape,
+    [queryOptionsFactory, filter, group, groupKey, limit, search, sort]
   );
 
   // Execute infinite query with keepPreviousData for smooth transitions

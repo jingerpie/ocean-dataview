@@ -1,23 +1,28 @@
-"use client";
-
+import { GallerySkeleton } from "@sparkyidea/dataview/views/gallery-view";
 import { Tabs, TabsContent } from "@sparkyidea/ui/components/tabs";
 import { Suspense } from "react";
-import { FlatGallery } from "@/modules/gallery/flat-gallery";
-import { GroupGallery } from "@/modules/gallery/group-gallery";
-import { HybridGallery } from "@/modules/gallery/hybrid-gallery";
+import { FlatGalleryDemo } from "./components/flat-gallery-demo";
+import { GroupGalleryDemo } from "./components/group-gallery-demo";
+import { HybridGalleryDemo } from "./components/hybrid-gallery-demo";
 
-export default function GalleryPage() {
+interface GalleryPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function GalleryPage({ searchParams }: GalleryPageProps) {
+  const params = await searchParams;
+
   return (
-    <Suspense>
+    <Suspense fallback={<GallerySkeleton cardCount={6} />}>
       <Tabs defaultValue="flat">
         <TabsContent value="flat">
-          <FlatGallery />
+          <FlatGalleryDemo params={params} />
         </TabsContent>
         <TabsContent value="group">
-          <GroupGallery />
+          <GroupGalleryDemo params={params} />
         </TabsContent>
         <TabsContent value="hybrid">
-          <HybridGallery />
+          <HybridGalleryDemo params={params} />
         </TabsContent>
       </Tabs>
     </Suspense>
