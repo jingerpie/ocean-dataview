@@ -1,8 +1,8 @@
+import { columnServerParser } from "@sparkyidea/shared/utils/parsers/column";
 import { createFilterParser } from "@sparkyidea/shared/utils/parsers/filter";
 import { groupServerParser } from "@sparkyidea/shared/utils/parsers/group";
 import {
   cursorsServerParser,
-  expandedServerParser,
   limitServerParser,
 } from "@sparkyidea/shared/utils/parsers/pagination";
 import { sortServerParser } from "@sparkyidea/shared/utils/parsers/sort";
@@ -40,13 +40,13 @@ export const productFilterParser = createFilterParser(productFilterableColumns);
 // ============================================================================
 
 const sharedParsers = {
+  column: columnServerParser,
   cursors: cursorsServerParser,
   filter: productFilterParser,
-  sort: sortServerParser,
-  search: parseAsSearch,
-  limit: limitServerParser.withDefault(25),
   group: groupServerParser,
-  subGroup: groupServerParser,
+  limit: limitServerParser.withDefault(25),
+  search: parseAsSearch,
+  sort: sortServerParser,
 };
 
 /**
@@ -59,10 +59,8 @@ export const productPaginationParams = createSearchParamsCache({
 
 /**
  * Product search params cache for grouped pagination.
- * Includes expanded state for group collapsing.
  */
 export const productGroupPaginationParams = createSearchParamsCache({
-  expanded: expandedServerParser,
   ...sharedParsers,
 });
 

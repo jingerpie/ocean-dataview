@@ -1,14 +1,20 @@
 "use client";
 
 import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
-import type { ReactNode } from "react";
-import { useCallback, useMemo, useState } from "react";
 import {
+  Children,
+  isValidElement,
+  type ReactNode,
+  useMemo,
+  useState,
+} from "react";
+import {
+  type ColumnConfig,
   type DataViewProperty,
   type GroupConfig,
+  type GroupCounts,
   type InfinitePaginationController,
   type PagePaginationController,
-  type SubGroupConfig,
   toPropertyMetaArray,
   type ViewCounts,
 } from "../../types";
@@ -19,6 +25,46 @@ import {
   type PaginationOutput,
 } from "./data-view-context";
 import { InfiniteQueryBridge, PageQueryBridge } from "./query-bridge";
+import { ToolbarContextProvider } from "./toolbar-context";
+
+// ============================================================================
+// Child Slot Splitting
+// ============================================================================
+
+/** Static marker for toolbar components */
+export const TOOLBAR_SLOT = "toolbar" as const;
+
+/**
+ * Component type with optional dataViewSlot marker.
+ */
+interface SlottedComponent {
+  dataViewSlot?: typeof TOOLBAR_SLOT;
+}
+
+/**
+ * Split children into toolbar and content groups.
+ * Toolbar children are identified by the static `dataViewSlot = "toolbar"` marker.
+ */
+function splitChildren(children: ReactNode): {
+  toolbarChildren: ReactNode[];
+  contentChildren: ReactNode[];
+} {
+  const toolbarChildren: ReactNode[] = [];
+  const contentChildren: ReactNode[] = [];
+
+  for (const child of Children.toArray(children)) {
+    if (isValidElement(child)) {
+      const type = child.type as SlottedComponent;
+      if (type.dataViewSlot === TOOLBAR_SLOT) {
+        toolbarChildren.push(child);
+        continue;
+      }
+    }
+    contentChildren.push(child);
+  }
+
+  return { toolbarChildren, contentChildren };
+}
 
 // ============================================================================
 // Defaults Config
@@ -29,6 +75,8 @@ import { InfiniteQueryBridge, PageQueryBridge } from "./query-bridge";
  * These values are used when the URL has no corresponding parameter.
  */
 export interface DefaultsConfig {
+  /** Default column config for board (includes view options like showCount) */
+  column?: ColumnConfig | null;
   /** Default expanded groups */
   expanded?: string[];
   /** Default filter */
@@ -41,8 +89,6 @@ export interface DefaultsConfig {
   search?: string;
   /** Default sort */
   sort?: SortQuery[];
-  /** Default subGroup config (includes view options like showCount) */
-  subGroup?: SubGroupConfig | null;
 }
 
 // ============================================================================
@@ -82,19 +128,23 @@ interface DirectDataProps<
 > {
   children: ReactNode;
   className?: string;
+  column?: ColumnConfig | null;
+  columnCounts?: GroupCounts;
   counts?: ViewCounts;
   data: TData[];
   expandedGroups?: string[];
   filter?: WhereNode[] | null;
   group?: GroupConfig | null;
+  /** Keys for all groups (from server group counts query) */
+  groupKeys?: string[];
   limit?: number;
+  onColumnChange?: (column: ColumnConfig | null) => void;
   onExpandedGroupsChange?: (groups: string[]) => void;
   pagination?: PaginationOutput<TData>;
   properties: TProperties;
   propertyVisibility?: TProperties[number]["id"][];
   search?: string;
   sort?: SortQuery[];
-  subGroup?: SubGroupConfig | null;
 }
 
 /**
@@ -108,6 +158,8 @@ interface ControllerProps<
 > {
   children: ReactNode;
   className?: string;
+  /** Column counts - passed directly for board views */
+  columnCounts?: GroupCounts;
   counts?: Partial<ViewCounts>;
   /** URL defaults - values used when URL has no corresponding parameter */
   defaults?: DefaultsConfig;
@@ -140,6 +192,12 @@ export function DataViewProvider<
 >(props: DataViewProviderProps<TData, TProperties, TQueryOptions>) {
   const { children, className, pagination, properties } = props;
 
+  // Split children into toolbar (non-suspending) and content (may suspend)
+  const { toolbarChildren, contentChildren } = splitChildren(children);
+
+  // Convert properties to PropertyMeta array for ToolbarContextProvider
+  const propertyMetas = toPropertyMetaArray(properties);
+
   // Route to QueryBridge if pagination is a controller
   if (isPageController(pagination)) {
     const controllerProps = props as ControllerProps<
@@ -149,19 +207,26 @@ export function DataViewProvider<
     >;
     const viewProps = {
       className,
+      columnCounts: controllerProps.columnCounts,
       counts: controllerProps.counts,
       properties,
       propertyVisibility: controllerProps.propertyVisibility,
     };
 
     return (
-      <PageQueryBridge<TData, TProperties, TQueryOptions>
-        controller={pagination}
-        defaults={controllerProps.defaults}
-        viewProps={viewProps}
+      <ToolbarContextProvider
+        group={controllerProps.defaults?.group}
+        properties={propertyMetas}
       >
-        {children}
-      </PageQueryBridge>
+        {toolbarChildren}
+        <PageQueryBridge<TData, TProperties, TQueryOptions>
+          controller={pagination}
+          defaults={controllerProps.defaults}
+          viewProps={viewProps}
+        >
+          {contentChildren}
+        </PageQueryBridge>
+      </ToolbarContextProvider>
     );
   }
 
@@ -173,19 +238,26 @@ export function DataViewProvider<
     >;
     const viewProps = {
       className,
+      columnCounts: controllerProps.columnCounts,
       counts: controllerProps.counts,
       properties,
       propertyVisibility: controllerProps.propertyVisibility,
     };
 
     return (
-      <InfiniteQueryBridge<TData, TProperties, TQueryOptions>
-        controller={pagination}
-        defaults={controllerProps.defaults}
-        viewProps={viewProps}
+      <ToolbarContextProvider
+        group={controllerProps.defaults?.group}
+        properties={propertyMetas}
       >
-        {children}
-      </InfiniteQueryBridge>
+        {toolbarChildren}
+        <InfiniteQueryBridge<TData, TProperties, TQueryOptions>
+          controller={pagination}
+          defaults={controllerProps.defaults}
+          viewProps={viewProps}
+        >
+          {contentChildren}
+        </InfiniteQueryBridge>
+      </ToolbarContextProvider>
     );
   }
 
@@ -193,12 +265,18 @@ export function DataViewProvider<
   const directProps = props as DirectDataProps<TData, TProperties>;
 
   return (
-    <DataViewProviderCore<TData, TProperties>
-      {...directProps}
-      className={className}
+    <ToolbarContextProvider
+      group={directProps.group}
+      properties={propertyMetas}
     >
-      {children}
-    </DataViewProviderCore>
+      {toolbarChildren}
+      <DataViewProviderCore<TData, TProperties>
+        {...directProps}
+        className={className}
+      >
+        {contentChildren}
+      </DataViewProviderCore>
+    </ToolbarContextProvider>
   );
 }
 
@@ -215,24 +293,27 @@ export function DataViewProviderCore<
   TProperties extends
     readonly DataViewProperty<TData>[] = readonly DataViewProperty<TData>[],
 >({
-  data,
-  properties,
   children,
   className,
-  pagination,
+  column,
+  columnCounts,
   counts,
+  data,
   expandedGroups,
-  onExpandedGroupsChange,
   filter,
-  sort,
-  search,
-  limit,
   group,
-  subGroup,
-  propertyVisibility: defaultVisibility,
+  groupKeys,
+  limit,
+  onColumnChange,
+  onExpandedGroupsChange,
+  pagination,
+  properties,
+  propertyVisibility: propertyVisibilityProp,
+  search,
+  sort,
 }: DirectDataProps<TData, TProperties>) {
   // Get all property IDs that CAN be visible (hidden !== true in definition)
-  const visiblePropertyIds = useMemo(
+  const allVisiblePropertyIds = useMemo(
     () =>
       properties
         .filter((p) => p.hidden !== true)
@@ -240,63 +321,13 @@ export function DataViewProviderCore<
     [properties]
   );
 
-  // Store only user overrides (properties explicitly hidden by user)
-  const [hiddenByUser, setHiddenByUser] = useState<
-    Set<TProperties[number]["id"]>
-  >(() => {
-    const canBeVisible = properties
-      .filter((p) => p.hidden !== true)
-      .map((p) => p.id) as TProperties[number]["id"][];
-
-    if (defaultVisibility) {
-      const defaultVisible = new Set(defaultVisibility);
-      return new Set(canBeVisible.filter((id) => !defaultVisible.has(id)));
-    }
-    return new Set();
-  });
-
-  // Derive visible properties from property definitions + user overrides
-  const propertyVisibility = useMemo(
-    () => visiblePropertyIds.filter((id) => !hiddenByUser.has(id)),
-    [visiblePropertyIds, hiddenByUser]
-  );
+  // Use prop if provided, otherwise show all
+  const propertyVisibility = (propertyVisibilityProp ??
+    allVisiblePropertyIds) as TProperties[number]["id"][];
 
   const [excludedPropertyIds, setExcludedPropertyIds] = useState<
     TProperties[number]["id"][]
   >([]);
-
-  const setPropertyVisibility = useCallback(
-    (visible: TProperties[number]["id"][]) => {
-      const visibleSet = new Set(visible);
-      setHiddenByUser(
-        new Set(visiblePropertyIds.filter((id) => !visibleSet.has(id)))
-      );
-    },
-    [visiblePropertyIds]
-  );
-
-  const toggleProperty = useCallback(
-    (propertyId: TProperties[number]["id"]) => {
-      setHiddenByUser((prev) => {
-        const next = new Set(prev);
-        if (next.has(propertyId)) {
-          next.delete(propertyId);
-        } else {
-          next.add(propertyId);
-        }
-        return next;
-      });
-    },
-    []
-  );
-
-  const showAllProperties = useCallback(() => {
-    setHiddenByUser(new Set());
-  }, []);
-
-  const hideAllProperties = useCallback(() => {
-    setHiddenByUser(new Set(visiblePropertyIds));
-  }, [visiblePropertyIds]);
 
   const propertyMetas = useMemo(
     () => toPropertyMetaArray(properties),
@@ -305,47 +336,45 @@ export function DataViewProviderCore<
 
   const contextValue = useMemo<DataViewContextValue<TData, TProperties>>(
     () => ({
+      column,
+      columnCounts,
+      counts,
       data,
+      excludedPropertyIds,
+      expandedGroups,
+      filter,
+      group,
+      groupKeys,
+      limit,
+      onColumnChange,
+      onExpandedGroupsChange,
+      pagination,
       properties,
       propertyMetas,
-      pagination,
-      counts,
-      expandedGroups,
-      onExpandedGroupsChange,
-      filter,
-      sort,
-      search,
-      limit,
-      group,
-      subGroup,
       propertyVisibility,
-      setPropertyVisibility,
-      excludedPropertyIds,
+      search,
       setExcludedPropertyIds,
-      toggleProperty,
-      showAllProperties,
-      hideAllProperties,
+      sort,
     }),
     [
+      column,
+      columnCounts,
+      counts,
       data,
+      excludedPropertyIds,
+      expandedGroups,
+      filter,
+      group,
+      groupKeys,
+      limit,
+      onColumnChange,
+      onExpandedGroupsChange,
+      pagination,
       properties,
       propertyMetas,
-      pagination,
-      counts,
-      expandedGroups,
-      onExpandedGroupsChange,
-      filter,
-      sort,
-      search,
-      limit,
-      group,
-      subGroup,
       propertyVisibility,
-      setPropertyVisibility,
-      excludedPropertyIds,
-      toggleProperty,
-      showAllProperties,
-      hideAllProperties,
+      search,
+      sort,
     ]
   );
 

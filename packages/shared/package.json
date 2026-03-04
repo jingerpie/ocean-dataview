@@ -11,6 +11,9 @@
     "./utils/get-relative-date-range": {
       "default": "./src/utils/get-relative-date-range.ts"
     },
+    "./utils/parsers/column": {
+      "default": "./src/utils/parsers/column.ts"
+    },
     "./utils/parsers/filter": {
       "default": "./src/utils/parsers/filter.ts"
     },

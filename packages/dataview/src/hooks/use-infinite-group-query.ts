@@ -1,31 +1,16 @@
 "use client";
 
 import type { Limit } from "@sparkyidea/shared/types";
-import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
-import { useCallback, useMemo } from "react";
+import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
+import { useCallback, useDeferredValue, useMemo } from "react";
 import { useQueryControllerContext } from "../lib/providers/query-bridge";
 import type { BasePaginatedResponse } from "../types/pagination-types";
 
-// ============================================================================
-// Types
-// ============================================================================
-
-/**
- * Options for useInfiniteGroupQuery hook.
- */
 export interface UseInfiniteGroupQueryOptions {
-  /**
-   * Whether to enable the query.
-   * Defaults to true if group is expanded.
-   */
-  enabled?: boolean;
   /** The group key to query for */
   groupKey: string;
 }
 
-/**
- * Query state information for UI rendering.
- */
 export interface InfiniteGroupQueryState {
   /** True when the query encountered an error */
   isError: boolean;
@@ -33,17 +18,12 @@ export interface InfiniteGroupQueryState {
   isFetching: boolean;
   /** True when fetching more pages */
   isFetchingNextPage: boolean;
-  /** True only during initial load (no cached data) */
-  isPending: boolean;
-  /** True when showing stale data while refetching */
-  isPlaceholderData: boolean;
+  /** True when showing stale data while new data loads (deferred update pending) */
+  isStale: boolean;
 }
 
-/**
- * Pagination controls for an infinite group.
- */
 export interface InfiniteGroupPaginationControls {
-  /** Whether there's more data to load (boolean for single query, Record for getManyByGroup) */
+  /** Whether there's more data to load (boolean for single query, Record for getManyByColumn) */
   hasNextPage: boolean | Record<string, boolean>;
   /** Load more items */
   onLoadMore: () => void;
@@ -51,9 +31,6 @@ export interface InfiniteGroupPaginationControls {
   totalLoaded: number;
 }
 
-/**
- * Result of useInfiniteGroupQuery hook.
- */
 export interface UseInfiniteGroupQueryResult<TData>
   extends InfiniteGroupQueryState,
     InfiniteGroupPaginationControls {
@@ -67,10 +44,6 @@ export interface UseInfiniteGroupQueryResult<TData>
   onLimitChange: (limit: Limit) => void;
 }
 
-// ============================================================================
-// Default Page Param Handler
-// ============================================================================
-
 const defaultGetNextPageParam = (
   lastPage: BasePaginatedResponse<unknown>
 ): string | undefined =>
@@ -78,73 +51,23 @@ const defaultGetNextPageParam = (
     ? String(lastPage.endCursor)
     : undefined;
 
-// ============================================================================
-// Hook
-// ============================================================================
-
-/**
- * useInfiniteGroupQuery - Per-group infinite query hook.
- *
- * Each group accordion owns its useInfiniteQuery, enabling:
- * - Unlimited groups (no fixed hook limit)
- * - Independent load-more per group
- * - Proper React patterns
- *
- * Must be used within a QueryBridge (via DataViewProvider with pagination prop).
- *
- * @example
- * ```tsx
- * function GroupAccordionSection({ groupKey }: { groupKey: string }) {
- *   const {
- *     data,
- *     isPending,
- *     isFetchingNextPage,
- *     hasNextPage,
- *     onLoadMore,
- *   } = useInfiniteGroupQuery({ groupKey });
- *
- *   if (isPending && data.length === 0) {
- *     return <Skeleton />;
- *   }
- *
- *   return (
- *     <>
- *       <List data={data} />
- *       {hasNextPage && (
- *         <Button onClick={onLoadMore} disabled={isFetchingNextPage}>
- *           {isFetchingNextPage ? "Loading..." : "Load More"}
- *         </Button>
- *       )}
- *     </>
- *   );
- * }
- * ```
- */
 export function useInfiniteGroupQuery<TData = unknown>(
   options: UseInfiniteGroupQueryOptions
 ): UseInfiniteGroupQueryResult<TData> {
-  const { groupKey, enabled: enabledOption } = options;
+  const { groupKey } = options;
 
-  // Get runtime state from context (provided by QueryBridge)
   const state = useQueryControllerContext();
 
-  const {
-    expandedGroups,
-    filter,
-    group,
-    limit,
-    queryOptionsFactory,
-    search,
-    setLimit,
-    sort,
-  } = state;
+  const { filter, group, limit, queryOptionsFactory, search, setLimit, sort } =
+    state;
 
-  // Determine if query should be enabled
-  const isExpanded = expandedGroups.includes(groupKey);
-  const enabled = enabledOption ?? isExpanded;
+  // Defer query parameters to prevent re-suspending on changes
+  const deferredFilter = useDeferredValue(filter);
+  const deferredSort = useDeferredValue(sort);
+  const deferredSearch = useDeferredValue(search);
+  const deferredLimit = useDeferredValue(limit);
+  const deferredGroup = useDeferredValue(group);
 
-  // Build query options - pass all params as object to factory
-  // Cast to expected shape - factory returns TRPC's infiniteQueryOptions
   interface InfiniteQueryOptionsShape {
     getNextPageParam?: (
       lastPage: BasePaginatedResponse<unknown>
@@ -159,27 +82,38 @@ export function useInfiniteGroupQuery<TData = unknown>(
   const queryOptions = useMemo(
     () =>
       queryOptionsFactory({
-        filter,
-        groupConfig: group,
+        filter: deferredFilter,
+        groupConfig: deferredGroup,
         groupKey,
-        limit,
-        search,
-        sort,
+        limit: deferredLimit,
+        search: deferredSearch,
+        sort: deferredSort,
       }) as InfiniteQueryOptionsShape,
-    [queryOptionsFactory, filter, group, groupKey, limit, search, sort]
+    [
+      queryOptionsFactory,
+      deferredFilter,
+      deferredGroup,
+      groupKey,
+      deferredLimit,
+      deferredSearch,
+      deferredSort,
+    ]
   );
 
-  // Execute infinite query with keepPreviousData for smooth transitions
-  const query = useInfiniteQuery({
+  const query = useSuspenseInfiniteQuery({
     queryKey: queryOptions.queryKey,
     queryFn: queryOptions.queryFn,
     getNextPageParam: queryOptions.getNextPageParam ?? defaultGetNextPageParam,
     initialPageParam: queryOptions.initialPageParam ?? undefined,
-    placeholderData: keepPreviousData,
-    enabled,
   });
 
-  // Flatten data from all pages
+  const isStale =
+    deferredFilter !== filter ||
+    deferredSort !== sort ||
+    deferredSearch !== search ||
+    deferredLimit !== limit ||
+    deferredGroup !== group;
+
   const data = useMemo(() => {
     if (!query.data?.pages) {
       return [];
@@ -189,7 +123,6 @@ export function useInfiniteGroupQuery<TData = unknown>(
     );
   }, [query.data?.pages]);
 
-  // Get hasNextPage from last page response (supports Record<string, boolean> for getManyByGroup)
   const hasNextPage = useMemo(() => {
     const lastPage = query.data?.pages?.at(-1) as
       | BasePaginatedResponse<TData>
@@ -197,14 +130,12 @@ export function useInfiniteGroupQuery<TData = unknown>(
     return lastPage?.hasNextPage ?? false;
   }, [query.data?.pages]);
 
-  // Load more handler
   const onLoadMore = useCallback(() => {
     if (query.hasNextPage && !query.isFetchingNextPage) {
       query.fetchNextPage();
     }
   }, [query]);
 
-  // Limit change handler
   const onLimitChange = useCallback(
     (newLimit: Limit) => {
       setLimit(newLimit);
@@ -213,23 +144,15 @@ export function useInfiniteGroupQuery<TData = unknown>(
   );
 
   return {
-    // Data
     data,
-
-    // Query state
     isError: query.isError,
-    isPending: query.isPending,
     isFetching: query.isFetching,
     isFetchingNextPage: query.isFetchingNextPage,
-    isPlaceholderData: query.isPlaceholderData,
+    isStale,
     error: query.error,
-
-    // Pagination controls
     hasNextPage,
     onLoadMore,
     totalLoaded: data.length,
-
-    // Limit
     limit,
     onLimitChange,
   };

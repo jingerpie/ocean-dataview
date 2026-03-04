@@ -16,7 +16,7 @@ const DIRECTION_OPTIONS: { value: GroupSortOrder; label: string }[] = [
 ];
 
 interface GroupDirectionPickerProps {
-  /** Mode: "group" or "subGroup" (default: "group") */
+  /** Mode: "group" or "column" (default: "group") */
   mode?: GroupingMode;
   /** Additional callback after setting the direction */
   onSetDirection?: (direction: GroupSortOrder) => void;

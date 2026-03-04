@@ -1,6 +1,4 @@
-import { BoardSkeleton } from "@sparkyidea/dataview/views/board-view";
 import { Tabs, TabsContent } from "@sparkyidea/ui/components/tabs";
-import { Suspense } from "react";
 import { FlatBoardDemo } from "./components/flat-board-demo";
 import { GroupBoardDemo } from "./components/group-board-demo";
 import { HybridBoardDemo } from "./components/hybrid-board-demo";
@@ -12,19 +10,19 @@ interface BoardPageProps {
 export default async function BoardPage({ searchParams }: BoardPageProps) {
   const params = await searchParams;
 
+  // No outer Suspense needed - each demo component has its own Suspense boundary
+  // that properly wraps only the data-fetching portion (DataViewProvider)
   return (
-    <Suspense fallback={<BoardSkeleton columnCount={4} />}>
-      <Tabs defaultValue="flat">
-        <TabsContent value="flat">
-          <FlatBoardDemo params={params} />
-        </TabsContent>
-        <TabsContent value="group">
-          <GroupBoardDemo params={params} />
-        </TabsContent>
-        <TabsContent value="hybrid">
-          <HybridBoardDemo params={params} />
-        </TabsContent>
-      </Tabs>
-    </Suspense>
+    <Tabs defaultValue="flat">
+      <TabsContent value="flat">
+        <FlatBoardDemo params={params} />
+      </TabsContent>
+      <TabsContent value="group">
+        <GroupBoardDemo params={params} />
+      </TabsContent>
+      <TabsContent value="hybrid">
+        <HybridBoardDemo params={params} />
+      </TabsContent>
+    </Tabs>
   );
 }

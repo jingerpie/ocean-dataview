@@ -1,23 +1,16 @@
 "use client";
 
-import {
-  usePagePagination,
-  usePaginationState,
-} from "@sparkyidea/dataview/hooks";
+import { usePagePagination } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
-import {
-  TableSkeleton,
-  TableView,
-} from "@sparkyidea/dataview/views/table-view";
+import { TableView } from "@sparkyidea/dataview/views/table-view";
 import type { WhereNode } from "@sparkyidea/shared/types";
 import type { Limit } from "@sparkyidea/shared/types/pagination.type";
 import { productProperties } from "@/properties/product-properties";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
 import { bulkActions } from "./bulk-actions";
-import { ViewTabs } from "./view-tabs";
 
 interface FlatTableProps {
   filter: WhereNode[] | null;
@@ -29,19 +22,17 @@ interface FlatTableProps {
 /**
  * Flat Table - no grouping, page-based cursor pagination.
  *
- * Uses usePagePagination hook that returns a DataViewProvider
- * with pagination baked in.
+ * NotionToolbar uses context from DataViewProvider (never suspends).
+ * TableView may suspend while loading data.
  */
 export function FlatTable({ filter, sort, search, limit }: FlatTableProps) {
   const trpc = useTRPC();
-
   const searchableFields = getSearchableProperties(productProperties);
 
   const { pagination } = usePagePagination({
     queryOptionsFactory: (params) =>
       trpc.product.getMany.queryOptions({
-        // Wrap cursor in __ungrouped__ key for unified cursors format
-        cursors: params.cursor ? { __ungrouped__: params.cursor } : undefined,
+        ...(params.cursor ? { cursor: params.cursor } : {}),
         filter: params.filter,
         limit: params.limit,
         search: buildSearchFilter(params.search, searchableFields),
@@ -49,7 +40,6 @@ export function FlatTable({ filter, sort, search, limit }: FlatTableProps) {
       }),
   });
 
-  // DataViewProvider MUST render for queries to execute
   return (
     <DataViewProvider
       defaults={{
@@ -61,44 +51,13 @@ export function FlatTable({ filter, sort, search, limit }: FlatTableProps) {
       pagination={pagination}
       properties={productProperties}
     >
-      <FlatTableContent />
+      <NotionToolbar enableSettings />
+      <TableView
+        bulkActions={bulkActions}
+        pagination="page"
+        showVerticalLines={false}
+        wrapAllColumns={false}
+      />
     </DataViewProvider>
-  );
-}
-
-/**
- * FlatTableContent - Inner content component that accesses loading states.
- *
- * Uses usePaginationState() to get loading states from context.
- */
-function FlatTableContent() {
-  const { isLoading, isEmpty, isPlaceholderData } = usePaginationState();
-
-  if (isLoading && isEmpty) {
-    // Show skeleton during initial load
-    return <TableSkeleton columnCount={5} rowCount={10} />;
-  }
-
-  return (
-    <>
-      <NotionToolbar enableSettings properties={productProperties}>
-        <ViewTabs />
-      </NotionToolbar>
-
-      <div style={{ opacity: isPlaceholderData ? 0.7 : 1 }}>
-        {isEmpty ? (
-          <div className="flex min-h-100 items-center justify-center">
-            <p className="text-muted-foreground">No products found</p>
-          </div>
-        ) : (
-          <TableView
-            bulkActions={bulkActions}
-            pagination="page"
-            showVerticalLines={false}
-            wrapAllColumns={false}
-          />
-        )}
-      </div>
-    </>
   );
 }

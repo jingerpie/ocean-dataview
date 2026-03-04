@@ -6,12 +6,11 @@ interface GroupGalleryDemoProps {
 }
 
 export function GroupGalleryDemo({ params }: GroupGalleryDemoProps) {
-  const { expanded, filter, group, limit, search, sort } =
+  const { filter, group, limit, search, sort } =
     productGroupPaginationParams.parse(params);
 
   return (
     <GroupGallery
-      expanded={expanded}
       filter={filter}
       group={group}
       limit={limit}

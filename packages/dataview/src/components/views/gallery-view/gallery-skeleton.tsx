@@ -31,17 +31,11 @@ interface GallerySkeletonProps extends React.ComponentProps<"div"> {
    * @default true
    */
   withPagination?: boolean;
-  /**
-   * Show toolbar skeleton
-   * @default true
-   */
-  withToolbar?: boolean;
 }
 
 export function GallerySkeleton({
   cardCount = 6,
   cardSize = "medium",
-  withToolbar = true,
   withPagination = true,
   withImage = true,
   propertyCount = 2,
@@ -55,17 +49,6 @@ export function GallerySkeleton({
       className={cn("flex w-full flex-col gap-2.5 overflow-auto", className)}
       {...props}
     >
-      {/* Toolbar */}
-      {withToolbar && (
-        <div className="flex w-full items-center justify-between gap-2 overflow-auto p-1">
-          <div className="flex flex-1 items-center gap-2">
-            <Skeleton className="h-7 w-[4.5rem] border-dashed" />
-            <Skeleton className="h-7 w-[4.5rem] border-dashed" />
-          </div>
-          <Skeleton className="ml-auto hidden h-7 w-[4.5rem] lg:flex" />
-        </div>
-      )}
-
       {/* Card Grid */}
       <div className={cn("grid gap-4", cols)}>
         {Array.from({ length: cardCount }).map((_, i) => (

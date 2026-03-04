@@ -63,7 +63,6 @@ export function GroupedLayout<TData>({
             <GroupSection
               group={group}
               groupByPropertyDef={groupByProperty}
-              isLoading={false}
               key={group.key}
               renderFooter={renderPagination(pagination, paginationContext)}
               showAggregation={showAggregation}

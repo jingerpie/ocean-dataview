@@ -1,6 +1,6 @@
 "use client";
 
-import { useSubGroupParams } from "../../../../hooks";
+import { useColumnParams } from "../../../../hooks";
 import type { PropertyMeta } from "../../../../types";
 import { GroupEditor } from "../../../ui/toolbar/group/group-editor";
 import { GroupPicker } from "../../../ui/toolbar/group/group-picker";
@@ -8,7 +8,7 @@ import { GroupShowAsPicker } from "../../../ui/toolbar/group/group-show-as-picke
 
 type SubSection = "property" | "showAs" | null;
 
-interface SettingsSubGroupProps {
+interface SettingsColumnProps {
   /** Callback when navigating to property picker (to update parent header) */
   onSubSectionChange?: (section: SubSection) => void;
   /** Available properties for grouping */
@@ -18,28 +18,28 @@ interface SettingsSubGroupProps {
 }
 
 /**
- * Sub-group section for settings panel (board view only).
+ * Column section for settings panel (board view only).
  *
- * Uses the same composable components as SettingsGroup but with mode="subGroup":
- * - GroupEditor: main settings (sub-group by, show as, sort, hide empty)
- * - GroupPicker: property picker for selecting sub-group property
+ * Uses the same composable components as SettingsGroup but with mode="column":
+ * - GroupEditor: main settings (column by, show as, sort, hide empty)
+ * - GroupPicker: property picker for selecting column property
  * - GroupShowAsPicker: show-as option picker
  *
- * If no sub-group is set, shows GroupPicker directly.
- * If sub-group is set, shows GroupEditor with all settings.
+ * If no column is set, shows GroupPicker directly.
+ * If column is set, shows GroupEditor with all settings.
  */
-function SettingsSubGroup({
+function SettingsColumn({
   onSubSectionChange,
   properties = [],
   subSection = null,
-}: SettingsSubGroupProps) {
-  const { isSubGrouped } = useSubGroupParams();
+}: SettingsColumnProps) {
+  const { hasColumn } = useColumnParams();
 
   // Render property picker sub-section
   if (subSection === "property") {
     return (
       <GroupPicker
-        mode="subGroup"
+        mode="column"
         onSetGroup={() => onSubSectionChange?.(null)}
         properties={properties}
       />
@@ -50,22 +50,22 @@ function SettingsSubGroup({
   if (subSection === "showAs") {
     return (
       <GroupShowAsPicker
-        mode="subGroup"
+        mode="column"
         onSetShowAs={() => onSubSectionChange?.(null)}
       />
     );
   }
 
-  // If no sub-group is set, show picker directly
-  if (!isSubGrouped) {
-    return <GroupPicker mode="subGroup" properties={properties} />;
+  // If no column is set, show picker directly
+  if (!hasColumn) {
+    return <GroupPicker mode="column" properties={properties} />;
   }
 
-  // Main settings view (when sub-group is set)
+  // Main settings view (when column is set)
   return (
     <GroupEditor
-      label="Sub-group by"
-      mode="subGroup"
+      label="Column by"
+      mode="column"
       onGroupByClick={() => onSubSectionChange?.("property")}
       onShowAsClick={() => onSubSectionChange?.("showAs")}
       properties={properties}
@@ -73,4 +73,4 @@ function SettingsSubGroup({
   );
 }
 
-export { SettingsSubGroup, type SettingsSubGroupProps };
+export { SettingsColumn, type SettingsColumnProps };

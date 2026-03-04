@@ -23,11 +23,6 @@ interface TableSkeletonProps extends React.ComponentProps<"div"> {
    */
   columnCount?: number;
   /**
-   * Number of filter button skeletons
-   * @default 2
-   */
-  filterCount?: number;
-  /**
    * Number of rows to display
    * @default 10
    */
@@ -42,26 +37,13 @@ interface TableSkeletonProps extends React.ComponentProps<"div"> {
    * @default true
    */
   withPagination?: boolean;
-  /**
-   * Show toolbar skeleton
-   * @default true
-   */
-  withToolbar?: boolean;
-  /**
-   * Show view options button in toolbar
-   * @default true
-   */
-  withViewOptions?: boolean;
 }
 
 export function TableSkeleton({
   columnCount = 5,
   rowCount = 10,
   cellWidths = ["auto"],
-  withToolbar = true,
   withPagination = true,
-  withViewOptions = true,
-  filterCount = 2,
   shrinkZero = false,
   className,
   ...props
@@ -77,21 +59,6 @@ export function TableSkeleton({
       className={cn("flex w-full flex-col gap-2.5 overflow-auto", className)}
       {...props}
     >
-      {/* Toolbar */}
-      {withToolbar && (
-        <div className="flex w-full items-center justify-between gap-2 overflow-auto p-1">
-          <div className="flex flex-1 items-center gap-2">
-            {filterCount > 0 &&
-              Array.from({ length: filterCount }).map((_, i) => (
-                <Skeleton className="h-7 w-[4.5rem] border-dashed" key={i} />
-              ))}
-          </div>
-          {withViewOptions && (
-            <Skeleton className="ml-auto hidden h-7 w-[4.5rem] lg:flex" />
-          )}
-        </div>
-      )}
-
       {/* Table */}
       <div className="rounded-md border">
         <Table>

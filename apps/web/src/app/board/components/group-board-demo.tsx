@@ -6,18 +6,10 @@ interface GroupBoardDemoProps {
 }
 
 export function GroupBoardDemo({ params }: GroupBoardDemoProps) {
-  const { expanded, filter, group, limit, search, sort, subGroup } =
+  const { filter, limit, search, sort } =
     productGroupPaginationParams.parse(params);
 
   return (
-    <GroupBoard
-      expanded={expanded}
-      filter={filter}
-      group={group}
-      limit={limit}
-      search={search}
-      sort={sort}
-      subGroup={subGroup}
-    />
+    <GroupBoard filter={filter} limit={limit} search={search} sort={sort} />
   );
 }

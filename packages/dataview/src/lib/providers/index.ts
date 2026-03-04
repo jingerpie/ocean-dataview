@@ -8,16 +8,22 @@ export type {
   DataViewContextValue,
   GroupConfig,
   PaginationOutput,
-  SubGroupConfig,
 } from "./data-view-context";
 export { DataViewContext, useDataViewContext } from "./data-view-context";
 export type {
   DataViewProviderProps,
   DefaultsConfig,
 } from "./data-view-provider";
-export { DataViewProvider } from "./data-view-provider";
+export { DataViewProvider, TOOLBAR_SLOT } from "./data-view-provider";
 // QueryBridge and controller types (used by pagination hooks)
 export {
   QueryControllerContext,
   useQueryControllerContext,
 } from "./query-bridge";
+// Toolbar context (non-suspending layer)
+export type { ToolbarContextValue } from "./toolbar-context";
+export {
+  ToolbarContext,
+  useToolbarContext,
+  useToolbarContextOptional,
+} from "./toolbar-context";

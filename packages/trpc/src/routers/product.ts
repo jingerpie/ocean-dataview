@@ -39,18 +39,8 @@ export const productRouter = router({
   getMany: publicProcedure
     .input(productSearchParamsSchema)
     .query(async ({ input }) => {
-      const {
-        cursors,
-        cursor: simpleCursor,
-        limit,
-        filter,
-        sort,
-        search,
-      } = input;
-      // Extract cursor: prefer cursors (unified), fall back to simple cursor (infinite)
-      const UNGROUPED_KEY = "__ungrouped__";
-      const cursorValue = cursors?.[UNGROUPED_KEY] ?? simpleCursor;
-      const { after, before } = getCursorParams(cursorValue);
+      const { cursor, limit, filter, sort, search } = input;
+      const { after, before } = getCursorParams(cursor);
 
       // Build filter/search WHERE
       // search is SearchQuery ({ or: [...] }), wrap in array for buildWhere
@@ -178,17 +168,20 @@ export const productRouter = router({
     }),
 
   /**
-   * Get items grouped by a property with per-group pagination.
+   * Get items grouped by column with per-column pagination.
+   * Board-specific procedure for column-based grouping.
    * Supports full GroupByConfig for complex grouping strategies.
-   * Same response shape as getMany but with per-group Records.
-   * Counts handled separately by getGroup procedure.
+   * Same response shape as getMany but with per-column Records.
+   * Column counts handled separately by getGroup procedure.
    */
-  getManyByGroup: publicProcedure
+  getManyByColumn: publicProcedure
     .input(
       z.object({
-        groupBy: groupByConfigSchema,
+        columnBy: groupByConfigSchema,
         limit: z.number().int().min(1).max(100).default(10),
-        cursor: z.record(z.string(), z.string().nullable()).optional(),
+        // Per-column cursor map for board pagination (tRPC requires field name "cursor")
+        // Record<columnKey, cursorString | null>
+        cursor: z.record(z.string(), z.string().nullable()).default({}),
         filter: z.array(whereNodeSchema).nullish(),
         sort: z
           .array(
@@ -199,24 +192,24 @@ export const productRouter = router({
           )
           .default([]),
         search: searchQuerySchema.nullish(),
-        // Group keys to fetch - required for knowing which groups to load
-        groupKeys: z.array(z.string()).optional(),
+        // Column keys to fetch - required for knowing which columns to load
+        columnKeys: z.array(z.string()).optional(),
       })
     )
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Loop with cursor handling requires conditionals
     .query(async ({ input }) => {
       const {
-        groupBy,
+        columnBy,
         limit,
-        cursor: inputCursors = {},
+        cursor: cursors, // tRPC's infiniteQueryOptions requires the field to be named cursor
         filter,
         sort,
         search,
-        groupKeys: requestedGroupKeys,
+        columnKeys: requestedColumnKeys,
       } = input;
 
-      // Parse the GroupByConfig
-      const parsed = parseGroupByConfig(groupBy);
+      // Parse the GroupByConfig for column
+      const parsed = parseGroupByConfig(columnBy);
       const propertyConfig =
         productPropertyConfigs[
           parsed.property as keyof typeof productPropertyConfigs
@@ -236,14 +229,14 @@ export const productRouter = router({
               { property: "id", direction: "desc" },
             ];
 
-      // Determine which groups to fetch
-      let groupKeysToFetch: string[];
+      // Determine which columns to fetch
+      let columnKeysToFetch: string[];
 
-      if (requestedGroupKeys && requestedGroupKeys.length > 0) {
-        // Use explicitly requested group keys
-        groupKeysToFetch = requestedGroupKeys;
+      if (requestedColumnKeys && requestedColumnKeys.length > 0) {
+        // Use explicitly requested column keys
+        columnKeysToFetch = requestedColumnKeys;
       } else {
-        // Get distinct groups using buildGroupBy for transformed keys
+        // Get distinct columns using buildGroupBy for transformed keys
         const groupByResult = buildGroupBy(product, parsed, propertyConfig);
 
         if (!groupByResult) {
@@ -256,20 +249,20 @@ export const productRouter = router({
           };
         }
 
-        const { groupKey, orderBy } = groupByResult;
+        const { groupKey: columnKeyExpr, orderBy } = groupByResult;
 
-        const groupsResult = await db
-          .selectDistinct({ groupKey, sortValue: orderBy })
+        const columnsResult = await db
+          .selectDistinct({ columnKey: columnKeyExpr, sortValue: orderBy })
           .from(product)
           .where(and(filterWhere, searchWhere))
           .orderBy(orderBy);
 
-        groupKeysToFetch = groupsResult.map((r) =>
-          String(r.groupKey ?? `No ${parsed.property}`)
+        columnKeysToFetch = columnsResult.map((r) =>
+          String(r.columnKey ?? `No ${parsed.property}`)
         );
       }
 
-      // Fetch items for each group
+      // Fetch items for each column
       const allItems: (typeof product.$inferSelect)[] = [];
       const startCursor: Record<string, string | null> = {};
       const endCursor: Record<string, string | null> = {};
@@ -277,31 +270,31 @@ export const productRouter = router({
       const hasPreviousPage: Record<string, boolean> = {};
       const seenIds = new Set<number>();
 
-      for (const groupKey of groupKeysToFetch) {
-        const cursor = inputCursors[groupKey];
+      for (const columnKey of columnKeysToFetch) {
+        const cursor = cursors[columnKey];
 
-        // Skip exhausted/empty groups (cursor === null means "don't refetch")
+        // Skip exhausted/empty columns (cursor === null means "don't refetch")
         if (cursor === null) {
-          startCursor[groupKey] = null;
-          endCursor[groupKey] = null;
-          hasNextPage[groupKey] = false;
-          hasPreviousPage[groupKey] = true;
+          startCursor[columnKey] = null;
+          endCursor[columnKey] = null;
+          hasNextPage[columnKey] = false;
+          hasPreviousPage[columnKey] = true;
           continue;
         }
 
-        // Build group WHERE using buildGroupWhere
-        const groupWhere = buildGroupWhere(
+        // Build column WHERE using buildGroupWhere
+        const columnWhere = buildGroupWhere(
           product,
           parsed,
-          groupKey,
+          columnKey,
           propertyConfig
         );
 
-        if (!groupWhere) {
+        if (!columnWhere) {
           continue;
         }
 
-        // Build cursor WHERE for this group
+        // Build cursor WHERE for this column
         const { orderBy, cursorWhere } = buildCursor(product, {
           sort: sortWithTiebreaker,
           cursor,
@@ -310,7 +303,7 @@ export const productRouter = router({
 
         // Fetch with limit + 1 to check hasMore
         const data = await db.query.product.findMany({
-          where: and(filterWhere, searchWhere, cursorWhere, groupWhere),
+          where: and(filterWhere, searchWhere, cursorWhere, columnWhere),
           orderBy,
           limit: limit + 1,
         });
@@ -321,10 +314,10 @@ export const productRouter = router({
         const lastItem = items.at(-1);
 
         // Track cursors (forward-only pagination for Load More)
-        startCursor[groupKey] = firstItem ? String(firstItem.id) : null;
-        endCursor[groupKey] = lastItem ? String(lastItem.id) : null;
-        hasNextPage[groupKey] = hasMore;
-        hasPreviousPage[groupKey] = !!cursor;
+        startCursor[columnKey] = firstItem ? String(firstItem.id) : null;
+        endCursor[columnKey] = lastItem ? String(lastItem.id) : null;
+        hasNextPage[columnKey] = hasMore;
+        hasPreviousPage[columnKey] = !!cursor;
 
         // Add items, deduping by ID
         for (const item of items) {

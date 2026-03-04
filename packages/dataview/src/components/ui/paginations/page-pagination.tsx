@@ -30,7 +30,7 @@ export function PagePagination({
   onPrev,
   limit = 25,
   onLimitChange,
-  isLoading = false,
+  isFetching = false,
   displayStart,
   displayEnd,
 }: PagePaginationProps) {
@@ -47,13 +47,13 @@ export function PagePagination({
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                disabled={!hasPrev || isLoading}
+                disabled={!hasPrev || isFetching}
                 onClick={onPrev}
               />
             </PaginationItem>
             <PaginationItem>
               <PaginationNext
-                disabled={!hasNext || isLoading}
+                disabled={!hasNext || isFetching}
                 onClick={onNext}
               />
             </PaginationItem>

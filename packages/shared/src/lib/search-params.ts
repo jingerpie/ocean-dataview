@@ -7,12 +7,10 @@ import {
   LIMIT_OPTIONS,
   type Limit,
 } from "../types/pagination.type";
+import { columnServerParser } from "../utils/parsers/column";
 import { filterServerParser } from "../utils/parsers/filter";
 import { groupServerParser } from "../utils/parsers/group";
-import {
-  cursorsServerParser,
-  expandedServerParser,
-} from "../utils/parsers/pagination";
+import { cursorsServerParser } from "../utils/parsers/pagination";
 import { sortServerParser } from "../utils/parsers/sort";
 
 // ============================================================================
@@ -48,6 +46,7 @@ const sharedParsers = {
   filter: filterServerParser,
   sort: sortServerParser,
   search: parseAsSearch,
+  column: columnServerParser,
   group: groupServerParser,
   subGroup: groupServerParser,
 };
@@ -63,11 +62,9 @@ export const paginationParams = createSearchParamsCache({
 
 /**
  * Grouped pagination params for server-side URL parsing.
- * `expanded` is a view-level concern (separate from group config).
  */
 export const groupPaginationParams = createSearchParamsCache({
   cursors: cursorsServerParser,
-  expanded: expandedServerParser,
   ...sharedParsers,
 });
 
@@ -94,11 +91,9 @@ export const createSearchParamsSchema = (table: Table) => {
   });
 
   return z.object({
-    // Unified cursors format for page pagination (Record<groupKey, CursorValue>)
-    cursors: z.record(z.string(), cursorValueSchema).optional(),
-    // Simple cursor string for infinite query pagination (backward compat)
-    // infiniteQueryOptions passes pageParam as this string cursor
-    cursor: z.string().optional(),
+    // Cursor for page-based (CursorValue) or infinite scroll (string)
+    // getCursorParams() handles both formats
+    cursor: z.union([cursorValueSchema, z.string()]).optional(),
     limit: z.number().int().min(1).max(200).optional().default(25),
     search: searchQuerySchema.nullish(),
     filter: z.array(whereNodeSchema).nullish(),

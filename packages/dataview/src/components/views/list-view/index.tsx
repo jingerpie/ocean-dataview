@@ -1,15 +1,19 @@
 "use client";
 
 import { AlertCircle } from "lucide-react";
+import { Suspense } from "react";
 import type { GroupedDataItem } from "../../../hooks";
 import { useDisplayProperties, useViewSetup } from "../../../hooks";
+import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import { buildPaginationContext, cn } from "../../../lib/utils";
-import type { DataViewProperty } from "../../../types";
+import { cn, transformData } from "../../../lib/utils";
+import type { DataViewProperty, PaginationContext } from "../../../types";
 import { Accordion } from "../../ui/accordion";
 import { GroupSection } from "../../ui/group-section";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
+import { SuspendingGroupContent } from "../../ui/suspending-group-content";
 import { ListRow } from "./list-row";
+import { ListSkeleton } from "./list-skeleton";
 
 export interface ListViewProps<TData> {
   /**
@@ -43,7 +47,7 @@ export function ListView<
   TData,
   TProperties extends
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
->({ onItemClick, pagination, className }: ListViewProps<TData>) {
+>({ className, onItemClick, pagination }: ListViewProps<TData>) {
   // Get data and properties from context
   const {
     data,
@@ -52,13 +56,13 @@ export function ListView<
     pagination: contextPagination,
     counts,
     group,
+    groupKeys,
     expandedGroups,
     onExpandedGroupsChange,
   } = useDataViewContext<TData, TProperties>();
 
   // Use shared view setup hook
   const {
-    transformedData,
     groupConfig,
     groupedData,
     groupByProperty,
@@ -79,9 +83,6 @@ export function ListView<
     groupConfig ? [groupConfig.groupBy] : undefined
   );
 
-  // Transform flat data for non-grouped view (must be before early returns)
-  const transformedFlatData = transformedData;
-
   // Error state
   if (validationError || propertyValidationError) {
     return (
@@ -97,10 +98,8 @@ export function ListView<
     );
   }
 
-  // GROUPED VIEW: Render using Accordion for collapsible groups
-  // Note: Check grouped view before empty state, because with lazy loading
-  // data might be empty but we still want to show group headers with counts
-  if (group && groupedData) {
+  // GROUPED VIEW with Per-Group Suspense
+  if (group && groupKeys && groupKeys.length > 0) {
     return (
       <div className={cn("flex flex-col gap-4", className)}>
         <Accordion
@@ -108,29 +107,32 @@ export function ListView<
           onValueChange={onExpandedGroupsChange}
           value={expandedGroups ?? []}
         >
-          {groupedData.map((groupItem: GroupedDataItem<TData>) => {
-            // Build pagination context for this group using shared utility
-            const paginationContext = buildPaginationContext(
-              contextPagination,
-              groupItem.key
-            );
+          {groupedData?.map((groupItem: GroupedDataItem<TData>) => {
+            const isExpanded = expandedGroups?.includes(groupItem.key) ?? false;
 
             return (
               <GroupSection
                 group={groupItem}
                 groupByPropertyDef={groupByProperty}
-                isLoading={false}
                 key={groupItem.key}
-                renderFooter={renderPagination(pagination, paginationContext)}
                 showAggregation={group.showCount ?? true}
                 stickyHeader={{ enabled: true, offset: 57 }}
               >
-                <ListRow
-                  allProperties={properties}
-                  data={groupItem.items}
-                  displayProperties={displayProperties}
-                  onItemClick={onItemClick}
-                />
+                {isExpanded ? (
+                  <Suspense
+                    fallback={
+                      <ListSkeleton rowCount={5} withPagination={false} />
+                    }
+                  >
+                    <SuspendingGroupListContent<TData, TProperties>
+                      displayProperties={displayProperties}
+                      groupItem={groupItem}
+                      onItemClick={onItemClick}
+                      pagination={pagination}
+                      properties={properties}
+                    />
+                  </Suspense>
+                ) : null}
               </GroupSection>
             );
           })}
@@ -139,32 +141,98 @@ export function ListView<
     );
   }
 
-  // Empty state for non-grouped view
-  if (Array.isArray(data) && data.length === 0) {
-    return (
-      <div className="flex h-64 flex-col items-center justify-center text-muted-foreground">
-        <p>No data to display</p>
-      </div>
-    );
-  }
-
-  // Build pagination context for flat view
-  const flatPaginationContext = buildPaginationContext(
-    contextPagination,
-    "__ungrouped__"
-  );
-
-  // STANDARD VIEW: Flat list without grouping
+  // FLAT VIEW: Uses SuspendingGroupContent with __ungrouped__ key
   return (
     <div className={cn("flex flex-col gap-4", className)}>
-      <ListRow
-        allProperties={properties}
-        data={transformedFlatData}
-        displayProperties={displayProperties}
-        onItemClick={onItemClick}
-      />
-      {renderPagination(pagination, flatPaginationContext)}
+      <Suspense
+        fallback={
+          <ListSkeleton rowCount={10} withPagination={Boolean(pagination)} />
+        }
+      >
+        <SuspendingGroupListContent<TData, TProperties>
+          displayProperties={displayProperties}
+          groupItem={{
+            key: "__ungrouped__",
+            items: [],
+            count: 0,
+            displayCount: "0",
+            sortValue: "",
+          }}
+          onItemClick={onItemClick}
+          pagination={pagination}
+          properties={properties}
+        />
+      </Suspense>
     </div>
+  );
+}
+
+// ============================================================================
+// Suspending Group Content Component
+// ============================================================================
+
+interface SuspendingGroupListContentProps<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+> {
+  displayProperties: TProperties[number][];
+  groupItem: GroupedDataItem<TData>;
+  onItemClick?: (item: TData) => void;
+  pagination?: PaginationMode;
+  properties: TProperties;
+}
+
+/**
+ * Internal component that fetches data for a group using Suspense.
+ * Renders inside GroupSection's AccordionContent.
+ */
+function SuspendingGroupListContent<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+>({
+  displayProperties,
+  groupItem,
+  onItemClick,
+  pagination,
+  properties,
+}: SuspendingGroupListContentProps<TData, TProperties>) {
+  return (
+    <SuspendingGroupContent<TData> groupKey={groupItem.key}>
+      {(result: UseGroupQueryResult<TData>) => {
+        // Transform data with property definitions
+        const transformedItems = transformData(
+          result.data,
+          properties
+        ) as TData[];
+
+        // Build pagination context from query result
+        const paginationContext: PaginationContext = {
+          displayEnd: result.displayEnd,
+          displayStart: result.displayStart,
+          hasMoreThanMax: groupItem.displayCount === "99+",
+          hasNext: result.hasNext,
+          hasPrev: result.hasPrev,
+          isFetching: result.isFetching,
+          limit: result.limit,
+          onLimitChange: result.onLimitChange,
+          onNext: result.onNext,
+          onPrev: result.onPrev,
+          totalCount: groupItem.count,
+        };
+
+        return (
+          <>
+            <ListRow
+              allProperties={properties}
+              data={transformedItems}
+              displayProperties={displayProperties}
+              onItemClick={onItemClick}
+            />
+            {renderPagination(pagination, paginationContext)}
+          </>
+        );
+      }}
+    </SuspendingGroupContent>
   );
 }
 

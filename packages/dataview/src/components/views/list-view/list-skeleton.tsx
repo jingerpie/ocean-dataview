@@ -24,16 +24,10 @@ interface ListSkeletonProps extends React.ComponentProps<"div"> {
    * @default true
    */
   withPagination?: boolean;
-  /**
-   * Show toolbar skeleton
-   * @default true
-   */
-  withToolbar?: boolean;
 }
 
 export function ListSkeleton({
   rowCount = 8,
-  withToolbar = true,
   withPagination = true,
   withDividers = true,
   propertyCount = 3,
@@ -45,17 +39,6 @@ export function ListSkeleton({
       className={cn("flex w-full flex-col gap-2.5 overflow-auto", className)}
       {...props}
     >
-      {/* Toolbar */}
-      {withToolbar && (
-        <div className="flex w-full items-center justify-between gap-2 overflow-auto p-1">
-          <div className="flex flex-1 items-center gap-2">
-            <Skeleton className="h-7 w-[4.5rem] border-dashed" />
-            <Skeleton className="h-7 w-[4.5rem] border-dashed" />
-          </div>
-          <Skeleton className="ml-auto hidden h-7 w-[4.5rem] lg:flex" />
-        </div>
-      )}
-
       {/* List Rows */}
       <div className="flex flex-col">
         {Array.from({ length: rowCount }).map((_, i) => (

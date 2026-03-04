@@ -6,18 +6,16 @@ interface HybridTableDemoProps {
 }
 
 export function HybridTableDemo({ params }: HybridTableDemoProps) {
-  const { expanded, filter, group, limit, search, sort, subGroup } =
+  const { filter, group, limit, search, sort } =
     productGroupPaginationParams.parse(params);
 
   return (
     <HybridTable
-      expanded={expanded}
       filter={filter}
       group={group}
       limit={limit}
       search={search}
       sort={sort}
-      subGroup={subGroup}
     />
   );
 }

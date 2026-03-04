@@ -107,10 +107,14 @@ export function useViewSetup<
   }, [data, properties]);
 
   // Check if we're using grouped pagination from context
+  // Groups must be non-empty to be considered "grouped pagination"
+  // Empty groups means views use SuspendingGroupContent + counts instead
   const hasGroupedPagination = Boolean(
     contextPagination &&
       typeof contextPagination === "object" &&
-      "groups" in contextPagination
+      "groups" in contextPagination &&
+      Array.isArray((contextPagination as { groups: unknown[] }).groups) &&
+      (contextPagination as { groups: unknown[] }).groups.length > 0
   );
 
   // Prepare internal group configuration (only needed for client-side grouping)

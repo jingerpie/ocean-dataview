@@ -18,7 +18,7 @@ import {
 import { PropertyIcon } from "../../property-icon";
 
 interface GroupPickerProps {
-  /** Mode: "group" or "subGroup" (default: "group") */
+  /** Mode: "group" or "column" (default: "group") */
   mode?: GroupingMode;
   /** Additional callback after setting the group */
   onSetGroup?: (property: PropertyMeta | null) => void;
@@ -30,7 +30,7 @@ interface GroupPickerProps {
  * Property picker for selecting which property to group by.
  *
  * Handles group selection internally via useGroupingParams().
- * Can be used for both primary group and sub-group via the `mode` prop.
+ * Can be used for both group and column via the `mode` prop.
  *
  * Features:
  * - Searchable Command-based list

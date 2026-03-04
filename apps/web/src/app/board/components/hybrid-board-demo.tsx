@@ -6,18 +6,17 @@ interface HybridBoardDemoProps {
 }
 
 export function HybridBoardDemo({ params }: HybridBoardDemoProps) {
-  const { filter, sort, search, limit, expanded, group, subGroup } =
+  const { column, filter, group, limit, search, sort } =
     productGroupPaginationParams.parse(params);
 
   return (
     <HybridBoard
-      expanded={expanded}
+      column={column}
       filter={filter}
       group={group}
       limit={limit}
       search={search}
       sort={sort}
-      subGroup={subGroup}
     />
   );
 }

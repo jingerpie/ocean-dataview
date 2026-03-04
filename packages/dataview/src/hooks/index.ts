@@ -2,6 +2,7 @@
 export { useAdvanceFilterBuilder } from "./use-advance-filter-builder";
 export { useCallbackRef } from "./use-callback-ref";
 export { useChartTransform } from "./use-chart-transform";
+export { useColumnParams } from "./use-column-params";
 export { useDebouncedCallback } from "./use-debounced-callback";
 export { useDisplayProperties } from "./use-display-properties";
 export { useFilterParams } from "./use-filter-params";
@@ -16,8 +17,8 @@ export type {
 export type GroupInfo<TData> =
   | import("./use-page-pagination").PageGroupInfo<TData>
   | import("./use-infinite-pagination").InfiniteGroupInfo<TData>;
-// usePaginationState - Access loading states inside DataViewProvider
-export { usePaginationState } from "../lib/providers/pagination-state-context";
+// Base query options type (used by both pagination types)
+export type { BaseQueryOptions } from "../types/pagination-controller";
 export { useGroupConfig } from "./use-group-config";
 export { useGroupParams } from "./use-group-params";
 export type { GroupingMode, GroupingParams } from "./use-grouping-params";
@@ -40,7 +41,6 @@ export { useInteractiveLegend } from "./use-interactive-legend";
 export type {
   PageGroupInfo,
   PagePaginationState,
-  PageQueryOptions,
   PageQueryOptionsFactoryParams,
   UsePagePaginationOptions,
   UsePagePaginationResult,
@@ -50,7 +50,6 @@ export { useSearchParams } from "./use-search-params";
 export { useSimpleFilterChip } from "./use-simple-filter-chip";
 export { useSortBuilder } from "./use-sort-builder";
 export { useSortParams } from "./use-sort-params";
-export { useSubGroupParams } from "./use-subgroup-params";
 export type {
   UseToolbarStateOptions,
   UseToolbarStateReturn,

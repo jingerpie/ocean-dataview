@@ -6,18 +6,16 @@ interface HybridGalleryDemoProps {
 }
 
 export function HybridGalleryDemo({ params }: HybridGalleryDemoProps) {
-  const { expanded, filter, group, limit, search, sort, subGroup } =
+  const { filter, group, limit, search, sort } =
     productGroupPaginationParams.parse(params);
 
   return (
     <HybridGallery
-      expanded={expanded}
       filter={filter}
       group={group}
       limit={limit}
       search={search}
       sort={sort}
-      subGroup={subGroup}
     />
   );
 }

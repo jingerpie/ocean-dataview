@@ -62,3 +62,6 @@ export type GroupConfig = GroupByConfig & SharedGroupOptions;
 
 // SubGroup uses same structure
 export type SubGroupConfig = GroupByConfig & SharedGroupOptions;
+
+// Column uses same structure (for board columns)
+export type ColumnConfig = GroupByConfig & SharedGroupOptions;

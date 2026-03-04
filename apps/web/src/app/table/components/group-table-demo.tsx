@@ -6,12 +6,11 @@ interface GroupTableDemoProps {
 }
 
 export function GroupTableDemo({ params }: GroupTableDemoProps) {
-  const { expanded, filter, group, limit, search, sort } =
+  const { filter, group, limit, search, sort } =
     productGroupPaginationParams.parse(params);
 
   return (
     <GroupTable
-      expanded={expanded}
       filter={filter}
       group={group}
       limit={limit}

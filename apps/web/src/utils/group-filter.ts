@@ -75,15 +75,20 @@ function parseNumberRangeFilter(property: string, groupKey: string): WhereRule {
  * Used in grouped views where each group needs its own query.
  *
  * @param group - The group configuration (determines property and type)
- * @param groupKey - The group key value
+ * @param groupKey - The group key value ("__ungrouped__" for flat views)
  * @param userFilter - Optional existing user filters
  * @returns Array of WhereNodes for use with buildWhere
  */
 export function combineGroupFilter(
-  group: GroupByConfigInput,
+  group: GroupByConfigInput | null,
   groupKey: string,
   userFilter: WhereNode[] | null
 ): WhereNode[] {
+  // __ungrouped__ means flat view - no group filter needed
+  if (groupKey === "__ungrouped__" || !group) {
+    return userFilter ?? [];
+  }
+
   const property = getGroupProperty(group);
   if (!property) {
     return userFilter ?? [];

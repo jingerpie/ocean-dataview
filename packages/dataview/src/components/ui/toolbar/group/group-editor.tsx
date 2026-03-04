@@ -14,7 +14,7 @@ import { GroupDirectionPicker } from "./group-direction-picker";
 interface GroupEditorProps {
   /** Label for the "Group by" row (default: "Group by") */
   label?: string;
-  /** Mode: "group" or "subGroup" (default: "group") */
+  /** Mode: "group" or "column" (default: "group") */
   mode?: GroupingMode;
   /** Callback when "Group by" row is clicked (to navigate to picker) */
   onGroupByClick?: () => void;

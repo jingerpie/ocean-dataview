@@ -6,11 +6,12 @@ import type {
   Table as TanStackTable,
 } from "@tanstack/react-table";
 import { AlertCircle } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import type { GroupedDataItem } from "../../../hooks";
 import { useDisplayProperties, useViewSetup } from "../../../hooks";
+import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import { buildPaginationContext, cn } from "../../../lib/utils";
+import { cn, transformData } from "../../../lib/utils";
 import type {
   BulkAction,
   DataViewProperty,
@@ -25,8 +26,10 @@ import {
 import { Checkbox } from "../../ui/checkbox";
 import { GroupSection } from "../../ui/group-section";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
+import { SuspendingGroupContent } from "../../ui/suspending-group-content";
 import { DataCell } from "../data-cell";
 import { DataTable } from "./data-table";
+import { TableSkeleton } from "./table-skeleton";
 
 export interface TableViewProps<TData> {
   /**
@@ -99,13 +102,13 @@ export function TableView<
     pagination: contextPagination,
     counts,
     group,
+    groupKeys,
     expandedGroups,
     onExpandedGroupsChange,
   } = useDataViewContext<TData, TProperties>();
 
   // Use shared view setup hook
   const {
-    transformedData,
     groupConfig,
     groupedData,
     groupByProperty,
@@ -131,9 +134,6 @@ export function TableView<
     propertyVisibility,
     groupConfig ? [groupConfig.groupBy] : undefined
   );
-
-  // Extract flat table data for non-grouped view (must be before early returns for hooks)
-  const flatTableData = transformedData;
 
   // Generate columns from properties
   const columns = useMemo<ColumnDef<TData>[]>(() => {
@@ -241,10 +241,8 @@ export function TableView<
     );
   }
 
-  // GROUPED VIEW: Render using Accordion for collapsible groups
-  // Note: Check grouped view before empty state, because with lazy loading
-  // data might be empty but we still want to show group headers with counts
-  if (group && groupedData) {
+  // GROUPED VIEW with Per-Group Suspense
+  if (group && groupKeys && groupKeys.length > 0) {
     return (
       <div className={cn("flex flex-col gap-4", className)}>
         <Accordion
@@ -252,45 +250,45 @@ export function TableView<
           onValueChange={onExpandedGroupsChange}
           value={expandedGroups ?? []}
         >
-          {groupedData.map((groupItem: GroupedDataItem<TData>) => {
-            // Build pagination context for this group using the utility function
-            // which handles hasNext resolution (boolean | Record<string, boolean>)
-            const basePaginationContext = buildPaginationContext(
-              contextPagination,
-              groupItem.key
-            );
-            const paginationContext: PaginationContext | undefined =
-              basePaginationContext
-                ? {
-                    ...basePaginationContext,
-                    totalCount: groupItem.count,
-                    hasMoreThanMax: groupItem.displayCount === "99+",
-                  }
-                : undefined;
+          {groupedData?.map((groupItem: GroupedDataItem<TData>) => {
+            const isExpanded = expandedGroups?.includes(groupItem.key) ?? false;
 
             return (
               <GroupSection
                 group={groupItem}
                 groupByPropertyDef={groupByProperty}
-                isLoading={false}
                 key={groupItem.key}
-                renderFooter={renderPagination(pagination, paginationContext)}
                 showAggregation={group.showCount ?? true}
                 stickyHeader={{ enabled: true, offset: 57 }}
               >
-                <DataTable
-                  actionBar={actionBar}
-                  columns={columns}
-                  data={groupItem.items}
-                  enableRowSelection={enableRowSelection}
-                  header={{ enabled: true, sticky: true }}
-                  offset={101} // 57 (navbar + border) + 44 (group label height)
-                  onRowClick={onRowClick}
-                  onRowSelectionChange={setRowSelection}
-                  rowSelection={rowSelection}
-                  showVerticalLines={showVerticalLines}
-                  wrapAllColumns={wrapAllColumns}
-                />
+                {isExpanded ? (
+                  <Suspense
+                    fallback={
+                      <TableSkeleton
+                        columnCount={displayProperties.length}
+                        rowCount={5}
+                        withPagination={false}
+                      />
+                    }
+                  >
+                    <SuspendingGroupTableContent<TData, TProperties>
+                      actionBar={actionBar}
+                      columns={columns}
+                      enableRowSelection={enableRowSelection}
+                      groupByProperty={groupByProperty}
+                      groupItem={groupItem}
+                      headerOffset={101}
+                      onRowClick={onRowClick}
+                      onRowSelectionChange={setRowSelection}
+                      pagination={pagination}
+                      properties={properties}
+                      rowSelection={rowSelection}
+                      showAggregation={group.showCount ?? true}
+                      showVerticalLines={showVerticalLines}
+                      wrapAllColumns={wrapAllColumns}
+                    />
+                  </Suspense>
+                ) : null}
               </GroupSection>
             );
           })}
@@ -299,39 +297,135 @@ export function TableView<
     );
   }
 
-  // Empty state for non-grouped view
-  if (Array.isArray(data) && data.length === 0) {
-    return (
-      <div className="flex h-64 flex-col items-center justify-center text-muted-foreground">
-        <p>No data to display</p>
-      </div>
-    );
-  }
-
-  // Build pagination context for flat view
-  const flatPaginationContext = buildPaginationContext(
-    contextPagination,
-    "__ungrouped__"
-  );
-
-  // STANDARD VIEW: Flat table without grouping
+  // FLAT VIEW: Uses SuspendingGroupContent with __ungrouped__ key
   return (
     <div className={cn("flex flex-col gap-4", className)}>
-      <DataTable
-        actionBar={actionBar}
-        columns={columns}
-        data={flatTableData}
-        enableRowSelection={enableRowSelection}
-        header={{ enabled: true, sticky: true }}
-        offset={57}
-        onRowClick={onRowClick}
-        onRowSelectionChange={setRowSelection}
-        rowSelection={rowSelection}
-        showVerticalLines={showVerticalLines}
-        wrapAllColumns={wrapAllColumns}
-      />
-      {renderPagination(pagination, flatPaginationContext)}
+      <Suspense
+        fallback={
+          <TableSkeleton
+            columnCount={displayProperties.length}
+            rowCount={10}
+            withPagination={Boolean(pagination)}
+          />
+        }
+      >
+        <SuspendingGroupTableContent<TData, TProperties>
+          actionBar={actionBar}
+          columns={columns}
+          enableRowSelection={enableRowSelection}
+          groupByProperty={undefined}
+          groupItem={{
+            key: "__ungrouped__",
+            items: [],
+            count: 0,
+            displayCount: "0",
+            sortValue: "",
+          }}
+          headerOffset={57}
+          onRowClick={onRowClick}
+          onRowSelectionChange={setRowSelection}
+          pagination={pagination}
+          properties={properties}
+          rowSelection={rowSelection}
+          showAggregation={false}
+          showVerticalLines={showVerticalLines}
+          wrapAllColumns={wrapAllColumns}
+        />
+      </Suspense>
     </div>
+  );
+}
+
+// ============================================================================
+// Suspending Group Content Component
+// ============================================================================
+
+interface SuspendingGroupTableContentProps<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+> {
+  actionBar?: (table: TanStackTable<TData>) => React.ReactNode;
+  columns: ColumnDef<TData>[];
+  enableRowSelection: boolean;
+  groupByProperty?: TProperties[number];
+  groupItem: GroupedDataItem<TData>;
+  /** Offset for sticky header (57 for flat, 101 for grouped with GroupSection above) */
+  headerOffset: number;
+  onRowClick?: (row: TData) => void;
+  onRowSelectionChange: (state: RowSelectionState) => void;
+  pagination?: PaginationMode;
+  properties: TProperties;
+  rowSelection: RowSelectionState;
+  showAggregation: boolean;
+  showVerticalLines: boolean;
+  wrapAllColumns: boolean;
+}
+
+/**
+ * Internal component that fetches data for a group using Suspense.
+ * Renders inside GroupSection's AccordionContent.
+ */
+function SuspendingGroupTableContent<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+>({
+  actionBar,
+  columns,
+  enableRowSelection,
+  groupItem,
+  headerOffset,
+  onRowClick,
+  onRowSelectionChange,
+  pagination,
+  properties,
+  rowSelection,
+  showVerticalLines,
+  wrapAllColumns,
+}: SuspendingGroupTableContentProps<TData, TProperties>) {
+  return (
+    <SuspendingGroupContent<TData> groupKey={groupItem.key}>
+      {(result: UseGroupQueryResult<TData>) => {
+        // Transform data with property definitions
+        const transformedItems = transformData(
+          result.data,
+          properties
+        ) as TData[];
+
+        // Build pagination context from query result
+        const paginationContext: PaginationContext = {
+          displayEnd: result.displayEnd,
+          displayStart: result.displayStart,
+          hasMoreThanMax: groupItem.displayCount === "99+",
+          hasNext: result.hasNext,
+          hasPrev: result.hasPrev,
+          isFetching: result.isFetching,
+          limit: result.limit,
+          onLimitChange: result.onLimitChange,
+          onNext: result.onNext,
+          onPrev: result.onPrev,
+          totalCount: groupItem.count,
+        };
+
+        return (
+          <>
+            <DataTable
+              actionBar={actionBar}
+              columns={columns}
+              data={transformedItems}
+              enableRowSelection={enableRowSelection}
+              header={{ enabled: true, sticky: true }}
+              offset={headerOffset}
+              onRowClick={onRowClick}
+              onRowSelectionChange={onRowSelectionChange}
+              rowSelection={rowSelection}
+              showVerticalLines={showVerticalLines}
+              wrapAllColumns={wrapAllColumns}
+            />
+            {renderPagination(pagination, paginationContext)}
+          </>
+        );
+      }}
+    </SuspendingGroupContent>
   );
 }
 

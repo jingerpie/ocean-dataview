@@ -84,7 +84,6 @@ export function buildPaginationContext<TData>(
       "hasPrev" in group ? resolveHasNext(group.hasPrev, lookupKey) : false,
     onNext: group.onNext,
     onPrev: "onPrev" in group ? group.onPrev : () => undefined,
-    isLoading: group.isLoading,
     isFetching: group.isFetching,
     isFetchingNextPage:
       "isFetchingNextPage" in group ? group.isFetchingNextPage : undefined,

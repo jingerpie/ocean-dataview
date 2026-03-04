@@ -8,6 +8,7 @@ export * from "./chart.type";
 // Export group config types
 export type {
   CheckboxGroupConfig,
+  ColumnConfig,
   DateGroupConfig,
   GroupByConfig,
   GroupConfig,
@@ -16,7 +17,6 @@ export type {
   SelectGroupConfig,
   SharedGroupOptions,
   StatusGroupConfig,
-  SubGroupConfig,
   TextGroupConfig,
 } from "./group-types";
 // Export pagination types

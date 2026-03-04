@@ -73,12 +73,6 @@ export interface PagePaginationController<TQueryOptions> {
   /** Factory for fetching data items */
   readonly queryOptionsFactory: PageQueryOptionsFactory<TQueryOptions>;
 
-  /**
-   * Factory for fetching subGroup counts (board-specific).
-   * Called by QueryBridge when subGroup URL param is set.
-   */
-  readonly subGroupQueryOptionsFactory?: GroupQueryOptionsFactory;
-
   readonly type: "page";
 }
 
@@ -118,12 +112,6 @@ export interface InfinitePaginationController<TQueryOptions> {
 
   /** Factory for fetching data items */
   readonly queryOptionsFactory: InfiniteQueryOptionsFactory<TQueryOptions>;
-
-  /**
-   * Factory for fetching subGroup counts (board-specific).
-   * Called by QueryBridge when subGroup URL param is set.
-   */
-  readonly subGroupQueryOptionsFactory?: GroupQueryOptionsFactory;
 
   readonly type: "infinite";
 }

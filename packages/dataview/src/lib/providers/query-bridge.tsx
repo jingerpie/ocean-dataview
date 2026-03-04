@@ -1,17 +1,18 @@
 "use client";
 
 import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
+import {
+  type ColumnConfigInput,
+  parseAsColumnBy,
+} from "@sparkyidea/shared/utils/parsers/column";
 import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
 import {
   type GroupConfigInput,
   parseAsGroupBy,
 } from "@sparkyidea/shared/utils/parsers/group";
-import {
-  parseAsCursors,
-  parseAsExpanded,
-} from "@sparkyidea/shared/utils/parsers/pagination";
+import { parseAsCursors } from "@sparkyidea/shared/utils/parsers/pagination";
 import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import {
   createContext,
@@ -24,7 +25,7 @@ import {
   useState,
   useTransition,
 } from "react";
-import type { GroupConfig, SubGroupConfig } from "../../types/group-types";
+import type { ColumnConfig, GroupConfig } from "../../types/group-types";
 import type {
   InfinitePaginationController,
   PagePaginationController,
@@ -32,6 +33,7 @@ import type {
 import type {
   Cursors,
   CursorValue,
+  GroupCounts,
   ViewCounts,
 } from "../../types/pagination-types";
 import type { DataViewProperty } from "../../types/property.type";
@@ -39,7 +41,7 @@ import {
   DataViewProvider as DataViewProviderCore,
   type DataViewProviderProps,
 } from "./data-view-provider";
-import { PaginationStateProvider } from "./pagination-state-context";
+import { useToolbarContext } from "./toolbar-context";
 
 const THROTTLE_MS = 50;
 
@@ -84,41 +86,6 @@ function getGroupByConfig(
   return group;
 }
 
-/**
- * Extract the structural key from a group config.
- * Only the group type and property matter for determining if groups change.
- * Sorting, showCount, etc. don't affect which groups exist.
- */
-function getGroupStructuralKey(group: GroupConfigInput | null): string | null {
-  if (!group) {
-    return null;
-  }
-
-  if ("bySelect" in group) {
-    return `select:${group.bySelect.property}`;
-  }
-  if ("byStatus" in group) {
-    return `status:${group.byStatus.property}`;
-  }
-  if ("byCheckbox" in group) {
-    return `checkbox:${group.byCheckbox.property}`;
-  }
-  if ("byDate" in group) {
-    return `date:${group.byDate.property}:${group.byDate.showAs}`;
-  }
-  if ("byMultiSelect" in group) {
-    return `multiselect:${group.byMultiSelect.property}`;
-  }
-  if ("byText" in group) {
-    return `text:${group.byText.property}`;
-  }
-  if ("byNumber" in group) {
-    return `number:${group.byNumber.property}`;
-  }
-
-  return JSON.stringify(group);
-}
-
 // ============================================================================
 // Page Pagination Types
 // ============================================================================
@@ -134,7 +101,6 @@ export interface PageGroupInfo<TData> {
   hasNext: boolean;
   hasPrev: boolean;
   isFetching: boolean;
-  isLoading: boolean;
   items: TData[];
   key: string;
   onNext: () => void;
@@ -146,7 +112,6 @@ export interface PageGroupInfo<TData> {
  */
 export interface PagePaginationState<TData> {
   groups: PageGroupInfo<TData>[];
-  isLoading: boolean;
   limit: Limit;
   onLimitChange: (limit: Limit) => void;
 }
@@ -166,7 +131,6 @@ export interface InfiniteGroupInfo<TData> {
   isError: boolean;
   isFetching: boolean;
   isFetchingNextPage: boolean;
-  isLoading: boolean;
   items: TData[];
   key: string;
   onNext: () => void;
@@ -178,7 +142,6 @@ export interface InfiniteGroupInfo<TData> {
  */
 export interface InfinitePaginationState<TData> {
   groups: InfiniteGroupInfo<TData>[];
-  isLoading: boolean;
   limit: Limit;
   onLimitChange: (limit: Limit) => void;
 }
@@ -215,14 +178,7 @@ export interface QueryRuntimeState {
   setLimit: (limit: Limit) => void;
   setSearch: (search: string) => void;
   setSort: (sort: SortQuery[]) => void;
-  setSubGroup: (subGroup: GroupConfigInput | null) => void;
   sort: SortQuery[];
-  subGroup: GroupConfigInput | null;
-
-  // SubGroup counts (board-specific)
-  subGroupCounts?: Record<string, { count?: number; hasMore?: boolean }>;
-  subGroupKeys?: string[];
-  subGroupSortValues?: Record<string, string | number>;
 
   type: "page" | "infinite";
 }
@@ -248,26 +204,59 @@ export function useQueryControllerContext(): QueryRuntimeState {
 }
 
 // ============================================================================
-// Page Query Bridge
+// Suspending Group Keys Provider
 // ============================================================================
 
-interface StoredPageQueryResult<TData> {
-  data: TData[];
-  displayEnd: number;
-  displayStart: number;
-  hasNext: boolean;
-  hasPrev: boolean;
-  isFetching: boolean;
-  isPending: boolean;
-  isPlaceholderData: boolean;
-  onLimitChange: (limit: Limit) => void;
-  onNext: () => void;
-  onPrev: () => void;
+/**
+ * Type for group query response.
+ */
+interface GroupQueryResponse {
+  counts?: Record<string, { count: number; hasMore: boolean }>;
+  sortValues?: Record<string, string | number>;
 }
 
-const noop = () => {
-  /* no-op */
-};
+interface SuspendingGroupKeysProps {
+  children: (data: {
+    groupCounts: GroupQueryResponse["counts"];
+    groupKeys: string[];
+    groupSortValues: GroupQueryResponse["sortValues"];
+  }) => ReactNode;
+  groupByConfig: GroupConfigInput;
+  // Accept any function that returns BaseQueryOptions (queryFn is unknown)
+  // We cast to the correct type inside the component
+  groupQueryOptionsFactory: (groupConfig: GroupConfigInput) => {
+    queryFn?: unknown;
+    queryKey: readonly unknown[];
+  };
+}
+
+/**
+ * Suspending component that fetches group keys using useSuspenseQuery.
+ * This ensures the parent suspends until group keys are available,
+ * preventing the "flat view flash" when loading grouped views.
+ */
+function SuspendingGroupKeys({
+  children,
+  groupByConfig,
+  groupQueryOptionsFactory,
+}: SuspendingGroupKeysProps) {
+  const factoryOptions = groupQueryOptionsFactory(groupByConfig);
+  const { data: rawGroupData } = useSuspenseQuery({
+    queryKey: factoryOptions.queryKey,
+    queryFn: factoryOptions.queryFn as () => Promise<GroupQueryResponse>,
+  });
+
+  const groupData = rawGroupData as GroupQueryResponse | null | undefined;
+  const groupKeys = Object.keys(groupData?.counts ?? {});
+  const groupCounts = groupData?.counts;
+  const groupSortValues = groupData?.sortValues;
+
+  return <>{children({ groupKeys, groupCounts, groupSortValues })}</>;
+}
+
+// ============================================================================
+// Page Query Bridge
+// ============================================================================
 
 // Typed noop for setCursor (infinite pagination doesn't use cursors)
 const noopSetCursor = (_groupKey: string, _cursor: CursorValue | null) => {
@@ -278,13 +267,13 @@ const noopSetCursor = (_groupKey: string, _cursor: CursorValue | null) => {
  * URL defaults configuration.
  */
 interface DefaultsConfig {
+  column?: ColumnConfig | null;
   expanded?: string[];
   filter?: WhereNode[] | null;
   group?: GroupConfig | null;
   limit?: Limit;
   search?: string;
   sort?: SortQuery[];
-  subGroup?: SubGroupConfig | null;
 }
 
 interface PageQueryBridgeProps<
@@ -308,6 +297,7 @@ interface PageQueryBridgeProps<
     | "search"
     | "sort"
   > & {
+    columnCounts?: GroupCounts;
     counts?: Partial<ViewCounts>;
   };
 }
@@ -317,6 +307,9 @@ interface PageQueryBridgeProps<
  *
  * Owns nuqs hooks for URL state management internally, keeping re-renders
  * scoped to this component and its children only.
+ *
+ * For grouped mode, uses SuspendingGroupKeys to suspend until group keys are available,
+ * preventing the "flat view flash" during initial load.
  */
 export function PageQueryBridge<
   TData,
@@ -328,39 +321,32 @@ export function PageQueryBridge<
   defaults,
   viewProps,
 }: PageQueryBridgeProps<TData, TProperties, TQueryOptions>) {
-  const {
-    groupQueryOptionsFactory,
-    queryOptionsFactory,
-    subGroupQueryOptionsFactory,
-  } = controller;
+  const { groupQueryOptionsFactory, queryOptionsFactory } = controller;
 
   // Defaults from provider props
   const {
+    column: defaultColumn = null,
     expanded: defaultExpanded,
     filter: defaultFilter = null,
     group: defaultGroup = null,
     limit: defaultLimit = 10,
     search: defaultSearch = "",
     sort: defaultSort = [],
-    subGroup: defaultSubGroup = null,
   } = defaults ?? {};
 
   const [isPending, startTransition] = useTransition();
-
-  // Track if this is an internal change (user interaction) vs external (navigation)
-  const isInternalChange = useRef(false);
 
   // ============================================================================
   // URL State via nuqs
   // ============================================================================
 
+  const [urlColumn, setUrlColumn] = useQueryState(
+    "column",
+    parseAsColumnBy.withOptions({ throttleMs: THROTTLE_MS })
+  );
   const [urlCursors, setUrlCursors] = useQueryState(
     "cursors",
     parseAsCursors.withOptions({ throttleMs: THROTTLE_MS })
-  );
-  const [urlExpanded, setUrlExpanded] = useQueryState(
-    "expanded",
-    parseAsExpanded.withOptions({ throttleMs: THROTTLE_MS })
   );
   const [urlLimit, setUrlLimit] = useQueryState(
     "limit",
@@ -382,240 +368,44 @@ export function PageQueryBridge<
     "group",
     parseAsGroupBy.withOptions({ throttleMs: THROTTLE_MS })
   );
-  const [urlSubGroup, setUrlSubGroup] = useQueryState(
-    "subGroup",
-    parseAsGroupBy.withOptions({ throttleMs: THROTTLE_MS })
-  );
 
   // ============================================================================
   // Current Values (URL ?? defaults)
   // ============================================================================
 
+  const column = urlColumn ?? defaultColumn;
   const cursors = urlCursors ?? {};
   const filter = urlFilter ?? defaultFilter;
   const sort = urlSort ?? defaultSort;
   const search = urlSearch ?? defaultSearch;
   const group = urlGroup ?? defaultGroup;
-  const subGroup = urlSubGroup ?? defaultSubGroup;
   const limit = (urlLimit ?? defaultLimit) as Limit;
 
   // ============================================================================
-  // Internal Group Fetching
+  // Group Mode Detection
   // ============================================================================
 
-  const isGrouped = Boolean(group);
+  // For accordion grouping: use `group` config (NOT column)
+  // - `column` is board-specific visual organization (handled via columnCounts prop)
+  // - `group` is accordion-style data grouping (handled via groupQueryOptionsFactory)
+  // Only grouped mode if we have BOTH a group config AND a factory to fetch group keys
+  const isGrouped = Boolean(group && groupQueryOptionsFactory);
 
   // Extract only structural config (without sort/hideEmpty) for query
   const groupByConfig = useMemo(() => getGroupByConfig(group), [group]);
 
-  // Build group query options using only structural config
-  const groupQueryOptions = useMemo(() => {
-    if (!(groupByConfig && groupQueryOptionsFactory)) {
-      return {
-        queryKey: ["__disabled__"] as const,
-        queryFn: () => Promise.resolve(null),
-        enabled: false,
-      };
-    }
-    const factoryOptions = groupQueryOptionsFactory(groupByConfig);
-    return {
-      ...factoryOptions,
-      queryKey: factoryOptions.queryKey,
-      queryFn: factoryOptions.queryFn as () => Promise<unknown>,
-      enabled: true,
-    };
-  }, [groupByConfig, groupQueryOptionsFactory]);
+  // ============================================================================
+  // Setters (defined before use in inner component)
+  // ============================================================================
 
-  // Type for group query response
-  interface GroupQueryResponse {
-    counts?: Record<string, { count: number; hasMore: boolean }>;
-    sortValues?: Record<string, string | number>;
-  }
-
-  const {
-    data: rawGroupData,
-    isFetching: isGroupFetching,
-    isLoading: isGroupLoading,
-  } = useQuery(groupQueryOptions);
-
-  // Cast to proper type
-  const groupData = rawGroupData as GroupQueryResponse | null | undefined;
-
-  // Track which group STRUCTURE the data corresponds to (stale data fix)
-  // Only the group type + property matter - sorting/showCount don't affect which groups exist
-  const groupStructuralKey = useMemo(
-    () => getGroupStructuralKey(group),
-    [group]
+  const setColumn = useCallback(
+    (newColumn: ColumnConfigInput | null) => {
+      startTransition(() => {
+        setUrlColumn(newColumn);
+      });
+    },
+    [setUrlColumn]
   );
-  const [lastFetchedStructuralKey, setLastFetchedStructuralKey] = useState<
-    string | null
-  >(() => getGroupStructuralKey(group));
-
-  useEffect(() => {
-    if (!isGroupFetching && groupData) {
-      setLastFetchedStructuralKey(groupStructuralKey);
-    }
-  }, [isGroupFetching, groupData, groupStructuralKey]);
-
-  // Data is stale only when group STRUCTURE changed (property/type, not sorting)
-  const isGroupDataStale =
-    isGrouped &&
-    lastFetchedStructuralKey !== null &&
-    lastFetchedStructuralKey !== groupStructuralKey;
-
-  // Compute groupKeys from internal data
-  const groupKeys = useMemo(() => {
-    if (!isGrouped) {
-      return ["__ungrouped__"]; // Flat mode
-    }
-    if (isGroupDataStale || isGroupLoading) {
-      return []; // Loading/stale - show empty
-    }
-    return Object.keys(groupData?.counts ?? {});
-  }, [isGrouped, isGroupDataStale, isGroupLoading, groupData?.counts]);
-
-  const groupCounts = groupData?.counts;
-  const groupSortValues = groupData?.sortValues;
-
-  // ============================================================================
-  // Internal SubGroup Fetching (board-specific)
-  // ============================================================================
-
-  const isSubGrouped = Boolean(subGroup);
-
-  // Extract only structural config (without sort/hideEmpty) for subGroup query
-  const subGroupByConfig = useMemo(
-    () => getGroupByConfig(subGroup),
-    [subGroup]
-  );
-
-  // Build subGroup query options using only structural config
-  const subGroupQueryOptions = useMemo(() => {
-    if (!(subGroupByConfig && subGroupQueryOptionsFactory)) {
-      return {
-        queryKey: ["__subgroup_disabled__"] as const,
-        queryFn: () => Promise.resolve(null),
-        enabled: false,
-      };
-    }
-    const factoryOptions = subGroupQueryOptionsFactory(subGroupByConfig);
-    return {
-      ...factoryOptions,
-      queryKey: factoryOptions.queryKey,
-      queryFn: factoryOptions.queryFn as () => Promise<unknown>,
-      enabled: true,
-    };
-  }, [subGroupByConfig, subGroupQueryOptionsFactory]);
-
-  const {
-    data: rawSubGroupData,
-    isFetching: isSubGroupFetching,
-    isLoading: isSubGroupLoading,
-  } = useQuery(subGroupQueryOptions);
-
-  // Cast to proper type (same shape as group query response)
-  const subGroupData = rawSubGroupData as GroupQueryResponse | null | undefined;
-
-  // Track which subGroup STRUCTURE the data corresponds to (stale data fix)
-  const subGroupStructuralKey = useMemo(
-    () => getGroupStructuralKey(subGroup),
-    [subGroup]
-  );
-  const [
-    lastFetchedSubGroupStructuralKey,
-    setLastFetchedSubGroupStructuralKey,
-  ] = useState<string | null>(() => getGroupStructuralKey(subGroup));
-
-  useEffect(() => {
-    if (!isSubGroupFetching && subGroupData) {
-      setLastFetchedSubGroupStructuralKey(subGroupStructuralKey);
-    }
-  }, [isSubGroupFetching, subGroupData, subGroupStructuralKey]);
-
-  // Data is stale only when subGroup STRUCTURE changed (property/type, not sorting)
-  const isSubGroupDataStale =
-    isSubGrouped &&
-    lastFetchedSubGroupStructuralKey !== null &&
-    lastFetchedSubGroupStructuralKey !== subGroupStructuralKey;
-
-  // Compute subGroupKeys from internal data
-  const subGroupKeys = useMemo(() => {
-    if (!isSubGrouped) {
-      return undefined; // No subGroup
-    }
-    if (isSubGroupDataStale || isSubGroupLoading) {
-      return []; // Loading/stale - show empty
-    }
-    return Object.keys(subGroupData?.counts ?? {});
-  }, [
-    isSubGrouped,
-    isSubGroupDataStale,
-    isSubGroupLoading,
-    subGroupData?.counts,
-  ]);
-
-  const subGroupCounts = subGroupData?.counts;
-  const subGroupSortValues = subGroupData?.sortValues;
-
-  // ============================================================================
-  // Expanded State
-  // ============================================================================
-
-  // For boards with subGroup, expanded refers to subGroup keys
-  // For other views, expanded refers to group keys
-  const expandedKeys = isSubGrouped ? (subGroupKeys ?? []) : groupKeys;
-
-  // Compute initial expanded value
-  const getInitialExpanded = useCallback(() => {
-    if (urlExpanded && urlExpanded.length > 0) {
-      return urlExpanded;
-    }
-    if (defaultExpanded && defaultExpanded.length > 0) {
-      return defaultExpanded;
-    }
-    // Flat mode (not grouped) - always expand to show data
-    if (expandedKeys.length === 1 && expandedKeys[0] === "__ungrouped__") {
-      return ["__ungrouped__"];
-    }
-    // Grouped/subGrouped mode - expand first few by default
-    if (isSubGrouped && expandedKeys.length > 0) {
-      return expandedKeys.slice(0, 3); // Auto-expand first 3 subGroups
-    }
-    // Grouped mode - collapse all by default
-    return [];
-  }, [urlExpanded, defaultExpanded, expandedKeys, isSubGrouped]);
-
-  // Local state for immediate UI updates
-  const [localExpanded, setLocalExpanded] =
-    useState<string[]>(getInitialExpanded);
-
-  // Track expandedKeys (group or subGroup depending on view type)
-  const prevExpandedKeysRef = useRef(expandedKeys);
-
-  // Sync from URL when it changes externally
-  useEffect(() => {
-    if (!isInternalChange.current) {
-      setLocalExpanded(getInitialExpanded());
-    }
-    isInternalChange.current = false;
-  }, [urlExpanded, getInitialExpanded]);
-
-  // Handle expandedKeys changes (e.g., switching between flat/grouped mode or subGroup changes)
-  useEffect(() => {
-    const prevKeys = prevExpandedKeysRef.current;
-    const keysChanged =
-      prevKeys.length !== expandedKeys.length ||
-      prevKeys.some((k, i) => k !== expandedKeys[i]);
-
-    if (keysChanged) {
-      prevExpandedKeysRef.current = expandedKeys;
-      setLocalExpanded(getInitialExpanded());
-    }
-  }, [expandedKeys, getInitialExpanded]);
-
-  // ============================================================================
-  // Setters
-  // ============================================================================
 
   const setCursor = useCallback(
     (groupKey: string, cursor: CursorValue | null) => {
@@ -636,17 +426,6 @@ export function PageQueryBridge<
       });
     },
     [setUrlCursors]
-  );
-
-  const setExpandedGroups = useCallback(
-    (groups: string[]) => {
-      setLocalExpanded(groups);
-      isInternalChange.current = true;
-      startTransition(() => {
-        setUrlExpanded(groups.length > 0 ? groups : null);
-      });
-    },
-    [setUrlExpanded]
   );
 
   const setLimit = useCallback(
@@ -697,55 +476,233 @@ export function PageQueryBridge<
     (newGroup: GroupConfigInput | null) => {
       startTransition(() => {
         setUrlGroup(newGroup);
-        setUrlExpanded(null);
         setUrlCursors(null);
       });
     },
-    [setUrlGroup, setUrlExpanded, setUrlCursors]
-  );
-
-  const setSubGroup = useCallback(
-    (newSubGroup: GroupConfigInput | null) => {
-      startTransition(() => {
-        setUrlSubGroup(newSubGroup);
-      });
-    },
-    [setUrlSubGroup]
+    [setUrlGroup, setUrlCursors]
   );
 
   // ============================================================================
-  // Query Results State
+  // Render Inner Component with Group Data
   // ============================================================================
 
-  const [queryResults, setQueryResults] = useState<
-    Map<string, StoredPageQueryResult<TData>>
-  >(() => new Map());
-
-  const handleQueryResult = useCallback(
-    (groupKey: string, result: StoredPageQueryResult<TData>) => {
-      setQueryResults((prev) => {
-        const existing = prev.get(groupKey);
-
-        if (
-          existing &&
-          existing.data === result.data &&
-          existing.isFetching === result.isFetching &&
-          existing.isPending === result.isPending &&
-          existing.isPlaceholderData === result.isPlaceholderData &&
-          existing.hasNext === result.hasNext &&
-          existing.hasPrev === result.hasPrev &&
-          existing.displayStart === result.displayStart &&
-          existing.displayEnd === result.displayEnd
-        ) {
-          return prev;
+  // Inner component that receives group data as props
+  const renderInner = useCallback(
+    ({
+      groupCounts,
+      groupKeys,
+      groupSortValues,
+    }: {
+      groupCounts: GroupQueryResponse["counts"];
+      groupKeys: string[];
+      groupSortValues: GroupQueryResponse["sortValues"];
+    }) => (
+      <PageQueryBridgeInner<TData, TProperties>
+        column={column}
+        columnCounts={viewProps.columnCounts}
+        cursors={cursors}
+        defaultExpanded={defaultExpanded}
+        filter={filter}
+        group={group}
+        groupCounts={groupCounts}
+        groupKeys={groupKeys}
+        groupSortValues={groupSortValues}
+        isPending={isPending}
+        limit={limit}
+        queryOptionsFactory={
+          queryOptionsFactory as (params: unknown) => unknown
         }
+        search={search}
+        setColumn={setColumn}
+        setCursor={setCursor}
+        setFilter={setFilter}
+        setGroup={setGroup}
+        setLimit={setLimit}
+        setSearch={setSearch}
+        setSort={setSort}
+        sort={sort}
+        viewProps={viewProps}
+      >
+        {children}
+      </PageQueryBridgeInner>
+    ),
+    [
+      children,
+      column,
+      cursors,
+      defaultExpanded,
+      filter,
+      group,
+      isPending,
+      limit,
+      queryOptionsFactory,
+      search,
+      setColumn,
+      setCursor,
+      setFilter,
+      setGroup,
+      setLimit,
+      setSearch,
+      setSort,
+      sort,
+      viewProps,
+    ]
+  );
 
-        const next = new Map(prev);
-        next.set(groupKey, result);
-        return next;
-      });
+  // ============================================================================
+  // Flat vs Grouped Mode Branching
+  // ============================================================================
+
+  // FLAT MODE: Render directly with static groupKeys
+  if (!(isGrouped && groupByConfig && groupQueryOptionsFactory)) {
+    return renderInner({
+      groupCounts: undefined,
+      groupKeys: ["__ungrouped__"],
+      groupSortValues: undefined,
+    });
+  }
+
+  // GROUPED MODE: Use SuspendingGroupKeys to suspend until group data is ready
+  return (
+    <SuspendingGroupKeys
+      groupByConfig={groupByConfig}
+      groupQueryOptionsFactory={groupQueryOptionsFactory}
+    >
+      {renderInner}
+    </SuspendingGroupKeys>
+  );
+}
+
+// ============================================================================
+// Page Query Bridge Inner Component
+// ============================================================================
+
+interface PageQueryBridgeInnerProps<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+> {
+  children: ReactNode;
+  column: ColumnConfig | null;
+  columnCounts?: GroupCounts;
+  cursors: Cursors;
+  defaultExpanded?: string[];
+  filter: WhereNode[] | null;
+  group: GroupConfigInput | null;
+  groupCounts: GroupQueryResponse["counts"];
+  groupKeys: string[];
+  groupSortValues: GroupQueryResponse["sortValues"];
+  isPending: boolean;
+  limit: Limit;
+  queryOptionsFactory: (params: unknown) => unknown;
+  search: string;
+  setColumn: (column: ColumnConfigInput | null) => void;
+  setCursor: (groupKey: string, cursor: CursorValue | null) => void;
+  setFilter: (filter: WhereNode[] | null) => void;
+  setGroup: (group: GroupConfigInput | null) => void;
+  setLimit: (limit: Limit) => void;
+  setSearch: (search: string) => void;
+  setSort: (sort: SortQuery[]) => void;
+  sort: SortQuery[];
+  viewProps: Omit<
+    DataViewProviderProps<TData, TProperties>,
+    | "children"
+    | "counts"
+    | "data"
+    | "defaults"
+    | "expandedGroups"
+    | "filter"
+    | "onExpandedGroupsChange"
+    | "pagination"
+    | "search"
+    | "sort"
+  > & {
+    columnCounts?: GroupCounts;
+    counts?: Partial<ViewCounts>;
+  };
+}
+
+/**
+ * Inner component that receives group data as props.
+ * Handles expanded state and context provision.
+ */
+function PageQueryBridgeInner<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+>({
+  children,
+  column,
+  cursors,
+  defaultExpanded,
+  filter,
+  group,
+  groupCounts,
+  groupKeys,
+  groupSortValues,
+  isPending,
+  limit,
+  queryOptionsFactory,
+  search,
+  setColumn,
+  setCursor,
+  setFilter,
+  setGroup,
+  setLimit,
+  setSearch,
+  setSort,
+  sort,
+  viewProps,
+}: PageQueryBridgeInnerProps<TData, TProperties>) {
+  // Get property visibility from toolbar context
+  const { propertyVisibility } = useToolbarContext();
+
+  // ============================================================================
+  // Expanded State
+  // ============================================================================
+
+  // Compute initial expanded value
+  const getInitialExpanded = useCallback(() => {
+    if (defaultExpanded && defaultExpanded.length > 0) {
+      return defaultExpanded;
+    }
+    // Flat mode (not grouped) - always expand to show data
+    if (groupKeys.length === 1 && groupKeys[0] === "__ungrouped__") {
+      return ["__ungrouped__"];
+    }
+    // Grouped mode - collapse all by default
+    return [];
+  }, [defaultExpanded, groupKeys]);
+
+  // Local state for expanded groups (not persisted to URL)
+  const [localExpanded, setLocalExpanded] =
+    useState<string[]>(getInitialExpanded);
+
+  // Track groupKeys for detecting changes
+  const prevGroupKeysRef = useRef(groupKeys);
+
+  // Handle groupKeys changes (e.g., switching between flat/grouped mode)
+  useEffect(() => {
+    const prevKeys = prevGroupKeysRef.current;
+    const keysChanged =
+      prevKeys.length !== groupKeys.length ||
+      prevKeys.some((k, i) => k !== groupKeys[i]);
+
+    if (keysChanged) {
+      prevGroupKeysRef.current = groupKeys;
+      setLocalExpanded(getInitialExpanded());
+    }
+  }, [groupKeys, getInitialExpanded]);
+
+  const setExpandedGroups = useCallback((groups: string[]) => {
+    setLocalExpanded(groups);
+  }, []);
+
+  // Reset expanded groups when group config changes
+  const handleSetGroup = useCallback(
+    (newGroup: GroupConfigInput | null) => {
+      setGroup(newGroup);
+      setLocalExpanded([]);
     },
-    []
+    [setGroup]
   );
 
   // ============================================================================
@@ -761,21 +718,16 @@ export function PageQueryBridge<
       limit,
       search,
       sort,
-      subGroup,
       setCursor,
       setExpandedGroups,
       setFilter,
-      setGroup,
+      setGroup: handleSetGroup,
       setLimit,
       setSearch,
       setSort,
-      setSubGroup,
       groupCounts,
       groupKeys,
       groupSortValues,
-      subGroupCounts,
-      subGroupKeys,
-      subGroupSortValues,
       queryOptionsFactory: queryOptionsFactory as (params: unknown) => unknown,
       isPending,
       type: "page",
@@ -788,21 +740,16 @@ export function PageQueryBridge<
       limit,
       search,
       sort,
-      subGroup,
       setCursor,
       setExpandedGroups,
       setFilter,
-      setGroup,
+      handleSetGroup,
       setLimit,
       setSearch,
       setSort,
-      setSubGroup,
       groupCounts,
       groupKeys,
       groupSortValues,
-      subGroupCounts,
-      subGroupKeys,
-      subGroupSortValues,
       queryOptionsFactory,
       isPending,
     ]
@@ -812,171 +759,54 @@ export function PageQueryBridge<
   // Build Output
   // ============================================================================
 
-  const groups = groupKeys.map((key) => {
-    const q = queryResults.get(key);
-    const countInfo = groupCounts?.[key];
-    return {
-      key,
-      items: (q?.data ?? []) as TData[],
-      isLoading: q?.isPending ?? true,
-      isFetching: q?.isFetching ?? true,
-      hasNext: q?.hasNext ?? false,
-      hasPrev: q?.hasPrev ?? false,
-      onNext: q?.onNext ?? noop,
-      onPrev: q?.onPrev ?? noop,
-      displayStart: q?.displayStart ?? 0,
-      displayEnd: q?.displayEnd ?? 0,
-      count: countInfo?.count,
-      displayCount: countInfo?.hasMore ? "99+" : undefined,
-    };
-  });
-
-  const results = Array.from(queryResults.values());
-  const data = groups.flatMap((g) => g.items);
-  const pagination: PagePaginationState<TData> = {
-    groups,
-    isLoading:
-      isGroupLoading ||
-      isGroupDataStale ||
-      results.length === 0 ||
-      results.some((q) => q.isFetching),
-    limit,
-    onLimitChange: results[0]?.onLimitChange ?? noop,
-  };
-
-  // For grouped views, isEmpty means no groups exist (not just no data loaded)
-  // For flat views, isEmpty means no data items
-  const isFlat = groupKeys.length === 1 && groupKeys[0] === "__ungrouped__";
-  const isEmpty = isFlat ? data.length === 0 : groupKeys.length === 0;
-  const isLoading =
-    isGroupLoading ||
-    isGroupDataStale ||
-    // Include subGroup loading state for boards (when subGroup is configured)
-    (isSubGrouped && (isSubGroupLoading || isSubGroupDataStale)) ||
-    queryResults.size === 0 ||
-    queryResults.size < groupKeys.length ||
-    results.some((q) => q.isFetching);
-  // Only consider isPlaceholderData from expanded groups
-  // Non-expanded groups have disabled queries that show cached data as placeholder forever
-  const isPlaceholderData = localExpanded.some((key) => {
-    const result = queryResults.get(key);
-    return result?.isPlaceholderData ?? false;
-  });
+  // All views use SuspendingGroupContent for data fetching
+  // Pagination groups are empty - views use groupKeys + SuspendingGroupContent
+  const pagination: PagePaginationState<TData> = useMemo(
+    () => ({
+      groups: [],
+      limit,
+      onLimitChange: setLimit,
+    }),
+    [limit, setLimit]
+  );
 
   const mergedCounts: ViewCounts = useMemo(
     () => ({
       group: groupCounts ?? {},
       groupSortValues: groupSortValues ?? {},
-      // Include subGroup counts if available (from QueryBridge)
-      ...(subGroupCounts ? { subGroup: subGroupCounts } : {}),
-      ...(subGroupSortValues ? { subGroupSortValues } : {}),
       ...viewProps.counts,
     }),
-    [
-      groupCounts,
-      groupSortValues,
-      subGroupCounts,
-      subGroupSortValues,
-      viewProps.counts,
-    ]
+    [groupCounts, groupSortValues, viewProps.counts]
   );
 
   return (
-    <PaginationStateProvider
-      isEmpty={isEmpty}
-      isLoading={isLoading}
-      isPlaceholderData={isPlaceholderData}
-    >
-      <QueryControllerContext.Provider value={runtimeState}>
-        {groupKeys.map((key) => (
-          <PageGroupQueryExecutor<TData>
-            groupKey={key}
-            key={key}
-            onResult={handleQueryResult}
-          />
-        ))}
-      </QueryControllerContext.Provider>
+    <QueryControllerContext.Provider value={runtimeState}>
       <DataViewProviderCore<TData, TProperties>
         {...(viewProps as DataViewProviderProps<TData, TProperties>)}
+        column={column}
+        columnCounts={viewProps.columnCounts}
         counts={mergedCounts}
-        data={data}
+        data={[]}
         expandedGroups={localExpanded}
         filter={filter}
         group={group}
+        groupKeys={groupKeys}
+        onColumnChange={setColumn}
         onExpandedGroupsChange={setExpandedGroups}
         pagination={pagination}
+        propertyVisibility={propertyVisibility}
         search={search}
         sort={sort}
-        subGroup={subGroup}
       >
         {children}
       </DataViewProviderCore>
-    </PaginationStateProvider>
+    </QueryControllerContext.Provider>
   );
-}
-
-interface PageGroupQueryExecutorProps<TData> {
-  groupKey: string;
-  onResult: (groupKey: string, result: StoredPageQueryResult<TData>) => void;
-}
-
-function PageGroupQueryExecutor<TData>({
-  groupKey,
-  onResult,
-}: PageGroupQueryExecutorProps<TData>) {
-  const { useGroupQuery } = require("../../hooks/use-group-query");
-  const result = useGroupQuery({ groupKey });
-
-  useEffect(() => {
-    onResult(groupKey, {
-      data: result.data,
-      isFetching: result.isFetching,
-      isPending: result.isPending,
-      isPlaceholderData: result.isPlaceholderData,
-      hasNext: result.hasNext,
-      hasPrev: result.hasPrev,
-      displayStart: result.displayStart,
-      displayEnd: result.displayEnd,
-      onNext: result.onNext,
-      onPrev: result.onPrev,
-      onLimitChange: result.onLimitChange,
-    });
-  }, [
-    groupKey,
-    onResult,
-    result.data,
-    result.isFetching,
-    result.isPending,
-    result.isPlaceholderData,
-    result.hasNext,
-    result.hasPrev,
-    result.displayStart,
-    result.displayEnd,
-    result.onNext,
-    result.onPrev,
-    result.onLimitChange,
-  ]);
-
-  return null;
 }
 
 // ============================================================================
 // Infinite Query Bridge
 // ============================================================================
-
-interface StoredInfiniteQueryResult<TData> {
-  data: TData[];
-  error: Error | null;
-  hasNextPage: boolean | Record<string, boolean>;
-  isError: boolean;
-  isFetching: boolean;
-  isFetchingNextPage: boolean;
-  isPending: boolean;
-  isPlaceholderData: boolean;
-  onLimitChange: (limit: Limit) => void;
-  onLoadMore: () => void;
-  totalLoaded: number;
-}
 
 interface InfiniteQueryBridgeProps<
   TData,
@@ -999,6 +829,7 @@ interface InfiniteQueryBridgeProps<
     | "search"
     | "sort"
   > & {
+    columnCounts?: GroupCounts;
     counts?: Partial<ViewCounts>;
   };
 }
@@ -1008,6 +839,9 @@ interface InfiniteQueryBridgeProps<
  *
  * Owns nuqs hooks for URL state management internally, keeping re-renders
  * scoped to this component and its children only.
+ *
+ * For grouped mode, uses SuspendingGroupKeys to suspend until group keys are available,
+ * preventing the "flat view flash" during initial load.
  */
 export function InfiniteQueryBridge<
   TData,
@@ -1019,34 +853,28 @@ export function InfiniteQueryBridge<
   defaults,
   viewProps,
 }: InfiniteQueryBridgeProps<TData, TProperties, TQueryOptions>) {
-  const {
-    groupQueryOptionsFactory,
-    queryOptionsFactory,
-    subGroupQueryOptionsFactory,
-  } = controller;
+  const { groupQueryOptionsFactory, queryOptionsFactory } = controller;
 
   // Defaults from provider props
   const {
+    column: defaultColumn = null,
     expanded: defaultExpanded,
     filter: defaultFilter = null,
     group: defaultGroup = null,
     limit: defaultLimit = 10,
     search: defaultSearch = "",
     sort: defaultSort = [],
-    subGroup: defaultSubGroup = null,
   } = defaults ?? {};
 
   const [isPending, startTransition] = useTransition();
-
-  const isInternalChange = useRef(false);
 
   // ============================================================================
   // URL State via nuqs
   // ============================================================================
 
-  const [urlExpanded, setUrlExpanded] = useQueryState(
-    "expanded",
-    parseAsExpanded.withOptions({ throttleMs: THROTTLE_MS })
+  const [urlColumn, setUrlColumn] = useQueryState(
+    "column",
+    parseAsColumnBy.withOptions({ throttleMs: THROTTLE_MS })
   );
   const [urlLimit, setUrlLimit] = useQueryState(
     "limit",
@@ -1068,245 +896,42 @@ export function InfiniteQueryBridge<
     "group",
     parseAsGroupBy.withOptions({ throttleMs: THROTTLE_MS })
   );
-  const [urlSubGroup, setUrlSubGroup] = useQueryState(
-    "subGroup",
-    parseAsGroupBy.withOptions({ throttleMs: THROTTLE_MS })
-  );
 
   // ============================================================================
   // Current Values (URL ?? defaults)
   // ============================================================================
 
+  const column = urlColumn ?? defaultColumn;
   const filter = urlFilter ?? defaultFilter;
   const sort = urlSort ?? defaultSort;
   const search = urlSearch ?? defaultSearch;
   const group = urlGroup ?? defaultGroup;
-  const subGroup = urlSubGroup ?? defaultSubGroup;
   const limit = (urlLimit ?? defaultLimit) as Limit;
 
   // ============================================================================
-  // Internal Group Fetching
+  // Group Mode Detection
   // ============================================================================
 
-  const isGrouped = Boolean(group);
+  // For accordion grouping: use `group` config (NOT column)
+  // - `column` is board-specific visual organization (handled via columnCounts prop)
+  // - `group` is accordion-style data grouping (handled via groupQueryOptionsFactory)
+  // Only grouped mode if we have BOTH a group config AND a factory to fetch group keys
+  const isGrouped = Boolean(group && groupQueryOptionsFactory);
 
   // Extract only structural config (without sort/hideEmpty) for query
   const groupByConfig = useMemo(() => getGroupByConfig(group), [group]);
 
-  // Build group query options using only structural config
-  const groupQueryOptions = useMemo(() => {
-    if (!(groupByConfig && groupQueryOptionsFactory)) {
-      return {
-        queryKey: ["__disabled__"] as const,
-        queryFn: () => Promise.resolve(null),
-        enabled: false,
-      };
-    }
-    const factoryOptions = groupQueryOptionsFactory(groupByConfig);
-    return {
-      ...factoryOptions,
-      queryKey: factoryOptions.queryKey,
-      queryFn: factoryOptions.queryFn as () => Promise<unknown>,
-      enabled: true,
-    };
-  }, [groupByConfig, groupQueryOptionsFactory]);
-
-  // Type for group query response
-  interface GroupQueryResponse {
-    counts?: Record<string, { count: number; hasMore: boolean }>;
-    sortValues?: Record<string, string | number>;
-  }
-
-  const {
-    data: rawGroupData,
-    isFetching: isGroupFetching,
-    isLoading: isGroupLoading,
-  } = useQuery(groupQueryOptions);
-
-  // Cast to proper type
-  const groupData = rawGroupData as GroupQueryResponse | null | undefined;
-
-  // Track which group STRUCTURE the data corresponds to (stale data fix)
-  // Only the group type + property matter - sorting/showCount don't affect which groups exist
-  const groupStructuralKey = useMemo(
-    () => getGroupStructuralKey(group),
-    [group]
-  );
-  const [lastFetchedStructuralKey, setLastFetchedStructuralKey] = useState<
-    string | null
-  >(() => getGroupStructuralKey(group));
-
-  useEffect(() => {
-    if (!isGroupFetching && groupData) {
-      setLastFetchedStructuralKey(groupStructuralKey);
-    }
-  }, [isGroupFetching, groupData, groupStructuralKey]);
-
-  // Data is stale only when group STRUCTURE changed (property/type, not sorting)
-  const isGroupDataStale =
-    isGrouped &&
-    lastFetchedStructuralKey !== null &&
-    lastFetchedStructuralKey !== groupStructuralKey;
-
-  // Compute groupKeys from internal data
-  const groupKeys = useMemo(() => {
-    if (!isGrouped) {
-      return ["__ungrouped__"]; // Flat mode
-    }
-    if (isGroupDataStale || isGroupLoading) {
-      return []; // Loading/stale - show empty
-    }
-    return Object.keys(groupData?.counts ?? {});
-  }, [isGrouped, isGroupDataStale, isGroupLoading, groupData?.counts]);
-
-  const groupCounts = groupData?.counts;
-  const groupSortValues = groupData?.sortValues;
-
   // ============================================================================
-  // Internal SubGroup Fetching (board-specific)
+  // Setters (defined before use in inner component)
   // ============================================================================
 
-  const isSubGrouped = Boolean(subGroup);
-
-  // Extract only structural config (without sort/hideEmpty) for subGroup query
-  const subGroupByConfig = useMemo(
-    () => getGroupByConfig(subGroup),
-    [subGroup]
-  );
-
-  // Build subGroup query options using only structural config
-  const subGroupQueryOptions = useMemo(() => {
-    if (!(subGroupByConfig && subGroupQueryOptionsFactory)) {
-      return {
-        queryKey: ["__subgroup_disabled__"] as const,
-        queryFn: () => Promise.resolve(null),
-        enabled: false,
-      };
-    }
-    const factoryOptions = subGroupQueryOptionsFactory(subGroupByConfig);
-    return {
-      ...factoryOptions,
-      queryKey: factoryOptions.queryKey,
-      queryFn: factoryOptions.queryFn as () => Promise<unknown>,
-      enabled: true,
-    };
-  }, [subGroupByConfig, subGroupQueryOptionsFactory]);
-
-  const {
-    data: rawSubGroupData,
-    isFetching: isSubGroupFetching,
-    isLoading: isSubGroupLoading,
-  } = useQuery(subGroupQueryOptions);
-
-  // Cast to proper type (same shape as group query response)
-  const subGroupData = rawSubGroupData as GroupQueryResponse | null | undefined;
-
-  // Track which subGroup STRUCTURE the data corresponds to (stale data fix)
-  const subGroupStructuralKey = useMemo(
-    () => getGroupStructuralKey(subGroup),
-    [subGroup]
-  );
-  const [
-    lastFetchedSubGroupStructuralKey,
-    setLastFetchedSubGroupStructuralKey,
-  ] = useState<string | null>(() => getGroupStructuralKey(subGroup));
-
-  useEffect(() => {
-    if (!isSubGroupFetching && subGroupData) {
-      setLastFetchedSubGroupStructuralKey(subGroupStructuralKey);
-    }
-  }, [isSubGroupFetching, subGroupData, subGroupStructuralKey]);
-
-  // Data is stale only when subGroup STRUCTURE changed (property/type, not sorting)
-  const isSubGroupDataStale =
-    isSubGrouped &&
-    lastFetchedSubGroupStructuralKey !== null &&
-    lastFetchedSubGroupStructuralKey !== subGroupStructuralKey;
-
-  // Compute subGroupKeys from internal data
-  const subGroupKeys = useMemo(() => {
-    if (!isSubGrouped) {
-      return undefined; // No subGroup
-    }
-    if (isSubGroupDataStale || isSubGroupLoading) {
-      return []; // Loading/stale - show empty
-    }
-    return Object.keys(subGroupData?.counts ?? {});
-  }, [
-    isSubGrouped,
-    isSubGroupDataStale,
-    isSubGroupLoading,
-    subGroupData?.counts,
-  ]);
-
-  const subGroupCounts = subGroupData?.counts;
-  const subGroupSortValues = subGroupData?.sortValues;
-
-  // ============================================================================
-  // Expanded State
-  // ============================================================================
-
-  // For boards with subGroup, expanded refers to subGroup keys
-  // For other views, expanded refers to group keys
-  const expandedKeys = isSubGrouped ? (subGroupKeys ?? []) : groupKeys;
-
-  const getInitialExpanded = useCallback(() => {
-    if (urlExpanded && urlExpanded.length > 0) {
-      return urlExpanded;
-    }
-    if (defaultExpanded && defaultExpanded.length > 0) {
-      return defaultExpanded;
-    }
-    // Flat mode (not grouped) - always expand to show data
-    if (expandedKeys.length === 1 && expandedKeys[0] === "__ungrouped__") {
-      return ["__ungrouped__"];
-    }
-    // Grouped/subGrouped mode - expand first few by default
-    if (isSubGrouped && expandedKeys.length > 0) {
-      return expandedKeys.slice(0, 3); // Auto-expand first 3 subGroups
-    }
-    // Grouped mode - collapse all by default
-    return [];
-  }, [urlExpanded, defaultExpanded, expandedKeys, isSubGrouped]);
-
-  const [localExpanded, setLocalExpanded] =
-    useState<string[]>(getInitialExpanded);
-
-  // Track expandedKeys (group or subGroup depending on view type)
-  const prevExpandedKeysRef = useRef(expandedKeys);
-
-  useEffect(() => {
-    if (!isInternalChange.current) {
-      setLocalExpanded(getInitialExpanded());
-    }
-    isInternalChange.current = false;
-  }, [urlExpanded, getInitialExpanded]);
-
-  useEffect(() => {
-    const prevKeys = prevExpandedKeysRef.current;
-    const keysChanged =
-      prevKeys.length !== expandedKeys.length ||
-      prevKeys.some((k, i) => k !== expandedKeys[i]);
-
-    if (keysChanged) {
-      prevExpandedKeysRef.current = expandedKeys;
-      setLocalExpanded(getInitialExpanded());
-    }
-  }, [expandedKeys, getInitialExpanded]);
-
-  // ============================================================================
-  // Setters
-  // ============================================================================
-
-  const setExpandedGroups = useCallback(
-    (groups: string[]) => {
-      setLocalExpanded(groups);
-      isInternalChange.current = true;
+  const setColumn = useCallback(
+    (newColumn: ColumnConfigInput | null) => {
       startTransition(() => {
-        setUrlExpanded(groups.length > 0 ? groups : null);
+        setUrlColumn(newColumn);
       });
     },
-    [setUrlExpanded]
+    [setUrlColumn]
   );
 
   const setLimit = useCallback(
@@ -1349,53 +974,224 @@ export function InfiniteQueryBridge<
     (newGroup: GroupConfigInput | null) => {
       startTransition(() => {
         setUrlGroup(newGroup);
-        setUrlExpanded(null);
       });
     },
-    [setUrlGroup, setUrlExpanded]
-  );
-
-  const setSubGroup = useCallback(
-    (newSubGroup: GroupConfigInput | null) => {
-      startTransition(() => {
-        setUrlSubGroup(newSubGroup);
-      });
-    },
-    [setUrlSubGroup]
+    [setUrlGroup]
   );
 
   // ============================================================================
-  // Query Results State
+  // Render Inner Component with Group Data
   // ============================================================================
 
-  const [queryResults, setQueryResults] = useState<
-    Map<string, StoredInfiniteQueryResult<TData>>
-  >(() => new Map());
-
-  const handleQueryResult = useCallback(
-    (groupKey: string, result: StoredInfiniteQueryResult<TData>) => {
-      setQueryResults((prev) => {
-        const existing = prev.get(groupKey);
-
-        if (
-          existing &&
-          existing.data === result.data &&
-          existing.isFetching === result.isFetching &&
-          existing.isPending === result.isPending &&
-          existing.isPlaceholderData === result.isPlaceholderData &&
-          existing.hasNextPage === result.hasNextPage &&
-          existing.isFetchingNextPage === result.isFetchingNextPage &&
-          existing.totalLoaded === result.totalLoaded
-        ) {
-          return prev;
+  // Inner component that receives group data as props
+  const renderInner = useCallback(
+    ({
+      groupCounts,
+      groupKeys,
+      groupSortValues,
+    }: {
+      groupCounts: GroupQueryResponse["counts"];
+      groupKeys: string[];
+      groupSortValues: GroupQueryResponse["sortValues"];
+    }) => (
+      <InfiniteQueryBridgeInner<TData, TProperties>
+        column={column}
+        columnCounts={viewProps.columnCounts}
+        defaultExpanded={defaultExpanded}
+        filter={filter}
+        group={group}
+        groupCounts={groupCounts}
+        groupKeys={groupKeys}
+        groupSortValues={groupSortValues}
+        isPending={isPending}
+        limit={limit}
+        queryOptionsFactory={
+          queryOptionsFactory as (params: unknown) => unknown
         }
+        search={search}
+        setColumn={setColumn}
+        setFilter={setFilter}
+        setGroup={setGroup}
+        setLimit={setLimit}
+        setSearch={setSearch}
+        setSort={setSort}
+        sort={sort}
+        viewProps={viewProps}
+      >
+        {children}
+      </InfiniteQueryBridgeInner>
+    ),
+    [
+      children,
+      column,
+      defaultExpanded,
+      filter,
+      group,
+      isPending,
+      limit,
+      queryOptionsFactory,
+      search,
+      setColumn,
+      setFilter,
+      setGroup,
+      setLimit,
+      setSearch,
+      setSort,
+      sort,
+      viewProps,
+    ]
+  );
 
-        const next = new Map(prev);
-        next.set(groupKey, result);
-        return next;
-      });
+  // ============================================================================
+  // Flat vs Grouped Mode Branching
+  // ============================================================================
+
+  // FLAT MODE: Render directly with static groupKeys
+  if (!(isGrouped && groupByConfig && groupQueryOptionsFactory)) {
+    return renderInner({
+      groupCounts: undefined,
+      groupKeys: ["__ungrouped__"],
+      groupSortValues: undefined,
+    });
+  }
+
+  // GROUPED MODE: Use SuspendingGroupKeys to suspend until group data is ready
+  return (
+    <SuspendingGroupKeys
+      groupByConfig={groupByConfig}
+      groupQueryOptionsFactory={groupQueryOptionsFactory}
+    >
+      {renderInner}
+    </SuspendingGroupKeys>
+  );
+}
+
+// ============================================================================
+// Infinite Query Bridge Inner Component
+// ============================================================================
+
+interface InfiniteQueryBridgeInnerProps<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+> {
+  children: ReactNode;
+  column: ColumnConfig | null;
+  columnCounts?: GroupCounts;
+  defaultExpanded?: string[];
+  filter: WhereNode[] | null;
+  group: GroupConfigInput | null;
+  groupCounts: GroupQueryResponse["counts"];
+  groupKeys: string[];
+  groupSortValues: GroupQueryResponse["sortValues"];
+  isPending: boolean;
+  limit: Limit;
+  queryOptionsFactory: (params: unknown) => unknown;
+  search: string;
+  setColumn: (column: ColumnConfigInput | null) => void;
+  setFilter: (filter: WhereNode[] | null) => void;
+  setGroup: (group: GroupConfigInput | null) => void;
+  setLimit: (limit: Limit) => void;
+  setSearch: (search: string) => void;
+  setSort: (sort: SortQuery[]) => void;
+  sort: SortQuery[];
+  viewProps: Omit<
+    DataViewProviderProps<TData, TProperties>,
+    | "children"
+    | "counts"
+    | "data"
+    | "defaults"
+    | "expandedGroups"
+    | "filter"
+    | "onExpandedGroupsChange"
+    | "pagination"
+    | "search"
+    | "sort"
+  > & {
+    columnCounts?: GroupCounts;
+    counts?: Partial<ViewCounts>;
+  };
+}
+
+/**
+ * Inner component that receives group data as props.
+ * Handles expanded state and context provision for infinite pagination.
+ */
+function InfiniteQueryBridgeInner<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+>({
+  children,
+  column,
+  defaultExpanded,
+  filter,
+  group,
+  groupCounts,
+  groupKeys,
+  groupSortValues,
+  isPending,
+  limit,
+  queryOptionsFactory,
+  search,
+  setColumn,
+  setFilter,
+  setGroup,
+  setLimit,
+  setSearch,
+  setSort,
+  sort,
+  viewProps,
+}: InfiniteQueryBridgeInnerProps<TData, TProperties>) {
+  // Get property visibility from toolbar context
+  const { propertyVisibility } = useToolbarContext();
+
+  // ============================================================================
+  // Expanded State
+  // ============================================================================
+
+  // Compute initial expanded value
+  const getInitialExpanded = useCallback(() => {
+    if (defaultExpanded && defaultExpanded.length > 0) {
+      return defaultExpanded;
+    }
+    // Flat mode (not grouped) - always expand to show data
+    if (groupKeys.length === 1 && groupKeys[0] === "__ungrouped__") {
+      return ["__ungrouped__"];
+    }
+    // Grouped mode - collapse all by default
+    return [];
+  }, [defaultExpanded, groupKeys]);
+
+  // Local state for expanded groups (not persisted to URL)
+  const [localExpanded, setLocalExpanded] =
+    useState<string[]>(getInitialExpanded);
+
+  // Track groupKeys for detecting changes
+  const prevGroupKeysRef = useRef(groupKeys);
+
+  // Handle groupKeys changes (e.g., switching between flat/grouped mode)
+  useEffect(() => {
+    const prevKeys = prevGroupKeysRef.current;
+    const keysChanged =
+      prevKeys.length !== groupKeys.length ||
+      prevKeys.some((k, i) => k !== groupKeys[i]);
+
+    if (keysChanged) {
+      prevGroupKeysRef.current = groupKeys;
+      setLocalExpanded(getInitialExpanded());
+    }
+  }, [groupKeys, getInitialExpanded]);
+
+  const setExpandedGroups = useCallback((groups: string[]) => {
+    setLocalExpanded(groups);
+  }, []);
+
+  // Reset expanded groups when group config changes
+  const handleSetGroup = useCallback(
+    (newGroup: GroupConfigInput | null) => {
+      setGroup(newGroup);
+      setLocalExpanded([]);
     },
-    []
+    [setGroup]
   );
 
   // ============================================================================
@@ -1412,21 +1208,16 @@ export function InfiniteQueryBridge<
       limit,
       search,
       sort,
-      subGroup,
       setCursor: noopSetCursor,
       setExpandedGroups,
       setFilter,
-      setGroup,
+      setGroup: handleSetGroup,
       setLimit,
       setSearch,
       setSort,
-      setSubGroup,
       groupCounts,
       groupKeys,
       groupSortValues,
-      subGroupCounts,
-      subGroupKeys,
-      subGroupSortValues,
       queryOptionsFactory: queryOptionsFactory as (params: unknown) => unknown,
       isPending,
       type: "infinite",
@@ -1438,20 +1229,15 @@ export function InfiniteQueryBridge<
       limit,
       search,
       sort,
-      subGroup,
       setExpandedGroups,
       setFilter,
-      setGroup,
+      handleSetGroup,
       setLimit,
       setSearch,
       setSort,
-      setSubGroup,
       groupCounts,
       groupKeys,
       groupSortValues,
-      subGroupCounts,
-      subGroupKeys,
-      subGroupSortValues,
       queryOptionsFactory,
       isPending,
     ]
@@ -1461,157 +1247,47 @@ export function InfiniteQueryBridge<
   // Build Output
   // ============================================================================
 
-  const groups = groupKeys.map((key) => {
-    const q = queryResults.get(key);
-    const countInfo = groupCounts?.[key];
-    const items = q?.data ?? [];
-
-    return {
-      key,
-      items,
-      isLoading: q?.isPending ?? true,
-      isError: q?.isError ?? false,
-      isFetching: q?.isFetching ?? true,
-      isFetchingNextPage: q?.isFetchingNextPage ?? false,
-      hasNext: q?.hasNextPage ?? false,
-      onNext: q?.onLoadMore ?? noop,
-      totalLoaded: items.length,
-      error: q?.error ?? null,
-      count: countInfo?.count,
-      displayCount: countInfo?.hasMore ? "99+" : undefined,
-    };
-  });
-
-  const results = Array.from(queryResults.values());
-  const data = groups.flatMap((g) => g.items);
-  const pagination: InfinitePaginationState<TData> = {
-    groups,
-    isLoading:
-      isGroupLoading ||
-      isGroupDataStale ||
-      results.length === 0 ||
-      results.some((q) => q.isFetching),
-    limit,
-    onLimitChange: results[0]?.onLimitChange ?? noop,
-  };
-
-  // For grouped views, isEmpty means no groups exist (not just no data loaded)
-  // For flat views, isEmpty means no data items
-  const isFlat = groupKeys.length === 1 && groupKeys[0] === "__ungrouped__";
-  const isEmpty = isFlat ? data.length === 0 : groupKeys.length === 0;
-  const isLoading =
-    isGroupLoading ||
-    isGroupDataStale ||
-    // Include subGroup loading state for boards (when subGroup is configured)
-    (isSubGrouped && (isSubGroupLoading || isSubGroupDataStale)) ||
-    queryResults.size === 0 ||
-    queryResults.size < groupKeys.length ||
-    results.some((q) => q.isFetching);
-  // Only consider isPlaceholderData from expanded groups
-  // Non-expanded groups have disabled queries that show cached data as placeholder forever
-  const isPlaceholderData = localExpanded.some((key) => {
-    const result = queryResults.get(key);
-    return result?.isPlaceholderData ?? false;
-  });
+  // All views use SuspendingGroupContent for data fetching
+  // Pagination groups are empty - views use groupKeys + SuspendingGroupContent
+  const pagination: InfinitePaginationState<TData> = useMemo(
+    () => ({
+      groups: [],
+      limit,
+      onLimitChange: setLimit,
+    }),
+    [limit, setLimit]
+  );
 
   const mergedCounts: ViewCounts = useMemo(
     () => ({
       group: groupCounts ?? {},
       groupSortValues: groupSortValues ?? {},
-      // Include subGroup counts if available (from QueryBridge)
-      ...(subGroupCounts ? { subGroup: subGroupCounts } : {}),
-      ...(subGroupSortValues ? { subGroupSortValues } : {}),
       ...viewProps.counts,
     }),
-    [
-      groupCounts,
-      groupSortValues,
-      subGroupCounts,
-      subGroupSortValues,
-      viewProps.counts,
-    ]
+    [groupCounts, groupSortValues, viewProps.counts]
   );
 
   return (
-    <PaginationStateProvider
-      isEmpty={isEmpty}
-      isLoading={isLoading}
-      isPlaceholderData={isPlaceholderData}
-    >
-      <QueryControllerContext.Provider value={runtimeState}>
-        {groupKeys.map((key) => (
-          <InfiniteGroupQueryExecutor<TData>
-            groupKey={key}
-            key={key}
-            onResult={handleQueryResult}
-          />
-        ))}
-      </QueryControllerContext.Provider>
+    <QueryControllerContext.Provider value={runtimeState}>
       <DataViewProviderCore<TData, TProperties>
         {...(viewProps as DataViewProviderProps<TData, TProperties>)}
+        column={column}
+        columnCounts={viewProps.columnCounts}
         counts={mergedCounts}
-        data={data}
+        data={[]}
         expandedGroups={localExpanded}
         filter={filter}
         group={group}
+        groupKeys={groupKeys}
+        onColumnChange={setColumn}
         onExpandedGroupsChange={setExpandedGroups}
         pagination={pagination}
+        propertyVisibility={propertyVisibility}
         search={search}
         sort={sort}
-        subGroup={subGroup}
       >
         {children}
       </DataViewProviderCore>
-    </PaginationStateProvider>
+    </QueryControllerContext.Provider>
   );
-}
-
-interface InfiniteGroupQueryExecutorProps<TData> {
-  groupKey: string;
-  onResult: (
-    groupKey: string,
-    result: StoredInfiniteQueryResult<TData>
-  ) => void;
-}
-
-function InfiniteGroupQueryExecutor<TData>({
-  groupKey,
-  onResult,
-}: InfiniteGroupQueryExecutorProps<TData>) {
-  const {
-    useInfiniteGroupQuery,
-  } = require("../../hooks/use-infinite-group-query");
-  const result = useInfiniteGroupQuery({ groupKey });
-
-  useEffect(() => {
-    onResult(groupKey, {
-      data: result.data,
-      isFetching: result.isFetching,
-      isPending: result.isPending,
-      isPlaceholderData: result.isPlaceholderData,
-      hasNextPage: result.hasNextPage,
-      isFetchingNextPage: result.isFetchingNextPage,
-      isError: result.isError,
-      error: result.error,
-      totalLoaded: result.totalLoaded,
-      onLoadMore: result.onLoadMore,
-      onLimitChange: result.onLimitChange,
-    });
-  }, [
-    groupKey,
-    onResult,
-    result.data,
-    result.isFetching,
-    result.isPending,
-    result.isPlaceholderData,
-    result.hasNextPage,
-    result.isFetchingNextPage,
-    result.isError,
-    result.error,
-    result.totalLoaded,
-    result.onLoadMore,
-    result.onLimitChange,
-  ]);
-
-  return null;
 }
