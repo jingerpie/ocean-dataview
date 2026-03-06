@@ -14,6 +14,7 @@ import { BoardSkeleton } from "../../components/views/board-view/board-skeleton"
 import { GallerySkeleton } from "../../components/views/gallery-view/gallery-skeleton";
 import { ListSkeleton } from "../../components/views/list-view/list-skeleton";
 import { TableSkeleton } from "../../components/views/table-view/table-skeleton";
+import { useGroupParams } from "../../hooks/use-group-params";
 import type { PropertyType } from "../../types";
 import {
   type ColumnConfig,
@@ -265,6 +266,9 @@ export function DataViewProvider<
 >(props: DataViewProviderProps<TData, TProperties, TQueryOptions>) {
   const { children, className, pagination, properties } = props;
 
+  // Get actual group state from URL (for skeleton selection)
+  const { isGrouped } = useGroupParams();
+
   // Split children into toolbar (non-suspending) and content (may suspend)
   const { toolbarChildren, contentChildren } = splitChildren(children);
 
@@ -285,16 +289,15 @@ export function DataViewProvider<
       propertyVisibility: controllerProps.propertyVisibility,
     };
 
-    // Detect view type from children and grouped mode
+    // Detect view type from children
     const viewType = detectViewType(contentChildren);
-    const isGrouped = Boolean(controllerProps.defaults?.group);
 
     // Calculate skeleton values from known config
     const limit = controllerProps.defaults?.limit ?? 10;
     const visibleProperties = properties.filter((p) => !p.hidden);
     const propertyTypes = visibleProperties.map((p) => p.type);
 
-    // Choose appropriate skeleton based on detected view type
+    // Choose appropriate skeleton based on detected view type and URL group state
     const fallbackSkeleton = renderViewSkeleton(
       viewType,
       propertyTypes,
@@ -310,7 +313,11 @@ export function DataViewProvider<
       >
         <div className={cn("flex flex-col gap-2", className)}>
           {toolbarChildren}
-          <Suspense fallback={fallbackSkeleton}>
+          {/* Key changes when isGrouped changes, forcing new Suspense boundary with correct fallback */}
+          <Suspense
+            fallback={fallbackSkeleton}
+            key={isGrouped ? "grouped" : "flat"}
+          >
             <PageQueryBridge<TData, TProperties, TQueryOptions>
               controller={pagination}
               defaults={controllerProps.defaults}
@@ -337,16 +344,15 @@ export function DataViewProvider<
       propertyVisibility: controllerProps.propertyVisibility,
     };
 
-    // Detect view type from children and grouped mode
+    // Detect view type from children
     const viewType = detectViewType(contentChildren);
-    const isGrouped = Boolean(controllerProps.defaults?.group);
 
     // Calculate skeleton values from known config
     const limit = controllerProps.defaults?.limit ?? 10;
     const visibleProperties = properties.filter((p) => !p.hidden);
     const propertyTypes = visibleProperties.map((p) => p.type);
 
-    // Choose appropriate skeleton based on detected view type
+    // Choose appropriate skeleton based on detected view type and URL group state
     const fallbackSkeleton = renderViewSkeleton(
       viewType,
       propertyTypes,
@@ -362,7 +368,11 @@ export function DataViewProvider<
       >
         <div className={cn("flex flex-col gap-2", className)}>
           {toolbarChildren}
-          <Suspense fallback={fallbackSkeleton}>
+          {/* Key changes when isGrouped changes, forcing new Suspense boundary with correct fallback */}
+          <Suspense
+            fallback={fallbackSkeleton}
+            key={isGrouped ? "grouped" : "flat"}
+          >
             <InfiniteQueryBridge<TData, TProperties, TQueryOptions>
               controller={pagination}
               defaults={controllerProps.defaults}
