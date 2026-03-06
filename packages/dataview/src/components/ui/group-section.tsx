@@ -317,7 +317,7 @@ export function GroupSection<TData>({
       )}
       <AccordionContent>
         {children}
-        {renderFooter && <div className="pt-4">{renderFooter}</div>}
+        {renderFooter}
       </AccordionContent>
     </AccordionItem>
   );

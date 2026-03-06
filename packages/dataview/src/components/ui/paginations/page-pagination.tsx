@@ -40,7 +40,7 @@ export function PagePagination({
   }
 
   return (
-    <div className="flex items-center justify-between gap-6 px-2">
+    <div className="sticky bottom-0 z-10 flex items-center justify-between gap-6 bg-background px-2 py-2">
       {/* Navigation and item range */}
       <div className="flex items-center gap-3">
         <Pagination className="mx-0 w-auto">
