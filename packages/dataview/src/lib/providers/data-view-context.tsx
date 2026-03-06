@@ -55,9 +55,14 @@ export interface DataViewContextValue<
    */
   groupKeys?: string[];
 
+  // Group pagination state
+  hasNextGroupPage?: boolean;
+  isFetchingNextGroupPage?: boolean;
+
   limit?: number;
   onColumnChange?: (column: ColumnConfig | null) => void;
   onExpandedGroupsChange?: (groups: string[]) => void;
+  onLoadMoreGroups?: () => void;
   pagination?: PaginationOutput<TData> | undefined;
   properties: TProperties;
   /** Covariant property metadata - safe to pass to UI components */

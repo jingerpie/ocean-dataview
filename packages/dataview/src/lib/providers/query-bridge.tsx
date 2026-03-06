@@ -12,7 +12,10 @@ import {
 } from "@sparkyidea/shared/utils/parsers/group";
 import { parseAsCursors } from "@sparkyidea/shared/utils/parsers/pagination";
 import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+  useSuspenseInfiniteQuery,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import {
   createContext,
@@ -164,9 +167,14 @@ export interface QueryRuntimeState {
   groupKeys: string[];
   groupSortValues?: Record<string, string | number>;
 
+  // Group pagination state
+  hasNextGroupPage: boolean;
+  isFetchingNextGroupPage: boolean;
+
   // Meta
   isPending: boolean;
   limit: Limit;
+  onLoadMoreGroups: () => void;
   queryOptionsFactory: (params: unknown) => unknown;
   search: string;
 
@@ -204,54 +212,91 @@ export function useQueryControllerContext(): QueryRuntimeState {
 }
 
 // ============================================================================
-// Suspending Group Keys Provider
+// Infinite Group Keys Provider
 // ============================================================================
 
 /**
- * Type for group query response.
+ * Type for paginated group query response.
  */
 interface GroupQueryResponse {
   counts?: Record<string, { count: number; hasMore: boolean }>;
+  hasNextPage?: boolean;
+  nextCursor?: string | null;
   sortValues?: Record<string, string | number>;
 }
 
-interface SuspendingGroupKeysProps {
+interface InfiniteGroupKeysProps {
   children: (data: {
     groupCounts: GroupQueryResponse["counts"];
     groupKeys: string[];
     groupSortValues: GroupQueryResponse["sortValues"];
+    hasNextGroupPage: boolean;
+    isFetchingNextGroupPage: boolean;
+    onLoadMoreGroups: () => void;
   }) => ReactNode;
   groupByConfig: GroupConfigInput;
-  // Accept any function that returns BaseQueryOptions (queryFn is unknown)
-  // We cast to the correct type inside the component
-  groupQueryOptionsFactory: (groupConfig: GroupConfigInput) => {
-    queryFn?: unknown;
-    queryKey: readonly unknown[];
-  };
+  // Accept any function that returns infinite query options (tRPC or manual)
+  // biome-ignore lint/suspicious/noExplicitAny: Must accept tRPC's infiniteQueryOptions return type
+  groupQueryOptionsFactory: (groupConfig: GroupConfigInput) => any;
 }
 
 /**
- * Suspending component that fetches group keys using useSuspenseQuery.
+ * Suspending component that fetches group keys using useSuspenseInfiniteQuery.
  * This ensures the parent suspends until group keys are available,
  * preventing the "flat view flash" when loading grouped views.
+ * Supports infinite pagination for loading more groups.
  */
-function SuspendingGroupKeys({
+function InfiniteGroupKeys({
   children,
   groupByConfig,
   groupQueryOptionsFactory,
-}: SuspendingGroupKeysProps) {
+}: InfiniteGroupKeysProps) {
   const factoryOptions = groupQueryOptionsFactory(groupByConfig);
-  const { data: rawGroupData } = useSuspenseQuery({
-    queryKey: factoryOptions.queryKey,
-    queryFn: factoryOptions.queryFn as () => Promise<GroupQueryResponse>,
-  });
 
-  const groupData = rawGroupData as GroupQueryResponse | null | undefined;
-  const groupKeys = Object.keys(groupData?.counts ?? {});
-  const groupCounts = groupData?.counts;
-  const groupSortValues = groupData?.sortValues;
+  // Spread tRPC options directly - tRPC's infiniteQueryOptions returns a complete config
+  // We only provide fallbacks for getNextPageParam and initialPageParam if not present
+  const { data, hasNextPage, isFetchingNextPage, fetchNextPage } =
+    useSuspenseInfiniteQuery({
+      ...factoryOptions,
+      getNextPageParam:
+        factoryOptions.getNextPageParam ??
+        ((lastPage: GroupQueryResponse) => lastPage.nextCursor ?? null),
+      initialPageParam: factoryOptions.initialPageParam ?? null,
+    });
 
-  return <>{children({ groupKeys, groupCounts, groupSortValues })}</>;
+  // Merge all pages into single counts/sortValues
+  const merged = useMemo(() => {
+    const counts: Record<string, { count: number; hasMore: boolean }> = {};
+    const sortValues: Record<string, string | number> = {};
+
+    for (const page of data.pages) {
+      Object.assign(counts, page.counts);
+      Object.assign(sortValues, page.sortValues);
+    }
+
+    return { counts, sortValues };
+  }, [data.pages]);
+
+  const groupKeys = Object.keys(merged.counts);
+
+  const onLoadMoreGroups = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  return (
+    <>
+      {children({
+        groupKeys,
+        groupCounts: merged.counts,
+        groupSortValues: merged.sortValues,
+        hasNextGroupPage: hasNextPage ?? false,
+        isFetchingNextGroupPage: isFetchingNextPage,
+        onLoadMoreGroups,
+      })}
+    </>
+  );
 }
 
 // ============================================================================
@@ -526,16 +571,27 @@ export function PageQueryBridge<
   // Render Inner Component with Group Data
   // ============================================================================
 
+  // Noop for flat mode (no group pagination)
+  const noopLoadMoreGroups = useCallback(() => {
+    /* no-op */
+  }, []);
+
   // Inner component that receives group data as props
   const renderInner = useCallback(
     ({
       groupCounts,
       groupKeys,
       groupSortValues,
+      hasNextGroupPage,
+      isFetchingNextGroupPage,
+      onLoadMoreGroups,
     }: {
       groupCounts: GroupQueryResponse["counts"];
       groupKeys: string[];
       groupSortValues: GroupQueryResponse["sortValues"];
+      hasNextGroupPage: boolean;
+      isFetchingNextGroupPage: boolean;
+      onLoadMoreGroups: () => void;
     }) => (
       <PageQueryBridgeInner<TData, TProperties>
         column={column}
@@ -547,8 +603,11 @@ export function PageQueryBridge<
         groupCounts={groupCounts}
         groupKeys={groupKeys}
         groupSortValues={groupSortValues}
+        hasNextGroupPage={hasNextGroupPage}
+        isFetchingNextGroupPage={isFetchingNextGroupPage}
         isPending={isPending}
         limit={limit}
+        onLoadMoreGroups={onLoadMoreGroups}
         queryOptionsFactory={
           queryOptionsFactory as (params: unknown) => unknown
         }
@@ -599,17 +658,20 @@ export function PageQueryBridge<
       groupCounts: undefined,
       groupKeys: ["__ungrouped__"],
       groupSortValues: undefined,
+      hasNextGroupPage: false,
+      isFetchingNextGroupPage: false,
+      onLoadMoreGroups: noopLoadMoreGroups,
     });
   }
 
-  // GROUPED MODE: Use SuspendingGroupKeys to suspend until group data is ready
+  // GROUPED MODE: Use InfiniteGroupKeys to suspend until group data is ready
   return (
-    <SuspendingGroupKeys
+    <InfiniteGroupKeys
       groupByConfig={groupByConfig}
       groupQueryOptionsFactory={groupQueryOptionsFactory}
     >
       {renderInner}
-    </SuspendingGroupKeys>
+    </InfiniteGroupKeys>
   );
 }
 
@@ -631,8 +693,11 @@ interface PageQueryBridgeInnerProps<
   groupCounts: GroupQueryResponse["counts"];
   groupKeys: string[];
   groupSortValues: GroupQueryResponse["sortValues"];
+  hasNextGroupPage: boolean;
+  isFetchingNextGroupPage: boolean;
   isPending: boolean;
   limit: Limit;
+  onLoadMoreGroups: () => void;
   queryOptionsFactory: (params: unknown) => unknown;
   search: string;
   setColumn: (column: ColumnConfigInput | null) => void;
@@ -678,8 +743,11 @@ function PageQueryBridgeInner<
   groupCounts,
   groupKeys,
   groupSortValues,
+  hasNextGroupPage,
+  isFetchingNextGroupPage,
   isPending,
   limit,
+  onLoadMoreGroups,
   queryOptionsFactory,
   search,
   setColumn,
@@ -755,9 +823,16 @@ function PageQueryBridgeInner<
       expandedGroups: localExpanded,
       filter,
       group,
+      groupCounts,
+      groupKeys,
+      groupSortValues,
+      hasNextGroupPage,
+      isFetchingNextGroupPage,
+      isPending,
       limit,
+      onLoadMoreGroups,
+      queryOptionsFactory: queryOptionsFactory as (params: unknown) => unknown,
       search,
-      sort,
       setCursor,
       setExpandedGroups,
       setFilter,
@@ -765,11 +840,7 @@ function PageQueryBridgeInner<
       setLimit,
       setSearch,
       setSort,
-      groupCounts,
-      groupKeys,
-      groupSortValues,
-      queryOptionsFactory: queryOptionsFactory as (params: unknown) => unknown,
-      isPending,
+      sort,
       type: "page",
     }),
     [
@@ -777,9 +848,16 @@ function PageQueryBridgeInner<
       localExpanded,
       filter,
       group,
+      groupCounts,
+      groupKeys,
+      groupSortValues,
+      hasNextGroupPage,
+      isFetchingNextGroupPage,
+      isPending,
       limit,
+      onLoadMoreGroups,
+      queryOptionsFactory,
       search,
-      sort,
       setCursor,
       setExpandedGroups,
       setFilter,
@@ -787,11 +865,7 @@ function PageQueryBridgeInner<
       setLimit,
       setSearch,
       setSort,
-      groupCounts,
-      groupKeys,
-      groupSortValues,
-      queryOptionsFactory,
-      isPending,
+      sort,
     ]
   );
 
@@ -831,8 +905,11 @@ function PageQueryBridgeInner<
         filter={filter}
         group={group}
         groupKeys={groupKeys}
+        hasNextGroupPage={hasNextGroupPage}
+        isFetchingNextGroupPage={isFetchingNextGroupPage}
         onColumnChange={setColumn}
         onExpandedGroupsChange={setExpandedGroups}
+        onLoadMoreGroups={onLoadMoreGroups}
         pagination={pagination}
         propertyVisibility={propertyVisibility}
         search={search}
@@ -1035,6 +1112,11 @@ export function InfiniteQueryBridge<
   // Render Inner Component with Column & Group Data
   // ============================================================================
 
+  // Noop for flat mode (no group pagination)
+  const noopLoadMoreGroups = useCallback(() => {
+    /* no-op */
+  }, []);
+
   // Inner component that receives column and group data as props
   const renderInner = useCallback(
     ({
@@ -1042,11 +1124,17 @@ export function InfiniteQueryBridge<
       groupCounts,
       groupKeys,
       groupSortValues,
+      hasNextGroupPage,
+      isFetchingNextGroupPage,
+      onLoadMoreGroups,
     }: {
       columnCounts: GroupQueryResponse["counts"];
       groupCounts: GroupQueryResponse["counts"];
       groupKeys: string[];
       groupSortValues: GroupQueryResponse["sortValues"];
+      hasNextGroupPage: boolean;
+      isFetchingNextGroupPage: boolean;
+      onLoadMoreGroups: () => void;
     }) => (
       <InfiniteQueryBridgeInner<TData, TProperties>
         column={column}
@@ -1057,8 +1145,11 @@ export function InfiniteQueryBridge<
         groupCounts={groupCounts}
         groupKeys={groupKeys}
         groupSortValues={groupSortValues}
+        hasNextGroupPage={hasNextGroupPage}
+        isFetchingNextGroupPage={isFetchingNextGroupPage}
         isPending={isPending}
         limit={limit}
+        onLoadMoreGroups={onLoadMoreGroups}
         queryOptionsFactory={
           queryOptionsFactory as (params: unknown) => unknown
         }
@@ -1106,19 +1197,29 @@ export function InfiniteQueryBridge<
   ) => {
     if (isGrouped && groupByConfig && groupQueryOptionsFactory) {
       return (
-        <SuspendingGroupKeys
+        <InfiniteGroupKeys
           groupByConfig={groupByConfig}
           groupQueryOptionsFactory={groupQueryOptionsFactory}
         >
-          {({ groupCounts, groupKeys, groupSortValues }) =>
+          {({
+            groupCounts,
+            groupKeys,
+            groupSortValues,
+            hasNextGroupPage,
+            isFetchingNextGroupPage,
+            onLoadMoreGroups,
+          }) =>
             renderInner({
               columnCounts,
               groupCounts,
               groupKeys,
               groupSortValues,
+              hasNextGroupPage,
+              isFetchingNextGroupPage,
+              onLoadMoreGroups,
             })
           }
-        </SuspendingGroupKeys>
+        </InfiniteGroupKeys>
       );
     }
     // No group mode - use flat mode with __ungrouped__
@@ -1127,6 +1228,9 @@ export function InfiniteQueryBridge<
       groupCounts: undefined,
       groupKeys: ["__ungrouped__"],
       groupSortValues: undefined,
+      hasNextGroupPage: false,
+      isFetchingNextGroupPage: false,
+      onLoadMoreGroups: noopLoadMoreGroups,
     });
   };
 
@@ -1163,8 +1267,11 @@ interface InfiniteQueryBridgeInnerProps<
   groupCounts: GroupQueryResponse["counts"];
   groupKeys: string[];
   groupSortValues: GroupQueryResponse["sortValues"];
+  hasNextGroupPage: boolean;
+  isFetchingNextGroupPage: boolean;
   isPending: boolean;
   limit: Limit;
+  onLoadMoreGroups: () => void;
   queryOptionsFactory: (params: unknown) => unknown;
   search: string;
   setColumn: (column: ColumnConfigInput | null) => void;
@@ -1209,8 +1316,11 @@ function InfiniteQueryBridgeInner<
   groupCounts,
   groupKeys,
   groupSortValues,
+  hasNextGroupPage,
+  isFetchingNextGroupPage,
   isPending,
   limit,
+  onLoadMoreGroups,
   queryOptionsFactory,
   search,
   setColumn,
@@ -1286,9 +1396,16 @@ function InfiniteQueryBridgeInner<
       expandedGroups: localExpanded,
       filter,
       group,
+      groupCounts,
+      groupKeys,
+      groupSortValues,
+      hasNextGroupPage,
+      isFetchingNextGroupPage,
+      isPending,
       limit,
+      onLoadMoreGroups,
+      queryOptionsFactory: queryOptionsFactory as (params: unknown) => unknown,
       search,
-      sort,
       setCursor: noopSetCursor,
       setExpandedGroups,
       setFilter,
@@ -1296,31 +1413,30 @@ function InfiniteQueryBridgeInner<
       setLimit,
       setSearch,
       setSort,
-      groupCounts,
-      groupKeys,
-      groupSortValues,
-      queryOptionsFactory: queryOptionsFactory as (params: unknown) => unknown,
-      isPending,
+      sort,
       type: "infinite",
     }),
     [
       localExpanded,
       filter,
       group,
+      groupCounts,
+      groupKeys,
+      groupSortValues,
+      hasNextGroupPage,
+      isFetchingNextGroupPage,
+      isPending,
       limit,
+      onLoadMoreGroups,
+      queryOptionsFactory,
       search,
-      sort,
       setExpandedGroups,
       setFilter,
       handleSetGroup,
       setLimit,
       setSearch,
       setSort,
-      groupCounts,
-      groupKeys,
-      groupSortValues,
-      queryOptionsFactory,
-      isPending,
+      sort,
     ]
   );
 
@@ -1360,8 +1476,11 @@ function InfiniteQueryBridgeInner<
         filter={filter}
         group={group}
         groupKeys={groupKeys}
+        hasNextGroupPage={hasNextGroupPage}
+        isFetchingNextGroupPage={isFetchingNextGroupPage}
         onColumnChange={setColumn}
         onExpandedGroupsChange={setExpandedGroups}
+        onLoadMoreGroups={onLoadMoreGroups}
         pagination={pagination}
         propertyVisibility={propertyVisibility}
         search={search}

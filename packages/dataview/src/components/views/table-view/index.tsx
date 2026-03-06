@@ -5,11 +5,19 @@ import type {
   RowSelectionState,
   Table as TanStackTable,
 } from "@tanstack/react-table";
-import { AlertCircle } from "lucide-react";
-import { Suspense, useMemo, useState } from "react";
+import { AlertCircle, Loader2 } from "lucide-react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { GroupedDataItem } from "../../../hooks";
 import { useDisplayProperties, useViewSetup } from "../../../hooks";
 import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
+import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import { cn, transformData } from "../../../lib/utils";
 import type {
@@ -26,7 +34,10 @@ import {
 import { Checkbox } from "../../ui/checkbox";
 import { GroupSection } from "../../ui/group-section";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
-import { SuspendingGroupContent } from "../../ui/suspending-group-content";
+import {
+  SuspendingGroupContent,
+  SuspendingInfiniteGroupContent,
+} from "../../ui/suspending-group-content";
 import { DataCell } from "../data-cell";
 import { DataTable } from "./data-table";
 import { TableSkeleton } from "./table-skeleton";
@@ -106,6 +117,9 @@ export function TableView<
     groupKeys,
     expandedGroups,
     onExpandedGroupsChange,
+    hasNextGroupPage,
+    isFetchingNextGroupPage,
+    onLoadMoreGroups,
   } = useDataViewContext<TData, TProperties>();
 
   // Use shared view setup hook
@@ -135,6 +149,10 @@ export function TableView<
     propertyVisibility,
     groupConfig ? [groupConfig.groupBy] : undefined
   );
+
+  // Determine if we're using infinite pagination for data
+  const useInfinitePagination =
+    pagination === "loadMore" || pagination === "infiniteScroll";
 
   // Generate columns from properties
   const columns = useMemo<ColumnDef<TData>[]>(() => {
@@ -272,28 +290,50 @@ export function TableView<
                       />
                     }
                   >
-                    <SuspendingGroupTableContent<TData, TProperties>
-                      actionBar={actionBar}
-                      columns={columns}
-                      enableRowSelection={enableRowSelection}
-                      groupByProperty={groupByProperty}
-                      groupItem={groupItem}
-                      headerOffset={101}
-                      onRowClick={onRowClick}
-                      onRowSelectionChange={setRowSelection}
-                      pagination={pagination}
-                      properties={properties}
-                      rowSelection={rowSelection}
-                      showAggregation={group.showCount ?? true}
-                      showVerticalLines={showVerticalLines}
-                      wrapAllColumns={wrapAllColumns}
-                    />
+                    {useInfinitePagination ? (
+                      <SuspendingInfiniteTableContent<TData, TProperties>
+                        actionBar={actionBar}
+                        columns={columns}
+                        enableRowSelection={enableRowSelection}
+                        groupItem={groupItem}
+                        headerOffset={101}
+                        onRowClick={onRowClick}
+                        onRowSelectionChange={setRowSelection}
+                        pagination={pagination}
+                        properties={properties}
+                        rowSelection={rowSelection}
+                        showVerticalLines={showVerticalLines}
+                        wrapAllColumns={wrapAllColumns}
+                      />
+                    ) : (
+                      <SuspendingPageTableContent<TData, TProperties>
+                        actionBar={actionBar}
+                        columns={columns}
+                        enableRowSelection={enableRowSelection}
+                        groupItem={groupItem}
+                        headerOffset={101}
+                        onRowClick={onRowClick}
+                        onRowSelectionChange={setRowSelection}
+                        pagination={pagination}
+                        properties={properties}
+                        rowSelection={rowSelection}
+                        showVerticalLines={showVerticalLines}
+                        wrapAllColumns={wrapAllColumns}
+                      />
+                    )}
                   </Suspense>
                 ) : null}
               </GroupSection>
             );
           })}
         </Accordion>
+
+        {/* Infinite scroll sentinel for groups */}
+        <InfiniteScrollGroupsSentinel
+          hasNext={hasNextGroupPage}
+          isFetching={isFetchingNextGroupPage}
+          onLoadMore={onLoadMoreGroups}
+        />
       </div>
     );
   }
@@ -311,28 +351,49 @@ export function TableView<
           />
         }
       >
-        <SuspendingGroupTableContent<TData, TProperties>
-          actionBar={actionBar}
-          columns={columns}
-          enableRowSelection={enableRowSelection}
-          groupByProperty={undefined}
-          groupItem={{
-            key: "__ungrouped__",
-            items: [],
-            count: 0,
-            displayCount: "0",
-            sortValue: "",
-          }}
-          headerOffset={57}
-          onRowClick={onRowClick}
-          onRowSelectionChange={setRowSelection}
-          pagination={pagination}
-          properties={properties}
-          rowSelection={rowSelection}
-          showAggregation={false}
-          showVerticalLines={showVerticalLines}
-          wrapAllColumns={wrapAllColumns}
-        />
+        {useInfinitePagination ? (
+          <SuspendingInfiniteTableContent<TData, TProperties>
+            actionBar={actionBar}
+            columns={columns}
+            enableRowSelection={enableRowSelection}
+            groupItem={{
+              key: "__ungrouped__",
+              items: [],
+              count: 0,
+              displayCount: "0",
+              sortValue: "",
+            }}
+            headerOffset={57}
+            onRowClick={onRowClick}
+            onRowSelectionChange={setRowSelection}
+            pagination={pagination}
+            properties={properties}
+            rowSelection={rowSelection}
+            showVerticalLines={showVerticalLines}
+            wrapAllColumns={wrapAllColumns}
+          />
+        ) : (
+          <SuspendingPageTableContent<TData, TProperties>
+            actionBar={actionBar}
+            columns={columns}
+            enableRowSelection={enableRowSelection}
+            groupItem={{
+              key: "__ungrouped__",
+              items: [],
+              count: 0,
+              displayCount: "0",
+              sortValue: "",
+            }}
+            headerOffset={57}
+            onRowClick={onRowClick}
+            onRowSelectionChange={setRowSelection}
+            pagination={pagination}
+            properties={properties}
+            rowSelection={rowSelection}
+            showVerticalLines={showVerticalLines}
+            wrapAllColumns={wrapAllColumns}
+          />
+        )}
       </Suspense>
     </div>
   );
@@ -342,7 +403,7 @@ export function TableView<
 TableView.dataViewType = "table" as const;
 
 // ============================================================================
-// Suspending Group Content Component
+// Suspending Group Content Components
 // ============================================================================
 
 interface SuspendingGroupTableContentProps<
@@ -352,7 +413,6 @@ interface SuspendingGroupTableContentProps<
   actionBar?: (table: TanStackTable<TData>) => React.ReactNode;
   columns: ColumnDef<TData>[];
   enableRowSelection: boolean;
-  groupByProperty?: TProperties[number];
   groupItem: GroupedDataItem<TData>;
   /** Offset for sticky header (57 for flat, 101 for grouped with GroupSection above) */
   headerOffset: number;
@@ -361,16 +421,70 @@ interface SuspendingGroupTableContentProps<
   pagination?: PaginationMode;
   properties: TProperties;
   rowSelection: RowSelectionState;
-  showAggregation: boolean;
   showVerticalLines: boolean;
   wrapAllColumns: boolean;
 }
 
 /**
- * Internal component that fetches data for a group using Suspense.
- * Renders inside GroupSection's AccordionContent.
+ * Table content renderer - used by both page and infinite pagination variants.
  */
-function SuspendingGroupTableContent<
+function TableContentRenderer<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+>({
+  actionBar,
+  columns,
+  data,
+  enableRowSelection,
+  headerOffset,
+  onRowClick,
+  onRowSelectionChange,
+  paginationNode,
+  properties,
+  rowSelection,
+  showVerticalLines,
+  wrapAllColumns,
+}: {
+  actionBar?: (table: TanStackTable<TData>) => React.ReactNode;
+  columns: ColumnDef<TData>[];
+  data: TData[];
+  enableRowSelection: boolean;
+  headerOffset: number;
+  onRowClick?: (row: TData) => void;
+  onRowSelectionChange: (state: RowSelectionState) => void;
+  paginationNode: React.ReactNode;
+  properties: TProperties;
+  rowSelection: RowSelectionState;
+  showVerticalLines: boolean;
+  wrapAllColumns: boolean;
+}) {
+  // Transform data with property definitions
+  const transformedItems = transformData(data, properties) as TData[];
+
+  return (
+    <>
+      <DataTable
+        actionBar={actionBar}
+        columns={columns}
+        data={transformedItems}
+        enableRowSelection={enableRowSelection}
+        header={{ enabled: true, sticky: true }}
+        offset={headerOffset}
+        onRowClick={onRowClick}
+        onRowSelectionChange={onRowSelectionChange}
+        rowSelection={rowSelection}
+        showVerticalLines={showVerticalLines}
+        wrapAllColumns={wrapAllColumns}
+      />
+      {paginationNode}
+    </>
+  );
+}
+
+/**
+ * Page pagination variant - uses useGroupQuery for prev/next navigation.
+ */
+function SuspendingPageTableContent<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 >({
@@ -390,12 +504,6 @@ function SuspendingGroupTableContent<
   return (
     <SuspendingGroupContent<TData> groupKey={groupItem.key}>
       {(result: UseGroupQueryResult<TData>) => {
-        // Transform data with property definitions
-        const transformedItems = transformData(
-          result.data,
-          properties
-        ) as TData[];
-
         // Build pagination context from query result
         const paginationContext: PaginationContext = {
           displayEnd: result.displayEnd,
@@ -412,24 +520,155 @@ function SuspendingGroupTableContent<
         };
 
         return (
-          <>
-            <DataTable
-              actionBar={actionBar}
-              columns={columns}
-              data={transformedItems}
-              enableRowSelection={enableRowSelection}
-              header={{ enabled: true, sticky: true }}
-              offset={headerOffset}
-              onRowClick={onRowClick}
-              onRowSelectionChange={onRowSelectionChange}
-              rowSelection={rowSelection}
-              showVerticalLines={showVerticalLines}
-              wrapAllColumns={wrapAllColumns}
-            />
-            {renderPagination(pagination, paginationContext)}
-          </>
+          <TableContentRenderer
+            actionBar={actionBar}
+            columns={columns}
+            data={result.data}
+            enableRowSelection={enableRowSelection}
+            headerOffset={headerOffset}
+            onRowClick={onRowClick}
+            onRowSelectionChange={onRowSelectionChange}
+            paginationNode={renderPagination(pagination, paginationContext)}
+            properties={properties}
+            rowSelection={rowSelection}
+            showVerticalLines={showVerticalLines}
+            wrapAllColumns={wrapAllColumns}
+          />
         );
       }}
     </SuspendingGroupContent>
+  );
+}
+
+/**
+ * Infinite pagination variant - uses useInfiniteGroupQuery for load more / infinite scroll.
+ */
+function SuspendingInfiniteTableContent<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+>({
+  actionBar,
+  columns,
+  enableRowSelection,
+  groupItem,
+  headerOffset,
+  onRowClick,
+  onRowSelectionChange,
+  pagination,
+  properties,
+  rowSelection,
+  showVerticalLines,
+  wrapAllColumns,
+}: SuspendingGroupTableContentProps<TData, TProperties>) {
+  return (
+    <SuspendingInfiniteGroupContent<TData> groupKey={groupItem.key}>
+      {(result: UseInfiniteGroupQueryResult<TData>) => {
+        // hasNextPage can be boolean or Record<string, boolean>
+        // Convert to simple boolean for PaginationContext
+        const hasNext =
+          typeof result.hasNextPage === "boolean"
+            ? result.hasNextPage
+            : Object.values(result.hasNextPage).some(Boolean);
+
+        // Build pagination context from infinite query result
+        // Map infinite query properties to PaginationContext
+        const paginationContext: PaginationContext = {
+          hasMoreThanMax: groupItem.displayCount === "99+",
+          hasNext,
+          isFetching: result.isFetching,
+          isFetchingNextPage: result.isFetchingNextPage,
+          limit: result.limit,
+          onLimitChange: result.onLimitChange,
+          onNext: result.onLoadMore,
+          totalCount: groupItem.count,
+        };
+
+        return (
+          <TableContentRenderer
+            actionBar={actionBar}
+            columns={columns}
+            data={result.data}
+            enableRowSelection={enableRowSelection}
+            headerOffset={headerOffset}
+            onRowClick={onRowClick}
+            onRowSelectionChange={onRowSelectionChange}
+            paginationNode={renderPagination(pagination, paginationContext)}
+            properties={properties}
+            rowSelection={rowSelection}
+            showVerticalLines={showVerticalLines}
+            wrapAllColumns={wrapAllColumns}
+          />
+        );
+      }}
+    </SuspendingInfiniteGroupContent>
+  );
+}
+
+// ============================================================================
+// Infinite Scroll Groups Sentinel
+// ============================================================================
+
+interface InfiniteScrollGroupsSentinelProps {
+  hasNext?: boolean;
+  isFetching?: boolean;
+  onLoadMore?: () => void;
+}
+
+function InfiniteScrollGroupsSentinel({
+  hasNext,
+  isFetching,
+  onLoadMore,
+}: InfiniteScrollGroupsSentinelProps) {
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Use refs to avoid stale closures in the intersection observer callback
+  const stateRef = useRef({ hasNext, isFetching, onLoadMore });
+  stateRef.current = { hasNext, isFetching, onLoadMore };
+
+  const handleIntersect = useCallback(() => {
+    const { hasNext, isFetching, onLoadMore } = stateRef.current;
+    if (hasNext && !isFetching && onLoadMore) {
+      onLoadMore();
+    }
+  }, []);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          handleIntersect();
+        }
+      },
+      {
+        rootMargin: "200px",
+        threshold: 0,
+      }
+    );
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [handleIntersect]);
+
+  if (!(hasNext || isFetching)) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center justify-center py-4" ref={sentinelRef}>
+      {isFetching && (
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" />
+          <span className="text-sm">Loading more groups...</span>
+        </div>
+      )}
+    </div>
   );
 }

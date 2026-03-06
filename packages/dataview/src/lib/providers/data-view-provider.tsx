@@ -204,9 +204,15 @@ interface DirectDataProps<
   group?: GroupConfig | null;
   /** Keys for all groups (from server group counts query) */
   groupKeys?: string[];
+  /** Whether there are more groups to load */
+  hasNextGroupPage?: boolean;
+  /** Whether currently fetching more groups */
+  isFetchingNextGroupPage?: boolean;
   limit?: number;
   onColumnChange?: (column: ColumnConfig | null) => void;
   onExpandedGroupsChange?: (groups: string[]) => void;
+  /** Callback to load more groups */
+  onLoadMoreGroups?: () => void;
   pagination?: PaginationOutput<TData>;
   properties: TProperties;
   propertyVisibility?: TProperties[number]["id"][];
@@ -412,9 +418,12 @@ export function DataViewProviderCore<
   filter,
   group,
   groupKeys,
+  hasNextGroupPage,
+  isFetchingNextGroupPage,
   limit,
   onColumnChange,
   onExpandedGroupsChange,
+  onLoadMoreGroups,
   pagination,
   properties,
   propertyVisibility: propertyVisibilityProp,
@@ -454,9 +463,12 @@ export function DataViewProviderCore<
       filter,
       group,
       groupKeys,
+      hasNextGroupPage,
+      isFetchingNextGroupPage,
       limit,
       onColumnChange,
       onExpandedGroupsChange,
+      onLoadMoreGroups,
       pagination,
       properties,
       propertyMetas,
@@ -475,9 +487,12 @@ export function DataViewProviderCore<
       filter,
       group,
       groupKeys,
+      hasNextGroupPage,
+      isFetchingNextGroupPage,
       limit,
       onColumnChange,
       onExpandedGroupsChange,
+      onLoadMoreGroups,
       pagination,
       properties,
       propertyMetas,

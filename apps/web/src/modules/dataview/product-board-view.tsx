@@ -50,12 +50,16 @@ export function ProductBoardView({
 
   const { pagination } = useInfinitePagination({
     // Factory for column counts (board columns) - fetched via SuspendingColumnKeys
+    // Columns are typically a small set, so no pagination needed
     columnQueryOptionsFactory: (columnConfig) =>
       trpc.product.getGroup.queryOptions({ groupBy: columnConfig }),
 
-    // Factory for accordion row counts - always provide so users can switch to grouped mode via UI
+    // Factory for accordion row counts with pagination - uses tRPC infiniteQueryOptions
     groupQueryOptionsFactory: (groupConfig) =>
-      trpc.product.getGroup.queryOptions({ groupBy: groupConfig }),
+      trpc.product.getGroup.infiniteQueryOptions(
+        { groupBy: groupConfig, limit: 25 },
+        { getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined }
+      ),
 
     // Factory for data items - fetches ALL columns in one query
     // When grouped, filter to only show data for the current group

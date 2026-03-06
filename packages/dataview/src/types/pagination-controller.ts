@@ -27,13 +27,24 @@ export interface BaseQueryOptions {
 // ============================================================================
 
 /**
- * Query options factory for fetching group counts.
+ * Infinite query options for group pagination.
+ * Compatible with both manual query options and tRPC's infiniteQueryOptions.
+ * The actual type is flexible to accommodate different query library return types.
+ */
+export interface InfiniteGroupQueryOptions {
+  queryKey: readonly unknown[];
+  // biome-ignore lint/suspicious/noExplicitAny: Must accept various query library return types
+  [key: string]: any;
+}
+
+/**
+ * Query options factory for fetching group counts with pagination.
  * Called by QueryBridge when group mode is active.
- * Returns BaseQueryOptions (minimal interface) since group queries have different return types.
+ * Returns InfiniteGroupQueryOptions for cursor-based group pagination.
  */
 export type GroupQueryOptionsFactory = (
   groupConfig: GroupConfigInput
-) => BaseQueryOptions;
+) => InfiniteGroupQueryOptions;
 
 /**
  * Query options factory for fetching column counts (board-specific).

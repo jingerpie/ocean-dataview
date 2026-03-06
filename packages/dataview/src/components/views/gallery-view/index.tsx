@@ -1,10 +1,11 @@
 "use client";
 
-import { AlertCircle } from "lucide-react";
-import { Suspense } from "react";
+import { AlertCircle, Loader2 } from "lucide-react";
+import { Suspense, useCallback, useEffect, useRef } from "react";
 import type { GroupedDataItem } from "../../../hooks";
 import { useDisplayProperties, useViewSetup } from "../../../hooks";
 import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
+import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import { cn, transformData } from "../../../lib/utils";
 import { getGalleryCardDimensions } from "../../../lib/utils/get-card-sizes";
@@ -12,7 +13,10 @@ import type { DataViewProperty, PaginationContext } from "../../../types";
 import { Accordion } from "../../ui/accordion";
 import { GroupSection } from "../../ui/group-section";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
-import { SuspendingGroupContent } from "../../ui/suspending-group-content";
+import {
+  SuspendingGroupContent,
+  SuspendingInfiniteGroupContent,
+} from "../../ui/suspending-group-content";
 import { DataCard } from "../data-card";
 import { GallerySkeleton } from "./gallery-skeleton";
 
@@ -99,6 +103,9 @@ export function GalleryView<
     groupKeys,
     expandedGroups,
     onExpandedGroupsChange,
+    hasNextGroupPage,
+    isFetchingNextGroupPage,
+    onLoadMoreGroups,
   } = useDataViewContext<TData, TProperties>();
 
   // Use shared view setup hook
@@ -123,6 +130,10 @@ export function GalleryView<
   );
 
   const { imageHeight, cols } = getGalleryCardDimensions(cardSize);
+
+  // Determine if we're using infinite pagination for data
+  const useInfinitePagination =
+    pagination === "loadMore" || pagination === "infiniteScroll";
 
   // Error state
   if (validationError || propertyValidationError) {
@@ -170,25 +181,48 @@ export function GalleryView<
                       />
                     }
                   >
-                    <SuspendingGroupGalleryContent<TData, TProperties>
-                      cardPreview={cardPreview}
-                      cols={cols}
-                      displayProperties={displayProperties}
-                      fitMedia={fitMedia}
-                      groupItem={groupItem}
-                      imageHeight={imageHeight}
-                      onCardClick={onCardClick}
-                      pagination={pagination}
-                      properties={properties}
-                      showPropertyNames={showPropertyNames}
-                      wrapAllProperties={wrapAllProperties}
-                    />
+                    {useInfinitePagination ? (
+                      <SuspendingInfiniteGalleryContent<TData, TProperties>
+                        cardPreview={cardPreview}
+                        cols={cols}
+                        displayProperties={displayProperties}
+                        fitMedia={fitMedia}
+                        groupItem={groupItem}
+                        imageHeight={imageHeight}
+                        onCardClick={onCardClick}
+                        pagination={pagination}
+                        properties={properties}
+                        showPropertyNames={showPropertyNames}
+                        wrapAllProperties={wrapAllProperties}
+                      />
+                    ) : (
+                      <SuspendingPageGalleryContent<TData, TProperties>
+                        cardPreview={cardPreview}
+                        cols={cols}
+                        displayProperties={displayProperties}
+                        fitMedia={fitMedia}
+                        groupItem={groupItem}
+                        imageHeight={imageHeight}
+                        onCardClick={onCardClick}
+                        pagination={pagination}
+                        properties={properties}
+                        showPropertyNames={showPropertyNames}
+                        wrapAllProperties={wrapAllProperties}
+                      />
+                    )}
                   </Suspense>
                 ) : null}
               </GroupSection>
             );
           })}
         </Accordion>
+
+        {/* Infinite scroll sentinel for groups */}
+        <InfiniteScrollGroupsSentinel
+          hasNext={hasNextGroupPage}
+          isFetching={isFetchingNextGroupPage}
+          onLoadMore={onLoadMoreGroups}
+        />
       </div>
     );
   }
@@ -207,25 +241,47 @@ export function GalleryView<
           />
         }
       >
-        <SuspendingGroupGalleryContent<TData, TProperties>
-          cardPreview={cardPreview}
-          cols={cols}
-          displayProperties={displayProperties}
-          fitMedia={fitMedia}
-          groupItem={{
-            key: "__ungrouped__",
-            items: [],
-            count: 0,
-            displayCount: "0",
-            sortValue: "",
-          }}
-          imageHeight={imageHeight}
-          onCardClick={onCardClick}
-          pagination={pagination}
-          properties={properties}
-          showPropertyNames={showPropertyNames}
-          wrapAllProperties={wrapAllProperties}
-        />
+        {useInfinitePagination ? (
+          <SuspendingInfiniteGalleryContent<TData, TProperties>
+            cardPreview={cardPreview}
+            cols={cols}
+            displayProperties={displayProperties}
+            fitMedia={fitMedia}
+            groupItem={{
+              key: "__ungrouped__",
+              items: [],
+              count: 0,
+              displayCount: "0",
+              sortValue: "",
+            }}
+            imageHeight={imageHeight}
+            onCardClick={onCardClick}
+            pagination={pagination}
+            properties={properties}
+            showPropertyNames={showPropertyNames}
+            wrapAllProperties={wrapAllProperties}
+          />
+        ) : (
+          <SuspendingPageGalleryContent<TData, TProperties>
+            cardPreview={cardPreview}
+            cols={cols}
+            displayProperties={displayProperties}
+            fitMedia={fitMedia}
+            groupItem={{
+              key: "__ungrouped__",
+              items: [],
+              count: 0,
+              displayCount: "0",
+              sortValue: "",
+            }}
+            imageHeight={imageHeight}
+            onCardClick={onCardClick}
+            pagination={pagination}
+            properties={properties}
+            showPropertyNames={showPropertyNames}
+            wrapAllProperties={wrapAllProperties}
+          />
+        )}
       </Suspense>
     </div>
   );
@@ -235,7 +291,7 @@ export function GalleryView<
 GalleryView.dataViewType = "gallery" as const;
 
 // ============================================================================
-// Suspending Group Content Component
+// Suspending Group Content Components
 // ============================================================================
 
 interface SuspendingGroupGalleryContentProps<
@@ -256,10 +312,73 @@ interface SuspendingGroupGalleryContentProps<
 }
 
 /**
- * Internal component that fetches data for a group using Suspense.
- * Renders inside GroupSection's AccordionContent.
+ * Gallery content renderer - used by both page and infinite pagination variants.
  */
-function SuspendingGroupGalleryContent<
+function GalleryContentRenderer<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+>({
+  cardPreview,
+  cols,
+  data,
+  displayProperties,
+  fitMedia,
+  imageHeight,
+  onCardClick,
+  paginationNode,
+  properties,
+  showPropertyNames,
+  wrapAllProperties,
+}: {
+  cardPreview?: string;
+  cols: string;
+  data: TData[];
+  displayProperties: TProperties[number][];
+  fitMedia: boolean;
+  imageHeight: number;
+  onCardClick?: (item: TData) => void;
+  paginationNode: React.ReactNode;
+  properties: TProperties;
+  showPropertyNames: boolean;
+  wrapAllProperties: boolean;
+}) {
+  // Transform data with property definitions
+  const transformedItems = transformData(data, properties) as TData[];
+
+  return (
+    <>
+      <div className={cn("grid gap-4", cols)}>
+        {transformedItems.map((item, index) => {
+          const firstProperty = displayProperties[0];
+          const uniqueKey = firstProperty
+            ? `card-${String((item as Record<string, unknown>)[firstProperty.id])}-${index}`
+            : `card-${index}`;
+
+          return (
+            <DataCard
+              allProperties={properties}
+              cardPreview={cardPreview}
+              displayProperties={displayProperties}
+              fitMedia={fitMedia}
+              imageHeight={imageHeight}
+              item={item}
+              key={uniqueKey}
+              onCardClick={onCardClick}
+              showPropertyNames={showPropertyNames}
+              wrapAllProperties={wrapAllProperties}
+            />
+          );
+        })}
+      </div>
+      {paginationNode}
+    </>
+  );
+}
+
+/**
+ * Page pagination variant - uses useGroupQuery for prev/next navigation.
+ */
+function SuspendingPageGalleryContent<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 >({
@@ -278,12 +397,6 @@ function SuspendingGroupGalleryContent<
   return (
     <SuspendingGroupContent<TData> groupKey={groupItem.key}>
       {(result: UseGroupQueryResult<TData>) => {
-        // Transform data with property definitions
-        const transformedItems = transformData(
-          result.data,
-          properties
-        ) as TData[];
-
         // Build pagination context from query result
         const paginationContext: PaginationContext = {
           displayEnd: result.displayEnd,
@@ -300,34 +413,152 @@ function SuspendingGroupGalleryContent<
         };
 
         return (
-          <>
-            <div className={cn("grid gap-4", cols)}>
-              {transformedItems.map((item, index) => {
-                const firstProperty = displayProperties[0];
-                const uniqueKey = firstProperty
-                  ? `card-${String((item as Record<string, unknown>)[firstProperty.id])}-${index}`
-                  : `card-${index}`;
-
-                return (
-                  <DataCard
-                    allProperties={properties}
-                    cardPreview={cardPreview}
-                    displayProperties={displayProperties}
-                    fitMedia={fitMedia}
-                    imageHeight={imageHeight}
-                    item={item}
-                    key={uniqueKey}
-                    onCardClick={onCardClick}
-                    showPropertyNames={showPropertyNames}
-                    wrapAllProperties={wrapAllProperties}
-                  />
-                );
-              })}
-            </div>
-            {renderPagination(pagination, paginationContext)}
-          </>
+          <GalleryContentRenderer
+            cardPreview={cardPreview}
+            cols={cols}
+            data={result.data}
+            displayProperties={displayProperties}
+            fitMedia={fitMedia}
+            imageHeight={imageHeight}
+            onCardClick={onCardClick}
+            paginationNode={renderPagination(pagination, paginationContext)}
+            properties={properties}
+            showPropertyNames={showPropertyNames}
+            wrapAllProperties={wrapAllProperties}
+          />
         );
       }}
     </SuspendingGroupContent>
+  );
+}
+
+/**
+ * Infinite pagination variant - uses useInfiniteGroupQuery for load more / infinite scroll.
+ */
+function SuspendingInfiniteGalleryContent<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+>({
+  cardPreview,
+  cols,
+  displayProperties,
+  fitMedia,
+  groupItem,
+  imageHeight,
+  onCardClick,
+  pagination,
+  properties,
+  showPropertyNames,
+  wrapAllProperties,
+}: SuspendingGroupGalleryContentProps<TData, TProperties>) {
+  return (
+    <SuspendingInfiniteGroupContent<TData> groupKey={groupItem.key}>
+      {(result: UseInfiniteGroupQueryResult<TData>) => {
+        // hasNextPage can be boolean or Record<string, boolean>
+        // Convert to simple boolean for PaginationContext
+        const hasNext =
+          typeof result.hasNextPage === "boolean"
+            ? result.hasNextPage
+            : Object.values(result.hasNextPage).some(Boolean);
+
+        // Build pagination context from infinite query result
+        // Map infinite query properties to PaginationContext
+        const paginationContext: PaginationContext = {
+          hasMoreThanMax: groupItem.displayCount === "99+",
+          hasNext,
+          isFetching: result.isFetching,
+          isFetchingNextPage: result.isFetchingNextPage,
+          limit: result.limit,
+          onLimitChange: result.onLimitChange,
+          onNext: result.onLoadMore,
+          totalCount: groupItem.count,
+        };
+
+        return (
+          <GalleryContentRenderer
+            cardPreview={cardPreview}
+            cols={cols}
+            data={result.data}
+            displayProperties={displayProperties}
+            fitMedia={fitMedia}
+            imageHeight={imageHeight}
+            onCardClick={onCardClick}
+            paginationNode={renderPagination(pagination, paginationContext)}
+            properties={properties}
+            showPropertyNames={showPropertyNames}
+            wrapAllProperties={wrapAllProperties}
+          />
+        );
+      }}
+    </SuspendingInfiniteGroupContent>
+  );
+}
+
+// ============================================================================
+// Infinite Scroll Groups Sentinel
+// ============================================================================
+
+interface InfiniteScrollGroupsSentinelProps {
+  hasNext?: boolean;
+  isFetching?: boolean;
+  onLoadMore?: () => void;
+}
+
+function InfiniteScrollGroupsSentinel({
+  hasNext,
+  isFetching,
+  onLoadMore,
+}: InfiniteScrollGroupsSentinelProps) {
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Use refs to avoid stale closures in the intersection observer callback
+  const stateRef = useRef({ hasNext, isFetching, onLoadMore });
+  stateRef.current = { hasNext, isFetching, onLoadMore };
+
+  const handleIntersect = useCallback(() => {
+    const { hasNext, isFetching, onLoadMore } = stateRef.current;
+    if (hasNext && !isFetching && onLoadMore) {
+      onLoadMore();
+    }
+  }, []);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          handleIntersect();
+        }
+      },
+      {
+        rootMargin: "200px",
+        threshold: 0,
+      }
+    );
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [handleIntersect]);
+
+  if (!(hasNext || isFetching)) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center justify-center py-4" ref={sentinelRef}>
+      {isFetching && (
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" />
+          <span className="text-sm">Loading more groups...</span>
+        </div>
+      )}
+    </div>
   );
 }

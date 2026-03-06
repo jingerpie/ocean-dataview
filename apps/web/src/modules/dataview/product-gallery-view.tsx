@@ -40,11 +40,12 @@ export function ProductGalleryView({
   const searchableFields = getSearchableProperties(productProperties);
 
   const { pagination } = useInfinitePagination({
-    // Factory for group counts - called internally by QueryBridge when group is set
+    // Factory for group counts with pagination - uses tRPC infiniteQueryOptions
     groupQueryOptionsFactory: (groupConfig) =>
-      trpc.product.getGroup.queryOptions({
-        groupBy: groupConfig,
-      }),
+      trpc.product.getGroup.infiniteQueryOptions(
+        { groupBy: groupConfig, limit: 25 },
+        { getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined }
+      ),
 
     // Factory for data items - receives groupConfig from internal state
     queryOptionsFactory: (params) =>

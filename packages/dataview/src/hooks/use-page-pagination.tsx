@@ -5,6 +5,7 @@ import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
 import { useCallback, useMemo, useRef } from "react";
 import type {
   BaseQueryOptions,
+  InfiniteGroupQueryOptions,
   PagePaginationController,
   PageQueryOptionsFactory,
 } from "../types/pagination-controller";
@@ -42,10 +43,10 @@ export interface UsePagePaginationOptions<
   columnQueryOptionsFactory?: (
     columnConfig: GroupConfigInput
   ) => BaseQueryOptions;
-  /** Factory for fetching group counts (accordion rows) */
+  /** Factory for fetching group counts with pagination (accordion rows) */
   groupQueryOptionsFactory?: (
     groupConfig: GroupConfigInput
-  ) => BaseQueryOptions;
+  ) => InfiniteGroupQueryOptions;
   /** Factory for fetching data items */
   queryOptionsFactory: PageQueryOptionsFactory<TQueryOptions>;
 }
@@ -90,11 +91,11 @@ export function usePagePagination<
     };
   }, [Boolean(columnQueryOptionsFactory)]);
 
-  // Stable group factory (accordion rows)
+  // Stable group factory (accordion rows) with pagination support
   const groupFactoryRef = useRef(groupQueryOptionsFactory);
   groupFactoryRef.current = groupQueryOptionsFactory;
   const stableGroupFactory = useMemo<
-    ((groupConfig: GroupConfigInput) => BaseQueryOptions) | undefined
+    ((groupConfig: GroupConfigInput) => InfiniteGroupQueryOptions) | undefined
   >(() => {
     if (!groupQueryOptionsFactory) {
       return undefined;

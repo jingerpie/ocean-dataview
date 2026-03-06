@@ -100,9 +100,9 @@ export function useInfiniteGroupQuery<TData = unknown>(
     ]
   );
 
+  // Spread tRPC options directly and provide fallbacks
   const query = useSuspenseInfiniteQuery({
-    queryKey: queryOptions.queryKey,
-    queryFn: queryOptions.queryFn,
+    ...queryOptions,
     getNextPageParam: queryOptions.getNextPageParam ?? defaultGetNextPageParam,
     initialPageParam: queryOptions.initialPageParam ?? undefined,
   });

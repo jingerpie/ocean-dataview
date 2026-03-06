@@ -65,3 +65,18 @@ export type SubGroupConfig = GroupByConfig & SharedGroupOptions;
 
 // Column uses same structure (for board columns)
 export type ColumnConfig = GroupByConfig & SharedGroupOptions;
+
+// ============================================================================
+// Group Query Response Types
+// ============================================================================
+
+/**
+ * Response from paginated group query.
+ * Includes counts, sortValues, and pagination metadata.
+ */
+export interface PaginatedGroupResponse {
+  counts: Record<string, { count: number; hasMore: boolean }>;
+  hasNextPage: boolean;
+  nextCursor: string | null;
+  sortValues: Record<string, string | number>;
+}

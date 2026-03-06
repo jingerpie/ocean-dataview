@@ -1,10 +1,11 @@
 "use client";
 
-import { AlertCircle, Columns3 } from "lucide-react";
-import { Suspense, useMemo, useRef } from "react";
+import { AlertCircle, Columns3, Loader2 } from "lucide-react";
+import { Suspense, useCallback, useEffect, useMemo, useRef } from "react";
 import type { GroupedDataItem } from "../../../hooks";
 import { useDisplayProperties, useGroupParams } from "../../../hooks";
 import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
+import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import {
   cn,
@@ -27,7 +28,10 @@ import { Badge } from "../../ui/badge";
 import { EmptyState } from "../../ui/empty-state";
 import { GroupSection } from "../../ui/group-section";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
-import { SuspendingGroupContent } from "../../ui/suspending-group-content";
+import {
+  SuspendingGroupContent,
+  SuspendingInfiniteGroupContent,
+} from "../../ui/suspending-group-content";
 import { DataCard } from "../data-card";
 import { DataCell } from "../data-cell";
 import { BoardColumnHeaders } from "./board-column-headers";
@@ -137,6 +141,9 @@ export function BoardView<
     groupKeys,
     expandedGroups,
     onExpandedGroupsChange,
+    hasNextGroupPage,
+    isFetchingNextGroupPage,
+    onLoadMoreGroups,
   } = useDataViewContext<TData, TProperties>();
 
   // Get sort order from URL params (managed by useGroupParams)
@@ -281,6 +288,10 @@ export function BoardView<
 
   // Get card dimensions based on size
   const { imageHeight, columnWidth } = getBoardCardDimensions(cardSize);
+
+  // Determine if we're using infinite pagination for data
+  const useInfinitePagination =
+    pagination === "loadMore" || pagination === "infiniteScroll";
 
   // Get card content using shared DataCard component
   const getCardContent = (item: TData) => (
@@ -452,24 +463,46 @@ export function BoardView<
                           />
                         }
                       >
-                        <SuspendingGroupBoardContent<TData, TProperties>
-                          columns={columns}
-                          columnWidth={columnWidth}
-                          getCardContent={getCardContent}
-                          getColumnBgClass={getColumnBgClass}
-                          groupKey={rowGroup.key}
-                          keyExtractor={keyExtractor}
-                          pagination={pagination}
-                          parsedColumn={parsedColumn}
-                          properties={properties}
-                          rounded="all"
-                        />
+                        {useInfinitePagination ? (
+                          <SuspendingInfiniteBoardContent<TData, TProperties>
+                            columns={columns}
+                            columnWidth={columnWidth}
+                            getCardContent={getCardContent}
+                            getColumnBgClass={getColumnBgClass}
+                            groupKey={rowGroup.key}
+                            keyExtractor={keyExtractor}
+                            pagination={pagination}
+                            parsedColumn={parsedColumn}
+                            properties={properties}
+                            rounded="all"
+                          />
+                        ) : (
+                          <SuspendingPageBoardContent<TData, TProperties>
+                            columns={columns}
+                            columnWidth={columnWidth}
+                            getCardContent={getCardContent}
+                            getColumnBgClass={getColumnBgClass}
+                            groupKey={rowGroup.key}
+                            keyExtractor={keyExtractor}
+                            pagination={pagination}
+                            parsedColumn={parsedColumn}
+                            properties={properties}
+                            rounded="all"
+                          />
+                        )}
                       </Suspense>
                     ) : null}
                   </GroupSection>
                 );
               })}
             </Accordion>
+
+            {/* Infinite scroll sentinel for groups */}
+            <InfiniteScrollGroupsSentinel
+              hasNext={hasNextGroupPage}
+              isFetching={isFetchingNextGroupPage}
+              onLoadMore={onLoadMoreGroups}
+            />
           </div>
         </div>
       </div>
@@ -518,18 +551,33 @@ export function BoardView<
                 offset: 57,
               }}
             />
-            <SuspendingGroupBoardContent<TData, TProperties>
-              columns={columns}
-              columnWidth={columnWidth}
-              getCardContent={getCardContent}
-              getColumnBgClass={getColumnBgClass}
-              groupKey="__ungrouped__"
-              keyExtractor={keyExtractor}
-              pagination={pagination}
-              parsedColumn={parsedColumn}
-              properties={properties}
-              rounded="bottom"
-            />
+            {useInfinitePagination ? (
+              <SuspendingInfiniteBoardContent<TData, TProperties>
+                columns={columns}
+                columnWidth={columnWidth}
+                getCardContent={getCardContent}
+                getColumnBgClass={getColumnBgClass}
+                groupKey="__ungrouped__"
+                keyExtractor={keyExtractor}
+                pagination={pagination}
+                parsedColumn={parsedColumn}
+                properties={properties}
+                rounded="bottom"
+              />
+            ) : (
+              <SuspendingPageBoardContent<TData, TProperties>
+                columns={columns}
+                columnWidth={columnWidth}
+                getCardContent={getCardContent}
+                getColumnBgClass={getColumnBgClass}
+                groupKey="__ungrouped__"
+                keyExtractor={keyExtractor}
+                pagination={pagination}
+                parsedColumn={parsedColumn}
+                properties={properties}
+                rounded="bottom"
+              />
+            )}
           </Suspense>
         </div>
       </div>
@@ -541,7 +589,7 @@ export function BoardView<
 BoardView.dataViewType = "board" as const;
 
 // ============================================================================
-// Suspending Group Content Component
+// Suspending Group Content Components
 // ============================================================================
 
 interface SuspendingGroupBoardContentProps<
@@ -574,10 +622,68 @@ interface SuspendingGroupBoardContentProps<
 }
 
 /**
- * Internal component that fetches data for a group using Suspense.
- * Groups the fetched data by column property and renders BoardColumns.
+ * Board content renderer - used by both page and infinite pagination variants.
  */
-function SuspendingGroupBoardContent<
+function BoardContentRenderer<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+>({
+  columns,
+  columnWidth,
+  data,
+  getCardContent,
+  getColumnBgClass,
+  keyExtractor,
+  parsedColumn,
+  properties,
+  renderFooter,
+  rounded = "all",
+}: {
+  columns: GroupedDataItem<TData>[];
+  columnWidth: string;
+  data: TData[];
+  getCardContent: (item: TData) => React.ReactNode;
+  getColumnBgClass: (columnName: string) => string;
+  keyExtractor: (item: TData, index: number) => string;
+  parsedColumn?: SuspendingGroupBoardContentProps<
+    TData,
+    TProperties
+  >["parsedColumn"];
+  properties: TProperties;
+  renderFooter?: () => React.ReactNode;
+  rounded?: "top" | "bottom" | "all";
+}) {
+  // Transform data with property definitions
+  const transformedItems = transformData(data, properties) as TData[];
+
+  // Group transformed data by column property
+  const { groups: columnGroups } = parsedColumn?.property
+    ? groupDataByProperty(transformedItems, parsedColumn.property, properties, {
+        showAs: parsedColumn.showAs,
+        startWeekOn: parsedColumn.startWeekOn,
+        textShowAs: parsedColumn.textShowAs,
+        numberRange: parsedColumn.numberRange,
+      })
+    : { groups: {} as Record<string, TData[]> };
+
+  return (
+    <BoardColumns
+      cardContent={getCardContent}
+      columnWidth={columnWidth}
+      getColumnBgClass={getColumnBgClass}
+      getItems={(columnKey) => (columnGroups[columnKey] as TData[]) ?? []}
+      groups={columns}
+      keyExtractor={keyExtractor}
+      renderFooter={renderFooter}
+      rounded={rounded}
+    />
+  );
+}
+
+/**
+ * Page pagination variant - uses useGroupQuery for prev/next navigation.
+ */
+function SuspendingPageBoardContent<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 >({
@@ -595,27 +701,6 @@ function SuspendingGroupBoardContent<
   return (
     <SuspendingGroupContent<TData> groupKey={groupKey}>
       {(result: UseGroupQueryResult<TData>) => {
-        // Transform data with property definitions
-        const transformedItems = transformData(
-          result.data,
-          properties
-        ) as TData[];
-
-        // Group transformed data by column property
-        const { groups: columnGroups } = parsedColumn?.property
-          ? groupDataByProperty(
-              transformedItems,
-              parsedColumn.property,
-              properties,
-              {
-                showAs: parsedColumn.showAs,
-                startWeekOn: parsedColumn.startWeekOn,
-                textShowAs: parsedColumn.textShowAs,
-                numberRange: parsedColumn.numberRange,
-              }
-            )
-          : { groups: {} as Record<string, TData[]> };
-
         // Build pagination context from query result
         const paginationContext: PaginationContext = {
           displayEnd: result.displayEnd,
@@ -628,17 +713,19 @@ function SuspendingGroupBoardContent<
           onLimitChange: result.onLimitChange,
           onNext: result.onNext,
           onPrev: result.onPrev,
-          totalCount: transformedItems.length,
+          totalCount: result.data.length,
         };
 
         return (
-          <BoardColumns
-            cardContent={getCardContent}
+          <BoardContentRenderer
+            columns={columns}
             columnWidth={columnWidth}
+            data={result.data}
+            getCardContent={getCardContent}
             getColumnBgClass={getColumnBgClass}
-            getItems={(columnKey) => (columnGroups[columnKey] as TData[]) ?? []}
-            groups={columns}
             keyExtractor={keyExtractor}
+            parsedColumn={parsedColumn}
+            properties={properties}
             renderFooter={
               pagination
                 ? () => renderPagination(pagination, paginationContext)
@@ -649,5 +736,138 @@ function SuspendingGroupBoardContent<
         );
       }}
     </SuspendingGroupContent>
+  );
+}
+
+/**
+ * Infinite pagination variant - uses useInfiniteGroupQuery for load more / infinite scroll.
+ */
+function SuspendingInfiniteBoardContent<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+>({
+  columns,
+  columnWidth,
+  getCardContent,
+  getColumnBgClass,
+  groupKey,
+  keyExtractor,
+  pagination,
+  parsedColumn,
+  properties,
+  rounded = "all",
+}: SuspendingGroupBoardContentProps<TData, TProperties>) {
+  return (
+    <SuspendingInfiniteGroupContent<TData> groupKey={groupKey}>
+      {(result: UseInfiniteGroupQueryResult<TData>) => {
+        // hasNextPage can be boolean or Record<string, boolean>
+        // Convert to simple boolean for PaginationContext
+        const hasNext =
+          typeof result.hasNextPage === "boolean"
+            ? result.hasNextPage
+            : Object.values(result.hasNextPage).some(Boolean);
+
+        // Build pagination context from infinite query result
+        // Map infinite query properties to PaginationContext
+        const paginationContext: PaginationContext = {
+          hasMoreThanMax: false,
+          hasNext,
+          isFetching: result.isFetching,
+          isFetchingNextPage: result.isFetchingNextPage,
+          limit: result.limit,
+          onLimitChange: result.onLimitChange,
+          onNext: result.onLoadMore,
+          totalCount: result.data.length,
+        };
+
+        return (
+          <BoardContentRenderer
+            columns={columns}
+            columnWidth={columnWidth}
+            data={result.data}
+            getCardContent={getCardContent}
+            getColumnBgClass={getColumnBgClass}
+            keyExtractor={keyExtractor}
+            parsedColumn={parsedColumn}
+            properties={properties}
+            renderFooter={
+              pagination
+                ? () => renderPagination(pagination, paginationContext)
+                : undefined
+            }
+            rounded={rounded}
+          />
+        );
+      }}
+    </SuspendingInfiniteGroupContent>
+  );
+}
+
+// ============================================================================
+// Infinite Scroll Groups Sentinel
+// ============================================================================
+
+interface InfiniteScrollGroupsSentinelProps {
+  hasNext?: boolean;
+  isFetching?: boolean;
+  onLoadMore?: () => void;
+}
+
+function InfiniteScrollGroupsSentinel({
+  hasNext,
+  isFetching,
+  onLoadMore,
+}: InfiniteScrollGroupsSentinelProps) {
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Use refs to avoid stale closures in the intersection observer callback
+  const stateRef = useRef({ hasNext, isFetching, onLoadMore });
+  stateRef.current = { hasNext, isFetching, onLoadMore };
+
+  const handleIntersect = useCallback(() => {
+    const { hasNext, isFetching, onLoadMore } = stateRef.current;
+    if (hasNext && !isFetching && onLoadMore) {
+      onLoadMore();
+    }
+  }, []);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          handleIntersect();
+        }
+      },
+      {
+        rootMargin: "200px",
+        threshold: 0,
+      }
+    );
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [handleIntersect]);
+
+  if (!(hasNext || isFetching)) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center justify-center py-4" ref={sentinelRef}>
+      {isFetching && (
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" />
+          <span className="text-sm">Loading more groups...</span>
+        </div>
+      )}
+    </div>
   );
 }
