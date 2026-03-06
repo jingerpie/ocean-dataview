@@ -18,9 +18,8 @@ interface BoardSkeletonProps extends React.ComponentProps<"div"> {
   cardSize?: "small" | "medium" | "large";
   /**
    * Number of cards per column
-   * @default 3
    */
-  cardsPerColumn?: number;
+  cardsPerColumn: number;
   /**
    * Number of columns to display
    * @default 4
@@ -49,7 +48,7 @@ interface BoardSkeletonProps extends React.ComponentProps<"div"> {
 
 export function BoardSkeleton({
   cardSize = "medium",
-  cardsPerColumn = 3,
+  cardsPerColumn,
   columnCount = 4,
   groupCount = 0,
   pagination,

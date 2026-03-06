@@ -27,9 +27,8 @@ interface TableSkeletonProps extends React.ComponentProps<"div"> {
   propertyTypes: PropertyType[];
   /**
    * Number of rows to display
-   * @default 10
    */
-  rowCount?: number;
+  rowCount: number;
   /**
    * Show bulk selection checkbox column
    * @default false
@@ -40,7 +39,7 @@ interface TableSkeletonProps extends React.ComponentProps<"div"> {
 export function TableSkeleton({
   pagination,
   propertyTypes,
-  rowCount = 10,
+  rowCount,
   withBulkActions = false,
   className,
   ...props

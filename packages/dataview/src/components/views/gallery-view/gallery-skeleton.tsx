@@ -13,9 +13,8 @@ type PaginationMode = "page" | "loadMore" | "infiniteScroll";
 interface GallerySkeletonProps extends React.ComponentProps<"div"> {
   /**
    * Number of cards to display
-   * @default 6
    */
-  cardCount?: number;
+  cardCount: number;
   /**
    * Card size preset
    * @default "medium"
@@ -37,7 +36,7 @@ interface GallerySkeletonProps extends React.ComponentProps<"div"> {
 }
 
 export function GallerySkeleton({
-  cardCount = 6,
+  cardCount,
   cardSize = "medium",
   pagination,
   propertyTypes,

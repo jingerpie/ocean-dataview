@@ -22,15 +22,14 @@ interface ListSkeletonProps extends React.ComponentProps<"div"> {
   propertyTypes: PropertyType[];
   /**
    * Number of rows to display
-   * @default 8
    */
-  rowCount?: number;
+  rowCount: number;
 }
 
 export function ListSkeleton({
   pagination,
   propertyTypes,
-  rowCount = 8,
+  rowCount,
   className,
   ...props
 }: ListSkeletonProps) {
