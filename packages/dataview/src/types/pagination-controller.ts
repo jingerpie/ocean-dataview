@@ -1,8 +1,8 @@
 /**
- * Controller types for pagination hooks.
+ * Controller types for data view hooks.
  *
- * These controller interfaces define the shape of config objects returned by pagination hooks.
- * They contain defaults and configuration - actual URL state is managed by QueryBridge.
+ * These controller interfaces define the shape of config objects returned by controller hooks.
+ * They contain query factories - actual URL state is managed by QueryBridge.
  */
 
 import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
@@ -56,7 +56,7 @@ export type ColumnQueryOptionsFactory = (
 ) => BaseQueryOptions;
 
 // ============================================================================
-// Page Pagination Controller
+// Page Controller
 // ============================================================================
 
 /**
@@ -82,25 +82,25 @@ export type PageQueryOptionsFactory<TQueryOptions> = (
 ) => TQueryOptions;
 
 /**
- * Config object returned by usePagePagination.
+ * Config object returned by usePageController.
  *
- * Contains query configuration only. Defaults are passed to DataViewProvider.
+ * Contains query factories. Defaults are passed to DataViewProvider.
  */
-export interface PagePaginationController<TQueryOptions> {
+export interface PageController<TQueryOptions> {
   /** Factory for fetching column counts (board-specific, enables column mode) */
-  readonly columnQueryOptionsFactory?: ColumnQueryOptionsFactory;
-
-  /** Factory for fetching group counts (enables grouped mode) */
-  readonly groupQueryOptionsFactory?: GroupQueryOptionsFactory;
+  readonly columnQuery?: ColumnQueryOptionsFactory;
 
   /** Factory for fetching data items */
-  readonly queryOptionsFactory: PageQueryOptionsFactory<TQueryOptions>;
+  readonly dataQuery: PageQueryOptionsFactory<TQueryOptions>;
+
+  /** Factory for fetching group counts (enables grouped mode) */
+  readonly groupQuery?: GroupQueryOptionsFactory;
 
   readonly type: "page";
 }
 
 // ============================================================================
-// Infinite Pagination Controller
+// Infinite Controller
 // ============================================================================
 
 /**
@@ -125,26 +125,26 @@ export type InfiniteQueryOptionsFactory<TQueryOptions> = (
 ) => TQueryOptions;
 
 /**
- * Config object returned by useInfinitePagination.
+ * Config object returned by useInfiniteController.
  *
- * Contains query configuration only. Defaults are passed to DataViewProvider.
+ * Contains query factories. Defaults are passed to DataViewProvider.
  */
-export interface InfinitePaginationController<TQueryOptions> {
+export interface InfiniteController<TQueryOptions> {
   /** Factory for fetching column counts (board-specific, enables column mode) */
-  readonly columnQueryOptionsFactory?: ColumnQueryOptionsFactory;
-
-  /** Factory for fetching group counts (enables grouped mode) */
-  readonly groupQueryOptionsFactory?: GroupQueryOptionsFactory;
+  readonly columnQuery?: ColumnQueryOptionsFactory;
 
   /** Factory for fetching data items */
-  readonly queryOptionsFactory: InfiniteQueryOptionsFactory<TQueryOptions>;
+  readonly dataQuery: InfiniteQueryOptionsFactory<TQueryOptions>;
+
+  /** Factory for fetching group counts (enables grouped mode) */
+  readonly groupQuery?: GroupQueryOptionsFactory;
 
   readonly type: "infinite";
 }
 
 /**
- * Union type for any pagination controller.
+ * Union type for any controller.
  */
-export type PaginationController<TQueryOptions> =
-  | PagePaginationController<TQueryOptions>
-  | InfinitePaginationController<TQueryOptions>;
+export type Controller<TQueryOptions> =
+  | PageController<TQueryOptions>
+  | InfiniteController<TQueryOptions>;

@@ -58,8 +58,7 @@ export function useInfiniteGroupQuery<TData = unknown>(
 
   const state = useQueryControllerContext();
 
-  const { filter, group, limit, queryOptionsFactory, search, setLimit, sort } =
-    state;
+  const { filter, group, limit, dataQuery, search, setLimit, sort } = state;
 
   // Defer query parameters to prevent re-suspending on changes
   const deferredFilter = useDeferredValue(filter);
@@ -81,7 +80,7 @@ export function useInfiniteGroupQuery<TData = unknown>(
 
   const queryOptions = useMemo(
     () =>
-      queryOptionsFactory({
+      dataQuery({
         filter: deferredFilter,
         groupConfig: deferredGroup,
         groupKey,
@@ -90,7 +89,7 @@ export function useInfiniteGroupQuery<TData = unknown>(
         sort: deferredSort,
       }) as InfiniteQueryOptionsShape,
     [
-      queryOptionsFactory,
+      dataQuery,
       deferredFilter,
       deferredGroup,
       groupKey,

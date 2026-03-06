@@ -15,8 +15,8 @@ export type {
 
 /** Unified group info type (use this when code works with both page and infinite pagination) */
 export type GroupInfo<TData> =
-  | import("./use-page-pagination").PageGroupInfo<TData>
-  | import("./use-infinite-pagination").InfiniteGroupInfo<TData>;
+  | import("./use-page-controller").PageGroupInfo<TData>
+  | import("./use-infinite-controller").InfiniteGroupInfo<TData>;
 // Base query options type (used by both pagination types)
 export type { BaseQueryOptions } from "../types/pagination-controller";
 export { useGroupConfig } from "./use-group-config";
@@ -24,28 +24,28 @@ export { useGroupParams } from "./use-group-params";
 export type { GroupingMode, GroupingParams } from "./use-grouping-params";
 export { useGroupingParams } from "./use-grouping-params";
 // ============================================================================
-// Pagination Hooks - 2 unified hooks for all pagination use cases
+// Controller Hooks - 2 unified hooks for all data view use cases
 // ============================================================================
-// useInfinitePagination - Infinite scroll pagination (returns controller)
+// useInfiniteController - Infinite scroll pagination (returns controller)
 export type {
   InfiniteGroupInfo,
   InfinitePaginationState,
   InfiniteQueryOptions,
   InfiniteQueryOptionsFactoryParams,
-  UseInfinitePaginationOptions,
-  UseInfinitePaginationResult,
-} from "./use-infinite-pagination";
-export { useInfinitePagination } from "./use-infinite-pagination";
+  UseInfiniteControllerOptions,
+  UseInfiniteControllerResult,
+} from "./use-infinite-controller";
+export { useInfiniteController } from "./use-infinite-controller";
 export { useInteractiveLegend } from "./use-interactive-legend";
-// usePagePagination - Page navigation pagination (returns controller)
+// usePageController - Page navigation pagination (returns controller)
 export type {
   PageGroupInfo,
   PagePaginationState,
   PageQueryOptionsFactoryParams,
-  UsePagePaginationOptions,
-  UsePagePaginationResult,
-} from "./use-page-pagination";
-export { usePagePagination } from "./use-page-pagination";
+  UsePageControllerOptions,
+  UsePageControllerResult,
+} from "./use-page-controller";
+export { usePageController } from "./use-page-controller";
 export { useSearchParams } from "./use-search-params";
 export { useSimpleFilterChip } from "./use-simple-filter-chip";
 export { useSortBuilder } from "./use-sort-builder";

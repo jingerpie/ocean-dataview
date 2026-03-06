@@ -1,11 +1,11 @@
 import type {
   InfiniteGroupInfo,
   InfinitePaginationState,
-} from "../../hooks/use-infinite-pagination";
+} from "../../hooks/use-infinite-controller";
 import type {
   PageGroupInfo,
   PagePaginationState,
-} from "../../hooks/use-page-pagination";
+} from "../../hooks/use-page-controller";
 import type { PaginationContext } from "../../types/pagination";
 
 /**

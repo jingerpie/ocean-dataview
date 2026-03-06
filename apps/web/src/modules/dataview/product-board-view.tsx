@@ -1,6 +1,6 @@
 "use client";
 
-import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
+import { useInfiniteController } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
@@ -48,22 +48,17 @@ export function ProductBoardView({
   const defaultColumnConfig = { bySelect: { property: "category" } } as const;
   const effectiveColumnConfig = column ?? defaultColumnConfig;
 
-  const { pagination } = useInfinitePagination({
-    // Factory for column counts (board columns) - fetched via SuspendingColumnKeys
-    // Columns are typically a small set, so no pagination needed
-    columnQueryOptionsFactory: (columnConfig) =>
+  const { controller } = useInfiniteController({
+    columnQuery: (columnConfig) =>
       trpc.product.getGroup.queryOptions({ groupBy: columnConfig }),
 
-    // Factory for accordion row counts with pagination - uses tRPC infiniteQueryOptions
-    groupQueryOptionsFactory: (groupConfig) =>
+    groupQuery: (groupConfig) =>
       trpc.product.getGroup.infiniteQueryOptions(
         { groupBy: groupConfig, limit: 25 },
         { getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined }
       ),
 
-    // Factory for data items - fetches ALL columns in one query
-    // When grouped, filter to only show data for the current group
-    queryOptionsFactory: (params) =>
+    dataQuery: (params) =>
       trpc.product.getManyByColumn.infiniteQueryOptions(
         {
           columnBy: effectiveColumnConfig,
@@ -104,6 +99,7 @@ export function ProductBoardView({
 
   return (
     <DataViewProvider
+      controller={controller}
       defaults={{
         column: columnConfigForView,
         filter,
@@ -112,7 +108,6 @@ export function ProductBoardView({
         search,
         sort: sort ?? [],
       }}
-      pagination={pagination}
       properties={productProperties}
     >
       <NotionToolbar enableSettings>

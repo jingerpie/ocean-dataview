@@ -27,14 +27,14 @@ export {
 } from "./pagination";
 export type {
   BaseQueryOptions,
+  Controller,
   GroupQueryOptionsFactory,
-  InfinitePaginationController,
+  InfiniteController,
   InfiniteQueryOptionsFactory,
   InfiniteQueryOptionsFactoryParams,
-  PagePaginationController,
+  PageController,
   PageQueryOptionsFactory,
   PageQueryOptionsFactoryParams,
-  PaginationController,
 } from "./pagination-controller";
 export type {
   BasePaginatedResponse,

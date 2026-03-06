@@ -5,8 +5,8 @@ import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
 import { useCallback, useMemo, useRef } from "react";
 import type {
   BaseQueryOptions,
+  InfiniteController,
   InfiniteGroupQueryOptions,
-  InfinitePaginationController,
   InfiniteQueryOptionsFactory,
 } from "../types/pagination-controller";
 
@@ -43,88 +43,79 @@ export type {
   InfiniteQueryOptionsFactoryParams,
 } from "../types/pagination-controller";
 
-export interface UseInfinitePaginationOptions<
+export interface UseInfiniteControllerOptions<
   TQueryOptions extends InfiniteQueryOptions = InfiniteQueryOptions,
 > {
   /** Factory for fetching column counts (board-specific) */
-  columnQueryOptionsFactory?: (
-    columnConfig: GroupConfigInput
-  ) => BaseQueryOptions;
-  /** Factory for fetching group counts with pagination (accordion rows) */
-  groupQueryOptionsFactory?: (
-    groupConfig: GroupConfigInput
-  ) => InfiniteGroupQueryOptions;
+  columnQuery?: (columnConfig: GroupConfigInput) => BaseQueryOptions;
   /** Factory for fetching data items */
-  queryOptionsFactory: InfiniteQueryOptionsFactory<TQueryOptions>;
+  dataQuery: InfiniteQueryOptionsFactory<TQueryOptions>;
+  /** Factory for fetching group counts with pagination (accordion rows) */
+  groupQuery?: (groupConfig: GroupConfigInput) => InfiniteGroupQueryOptions;
 }
 
-export interface UseInfinitePaginationResult<TQueryOptions> {
-  pagination: InfinitePaginationController<TQueryOptions>;
+export interface UseInfiniteControllerResult<TQueryOptions> {
+  controller: InfiniteController<TQueryOptions>;
 }
 
-export function useInfinitePagination<
+export function useInfiniteController<
   TQueryOptions extends InfiniteQueryOptions = InfiniteQueryOptions,
 >(
-  options: UseInfinitePaginationOptions<TQueryOptions>
-): UseInfinitePaginationResult<TQueryOptions> {
-  const {
-    columnQueryOptionsFactory,
-    groupQueryOptionsFactory,
-    queryOptionsFactory,
-  } = options;
+  options: UseInfiniteControllerOptions<TQueryOptions>
+): UseInfiniteControllerResult<TQueryOptions> {
+  const { columnQuery, dataQuery, groupQuery } = options;
 
-  const factoryRef = useRef(queryOptionsFactory);
-  factoryRef.current = queryOptionsFactory;
-  const stableFactory = useCallback<InfiniteQueryOptionsFactory<TQueryOptions>>(
-    (params) => factoryRef.current(params),
-    []
-  );
+  const dataQueryRef = useRef(dataQuery);
+  dataQueryRef.current = dataQuery;
+  const stableDataQuery = useCallback<
+    InfiniteQueryOptionsFactory<TQueryOptions>
+  >((params) => dataQueryRef.current(params), []);
 
   // Stable column factory (board-specific)
-  const columnFactoryRef = useRef(columnQueryOptionsFactory);
-  columnFactoryRef.current = columnQueryOptionsFactory;
-  const stableColumnFactory = useMemo<
+  const columnQueryRef = useRef(columnQuery);
+  columnQueryRef.current = columnQuery;
+  const stableColumnQuery = useMemo<
     ((columnConfig: GroupConfigInput) => BaseQueryOptions) | undefined
   >(() => {
-    if (!columnQueryOptionsFactory) {
+    if (!columnQuery) {
       return undefined;
     }
     return (columnConfig) => {
-      const factory = columnFactoryRef.current;
+      const factory = columnQueryRef.current;
       if (!factory) {
-        throw new Error("columnQueryOptionsFactory ref is unexpectedly null");
+        throw new Error("columnQuery ref is unexpectedly null");
       }
       return factory(columnConfig);
     };
-  }, [Boolean(columnQueryOptionsFactory)]);
+  }, [Boolean(columnQuery)]);
 
   // Stable group factory (accordion rows) with pagination support
-  const groupFactoryRef = useRef(groupQueryOptionsFactory);
-  groupFactoryRef.current = groupQueryOptionsFactory;
-  const stableGroupFactory = useMemo<
+  const groupQueryRef = useRef(groupQuery);
+  groupQueryRef.current = groupQuery;
+  const stableGroupQuery = useMemo<
     ((groupConfig: GroupConfigInput) => InfiniteGroupQueryOptions) | undefined
   >(() => {
-    if (!groupQueryOptionsFactory) {
+    if (!groupQuery) {
       return undefined;
     }
     return (groupConfig) => {
-      const factory = groupFactoryRef.current;
+      const factory = groupQueryRef.current;
       if (!factory) {
-        throw new Error("groupQueryOptionsFactory ref is unexpectedly null");
+        throw new Error("groupQuery ref is unexpectedly null");
       }
       return factory(groupConfig);
     };
-  }, [Boolean(groupQueryOptionsFactory)]);
+  }, [Boolean(groupQuery)]);
 
-  const pagination = useMemo<InfinitePaginationController<TQueryOptions>>(
+  const controller = useMemo<InfiniteController<TQueryOptions>>(
     () => ({
-      columnQueryOptionsFactory: stableColumnFactory,
-      groupQueryOptionsFactory: stableGroupFactory,
-      queryOptionsFactory: stableFactory,
+      columnQuery: stableColumnQuery,
+      dataQuery: stableDataQuery,
+      groupQuery: stableGroupQuery,
       type: "infinite",
     }),
-    [stableColumnFactory, stableGroupFactory, stableFactory]
+    [stableColumnQuery, stableDataQuery, stableGroupQuery]
   );
 
-  return { pagination };
+  return { controller };
 }

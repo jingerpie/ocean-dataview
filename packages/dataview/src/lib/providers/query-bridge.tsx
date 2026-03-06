@@ -30,8 +30,8 @@ import {
 } from "react";
 import type { ColumnConfig, GroupConfig } from "../../types/group-types";
 import type {
-  InfinitePaginationController,
-  PagePaginationController,
+  InfiniteController,
+  PageController,
 } from "../../types/pagination-controller";
 import type {
   Cursors,
@@ -160,6 +160,7 @@ export interface InfinitePaginationState<TData> {
 export interface QueryRuntimeState {
   // Current values (URL ?? defaults)
   cursors: Cursors;
+  dataQuery: (params: unknown) => unknown;
   expandedGroups: string[];
   filter: WhereNode[] | null;
   group: GroupConfigInput | null;
@@ -175,7 +176,6 @@ export interface QueryRuntimeState {
   isPending: boolean;
   limit: Limit;
   onLoadMoreGroups: () => void;
-  queryOptionsFactory: (params: unknown) => unknown;
   search: string;
 
   // Setters
@@ -237,7 +237,7 @@ interface InfiniteGroupKeysProps {
   groupByConfig: GroupConfigInput;
   // Accept any function that returns infinite query options (tRPC or manual)
   // biome-ignore lint/suspicious/noExplicitAny: Must accept tRPC's infiniteQueryOptions return type
-  groupQueryOptionsFactory: (groupConfig: GroupConfigInput) => any;
+  groupQuery: (groupConfig: GroupConfigInput) => any;
 }
 
 /**
@@ -249,9 +249,9 @@ interface InfiniteGroupKeysProps {
 function InfiniteGroupKeys({
   children,
   groupByConfig,
-  groupQueryOptionsFactory,
+  groupQuery,
 }: InfiniteGroupKeysProps) {
-  const factoryOptions = groupQueryOptionsFactory(groupByConfig);
+  const factoryOptions = groupQuery(groupByConfig);
 
   // Spread tRPC options directly - tRPC's infiniteQueryOptions returns a complete config
   // We only provide fallbacks for getNextPageParam and initialPageParam if not present
@@ -310,7 +310,7 @@ interface SuspendingColumnKeysProps {
     columnSortValues: GroupQueryResponse["sortValues"];
   }) => ReactNode;
   columnByConfig: GroupConfigInput;
-  columnQueryOptionsFactory: (columnConfig: GroupConfigInput) => {
+  columnQuery: (columnConfig: GroupConfigInput) => {
     queryFn?: unknown;
     queryKey: readonly unknown[];
   };
@@ -323,9 +323,9 @@ interface SuspendingColumnKeysProps {
 function SuspendingColumnKeys({
   children,
   columnByConfig,
-  columnQueryOptionsFactory,
+  columnQuery,
 }: SuspendingColumnKeysProps) {
-  const factoryOptions = columnQueryOptionsFactory(columnByConfig);
+  const factoryOptions = columnQuery(columnByConfig);
   const { data: rawColumnData } = useSuspenseQuery({
     queryKey: factoryOptions.queryKey,
     queryFn: factoryOptions.queryFn as () => Promise<GroupQueryResponse>,
@@ -367,7 +367,7 @@ interface PageQueryBridgeProps<
   TQueryOptions,
 > {
   children: ReactNode;
-  controller: PagePaginationController<TQueryOptions>;
+  controller: PageController<TQueryOptions>;
   defaults?: DefaultsConfig;
   viewProps: Omit<
     DataViewProviderProps<TData, TProperties>,
@@ -406,7 +406,7 @@ export function PageQueryBridge<
   defaults,
   viewProps,
 }: PageQueryBridgeProps<TData, TProperties, TQueryOptions>) {
-  const { groupQueryOptionsFactory, queryOptionsFactory } = controller;
+  const { dataQuery, groupQuery } = controller;
 
   // Defaults from provider props
   const {
@@ -472,9 +472,9 @@ export function PageQueryBridge<
 
   // For accordion grouping: use `group` config (NOT column)
   // - `column` is board-specific visual organization (handled via columnCounts prop)
-  // - `group` is accordion-style data grouping (handled via groupQueryOptionsFactory)
+  // - `group` is accordion-style data grouping (handled via groupQuery)
   // Only grouped mode if we have BOTH a group config AND a factory to fetch group keys
-  const isGrouped = Boolean(group && groupQueryOptionsFactory);
+  const isGrouped = Boolean(group && groupQuery);
 
   // Extract only structural config (without sort/hideEmpty) for query
   const groupByConfig = useMemo(() => getGroupByConfig(group), [group]);
@@ -597,6 +597,7 @@ export function PageQueryBridge<
         column={column}
         columnCounts={viewProps.columnCounts}
         cursors={cursors}
+        dataQuery={dataQuery as (params: unknown) => unknown}
         defaultExpanded={defaultExpanded}
         filter={filter}
         group={group}
@@ -608,9 +609,6 @@ export function PageQueryBridge<
         isPending={isPending}
         limit={limit}
         onLoadMoreGroups={onLoadMoreGroups}
-        queryOptionsFactory={
-          queryOptionsFactory as (params: unknown) => unknown
-        }
         search={search}
         setColumn={setColumn}
         setCursor={setCursor}
@@ -634,7 +632,7 @@ export function PageQueryBridge<
       group,
       isPending,
       limit,
-      queryOptionsFactory,
+      dataQuery,
       search,
       setColumn,
       setCursor,
@@ -653,7 +651,7 @@ export function PageQueryBridge<
   // ============================================================================
 
   // FLAT MODE: Render directly with static groupKeys
-  if (!(isGrouped && groupByConfig && groupQueryOptionsFactory)) {
+  if (!(isGrouped && groupByConfig && groupQuery)) {
     return renderInner({
       groupCounts: undefined,
       groupKeys: ["__ungrouped__"],
@@ -666,10 +664,7 @@ export function PageQueryBridge<
 
   // GROUPED MODE: Use InfiniteGroupKeys to suspend until group data is ready
   return (
-    <InfiniteGroupKeys
-      groupByConfig={groupByConfig}
-      groupQueryOptionsFactory={groupQueryOptionsFactory}
-    >
+    <InfiniteGroupKeys groupByConfig={groupByConfig} groupQuery={groupQuery}>
       {renderInner}
     </InfiniteGroupKeys>
   );
@@ -687,6 +682,7 @@ interface PageQueryBridgeInnerProps<
   column: ColumnConfig | null;
   columnCounts?: GroupCounts;
   cursors: Cursors;
+  dataQuery: (params: unknown) => unknown;
   defaultExpanded?: string[];
   filter: WhereNode[] | null;
   group: GroupConfigInput | null;
@@ -698,7 +694,6 @@ interface PageQueryBridgeInnerProps<
   isPending: boolean;
   limit: Limit;
   onLoadMoreGroups: () => void;
-  queryOptionsFactory: (params: unknown) => unknown;
   search: string;
   setColumn: (column: ColumnConfigInput | null) => void;
   setCursor: (groupKey: string, cursor: CursorValue | null) => void;
@@ -748,7 +743,7 @@ function PageQueryBridgeInner<
   isPending,
   limit,
   onLoadMoreGroups,
-  queryOptionsFactory,
+  dataQuery,
   search,
   setColumn,
   setCursor,
@@ -831,7 +826,7 @@ function PageQueryBridgeInner<
       isPending,
       limit,
       onLoadMoreGroups,
-      queryOptionsFactory: queryOptionsFactory as (params: unknown) => unknown,
+      dataQuery: dataQuery as (params: unknown) => unknown,
       search,
       setCursor,
       setExpandedGroups,
@@ -856,7 +851,7 @@ function PageQueryBridgeInner<
       isPending,
       limit,
       onLoadMoreGroups,
-      queryOptionsFactory,
+      dataQuery,
       search,
       setCursor,
       setExpandedGroups,
@@ -932,7 +927,7 @@ interface InfiniteQueryBridgeProps<
   TQueryOptions,
 > {
   children: ReactNode;
-  controller: InfinitePaginationController<TQueryOptions>;
+  controller: InfiniteController<TQueryOptions>;
   defaults?: DefaultsConfig;
   viewProps: Omit<
     DataViewProviderProps<TData, TProperties>,
@@ -971,11 +966,7 @@ export function InfiniteQueryBridge<
   defaults,
   viewProps,
 }: InfiniteQueryBridgeProps<TData, TProperties, TQueryOptions>) {
-  const {
-    columnQueryOptionsFactory,
-    groupQueryOptionsFactory,
-    queryOptionsFactory,
-  } = controller;
+  const { columnQuery, groupQuery, dataQuery } = controller;
 
   // Defaults from provider props
   const {
@@ -1036,7 +1027,7 @@ export function InfiniteQueryBridge<
 
   // Column mode (board-specific): visual columns across the board
   // Only active if we have BOTH a column config AND a factory to fetch column counts
-  const hasColumnMode = Boolean(column && columnQueryOptionsFactory);
+  const hasColumnMode = Boolean(column && columnQuery);
 
   // Extract column config for query (uses same structure as group)
   const columnByConfig = useMemo(
@@ -1046,7 +1037,7 @@ export function InfiniteQueryBridge<
 
   // Group mode (accordion rows): vertical grouping within each column
   // Only active if we have BOTH a group config AND a factory to fetch group keys
-  const isGrouped = Boolean(group && groupQueryOptionsFactory);
+  const isGrouped = Boolean(group && groupQuery);
 
   // Extract only structural config (without sort/hideEmpty) for query
   const groupByConfig = useMemo(() => getGroupByConfig(group), [group]);
@@ -1140,6 +1131,7 @@ export function InfiniteQueryBridge<
       <InfiniteQueryBridgeInner<TData, TProperties>
         column={column}
         columnCounts={columnCounts}
+        dataQuery={dataQuery as (params: unknown) => unknown}
         defaultExpanded={defaultExpanded}
         filter={filter}
         group={group}
@@ -1151,9 +1143,6 @@ export function InfiniteQueryBridge<
         isPending={isPending}
         limit={limit}
         onLoadMoreGroups={onLoadMoreGroups}
-        queryOptionsFactory={
-          queryOptionsFactory as (params: unknown) => unknown
-        }
         search={search}
         setColumn={setColumn}
         setFilter={setFilter}
@@ -1175,7 +1164,7 @@ export function InfiniteQueryBridge<
       group,
       isPending,
       limit,
-      queryOptionsFactory,
+      dataQuery,
       search,
       setColumn,
       setFilter,
@@ -1196,11 +1185,11 @@ export function InfiniteQueryBridge<
   const wrapWithGroupSuspense = (
     columnCounts: GroupQueryResponse["counts"]
   ) => {
-    if (isGrouped && groupByConfig && groupQueryOptionsFactory) {
+    if (isGrouped && groupByConfig && groupQuery) {
       return (
         <InfiniteGroupKeys
           groupByConfig={groupByConfig}
-          groupQueryOptionsFactory={groupQueryOptionsFactory}
+          groupQuery={groupQuery}
         >
           {({
             groupCounts,
@@ -1236,11 +1225,11 @@ export function InfiniteQueryBridge<
   };
 
   // If column mode is active, wrap with column suspense first
-  if (hasColumnMode && columnByConfig && columnQueryOptionsFactory) {
+  if (hasColumnMode && columnByConfig && columnQuery) {
     return (
       <SuspendingColumnKeys
         columnByConfig={columnByConfig}
-        columnQueryOptionsFactory={columnQueryOptionsFactory}
+        columnQuery={columnQuery}
       >
         {({ columnCounts }) => wrapWithGroupSuspense(columnCounts)}
       </SuspendingColumnKeys>
@@ -1262,6 +1251,7 @@ interface InfiniteQueryBridgeInnerProps<
   children: ReactNode;
   column: ColumnConfig | null;
   columnCounts?: GroupCounts;
+  dataQuery: (params: unknown) => unknown;
   defaultExpanded?: string[];
   filter: WhereNode[] | null;
   group: GroupConfigInput | null;
@@ -1273,7 +1263,6 @@ interface InfiniteQueryBridgeInnerProps<
   isPending: boolean;
   limit: Limit;
   onLoadMoreGroups: () => void;
-  queryOptionsFactory: (params: unknown) => unknown;
   search: string;
   setColumn: (column: ColumnConfigInput | null) => void;
   setFilter: (filter: WhereNode[] | null) => void;
@@ -1322,7 +1311,7 @@ function InfiniteQueryBridgeInner<
   isPending,
   limit,
   onLoadMoreGroups,
-  queryOptionsFactory,
+  dataQuery,
   search,
   setColumn,
   setFilter,
@@ -1405,7 +1394,7 @@ function InfiniteQueryBridgeInner<
       isPending,
       limit,
       onLoadMoreGroups,
-      queryOptionsFactory: queryOptionsFactory as (params: unknown) => unknown,
+      dataQuery: dataQuery as (params: unknown) => unknown,
       search,
       setCursor: noopSetCursor,
       setExpandedGroups,
@@ -1429,7 +1418,7 @@ function InfiniteQueryBridgeInner<
       isPending,
       limit,
       onLoadMoreGroups,
-      queryOptionsFactory,
+      dataQuery,
       search,
       setExpandedGroups,
       setFilter,

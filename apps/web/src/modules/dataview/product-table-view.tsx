@@ -1,6 +1,6 @@
 "use client";
 
-import { usePagePagination } from "@sparkyidea/dataview/hooks";
+import { usePageController } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
@@ -40,16 +40,14 @@ export function ProductTableView({
   const trpc = useTRPC();
   const searchableFields = getSearchableProperties(productProperties);
 
-  const { pagination } = usePagePagination({
-    // Factory for group counts with pagination - uses tRPC infiniteQueryOptions
-    groupQueryOptionsFactory: (groupConfig) =>
+  const { controller } = usePageController({
+    groupQuery: (groupConfig) =>
       trpc.product.getGroup.infiniteQueryOptions(
         { groupBy: groupConfig, limit: 25 },
         { getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined }
       ),
 
-    // Factory for data items - receives groupConfig from internal state
-    queryOptionsFactory: (params) =>
+    dataQuery: (params) =>
       trpc.product.getMany.queryOptions({
         ...(params.cursor ? { cursor: params.cursor } : {}),
         filter:
@@ -71,6 +69,7 @@ export function ProductTableView({
 
   return (
     <DataViewProvider
+      controller={controller}
       defaults={{
         filter,
         group: groupConfigForView,
@@ -78,7 +77,6 @@ export function ProductTableView({
         search,
         sort: sort ?? [],
       }}
-      pagination={pagination}
       properties={productProperties}
     >
       <NotionToolbar enableSettings>

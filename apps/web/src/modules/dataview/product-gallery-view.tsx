@@ -1,6 +1,6 @@
 "use client";
 
-import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
+import { useInfiniteController } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
@@ -39,16 +39,14 @@ export function ProductGalleryView({
   const trpc = useTRPC();
   const searchableFields = getSearchableProperties(productProperties);
 
-  const { pagination } = useInfinitePagination({
-    // Factory for group counts with pagination - uses tRPC infiniteQueryOptions
-    groupQueryOptionsFactory: (groupConfig) =>
+  const { controller } = useInfiniteController({
+    groupQuery: (groupConfig) =>
       trpc.product.getGroup.infiniteQueryOptions(
         { groupBy: groupConfig, limit: 25 },
         { getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined }
       ),
 
-    // Factory for data items - receives groupConfig from internal state
-    queryOptionsFactory: (params) =>
+    dataQuery: (params) =>
       trpc.product.getMany.infiniteQueryOptions(
         {
           filter:
@@ -75,6 +73,7 @@ export function ProductGalleryView({
 
   return (
     <DataViewProvider
+      controller={controller}
       defaults={{
         filter,
         group: groupConfigForView,
@@ -82,7 +81,6 @@ export function ProductGalleryView({
         search,
         sort: sort ?? [],
       }}
-      pagination={pagination}
       properties={productProperties}
     >
       <NotionToolbar enableSettings>

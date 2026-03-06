@@ -56,7 +56,7 @@ export function useGroupQuery<TData = unknown>(
     filter,
     group,
     limit,
-    queryOptionsFactory,
+    dataQuery,
     search,
     setCursor,
     setLimit,
@@ -76,7 +76,7 @@ export function useGroupQuery<TData = unknown>(
 
   const queryOptions = useMemo(
     () =>
-      queryOptionsFactory({
+      dataQuery({
         cursor: deferredCursor,
         filter: deferredFilter,
         groupConfig: deferredGroup,
@@ -86,7 +86,7 @@ export function useGroupQuery<TData = unknown>(
         sort: deferredSort,
       }),
     [
-      queryOptionsFactory,
+      dataQuery,
       deferredCursor,
       deferredFilter,
       deferredGroup,

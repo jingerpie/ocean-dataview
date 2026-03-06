@@ -22,11 +22,13 @@ import {
   type DataViewProperty,
   type GroupConfig,
   type GroupCounts,
-  type InfinitePaginationController,
-  type PagePaginationController,
   toPropertyMetaArray,
   type ViewCounts,
 } from "../../types";
+import type {
+  InfiniteController,
+  PageController,
+} from "../../types/pagination-controller";
 import { cn } from "../utils";
 import {
   DataViewContext,
@@ -177,23 +179,23 @@ export interface DefaultsConfig {
 // ============================================================================
 
 /**
- * Check if pagination prop is a PagePaginationController.
+ * Check if controller prop is a PageController.
  */
 function isPageController<TQueryOptions>(
   // biome-ignore lint/suspicious/noExplicitAny: Generic union type
-  pagination: any
-): pagination is PagePaginationController<TQueryOptions> {
-  return pagination && pagination.type === "page";
+  controller: any
+): controller is PageController<TQueryOptions> {
+  return controller && controller.type === "page";
 }
 
 /**
- * Check if pagination prop is an InfinitePaginationController.
+ * Check if controller prop is an InfiniteController.
  */
 function isInfiniteController<TQueryOptions>(
   // biome-ignore lint/suspicious/noExplicitAny: Generic union type
-  pagination: any
-): pagination is InfinitePaginationController<TQueryOptions> {
-  return pagination && pagination.type === "infinite";
+  controller: any
+): controller is InfiniteController<TQueryOptions> {
+  return controller && controller.type === "infinite";
 }
 
 // ============================================================================
@@ -235,7 +237,7 @@ interface DirectDataProps<
 }
 
 /**
- * Props when using a pagination controller.
+ * Props when using a controller.
  * Data, filter, sort, search, expandedGroups are managed by the controller.
  */
 interface ControllerProps<
@@ -245,14 +247,12 @@ interface ControllerProps<
 > {
   children: ReactNode;
   className?: string;
-  /** Column counts - passed directly for board views (deprecated, use columnQueryOptionsFactory in pagination hook) */
+  /** Column counts - passed directly for board views (deprecated, use columnQuery in controller hook) */
   columnCounts?: GroupCounts;
+  controller: PageController<TQueryOptions> | InfiniteController<TQueryOptions>;
   counts?: Partial<ViewCounts>;
   /** URL defaults - values used when URL has no corresponding parameter */
   defaults?: DefaultsConfig;
-  pagination:
-    | PagePaginationController<TQueryOptions>
-    | InfinitePaginationController<TQueryOptions>;
   properties: TProperties;
   propertyVisibility?: TProperties[number]["id"][];
 }
@@ -277,7 +277,8 @@ export function DataViewProvider<
   // biome-ignore lint/suspicious/noExplicitAny: Controller is generic
   TQueryOptions = any,
 >(props: DataViewProviderProps<TData, TProperties, TQueryOptions>) {
-  const { children, className, pagination, properties } = props;
+  const { children, className, properties } = props;
+  const controller = "controller" in props ? props.controller : undefined;
 
   // Get actual group state from URL (for skeleton selection)
   const { isGrouped } = useGroupParams();
@@ -291,9 +292,9 @@ export function DataViewProvider<
   // Convert properties to PropertyMeta array for ToolbarContextProvider
   const propertyMetas = toPropertyMetaArray(properties);
 
-  // Route to QueryBridge if pagination is a controller
-  const isPage = isPageController(pagination);
-  const isInfinite = isInfiniteController(pagination);
+  // Route to QueryBridge if controller is provided
+  const isPage = isPageController(controller);
+  const isInfinite = isInfiniteController(controller);
 
   if (isPage || isInfinite) {
     const controllerProps = props as ControllerProps<
@@ -343,7 +344,9 @@ export function DataViewProvider<
           >
             {isPage ? (
               <PageQueryBridge<TData, TProperties, TQueryOptions>
-                controller={pagination}
+                controller={
+                  controllerProps.controller as PageController<TQueryOptions>
+                }
                 defaults={mergedDefaults}
                 viewProps={viewProps}
               >
@@ -351,7 +354,9 @@ export function DataViewProvider<
               </PageQueryBridge>
             ) : (
               <InfiniteQueryBridge<TData, TProperties, TQueryOptions>
-                controller={pagination}
+                controller={
+                  controllerProps.controller as InfiniteController<TQueryOptions>
+                }
                 defaults={mergedDefaults}
                 viewProps={viewProps}
               >
