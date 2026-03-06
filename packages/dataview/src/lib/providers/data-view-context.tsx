@@ -3,30 +3,35 @@
 import { createContext, useContext } from "react";
 import type { InfinitePaginationState, PagePaginationState } from "../../hooks";
 import type {
+  ColumnConfig,
   DataViewProperty,
   GroupConfig,
+  GroupCounts,
   PropertyMeta,
   SortQuery,
-  SubGroupConfig,
   ViewCounts,
   WhereNode,
 } from "../../types";
 
 /**
  * Union type for pagination - supports page and infinite pagination.
- * Both types have `groups` array (flat mode uses single "__all__" group).
+ * Both types have `groups` array (flat mode uses single "__ungrouped__" group).
  */
 export type PaginationOutput<TData> =
   | PagePaginationState<TData>
   | InfinitePaginationState<TData>;
 
 // Re-export for convenience
-export type { GroupConfig, SubGroupConfig } from "../../types";
+export type { ColumnConfig, GroupConfig } from "../../types";
 
 export interface DataViewContextValue<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
+  // Column state (board-specific - visual columns)
+  column?: ColumnConfig | null;
+  columnCounts?: GroupCounts;
+
   // Core data
   counts?: ViewCounts;
   data: TData[];
@@ -41,10 +46,17 @@ export interface DataViewContextValue<
   filter?: WhereNode[] | null;
 
   // View config (previously in view prop)
-  group?: GroupConfig;
-  hideAllProperties: () => void;
+  group?: GroupConfig | null;
+
+  /**
+   * Keys for all groups (from server group counts query).
+   * Views iterate over this to render group headers.
+   * Empty array means no groups / flat mode.
+   */
+  groupKeys?: string[];
 
   limit?: number;
+  onColumnChange?: (column: ColumnConfig | null) => void;
   onExpandedGroupsChange?: (groups: string[]) => void;
   pagination?: PaginationOutput<TData> | undefined;
   properties: TProperties;
@@ -53,11 +65,7 @@ export interface DataViewContextValue<
   propertyVisibility: TProperties[number]["id"][];
   search?: string;
   setExcludedPropertyIds: (ids: TProperties[number]["id"][]) => void;
-  setPropertyVisibility: (visibility: TProperties[number]["id"][]) => void;
-  showAllProperties: () => void;
   sort?: SortQuery[];
-  subGroup?: SubGroupConfig;
-  toggleProperty: (propertyId: TProperties[number]["id"]) => void;
 }
 
 export const DataViewContext = createContext<

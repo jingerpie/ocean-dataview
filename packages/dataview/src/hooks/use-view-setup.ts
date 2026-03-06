@@ -6,10 +6,10 @@ import {
   validatePropertyKeys,
 } from "../lib/utils";
 import type { DataViewProperty, GroupConfig, ViewCounts } from "../types";
+import type { GroupInfo } from "./index";
 import type { GroupedDataItem } from "./use-group-config";
 import { useGroupConfig } from "./use-group-config";
 import { useGroupParams } from "./use-group-params";
-import type { GroupInfo } from "./use-infinite-pagination-legacy";
 
 /**
  * Internal group config format used by useGroupConfig hook
@@ -38,7 +38,7 @@ export interface UseViewSetupOptions<
   /** Raw data from context */
   data: TData[];
   /** Group configuration from context (new discriminated union format) */
-  group?: GroupConfig;
+  group?: GroupConfig | null;
   /** Property definitions */
   properties: TProperties;
 }
@@ -107,10 +107,14 @@ export function useViewSetup<
   }, [data, properties]);
 
   // Check if we're using grouped pagination from context
+  // Groups must be non-empty to be considered "grouped pagination"
+  // Empty groups means views use SuspendingGroupContent + counts instead
   const hasGroupedPagination = Boolean(
     contextPagination &&
       typeof contextPagination === "object" &&
-      "groups" in contextPagination
+      "groups" in contextPagination &&
+      Array.isArray((contextPagination as { groups: unknown[] }).groups) &&
+      (contextPagination as { groups: unknown[] }).groups.length > 0
   );
 
   // Prepare internal group configuration (only needed for client-side grouping)

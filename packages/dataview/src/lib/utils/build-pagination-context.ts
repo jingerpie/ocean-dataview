@@ -1,7 +1,7 @@
 import type {
-  GroupInfo,
+  InfiniteGroupInfo,
   InfinitePaginationState,
-} from "../../hooks/use-infinite-pagination-legacy";
+} from "../../hooks/use-infinite-pagination";
 import type {
   PageGroupInfo,
   PagePaginationState,
@@ -10,7 +10,7 @@ import type { PaginationContext } from "../../types/pagination";
 
 /**
  * Union type for all pagination state types.
- * All pagination states have `groups` array (flat mode uses single "__all__" group).
+ * All pagination states have `groups` array (flat mode uses single "__ungrouped__" group).
  */
 type PaginationOutput<TData> =
   | PagePaginationState<TData>
@@ -19,7 +19,7 @@ type PaginationOutput<TData> =
 /**
  * Union type for group info
  */
-type GroupInfoUnion<TData> = PageGroupInfo<TData> | GroupInfo<TData>;
+type GroupInfoUnion<TData> = PageGroupInfo<TData> | InfiniteGroupInfo<TData>;
 
 /**
  * Resolves hasNext to a boolean value.
@@ -46,11 +46,11 @@ function resolveHasNext(
  * Used by views (List, Gallery, Table, Board) to provide pagination controls per-group.
  *
  * All pagination states have `groups` array:
- * - Flat mode: single group with key "__all__"
+ * - Flat mode: single group with key "__ungrouped__"
  * - Grouped mode: multiple groups with actual keys
  *
  * @param pagination - The pagination output (any pagination state)
- * @param groupKey - The key of the group to build context for (use "__all__" for flat mode)
+ * @param groupKey - The key of the group to build context for (use "__ungrouped__" for flat mode)
  * @param columnKey - Optional column key for per-group hasNext in sub-grouped boards
  * @returns PaginationContext if available, undefined otherwise
  */
@@ -84,7 +84,6 @@ export function buildPaginationContext<TData>(
       "hasPrev" in group ? resolveHasNext(group.hasPrev, lookupKey) : false,
     onNext: group.onNext,
     onPrev: "onPrev" in group ? group.onPrev : () => undefined,
-    isLoading: group.isLoading,
     isFetching: group.isFetching,
     isFetchingNextPage:
       "isFetchingNextPage" in group ? group.isFetchingNextPage : undefined,

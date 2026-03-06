@@ -2,6 +2,7 @@
 export { useAdvanceFilterBuilder } from "./use-advance-filter-builder";
 export { useCallbackRef } from "./use-callback-ref";
 export { useChartTransform } from "./use-chart-transform";
+export { useColumnParams } from "./use-column-params";
 export { useDebouncedCallback } from "./use-debounced-callback";
 export { useDisplayProperties } from "./use-display-properties";
 export { useFilterParams } from "./use-filter-params";
@@ -16,6 +17,8 @@ export type {
 export type GroupInfo<TData> =
   | import("./use-page-pagination").PageGroupInfo<TData>
   | import("./use-infinite-pagination").InfiniteGroupInfo<TData>;
+// Base query options type (used by both pagination types)
+export type { BaseQueryOptions } from "../types/pagination-controller";
 export { useGroupConfig } from "./use-group-config";
 export { useGroupParams } from "./use-group-params";
 export type { GroupingMode, GroupingParams } from "./use-grouping-params";
@@ -23,35 +26,30 @@ export { useGroupingParams } from "./use-grouping-params";
 // ============================================================================
 // Pagination Hooks - 2 unified hooks for all pagination use cases
 // ============================================================================
-// useInfinitePagination (New) - Infinite scroll with merged DataViewProvider (primary API)
+// useInfinitePagination - Infinite scroll pagination (returns controller)
 export type {
   InfiniteGroupInfo,
   InfinitePaginationState,
   InfiniteQueryOptions,
-  MergedInfiniteDataViewProviderProps,
+  InfiniteQueryOptionsFactoryParams,
   UseInfinitePaginationOptions,
   UseInfinitePaginationResult,
 } from "./use-infinite-pagination";
-export {
-  FLAT_GROUP_KEY as INFINITE_FLAT_GROUP_KEY,
-  useInfinitePagination,
-} from "./use-infinite-pagination";
+export { useInfinitePagination } from "./use-infinite-pagination";
 export { useInteractiveLegend } from "./use-interactive-legend";
-// usePagePagination - Page navigation with merged DataViewProvider (primary API)
+// usePagePagination - Page navigation pagination (returns controller)
 export type {
-  MergedDataViewProviderProps,
   PageGroupInfo,
   PagePaginationState,
-  PageQueryOptions,
+  PageQueryOptionsFactoryParams,
   UsePagePaginationOptions,
   UsePagePaginationResult,
 } from "./use-page-pagination";
-export { FLAT_GROUP_KEY, usePagePagination } from "./use-page-pagination";
+export { usePagePagination } from "./use-page-pagination";
 export { useSearchParams } from "./use-search-params";
 export { useSimpleFilterChip } from "./use-simple-filter-chip";
 export { useSortBuilder } from "./use-sort-builder";
 export { useSortParams } from "./use-sort-params";
-export { useSubGroupParams } from "./use-subgroup-params";
 export type {
   UseToolbarStateOptions,
   UseToolbarStateReturn,
@@ -64,10 +62,8 @@ export { useViewSetup } from "./use-view-setup";
 // Internal Exports (used by pagination hooks internally)
 // ============================================================================
 
-// Page pagination internals
-export { useGroupPaginationContext } from "../lib/providers/group-pagination-provider";
-// Infinite pagination internals
-export { useInfinitePaginationContext } from "../lib/providers/infinite-pagination-provider";
+// Query controller context (used by useGroupQuery and useInfiniteGroupQuery)
+export { useQueryControllerContext } from "../lib/providers/query-bridge";
 export type {
   GroupPaginationControls,
   GroupQueryState,

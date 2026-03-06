@@ -1,6 +1,9 @@
 "use client";
 
+import { ROW_SKELETON_WIDTHS } from "../../../lib/constants/skeleton-widths";
 import { cn } from "../../../lib/utils";
+import type { PropertyType } from "../../../types";
+import { PaginationSkeleton } from "../../ui/pagination-skeleton";
 import { Skeleton } from "../../ui/skeleton";
 import {
   Table,
@@ -11,99 +14,53 @@ import {
   TableRow,
 } from "../../ui/table";
 
+type PaginationMode = "page" | "loadMore" | "infiniteScroll";
+
 interface TableSkeletonProps extends React.ComponentProps<"div"> {
   /**
-   * Column width pattern, cycles if fewer than columnCount
-   * @default ["auto"]
+   * Pagination mode - matches TableView pagination prop
    */
-  cellWidths?: string[];
+  pagination?: PaginationMode;
   /**
-   * Number of columns to display
-   * @default 5
+   * Property types for each column - determines realistic widths
    */
-  columnCount?: number;
-  /**
-   * Number of filter button skeletons
-   * @default 2
-   */
-  filterCount?: number;
+  propertyTypes: PropertyType[];
   /**
    * Number of rows to display
    * @default 10
    */
   rowCount?: number;
   /**
-   * Use minWidth for columns (prevents shrinking)
+   * Show bulk selection checkbox column
    * @default false
    */
-  shrinkZero?: boolean;
-  /**
-   * Show pagination skeleton
-   * @default true
-   */
-  withPagination?: boolean;
-  /**
-   * Show toolbar skeleton
-   * @default true
-   */
-  withToolbar?: boolean;
-  /**
-   * Show view options button in toolbar
-   * @default true
-   */
-  withViewOptions?: boolean;
+  withBulkActions?: boolean;
 }
 
 export function TableSkeleton({
-  columnCount = 5,
+  pagination,
+  propertyTypes,
   rowCount = 10,
-  cellWidths = ["auto"],
-  withToolbar = true,
-  withPagination = true,
-  withViewOptions = true,
-  filterCount = 2,
-  shrinkZero = false,
+  withBulkActions = false,
   className,
   ...props
 }: TableSkeletonProps) {
-  // Cycle through cellWidths for each column
-  const resolvedCellWidths = Array.from(
-    { length: columnCount },
-    (_, index) => cellWidths[index % cellWidths.length] ?? "auto"
-  );
-
   return (
-    <div
-      className={cn("flex w-full flex-col gap-2.5 overflow-auto", className)}
-      {...props}
-    >
-      {/* Toolbar */}
-      {withToolbar && (
-        <div className="flex w-full items-center justify-between gap-2 overflow-auto p-1">
-          <div className="flex flex-1 items-center gap-2">
-            {filterCount > 0 &&
-              Array.from({ length: filterCount }).map((_, i) => (
-                <Skeleton className="h-7 w-[4.5rem] border-dashed" key={i} />
-              ))}
-          </div>
-          {withViewOptions && (
-            <Skeleton className="ml-auto hidden h-7 w-[4.5rem] lg:flex" />
-          )}
-        </div>
-      )}
-
-      {/* Table */}
-      <div className="rounded-md border">
+    <div className={cn("flex w-full flex-col gap-2.5", className)} {...props}>
+      <div className="overflow-clip">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              {Array.from({ length: columnCount }).map((_, j) => (
+              {/* Bulk selection checkbox column */}
+              {withBulkActions && (
+                <TableHead className="w-10 pr-0">
+                  <Skeleton className="size-4 rounded" />
+                </TableHead>
+              )}
+              {propertyTypes.map((type, j) => (
                 <TableHead
                   key={j}
-                  style={{
-                    width: resolvedCellWidths[j],
-                    minWidth: shrinkZero ? resolvedCellWidths[j] : "auto",
-                  }}
+                  style={{ minWidth: ROW_SKELETON_WIDTHS[type] }}
                 >
                   <Skeleton className="h-6 w-full" />
                 </TableHead>
@@ -113,13 +70,16 @@ export function TableSkeleton({
           <TableBody>
             {Array.from({ length: rowCount }).map((_, i) => (
               <TableRow className="hover:bg-transparent" key={i}>
-                {Array.from({ length: columnCount }).map((_, j) => (
+                {/* Bulk selection checkbox column */}
+                {withBulkActions && (
+                  <TableCell className="w-10 pr-0">
+                    <Skeleton className="size-4 rounded" />
+                  </TableCell>
+                )}
+                {propertyTypes.map((type, j) => (
                   <TableCell
                     key={j}
-                    style={{
-                      width: resolvedCellWidths[j],
-                      minWidth: shrinkZero ? resolvedCellWidths[j] : "auto",
-                    }}
+                    style={{ minWidth: ROW_SKELETON_WIDTHS[type] }}
                   >
                     <Skeleton className="h-6 w-full" />
                   </TableCell>
@@ -130,27 +90,7 @@ export function TableSkeleton({
         </Table>
       </div>
 
-      {/* Pagination */}
-      {withPagination && (
-        <div className="flex w-full items-center justify-between gap-4 overflow-auto p-1 sm:gap-8">
-          <Skeleton className="h-7 w-40 shrink-0" />
-          <div className="flex items-center gap-4 sm:gap-6 lg:gap-8">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-7 w-24" />
-              <Skeleton className="h-7 w-[4.5rem]" />
-            </div>
-            <div className="flex items-center justify-center font-medium text-sm">
-              <Skeleton className="h-7 w-20" />
-            </div>
-            <div className="flex items-center gap-2">
-              <Skeleton className="hidden size-7 lg:block" />
-              <Skeleton className="size-7" />
-              <Skeleton className="size-7" />
-              <Skeleton className="hidden size-7 lg:block" />
-            </div>
-          </div>
-        </div>
-      )}
+      <PaginationSkeleton mode={pagination} />
     </div>
   );
 }

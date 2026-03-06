@@ -39,13 +39,6 @@ export interface PaginationContext {
    */
   isFetchingNextPage?: boolean;
 
-  // Loading states
-  /**
-   * isLoading: true when fetching with no cached data (initial load)
-   * Use to avoid layout shift on initial load.
-   */
-  isLoading?: boolean;
-
   // Limit/Page size
   /** Number of items per page/batch */
   limit?: Limit;

@@ -1,6 +1,5 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import { useRef } from "react";
 import { useGroupParams } from "../../hooks";
 import type { DataViewProperty, NumberConfig } from "../../types";
@@ -190,11 +189,6 @@ interface GroupSectionProps<TData> {
   groupByPropertyDef?: DataViewProperty<TData>;
 
   /**
-   * Show loading spinner in the group content area
-   */
-  isLoading?: boolean;
-
-  /**
    * Optional footer to render at the bottom of the group (e.g., LoadMore button)
    */
   renderFooter?: React.ReactNode;
@@ -225,7 +219,6 @@ export function GroupSection<TData>({
   groupByPropertyDef,
   children,
   renderFooter,
-  isLoading = false,
   showAggregation = true,
   stickyHeader,
 }: GroupSectionProps<TData>) {
@@ -323,16 +316,8 @@ export function GroupSection<TData>({
         triggerContent
       )}
       <AccordionContent>
-        {isLoading && group.items.length === 0 ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : (
-          <>
-            {children}
-            {renderFooter && <div className="pt-4">{renderFooter}</div>}
-          </>
-        )}
+        {children}
+        {renderFooter && <div className="pt-4">{renderFooter}</div>}
       </AccordionContent>
     </AccordionItem>
   );

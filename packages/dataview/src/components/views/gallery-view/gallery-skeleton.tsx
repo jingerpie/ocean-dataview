@@ -1,9 +1,14 @@
 "use client";
 
+import { CARD_SKELETON_WIDTHS } from "../../../lib/constants/skeleton-widths";
 import { cn } from "../../../lib/utils";
 import { getGalleryCardDimensions } from "../../../lib/utils/get-card-sizes";
+import type { PropertyType } from "../../../types";
 import { Card, CardContent } from "../../ui/card";
+import { PaginationSkeleton } from "../../ui/pagination-skeleton";
 import { Skeleton } from "../../ui/skeleton";
+
+type PaginationMode = "page" | "loadMore" | "infiniteScroll";
 
 interface GallerySkeletonProps extends React.ComponentProps<"div"> {
   /**
@@ -17,34 +22,26 @@ interface GallerySkeletonProps extends React.ComponentProps<"div"> {
    */
   cardSize?: "small" | "medium" | "large";
   /**
-   * Number of property lines per card
-   * @default 2
+   * Pagination mode - matches GalleryView pagination prop
    */
-  propertyCount?: number;
+  pagination?: PaginationMode;
+  /**
+   * Property types - determines realistic widths per property
+   */
+  propertyTypes: PropertyType[];
   /**
    * Show image placeholder in cards
    * @default true
    */
   withImage?: boolean;
-  /**
-   * Show pagination skeleton
-   * @default true
-   */
-  withPagination?: boolean;
-  /**
-   * Show toolbar skeleton
-   * @default true
-   */
-  withToolbar?: boolean;
 }
 
 export function GallerySkeleton({
   cardCount = 6,
   cardSize = "medium",
-  withToolbar = true,
-  withPagination = true,
+  pagination,
+  propertyTypes,
   withImage = true,
-  propertyCount = 2,
   className,
   ...props
 }: GallerySkeletonProps) {
@@ -52,39 +49,24 @@ export function GallerySkeleton({
 
   return (
     <div
-      className={cn("flex w-full flex-col gap-2.5 overflow-auto", className)}
+      className={cn("flex w-full flex-col gap-2.5 overflow-clip", className)}
       {...props}
     >
-      {/* Toolbar */}
-      {withToolbar && (
-        <div className="flex w-full items-center justify-between gap-2 overflow-auto p-1">
-          <div className="flex flex-1 items-center gap-2">
-            <Skeleton className="h-7 w-[4.5rem] border-dashed" />
-            <Skeleton className="h-7 w-[4.5rem] border-dashed" />
-          </div>
-          <Skeleton className="ml-auto hidden h-7 w-[4.5rem] lg:flex" />
-        </div>
-      )}
-
-      {/* Card Grid */}
       <div className={cn("grid gap-4", cols)}>
         {Array.from({ length: cardCount }).map((_, i) => (
           <Card className="gap-0 overflow-hidden py-0" key={i}>
-            {/* Image placeholder */}
             {withImage && (
               <Skeleton
                 className="w-full rounded-none"
                 style={{ height: imageHeight }}
               />
             )}
-
-            {/* Card content */}
             <CardContent className="flex flex-col gap-2 p-3">
-              {Array.from({ length: propertyCount }).map((_, j) => (
+              {propertyTypes.map((type, j) => (
                 <Skeleton
-                  className="h-4"
+                  className="h-5"
                   key={j}
-                  style={{ width: j === 0 ? "75%" : "50%" }}
+                  style={{ width: CARD_SKELETON_WIDTHS[type] }}
                 />
               ))}
             </CardContent>
@@ -92,27 +74,7 @@ export function GallerySkeleton({
         ))}
       </div>
 
-      {/* Pagination */}
-      {withPagination && (
-        <div className="flex w-full items-center justify-between gap-4 overflow-auto p-1 sm:gap-8">
-          <Skeleton className="h-7 w-40 shrink-0" />
-          <div className="flex items-center gap-4 sm:gap-6 lg:gap-8">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-7 w-24" />
-              <Skeleton className="h-7 w-[4.5rem]" />
-            </div>
-            <div className="flex items-center justify-center font-medium text-sm">
-              <Skeleton className="h-7 w-20" />
-            </div>
-            <div className="flex items-center gap-2">
-              <Skeleton className="hidden size-7 lg:block" />
-              <Skeleton className="size-7" />
-              <Skeleton className="size-7" />
-              <Skeleton className="hidden size-7 lg:block" />
-            </div>
-          </div>
-        </div>
-      )}
+      <PaginationSkeleton mode={pagination} />
     </div>
   );
 }

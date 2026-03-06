@@ -1,16 +1,20 @@
 "use client";
 
 import { AlertCircle } from "lucide-react";
+import { Suspense } from "react";
 import type { GroupedDataItem } from "../../../hooks";
 import { useDisplayProperties, useViewSetup } from "../../../hooks";
+import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import { buildPaginationContext, cn } from "../../../lib/utils";
+import { cn, transformData } from "../../../lib/utils";
 import { getGalleryCardDimensions } from "../../../lib/utils/get-card-sizes";
-import type { DataViewProperty } from "../../../types";
+import type { DataViewProperty, PaginationContext } from "../../../types";
 import { Accordion } from "../../ui/accordion";
 import { GroupSection } from "../../ui/group-section";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
+import { SuspendingGroupContent } from "../../ui/suspending-group-content";
 import { DataCard } from "../data-card";
+import { GallerySkeleton } from "./gallery-skeleton";
 
 export interface GalleryViewProps<TData> {
   /**
@@ -86,18 +90,19 @@ export function GalleryView<
   // Get data and properties from context
   const {
     data,
+    limit,
     properties,
     propertyVisibility,
     pagination: contextPagination,
     counts,
     group,
+    groupKeys,
     expandedGroups,
     onExpandedGroupsChange,
   } = useDataViewContext<TData, TProperties>();
 
   // Use shared view setup hook
   const {
-    transformedData,
     groupedData,
     groupByProperty,
     validationError,
@@ -119,36 +124,6 @@ export function GalleryView<
 
   const { imageHeight, cols } = getGalleryCardDimensions(cardSize);
 
-  // Transform flat data for non-grouped view (must be before early returns)
-  const transformedFlatData = transformedData;
-
-  // Helper to render card grid
-  const renderCardGrid = (items: TData[]) => (
-    <div className={cn("grid gap-4", cols)}>
-      {items.map((item, index) => {
-        const firstProperty = displayProperties[0];
-        const uniqueKey = firstProperty
-          ? `card-${String((item as Record<string, unknown>)[firstProperty.id])}-${index}`
-          : `card-${index}`;
-
-        return (
-          <DataCard
-            allProperties={properties}
-            cardPreview={cardPreview}
-            displayProperties={displayProperties}
-            fitMedia={fitMedia}
-            imageHeight={imageHeight}
-            item={item}
-            key={uniqueKey}
-            onCardClick={onCardClick}
-            showPropertyNames={showPropertyNames}
-            wrapAllProperties={wrapAllProperties}
-          />
-        );
-      })}
-    </div>
-  );
-
   // Error state
   if (validationError || propertyValidationError) {
     return (
@@ -164,10 +139,8 @@ export function GalleryView<
     );
   }
 
-  // GROUPED VIEW: Render using Accordion for collapsible groups
-  // Note: Check grouped view before empty state, because with lazy loading
-  // data might be empty but we still want to show group headers with counts
-  if (group && groupedData) {
+  // GROUPED VIEW with Per-Group Suspense
+  if (group && groupKeys && groupKeys.length > 0) {
     return (
       <div className={cn("flex flex-col gap-4", className)}>
         <Accordion
@@ -175,24 +148,43 @@ export function GalleryView<
           onValueChange={onExpandedGroupsChange}
           value={expandedGroups ?? []}
         >
-          {groupedData.map((groupItem: GroupedDataItem<TData>) => {
-            // Build pagination context for this group using shared utility
-            const paginationContext = buildPaginationContext(
-              contextPagination,
-              groupItem.key
-            );
+          {groupedData?.map((groupItem: GroupedDataItem<TData>) => {
+            const isExpanded = expandedGroups?.includes(groupItem.key) ?? false;
 
             return (
               <GroupSection
                 group={groupItem}
                 groupByPropertyDef={groupByProperty}
-                isLoading={false}
                 key={groupItem.key}
-                renderFooter={renderPagination(pagination, paginationContext)}
                 showAggregation={group.showCount ?? true}
                 stickyHeader={{ enabled: true, offset: 57 }}
               >
-                {renderCardGrid(groupItem.items)}
+                {isExpanded ? (
+                  <Suspense
+                    fallback={
+                      <GallerySkeleton
+                        cardCount={limit ?? 6}
+                        cardSize={cardSize}
+                        propertyTypes={displayProperties.map((p) => p.type)}
+                        withImage={Boolean(cardPreview)}
+                      />
+                    }
+                  >
+                    <SuspendingGroupGalleryContent<TData, TProperties>
+                      cardPreview={cardPreview}
+                      cols={cols}
+                      displayProperties={displayProperties}
+                      fitMedia={fitMedia}
+                      groupItem={groupItem}
+                      imageHeight={imageHeight}
+                      onCardClick={onCardClick}
+                      pagination={pagination}
+                      properties={properties}
+                      showPropertyNames={showPropertyNames}
+                      wrapAllProperties={wrapAllProperties}
+                    />
+                  </Suspense>
+                ) : null}
               </GroupSection>
             );
           })}
@@ -201,39 +193,141 @@ export function GalleryView<
     );
   }
 
-  // Empty state for non-grouped view
-  if (Array.isArray(data) && data.length === 0) {
-    return (
-      <div className="flex h-64 flex-col items-center justify-center text-muted-foreground">
-        <p>No data to display</p>
-      </div>
-    );
-  }
-
-  // Build pagination context for flat view
-  const flatPaginationContext = buildPaginationContext(
-    contextPagination,
-    "__all__"
-  );
-
-  // STANDARD VIEW: Flat gallery without grouping
+  // FLAT VIEW: Uses SuspendingGroupContent with __ungrouped__ key
   return (
     <div className={cn("flex flex-col gap-4", className)}>
-      {renderCardGrid(transformedFlatData)}
-      {renderPagination(pagination, flatPaginationContext)}
+      <Suspense
+        fallback={
+          <GallerySkeleton
+            cardCount={limit ?? 10}
+            cardSize={cardSize}
+            pagination={pagination}
+            propertyTypes={displayProperties.map((p) => p.type)}
+            withImage={Boolean(cardPreview)}
+          />
+        }
+      >
+        <SuspendingGroupGalleryContent<TData, TProperties>
+          cardPreview={cardPreview}
+          cols={cols}
+          displayProperties={displayProperties}
+          fitMedia={fitMedia}
+          groupItem={{
+            key: "__ungrouped__",
+            items: [],
+            count: 0,
+            displayCount: "0",
+            sortValue: "",
+          }}
+          imageHeight={imageHeight}
+          onCardClick={onCardClick}
+          pagination={pagination}
+          properties={properties}
+          showPropertyNames={showPropertyNames}
+          wrapAllProperties={wrapAllProperties}
+        />
+      </Suspense>
     </div>
   );
 }
 
-// Re-export from shared with view-specific aliases
-export type { DataViewContextValue as GalleryContextValue } from "../../../lib/providers/data-view-context";
-// biome-ignore lint/performance/noBarrelFile: Re-exporting shared components with view-specific names
-export { useDataViewContext as useGalleryContext } from "../../../lib/providers/data-view-context";
-export type { DataViewProviderProps as GalleryProviderProps } from "../../../lib/providers/data-view-provider";
-export { DataViewProvider as GalleryProvider } from "../../../lib/providers/data-view-provider";
-export {
-  Visibility,
-  type VisibilityProps,
-} from "../../ui/toolbar/visibility";
-// Skeleton
-export { GallerySkeleton } from "./gallery-skeleton";
+// Static marker for view type detection in DataViewProvider
+GalleryView.dataViewType = "gallery" as const;
+
+// ============================================================================
+// Suspending Group Content Component
+// ============================================================================
+
+interface SuspendingGroupGalleryContentProps<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+> {
+  cardPreview?: string;
+  cols: string;
+  displayProperties: TProperties[number][];
+  fitMedia: boolean;
+  groupItem: GroupedDataItem<TData>;
+  imageHeight: number;
+  onCardClick?: (item: TData) => void;
+  pagination?: PaginationMode;
+  properties: TProperties;
+  showPropertyNames: boolean;
+  wrapAllProperties: boolean;
+}
+
+/**
+ * Internal component that fetches data for a group using Suspense.
+ * Renders inside GroupSection's AccordionContent.
+ */
+function SuspendingGroupGalleryContent<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+>({
+  cardPreview,
+  cols,
+  displayProperties,
+  fitMedia,
+  groupItem,
+  imageHeight,
+  onCardClick,
+  pagination,
+  properties,
+  showPropertyNames,
+  wrapAllProperties,
+}: SuspendingGroupGalleryContentProps<TData, TProperties>) {
+  return (
+    <SuspendingGroupContent<TData> groupKey={groupItem.key}>
+      {(result: UseGroupQueryResult<TData>) => {
+        // Transform data with property definitions
+        const transformedItems = transformData(
+          result.data,
+          properties
+        ) as TData[];
+
+        // Build pagination context from query result
+        const paginationContext: PaginationContext = {
+          displayEnd: result.displayEnd,
+          displayStart: result.displayStart,
+          hasMoreThanMax: groupItem.displayCount === "99+",
+          hasNext: result.hasNext,
+          hasPrev: result.hasPrev,
+          isFetching: result.isFetching,
+          limit: result.limit,
+          onLimitChange: result.onLimitChange,
+          onNext: result.onNext,
+          onPrev: result.onPrev,
+          totalCount: groupItem.count,
+        };
+
+        return (
+          <>
+            <div className={cn("grid gap-4", cols)}>
+              {transformedItems.map((item, index) => {
+                const firstProperty = displayProperties[0];
+                const uniqueKey = firstProperty
+                  ? `card-${String((item as Record<string, unknown>)[firstProperty.id])}-${index}`
+                  : `card-${index}`;
+
+                return (
+                  <DataCard
+                    allProperties={properties}
+                    cardPreview={cardPreview}
+                    displayProperties={displayProperties}
+                    fitMedia={fitMedia}
+                    imageHeight={imageHeight}
+                    item={item}
+                    key={uniqueKey}
+                    onCardClick={onCardClick}
+                    showPropertyNames={showPropertyNames}
+                    wrapAllProperties={wrapAllProperties}
+                  />
+                );
+              })}
+            </div>
+            {renderPagination(pagination, paginationContext)}
+          </>
+        );
+      }}
+    </SuspendingGroupContent>
+  );
+}

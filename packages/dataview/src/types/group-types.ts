@@ -54,7 +54,7 @@ export type GroupByConfig =
 export interface SharedGroupOptions {
   hideEmpty?: boolean;
   showCount?: boolean;
-  sort?: "ascending" | "descending";
+  sort?: "asc" | "desc";
 }
 
 // Final group config type
@@ -62,3 +62,6 @@ export type GroupConfig = GroupByConfig & SharedGroupOptions;
 
 // SubGroup uses same structure
 export type SubGroupConfig = GroupByConfig & SharedGroupOptions;
+
+// Column uses same structure (for board columns)
+export type ColumnConfig = GroupByConfig & SharedGroupOptions;

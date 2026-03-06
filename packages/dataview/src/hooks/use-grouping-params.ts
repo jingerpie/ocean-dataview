@@ -1,19 +1,23 @@
 "use client";
 
 import type {
+  ColumnByConfigInput,
+  ColumnConfigInput,
+} from "@sparkyidea/shared/utils/parsers/column";
+import type {
   GroupByConfigInput,
   GroupConfigInput,
 } from "@sparkyidea/shared/utils/parsers/group";
+import { useColumnParams } from "./use-column-params";
 import { useGroupParams } from "./use-group-params";
-import { useSubGroupParams } from "./use-subgroup-params";
 
-export type GroupingMode = "group" | "subGroup";
+export type GroupingMode = "group" | "column";
 
 export interface GroupingParams {
   /** Clear the grouping */
   clearConfig: () => void;
   /** Current grouping config */
-  config: GroupConfigInput | null;
+  config: GroupConfigInput | ColumnConfigInput | null;
   /** Whether to hide empty groups */
   hideEmpty: boolean;
   /** Whether grouping is active */
@@ -21,7 +25,7 @@ export interface GroupingParams {
   /** Property being grouped by */
   property: string | null;
   /** Set the grouping config */
-  setConfig: (config: GroupByConfigInput | null) => void;
+  setConfig: (config: GroupByConfigInput | ColumnByConfigInput | null) => void;
   /** Set hide empty groups */
   setHideEmpty: (hide: boolean) => void;
   /** Set the sort order */
@@ -33,39 +37,39 @@ export interface GroupingParams {
 }
 
 /**
- * Unified hook for managing either group or subGroup params.
+ * Unified hook for managing group or column params.
  *
- * This hook normalizes the API between useGroupParams and useSubGroupParams,
- * allowing UI components to work with either mode without code duplication.
+ * This hook normalizes the API between useGroupParams and useColumnParams,
+ * allowing UI components to work with any mode without code duplication.
  *
- * @param mode - "group" for primary grouping, "subGroup" for secondary grouping (board rows)
+ * @param mode - "group" for accordion grouping (all views), "column" for board columns
  * @returns Normalized grouping parameters
  *
  * @example
  * ```ts
- * // For group (default)
+ * // For group (accordion - all views)
  * const params = useGroupingParams("group");
  *
- * // For subGroup (board rows)
- * const params = useGroupingParams("subGroup");
+ * // For column (board columns)
+ * const params = useGroupingParams("column");
  * ```
  */
 export function useGroupingParams(mode: GroupingMode): GroupingParams {
   const groupParams = useGroupParams();
-  const subGroupParams = useSubGroupParams();
+  const columnParams = useColumnParams();
 
-  if (mode === "subGroup") {
+  if (mode === "column") {
     return {
-      config: subGroupParams.subGroup,
-      property: subGroupParams.subGroupProperty,
-      type: subGroupParams.subGroupType,
-      isGrouped: subGroupParams.isSubGrouped,
-      sortOrder: subGroupParams.subGroupSortOrder,
-      hideEmpty: subGroupParams.hideEmptySubGroups,
-      setConfig: subGroupParams.setSubGroup,
-      clearConfig: subGroupParams.clearSubGroup,
-      setSortOrder: subGroupParams.setSubGroupSortOrder,
-      setHideEmpty: subGroupParams.setHideEmptySubGroups,
+      config: columnParams.column,
+      property: columnParams.columnProperty,
+      type: columnParams.columnType,
+      isGrouped: columnParams.hasColumn,
+      sortOrder: columnParams.columnSortOrder,
+      hideEmpty: columnParams.hideEmptyColumns,
+      setConfig: columnParams.setColumn,
+      clearConfig: columnParams.clearColumn,
+      setSortOrder: columnParams.setColumnSortOrder,
+      setHideEmpty: columnParams.setHideEmptyColumns,
     };
   }
 

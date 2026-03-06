@@ -40,7 +40,7 @@ const SHOW_AS_OPTIONS: Record<
 };
 
 interface GroupShowAsPickerProps {
-  /** Mode: "group" or "subGroup" (default: "group") */
+  /** Mode: "group" or "column" (default: "group") */
   mode?: GroupingMode;
   /** Additional callback after setting the show-as option */
   onSetShowAs?: (value: string) => void;

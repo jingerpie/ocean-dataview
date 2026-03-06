@@ -9,6 +9,29 @@
  */
 
 // ============================================================================
+// Cursor Types
+// ============================================================================
+
+/**
+ * Cursor value for a single group.
+ * Contains information for navigating to a specific position in the result set.
+ */
+export interface CursorValue {
+  /** Cursor string for forward pagination */
+  after?: string;
+  /** Cursor string for backward pagination */
+  before?: string;
+  /** 0-indexed start position for display calculations */
+  start: number;
+}
+
+/**
+ * Map of group keys to cursor values.
+ * Used by page-based pagination to track cursor state per group.
+ */
+export type Cursors = Record<string, CursorValue>;
+
+// ============================================================================
 // Response Types
 // ============================================================================
 
@@ -16,7 +39,7 @@
  * Base paginated response shape from API.
  * Used by infinite pagination (forward-only navigation).
  *
- * For getManyByGroup queries, hasNextPage and endCursor are Record<string, ...>
+ * For getManyByColumn queries, hasNextPage and endCursor are Record<string, ...>
  * where keys are group keys (column keys for board views).
  */
 export interface BasePaginatedResponse<TData> {
@@ -64,15 +87,12 @@ export interface GroupSortValues {
 
 /**
  * Combined counts for DataViewProvider.
- * - group: Primary grouping counts (column headers in BoardView, group headers in other views)
- * - subGroup: Secondary grouping counts (row headers in BoardView with sub-groups)
+ * - group: Primary grouping counts (group headers in views)
  * - groupSortValues: Sort values for ordering groups (from server-side grouping)
  */
 export interface ViewCounts {
   group: GroupCounts;
   groupSortValues?: GroupSortValues;
-  subGroup?: GroupCounts;
-  subGroupSortValues?: GroupSortValues;
 }
 
 // ============================================================================

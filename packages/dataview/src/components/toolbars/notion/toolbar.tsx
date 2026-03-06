@@ -7,9 +7,9 @@ import {
   useSortParams,
 } from "../../../hooks";
 import { useToolbarState } from "../../../hooks/use-toolbar-state";
-import { useDataViewContext } from "../../../lib/providers";
+import { useToolbarContextOptional } from "../../../lib/providers/toolbar-context";
 import { cn } from "../../../lib/utils";
-import type { PropertyMeta } from "../../../types";
+import type { GroupConfig, PropertyMeta } from "../../../types";
 import { Separator } from "../../ui/separator";
 import { SearchInput } from "../../ui/toolbar/search/search-input";
 import { ChipsBar } from "./chips-bar";
@@ -17,9 +17,56 @@ import { FilterTool } from "./filter-tool";
 import { SettingsTool } from "./settings-tool";
 import { SortTool } from "./sort-tool";
 
+/**
+ * Extract the property ID from a GroupConfig.
+ */
+function getGroupPropertyId(
+  group: GroupConfig | null | undefined
+): string | null {
+  if (!group) {
+    return null;
+  }
+  if ("bySelect" in group) {
+    return group.bySelect.property;
+  }
+  if ("byStatus" in group) {
+    return group.byStatus.property;
+  }
+  if ("byDate" in group) {
+    return group.byDate.property;
+  }
+  if ("byCheckbox" in group) {
+    return group.byCheckbox.property;
+  }
+  if ("byMultiSelect" in group) {
+    return group.byMultiSelect.property;
+  }
+  if ("byText" in group) {
+    return group.byText.property;
+  }
+  if ("byNumber" in group) {
+    return group.byNumber.property;
+  }
+  return null;
+}
+
+/**
+ * Extract the property ID from a ColumnConfig.
+ * ColumnConfig uses the same structure as GroupConfig.
+ */
+function getColumnPropertyId(
+  column: GroupConfig | null | undefined
+): string | null {
+  return getGroupPropertyId(column);
+}
+
 interface NotionToolbarProps extends ComponentProps<"div"> {
   /** Children (tabs, etc.) - always visible on left */
   children?: ReactNode;
+  /** Current column property name (board view only) */
+  columnProperty?: string;
+  /** Enable column setting in settings panel (board view only) */
+  enableColumn?: boolean;
   /** Enable filter functionality */
   enableFilter?: boolean;
   /** Enable search functionality */
@@ -28,65 +75,83 @@ interface NotionToolbarProps extends ComponentProps<"div"> {
   enableSettings?: boolean;
   /** Enable sort functionality */
   enableSort?: boolean;
-  /** Enable sub-group setting in settings panel (board view only) */
-  enableSubGroup?: boolean;
   /** Current group property name (displayed in settings panel) */
   groupProperty?: string;
-  /**
-   * Available properties for filtering/sorting.
-   * Optional - defaults to propertyMetas from DataViewContext.
-   */
+  /** Property definitions for filtering/sorting (optional if using context) */
   properties?: readonly PropertyMeta[];
-  /** Current sub-group property name (board view only) */
-  subGroupProperty?: string;
 }
 
 /**
  * Notion-style toolbar with two-row layout.
  *
- * State is managed internally via nuqs URL params:
+ * When used inside DataViewProvider, reads properties and visibility from context.
+ * Props can override context values if needed.
+ *
+ * State managed via nuqs URL params:
  * - ?filter={...} for filters
  * - ?sort=[...] for sorting
  * - ?search=... for search
- *
- * Reads defaults from DataViewContext if available.
  *
  * Row 1: [children] -------- [Filter] [Sort] [Search] [Properties] [Settings]
  * Row 2: [SortList] [Filter Chips...] [+ Filter] (conditional)
  *
  * @example
  * ```tsx
- * // Properties from context (recommended)
- * <NotionToolbar>
- *   <MyTabs />
- * </NotionToolbar>
- *
- * // Or with explicit properties
- * <NotionToolbar properties={productProperties}>
- *   <MyTabs />
- * </NotionToolbar>
+ * // Inside DataViewProvider - uses context automatically
+ * <DataViewProvider properties={productProperties} ...>
+ *   <NotionToolbar enableSettings />
+ *   <TableView />
+ * </DataViewProvider>
  * ```
  */
-export function NotionToolbar({
-  properties: propProperties,
-  enableFilter = true,
-  enableSort = true,
-  enableSearch = true,
-  enableSettings = false,
-  enableSubGroup = false,
-  groupProperty,
-  subGroupProperty,
+function NotionToolbarComponent({
   children,
   className,
+  columnProperty,
+  enableColumn = false,
+  enableFilter = true,
+  enableSearch = true,
+  enableSettings = false,
+  enableSort = true,
+  groupProperty,
+  properties: propProperties,
   ...props
 }: NotionToolbarProps) {
-  // Get propertyMetas from context
-  const { propertyMetas } = useDataViewContext();
+  // Try to get values from context, fall back to props
+  const ctx = useToolbarContextOptional();
 
-  // Use prop properties if provided, otherwise fall back to context
-  const properties = propProperties ?? propertyMetas;
+  const properties = propProperties ?? ctx?.properties ?? [];
 
-  // State managed via hooks that read from context defaults, write to URL
+  // Derive group property label from context if not provided
+  const derivedGroupProperty = (() => {
+    if (groupProperty !== undefined) {
+      return groupProperty;
+    }
+    const groupPropertyId = getGroupPropertyId(ctx?.group);
+    if (!groupPropertyId) {
+      return undefined;
+    }
+    const meta = properties.find((p) => p.id === groupPropertyId);
+    return meta?.label ?? groupPropertyId;
+  })();
+
+  // Derive column property label from context if not provided
+  const derivedColumnProperty = (() => {
+    if (columnProperty !== undefined) {
+      return columnProperty;
+    }
+    const colPropertyId = getColumnPropertyId(ctx?.column);
+    if (!colPropertyId) {
+      return undefined;
+    }
+    const meta = properties.find((p) => p.id === colPropertyId);
+    return meta?.label ?? colPropertyId;
+  })();
+
+  // Auto-enable column settings when column config exists (board view)
+  const shouldEnableColumn = enableColumn || ctx?.column != null;
+
+  // State managed via hooks that read/write URL directly
   const { filter, setFilter: onFilterChange, resetFilter } = useFilterParams();
   const { search, setSearch: onSearchChange } = useSearchParams();
   const { sort: sorts, resetSort } = useSortParams();
@@ -138,9 +203,9 @@ export function NotionToolbar({
           {/* Settings */}
           {enableSettings && (
             <SettingsTool
-              enableSubGroup={enableSubGroup}
-              groupProperty={groupProperty}
-              subGroupProperty={subGroupProperty}
+              columnProperty={derivedColumnProperty}
+              enableColumn={shouldEnableColumn}
+              groupProperty={derivedGroupProperty}
               variant="icon"
             />
           )}
@@ -169,5 +234,17 @@ export function NotionToolbar({
     </div>
   );
 }
+
+// Add static slot marker for DataViewProvider child splitting
+NotionToolbarComponent.dataViewSlot = "toolbar" as const;
+
+/**
+ * NotionToolbar with static slot marker.
+ * When placed inside DataViewProvider, it renders outside the suspending QueryBridge.
+ */
+export const NotionToolbar =
+  NotionToolbarComponent as typeof NotionToolbarComponent & {
+    dataViewSlot: "toolbar";
+  };
 
 export type { NotionToolbarProps };

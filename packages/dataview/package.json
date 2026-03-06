@@ -7,7 +7,7 @@
     "./utils": "./src/lib/utils/index.ts",
     "./providers": "./src/lib/providers/index.ts",
     "./views/*": "./src/components/views/*/index.tsx",
-    "./toolbars/*": "./src/components/toolbars/*/index.ts",
+    "./toolbars/notion": "./src/components/toolbars/notion/toolbar.tsx",
     "./properties": "./src/components/ui/properties/index.ts",
     "./hooks": "./src/hooks/index.ts",
     "./types": "./src/types/index.ts"

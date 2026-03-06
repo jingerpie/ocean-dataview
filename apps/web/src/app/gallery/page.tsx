@@ -1,25 +1,11 @@
-"use client";
+import { ProductGalleryDemo } from "./components/hybrid-gallery-demo";
 
-import { Tabs, TabsContent } from "@sparkyidea/ui/components/tabs";
-import { Suspense } from "react";
-import { FlatGallery } from "@/modules/gallery/flat-gallery";
-import { GroupGallery } from "@/modules/gallery/group-gallery";
-import { HybridGallery } from "@/modules/gallery/hybrid-gallery";
+interface GalleryPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
 
-export default function GalleryPage() {
-  return (
-    <Suspense>
-      <Tabs defaultValue="flat">
-        <TabsContent value="flat">
-          <FlatGallery />
-        </TabsContent>
-        <TabsContent value="group">
-          <GroupGallery />
-        </TabsContent>
-        <TabsContent value="hybrid">
-          <HybridGallery />
-        </TabsContent>
-      </Tabs>
-    </Suspense>
-  );
+export default async function GalleryPage({ searchParams }: GalleryPageProps) {
+  const params = await searchParams;
+
+  return <ProductGalleryDemo params={params} />;
 }

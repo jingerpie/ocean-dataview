@@ -1,25 +1,11 @@
-"use client";
+import { ProductListDemo } from "./components/hybrid-list-demo";
 
-import { Tabs, TabsContent } from "@sparkyidea/ui/components/tabs";
-import { Suspense } from "react";
-import { FlatList } from "@/modules/list/flat-list";
-import { GroupList } from "@/modules/list/group-list";
-import { HybridList } from "@/modules/list/hybrid-list";
+interface ListPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
 
-export default function ListPage() {
-  return (
-    <Suspense>
-      <Tabs defaultValue="flat">
-        <TabsContent value="flat">
-          <FlatList />
-        </TabsContent>
-        <TabsContent value="group">
-          <GroupList />
-        </TabsContent>
-        <TabsContent value="hybrid">
-          <HybridList />
-        </TabsContent>
-      </Tabs>
-    </Suspense>
-  );
+export default async function ListPage({ searchParams }: ListPageProps) {
+  const params = await searchParams;
+
+  return <ProductListDemo params={params} />;
 }

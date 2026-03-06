@@ -7,16 +7,11 @@ import {
   LIMIT_OPTIONS,
   type Limit,
 } from "../types/pagination.type";
-import { validateFilter } from "../utils/filter-validation";
+import { columnServerParser } from "../utils/parsers/column";
 import { filterServerParser } from "../utils/parsers/filter";
 import { groupServerParser } from "../utils/parsers/group";
-import {
-  cursorServerParser,
-  cursorsServerParser,
-  expandedServerParser,
-} from "../utils/parsers/pagination";
+import { cursorsServerParser } from "../utils/parsers/pagination";
 import { sortServerParser } from "../utils/parsers/sort";
-import { validateSort } from "../utils/sort-validation";
 
 // ============================================================================
 // Server-side Limit Parser
@@ -51,25 +46,25 @@ const sharedParsers = {
   filter: filterServerParser,
   sort: sortServerParser,
   search: parseAsSearch,
+  column: columnServerParser,
   group: groupServerParser,
   subGroup: groupServerParser,
 };
 
 /**
  * Flat pagination params for server-side URL parsing.
+ * Uses `cursors` with `__ungrouped__` key internally.
  */
 export const paginationParams = createSearchParamsCache({
-  cursor: cursorServerParser,
+  cursors: cursorsServerParser,
   ...sharedParsers,
 });
 
 /**
  * Grouped pagination params for server-side URL parsing.
- * `expanded` is a view-level concern (separate from group config).
  */
 export const groupPaginationParams = createSearchParamsCache({
   cursors: cursorsServerParser,
-  expanded: expandedServerParser,
   ...sharedParsers,
 });
 
@@ -80,7 +75,9 @@ export const groupPaginationParams = createSearchParamsCache({
 /**
  * Creates a Zod schema for TRPC input validation.
  * Extracts column names from the Drizzle table for type-safe property validation.
- * Uses .catch() for graceful degradation - invalid values fall back to defaults.
+ *
+ * NOTE: Uses simple schema without .catch()/.transform() chains to preserve
+ * TypeScript inference for infiniteQueryOptions compatibility.
  */
 export const createSearchParamsSchema = (table: Table) => {
   const columnNames = Object.keys(getTableColumns(table)) as [
@@ -94,18 +91,12 @@ export const createSearchParamsSchema = (table: Table) => {
   });
 
   return z.object({
-    cursor: z.union([cursorValueSchema, z.string()]).nullish().catch(null),
-    limit: z.number().int().min(1).max(200).catch(25),
-    search: searchQuerySchema.nullish().catch(null),
-    filter: z
-      .array(whereNodeSchema)
-      .nullish()
-      .catch(null)
-      .transform((f) => (f ? validateFilter(f) : null)),
-    sort: z
-      .array(sortEntrySchema)
-      .default([])
-      .catch([])
-      .transform(validateSort),
+    // Cursor for page-based (CursorValue) or infinite scroll (string)
+    // getCursorParams() handles both formats
+    cursor: z.union([cursorValueSchema, z.string()]).optional(),
+    limit: z.number().int().min(1).max(200).optional().default(25),
+    search: searchQuerySchema.nullish(),
+    filter: z.array(whereNodeSchema).nullish(),
+    sort: z.array(sortEntrySchema).optional().default([]),
   });
 };

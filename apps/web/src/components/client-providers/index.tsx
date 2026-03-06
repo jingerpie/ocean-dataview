@@ -16,7 +16,6 @@ export default function ClientProviders({
       defaultTheme="system"
       disableTransitionOnChange
       enableSystem
-      storageKey="dashseller-theme"
     >
       <TRPCReactProvider>
         {children}

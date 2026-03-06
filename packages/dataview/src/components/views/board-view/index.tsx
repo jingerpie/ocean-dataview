@@ -1,16 +1,12 @@
 "use client";
 
 import { AlertCircle, Columns3 } from "lucide-react";
-import { useCallback, useMemo, useRef } from "react";
-import type { GroupedDataItem, GroupInfo } from "../../../hooks";
-import {
-  useDisplayProperties,
-  useGroupConfig,
-  useGroupParams,
-} from "../../../hooks";
+import { Suspense, useMemo, useRef } from "react";
+import type { GroupedDataItem } from "../../../hooks";
+import { useDisplayProperties, useGroupParams } from "../../../hooks";
+import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import {
-  buildPaginationContext,
   cn,
   getBadgeBgTransparentClass,
   groupByProperty as groupDataByProperty,
@@ -24,16 +20,19 @@ import type {
   DataViewProperty,
   GroupCountInfo,
   GroupCounts,
+  PaginationContext,
 } from "../../../types";
 import { Accordion } from "../../ui/accordion";
 import { Badge } from "../../ui/badge";
 import { EmptyState } from "../../ui/empty-state";
 import { GroupSection } from "../../ui/group-section";
 import { type PaginationMode, renderPagination } from "../../ui/paginations";
+import { SuspendingGroupContent } from "../../ui/suspending-group-content";
 import { DataCard } from "../data-card";
 import { DataCell } from "../data-cell";
 import { BoardColumnHeaders } from "./board-column-headers";
 import { BoardColumns } from "./board-columns";
+import { BoardSkeleton } from "./board-skeleton";
 
 export interface BoardViewProps<TData> {
   /**
@@ -127,41 +126,38 @@ export function BoardView<
   wrapAllProperties = false,
 }: BoardViewProps<TData>) {
   // Get data and properties from context
+  // Board terminology: column = board columns, group = accordion rows
   const {
-    data,
     properties,
-    pagination: contextPagination,
     counts: contextCounts,
+    columnCounts: contextColumnCounts,
     propertyVisibility,
+    column: columnConfig,
     group: groupConfig,
-    subGroup: subGroupConfig,
+    groupKeys,
     expandedGroups,
     onExpandedGroupsChange,
   } = useDataViewContext<TData, TProperties>();
 
-  // Get sort order and hideEmpty from URL params (managed by useGroupParams)
-  const { groupSortOrder, hideEmptyGroups } = useGroupParams();
+  // Get sort order from URL params (managed by useGroupParams)
+  const { groupSortOrder } = useGroupParams();
 
   // Use prop counts if provided, otherwise fall back to context
-  const viewCounts = _counts ? { group: _counts } : contextCounts;
-  const counts = viewCounts?.group;
-  const groupSortValues = viewCounts?.groupSortValues;
-  const subGroupCounts =
-    "subGroup" in (viewCounts ?? {}) ? viewCounts?.subGroup : undefined;
+  // columnCounts for board columns, contextCounts?.group for accordion rows
+  const columnCounts = _counts ?? contextColumnCounts;
+  const columnSortValues = contextCounts?.groupSortValues;
+  const groupCounts = contextCounts?.group;
 
-  // Parse group configs from discriminated unions
+  // Parse configs from discriminated unions
+  // parsedColumn = board columns, parsedGroup = accordion rows
+  const parsedColumn = useMemo(
+    () => (columnConfig ? parseGroupByConfig(columnConfig) : undefined),
+    [columnConfig]
+  );
   const parsedGroup = useMemo(
     () => (groupConfig ? parseGroupByConfig(groupConfig) : undefined),
     [groupConfig]
   );
-  const parsedSubGroup = useMemo(
-    () => (subGroupConfig ? parseGroupByConfig(subGroupConfig) : undefined),
-    [subGroupConfig]
-  );
-
-  // Check if we're using grouped pagination from context
-  const hasGroupedPagination =
-    contextPagination && "groups" in contextPagination;
 
   // Validate property keys
   const propertyValidationError = useMemo(
@@ -169,241 +165,115 @@ export function BoardView<
     [properties]
   );
 
-  // Transform data FIRST before grouping (so grouping only works with property IDs)
-  const transformedData = useMemo(() => {
-    return transformData(data as TData[], properties) as TData[];
-  }, [data, properties]);
-
-  // Prepare group configuration for client-side column grouping
-  // For sub-grouped boards: always use client-side grouping for columns
-  // (pagination.groups = sub-groups/rows, not columns)
-  // For non-sub-grouped boards: use server groups if available
-  const clientGroupConfig = useMemo(() => {
-    if (!parsedGroup) {
-      return undefined;
-    }
-    // Map sort values from URL format (asc/desc) to internal format
-    const sortMap: Record<string, "propertyAscending" | "propertyDescending"> =
-      {
-        asc: "propertyAscending",
-        desc: "propertyDescending",
-      };
-    // Always use client-side grouping when sub-groups are present
-    // because pagination.groups represents sub-groups, not columns
-    if (subGroupConfig || !hasGroupedPagination) {
-      return {
-        groupBy: parsedGroup.property,
-        showAs: parsedGroup.showAs,
-        startWeekOn: parsedGroup.startWeekOn,
-        sort: sortMap[groupSortOrder],
-        hideEmptyGroups,
-      };
+  // Get column property for header display
+  const columnProperty = useMemo(() => {
+    if (parsedColumn?.property) {
+      return properties.find((p) => String(p.id) === parsedColumn.property);
     }
     return undefined;
-  }, [
-    parsedGroup,
-    hasGroupedPagination,
-    subGroupConfig,
-    groupSortOrder,
-    hideEmptyGroups,
-  ]);
+  }, [parsedColumn, properties]);
 
-  // Use shared hook for primary group configuration (with auto-selection)
-  // For sub-grouped boards: always required (columns are client-side)
-  // For non-sub-grouped boards: skip if using grouped pagination
-  const useClientGrouping = !!subGroupConfig || !hasGroupedPagination;
-  const {
-    groupedData: clientGroupedData,
-    validationError: primaryValidationError,
-    groupByProperty: clientGroupByProperty,
-  } = useGroupConfig(transformedData, properties, clientGroupConfig, {
-    required: useClientGrouping,
-    autoSelectGroupBy: useClientGrouping,
-  });
-
-  // Get groupBy property for header display
-  const groupByProperty = useMemo(() => {
-    if (hasGroupedPagination && parsedGroup?.property) {
-      // Server pagination - find property manually
+  // Get row group property for accordion headers
+  const rowGroupPropertyDef = useMemo(() => {
+    if (parsedGroup?.property) {
       return properties.find((p) => String(p.id) === parsedGroup.property);
     }
-    // Client grouping - use from hook
-    return clientGroupByProperty;
-  }, [hasGroupedPagination, parsedGroup, properties, clientGroupByProperty]);
+    return undefined;
+  }, [parsedGroup, properties]);
 
-  // Choose grouped data source: pagination.groups (server) or useGroupConfig (client)
-  // For sub-grouped boards: always use client grouping for columns
-  // (pagination.groups = sub-groups/rows, not columns)
-  const groupedData = useMemo(() => {
-    // For sub-grouped boards OR when using client grouping, use clientGroupedData
-    if (useClientGrouping) {
-      // When counts are available (prefetched), use them to build columns
-      // This ensures columns are visible even when no items are loaded yet
-      if (counts) {
-        // Build columns from counts, merging with client data if available
-        const clientDataMap = new Map(
-          (clientGroupedData ?? []).map((g) => [g.key, g])
-        );
-
-        return Object.entries(counts)
-          .map(([key, countInfo]: [string, GroupCountInfo]) => {
-            const clientGroup = clientDataMap.get(key);
-            return {
-              key,
-              items: clientGroup?.items ?? [],
-              count: countInfo.count,
-              displayCount: countInfo.hasMore ? "99+" : String(countInfo.count),
-              sortValue:
-                groupSortValues?.[key] ?? clientGroup?.sortValue ?? key,
-            };
-          })
-          .sort((a, b) => {
-            const aVal = a.sortValue;
-            const bVal = b.sortValue;
-            let result: number;
-            if (typeof aVal === "number" && typeof bVal === "number") {
-              result = aVal - bVal;
-            } else {
-              result = String(aVal).localeCompare(String(bVal));
-            }
-            return groupSortOrder === "desc" ? -result : result;
-          });
-      }
-      return clientGroupedData;
-    }
-
-    // Non-sub-grouped boards with grouped pagination: use pagination.groups as columns
-    if (hasGroupedPagination && "groups" in contextPagination) {
-      // Convert pagination.groups to GroupedDataItem format
-      // Counts come from context.counts, not from group objects
-      // Use Pick to only require the common properties across pagination types
-      return (
-        contextPagination.groups as Pick<GroupInfo<TData>, "key" | "items">[]
-      )
-        .map((group) => {
-          const countInfo = counts?.[group.key];
-          return {
-            key: group.key,
-            items: transformData(group.items, properties) as TData[],
-            count: countInfo?.count ?? group.items.length,
-            displayCount: countInfo?.hasMore
-              ? "99+"
-              : String(countInfo?.count ?? group.items.length),
-            sortValue: groupSortValues?.[group.key] ?? group.key,
-          };
-        })
-        .sort((a, b) => {
-          const aVal = a.sortValue;
-          const bVal = b.sortValue;
-          let result: number;
-          if (typeof aVal === "number" && typeof bVal === "number") {
-            result = aVal - bVal;
-          } else {
-            result = String(aVal).localeCompare(String(bVal));
-          }
-          return groupSortOrder === "desc" ? -result : result;
-        });
-    }
-
-    return clientGroupedData;
-  }, [
-    useClientGrouping,
-    hasGroupedPagination,
-    contextPagination,
-    clientGroupedData,
-    properties,
-    counts,
-    groupSortValues,
-    groupSortOrder,
-  ]);
-
-  // Use shared hook for sub-group configuration (if present)
-  // Map sort values from new format to internal format
-  const subGroupSortMap: Record<
-    string,
-    "propertyAscending" | "propertyDescending"
-  > = {
-    ascending: "propertyAscending",
-    descending: "propertyDescending",
-  };
-  const { validationError: subGroupValidationError } = useGroupConfig(
-    transformedData,
-    properties,
-    parsedSubGroup
-      ? {
-          groupBy: parsedSubGroup.property,
-          showAs: parsedSubGroup.showAs,
-          startWeekOn: parsedSubGroup.startWeekOn,
-          sort: subGroupConfig?.sort
-            ? subGroupSortMap[subGroupConfig.sort]
-            : undefined,
-          hideEmptyGroups: subGroupConfig?.hideEmpty,
-        }
-      : undefined
-  );
-
-  // Combine validation errors
-  const validationError =
-    primaryValidationError ||
-    subGroupValidationError ||
-    propertyValidationError;
-
-  // Prepare effectiveSubGroupConfig for DataBoard component
-  const effectiveSubGroupConfig = useMemo(() => {
-    if (!(parsedSubGroup && subGroupConfig)) {
-      return undefined;
-    }
-
-    return {
-      subGroupBy: parsedSubGroup.property,
-      showAs: parsedSubGroup.showAs,
-      startWeekOn: parsedSubGroup.startWeekOn,
-      textShowAs: parsedSubGroup.textShowAs,
-      numberRange: parsedSubGroup.numberRange,
-      sort: subGroupConfig.sort
-        ? subGroupSortMap[subGroupConfig.sort]
-        : "propertyAscending",
-      hideEmptyGroups: subGroupConfig.hideEmpty ?? true,
-      expanded: expandedGroups,
-      onExpandedChange: onExpandedGroupsChange,
-      counts: subGroupCounts,
-    };
-  }, [
-    parsedSubGroup,
-    subGroupConfig,
-    subGroupCounts,
-    subGroupSortMap,
-    expandedGroups,
-    onExpandedGroupsChange,
-  ]);
-
-  // Get group options from property config
-  const groupOptions = useMemo(() => {
-    if (!groupByProperty) {
+  // Build column structure from counts (for headers)
+  const columns: GroupedDataItem<TData>[] = useMemo(() => {
+    if (!columnCounts) {
       return [];
     }
 
-    if (groupByProperty.type === "select") {
-      return groupByProperty.config?.options || [];
+    return Object.entries(columnCounts)
+      .map(([key, countInfo]: [string, GroupCountInfo]) => ({
+        key,
+        items: [] as TData[], // Items loaded via Suspense
+        count: countInfo.count,
+        displayCount: countInfo.hasMore ? "99+" : String(countInfo.count),
+        sortValue: columnSortValues?.[key] ?? key,
+      }))
+      .sort((a, b) => {
+        const aVal = a.sortValue;
+        const bVal = b.sortValue;
+        let result: number;
+        if (typeof aVal === "number" && typeof bVal === "number") {
+          result = aVal - bVal;
+        } else {
+          result = String(aVal).localeCompare(String(bVal));
+        }
+        return groupSortOrder === "desc" ? -result : result;
+      });
+  }, [columnCounts, columnSortValues, groupSortOrder]);
+
+  // Build row groups from counts (for accordion)
+  const rowGroups: GroupedDataItem<TData>[] = useMemo(() => {
+    if (!groupCounts) {
+      return [];
     }
 
-    if (groupByProperty.type === "status") {
-      // Status config uses groups structure - flatten all options with their group colors
-      const groups = groupByProperty.config?.groups || [];
+    const rowGroupSortValues = contextCounts?.groupSortValues;
+    const sortOrder = groupConfig?.sort ?? "asc";
+
+    return Object.entries(groupCounts)
+      .map(([key, countInfo]: [string, GroupCountInfo]) => ({
+        key,
+        items: [] as TData[],
+        count: countInfo.count,
+        displayCount: countInfo.hasMore ? "99+" : String(countInfo.count),
+        sortValue: rowGroupSortValues?.[key] ?? key,
+      }))
+      .filter((g) => {
+        if (groupConfig?.hideEmpty ?? true) {
+          return g.count > 0;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        const aVal = a.sortValue;
+        const bVal = b.sortValue;
+        let result: number;
+        if (typeof aVal === "number" && typeof bVal === "number") {
+          result = aVal - bVal;
+        } else {
+          result = String(aVal).localeCompare(String(bVal));
+        }
+        return sortOrder === "desc" ? -result : result;
+      });
+  }, [
+    groupCounts,
+    contextCounts?.groupSortValues,
+    groupConfig?.sort,
+    groupConfig?.hideEmpty,
+  ]);
+
+  // Get column options from property config
+  const columnOptions = useMemo(() => {
+    if (!columnProperty) {
+      return [];
+    }
+
+    if (columnProperty.type === "select") {
+      return columnProperty.config?.options || [];
+    }
+
+    if (columnProperty.type === "status") {
+      const groups = columnProperty.config?.groups || [];
       return groups.flatMap((group) =>
         group.options.map((value) => ({ value, color: group.color }))
       );
     }
 
-    if (groupByProperty.type === "multiSelect") {
-      return groupByProperty.config?.options || [];
+    if (columnProperty.type === "multiSelect") {
+      return columnProperty.config?.options || [];
     }
 
     return [];
-  }, [groupByProperty]);
+  }, [columnProperty]);
 
   // Use shared hook for display properties filtering
-  // Note: We no longer exclude cardPreview, groupBy, or subGroupBy here - they should be toggleable in Visibility
   const displayProperties = useDisplayProperties(
     properties,
     propertyVisibility
@@ -428,65 +298,59 @@ export function BoardView<
   );
 
   // Get column background color based on property configuration
-  // Returns transparent for non-badge types, colored backgrounds for badge types (select, multi-select, status)
-  const getColumnBgClass = (groupName: string): string => {
-    // Use transparent background for non-badge types or when colorColumns is disabled
+  const getColumnBgClass = (columnName: string): string => {
     if (
-      !(colorColumns && groupByProperty) ||
-      (groupByProperty.type !== "select" &&
-        groupByProperty.type !== "multiSelect" &&
-        groupByProperty.type !== "status")
+      !(colorColumns && columnProperty) ||
+      (columnProperty.type !== "select" &&
+        columnProperty.type !== "multiSelect" &&
+        columnProperty.type !== "status")
     ) {
       return "bg-transparent";
     }
 
-    // Helper to convert color name to background class
     const getBgClass = (color: string) =>
       getBadgeBgTransparentClass(color as BadgeColor);
 
-    // For status properties with showAs: "group"
-    if (groupByProperty.type === "status" && parsedGroup?.showAs === "group") {
+    if (columnProperty.type === "status" && parsedColumn?.showAs === "group") {
       const statusGroupMap: Record<string, BadgeColor> = {
         "To Do": "gray",
         "In Progress": "blue",
         Complete: "green",
         Canceled: "red",
       };
-      const color = statusGroupMap[groupName];
+      const color = statusGroupMap[columnName];
       if (color) {
         return getBgClass(color);
       }
     }
 
-    // Find the option by value
-    const option = groupOptions.find((opt) => opt.value === groupName);
+    const option = columnOptions.find((opt) => opt.value === columnName);
 
     if (!option) {
       return getBgClass("gray");
     }
 
-    // Use color from option if defined (select, multi-select, or status)
     const color = (("color" in option ? option.color : undefined) ||
       "gray") as BadgeColor;
     return getBgClass(color);
   };
 
   // Get column header content using property-based rendering
-  const getColumnHeader = (groupName: string, count: number) => {
-    const showAggregation = groupConfig?.showCount ?? true;
+  const getColumnHeader = (columnName: string, count: number) => {
+    const showAggregation = columnConfig?.showCount ?? true;
     const displayCount = count > 99 ? "99+" : count;
 
     return (
       <div className="flex items-center gap-2">
-        {groupByProperty ? (
+        {columnProperty ? (
           <DataCell
             allProperties={properties}
             item={{} as TData}
-            property={groupByProperty}
-            value={groupName}
+            property={columnProperty}
+            value={columnName}
           />
         ) : (
-          <Badge variant="gray-subtle">{groupName}</Badge>
+          <Badge variant="gray-subtle">{columnName}</Badge>
         )}
         {showAggregation && (
           <span className="font-medium text-muted-foreground text-xs">
@@ -497,25 +361,123 @@ export function BoardView<
     );
   };
 
+  // Refs for scroll containers
+  const groupedScrollContainerRef = useRef<HTMLDivElement>(null);
+  const flatScrollContainerRef = useRef<HTMLDivElement>(null);
+
   // Error state
-  if (validationError) {
+  if (propertyValidationError) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-destructive/50 bg-destructive/5 p-8">
         <AlertCircle className="mb-4 h-12 w-12 text-destructive" />
         <p className="font-medium text-destructive">
           Invalid board configuration
         </p>
-        <p className="mt-2 text-muted-foreground text-sm">{validationError}</p>
+        <p className="mt-2 text-muted-foreground text-sm">
+          {propertyValidationError}
+        </p>
       </div>
     );
   }
 
-  // Empty state - check based on groupedData (columns)
-  // For sub-grouped boards with counts, columns come from counts, not pagination.groups
-  // For non-sub-grouped boards, columns come from pagination.groups or clientGroupedData
-  const isEmpty = !groupedData || groupedData.length === 0;
+  // Determine view mode
+  const hasColumns = columns.length > 0;
+  const hasRowGroups = rowGroups.length > 0;
+  const isGroupedBoard = Boolean(groupConfig);
 
-  if (isEmpty) {
+  // GROUPED VIEW: Accordion rows with columns inside each
+  // Check groupKeys from context (populated by SuspendingGroupKeys in QueryBridge)
+  // Note: Headers render from context counts (not suspended), each row has its own Suspense
+  if (isGroupedBoard && groupKeys && groupKeys.length > 0) {
+    // Show skeleton while group counts are loading
+    if (!hasRowGroups) {
+      return (
+        <BoardSkeleton
+          cardSize={cardSize}
+          cardsPerColumn={5}
+          columnCount={columns.length || 3}
+          pagination={pagination}
+          propertyTypes={displayProperties.map((p) => p.type)}
+          withImage={Boolean(cardPreview)}
+        />
+      );
+    }
+    return (
+      <div className={cn("relative max-w-full overflow-clip", className)}>
+        <div className="overflow-x-auto pb-4" ref={groupedScrollContainerRef}>
+          <div className="min-w-fit">
+            {/* Column Headers (sticky) */}
+            <BoardColumnHeaders
+              columnHeader={getColumnHeader}
+              columnWidth={columnWidth}
+              containerRef={groupedScrollContainerRef}
+              getColumnBgClass={getColumnBgClass}
+              groups={columns}
+              stickyHeader={{
+                enabled: true,
+                offset: 57,
+              }}
+            />
+
+            {/* Row group accordion sections */}
+            <Accordion
+              multiple
+              onValueChange={onExpandedGroupsChange}
+              value={expandedGroups ?? []}
+            >
+              {rowGroups.map((rowGroup) => {
+                const isExpanded =
+                  expandedGroups?.includes(rowGroup.key) ?? false;
+
+                return (
+                  <GroupSection
+                    group={rowGroup}
+                    groupByPropertyDef={rowGroupPropertyDef}
+                    key={rowGroup.key}
+                    showAggregation={groupConfig?.showCount ?? true}
+                    stickyHeader={{
+                      enabled: true,
+                      offset: 93, // 57 (site header + border) + 36 (column headers)
+                    }}
+                  >
+                    {isExpanded ? (
+                      <Suspense
+                        fallback={
+                          <BoardSkeleton
+                            cardSize={cardSize}
+                            cardsPerColumn={3}
+                            columnCount={columns.length}
+                            propertyTypes={displayProperties.map((p) => p.type)}
+                            withImage={Boolean(cardPreview)}
+                          />
+                        }
+                      >
+                        <SuspendingGroupBoardContent<TData, TProperties>
+                          columns={columns}
+                          columnWidth={columnWidth}
+                          getCardContent={getCardContent}
+                          getColumnBgClass={getColumnBgClass}
+                          groupKey={rowGroup.key}
+                          keyExtractor={keyExtractor}
+                          pagination={pagination}
+                          parsedColumn={parsedColumn}
+                          properties={properties}
+                          rounded="all"
+                        />
+                      </Suspense>
+                    ) : null}
+                  </GroupSection>
+                );
+              })}
+            </Accordion>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // FLAT VIEW: Empty state when no columns
+  if (!hasColumns) {
     return (
       <EmptyState
         description="There are no items to display"
@@ -525,259 +487,167 @@ export function BoardView<
     );
   }
 
-  // Use groupedData from useGroupConfig
-  const groups: GroupedDataItem<TData>[] = groupedData || [];
-
-  // Build footer renderer using pagination mode
-  // For sub-grouped boards: groupKey is subGroupKey (e.g., "In stock"), columnKey for per-column hasNext
-  // For non-sub-grouped boards: groupKey is columnKey (e.g., "Accessories")
-  // hasNext is automatically handled by buildPaginationContext from pagination.groups[].hasNext
-  const renderFooter = pagination
-    ? (groupKey: string, columnKey?: string) => {
-        const ctx = buildPaginationContext(
-          contextPagination,
-          groupKey,
-          columnKey
-        );
-        return renderPagination(pagination, ctx);
-      }
-    : undefined;
-
-  // === Sub-grouping logic (for sub-grouped boards) ===
-
-  // Find the subGroupBy property definition
-  const subGroupByPropertyDef = useMemo(() => {
-    if (!effectiveSubGroupConfig) {
-      return undefined;
-    }
-    return properties.find(
-      (prop) => prop.id === effectiveSubGroupConfig.subGroupBy
-    );
-  }, [properties, effectiveSubGroupConfig]);
-
-  // Collect all unique sub-group keys across all groups and sort them
-  const allSubGroupData = useMemo(() => {
-    if (!effectiveSubGroupConfig) {
-      return [];
-    }
-
-    // Flatten all items from all groups
-    const allItems = groups.flatMap((g) => g.items);
-    const subGroupCountsData = effectiveSubGroupConfig.counts;
-
-    if (allItems.length === 0 && !subGroupCountsData) {
-      return [];
-    }
-
-    const { groups: subGroups, sortValues } = groupDataByProperty(
-      allItems,
-      effectiveSubGroupConfig.subGroupBy,
-      properties,
-      {
-        showAs: effectiveSubGroupConfig.showAs,
-        startWeekOn: effectiveSubGroupConfig.startWeekOn,
-        textShowAs: effectiveSubGroupConfig.textShowAs,
-        numberRange: effectiveSubGroupConfig.numberRange,
-      }
-    );
-
-    // Get all unique sub-group keys (from either client data or server counts)
-    const allSubGroupKeys = new Set([
-      ...Object.keys(subGroups),
-      ...Object.keys(subGroupCountsData ?? {}),
-    ]);
-
-    // Build sub-group array with counts
-    const subGroupArray = Array.from(allSubGroupKeys).map((key) => {
-      const serverCount = subGroupCountsData?.[key];
-      const clientItems = subGroups[key] as TData[] | undefined;
-      const clientCount = clientItems?.length ?? 0;
-
-      // Prefer server counts when available
-      const count = serverCount?.count ?? clientCount;
-      const hasMore = serverCount?.hasMore ?? false;
-
-      return {
-        key,
-        items: [] as TData[], // Items will be fetched via getItemsForCell
-        count,
-        displayCount: hasMore || count > 99 ? "99+" : String(count),
-        sortValue: sortValues[key] ?? key,
-      };
-    });
-
-    // Sort sub-groups
-    const sortOrder = effectiveSubGroupConfig.sort ?? "propertyAscending";
-    subGroupArray.sort((a, b) => {
-      const multiplier = sortOrder === "propertyDescending" ? -1 : 1;
-      if (typeof a.sortValue === "number" && typeof b.sortValue === "number") {
-        return (a.sortValue - b.sortValue) * multiplier;
-      }
-      return (
-        String(a.sortValue).localeCompare(String(b.sortValue)) * multiplier
-      );
-    });
-
-    return subGroupArray;
-  }, [groups, effectiveSubGroupConfig, properties]);
-
-  // Get items for a specific cell (column group + sub-group)
-  const getItemsForCell = useCallback(
-    (groupKey: string, subGroupKey: string): TData[] => {
-      if (!effectiveSubGroupConfig) {
-        return [];
-      }
-
-      const group = groups.find((g) => g.key === groupKey);
-      if (!group) {
-        return [];
-      }
-
-      // Group items by sub-group property
-      const { groups: subGroups } = groupDataByProperty(
-        group.items,
-        effectiveSubGroupConfig.subGroupBy,
-        properties,
-        {
-          showAs: effectiveSubGroupConfig.showAs,
-          startWeekOn: effectiveSubGroupConfig.startWeekOn,
-          textShowAs: effectiveSubGroupConfig.textShowAs,
-          numberRange: effectiveSubGroupConfig.numberRange,
-        }
-      );
-
-      return (subGroups[subGroupKey] as TData[]) || [];
-    },
-    [groups, effectiveSubGroupConfig, properties]
-  );
-
-  // Filter sub-groups based on hideEmptyGroups
-  const visibleSubGroups = useMemo(() => {
-    if (!effectiveSubGroupConfig) {
-      return [];
-    }
-
-    const hideEmpty = effectiveSubGroupConfig.hideEmptyGroups ?? true;
-
-    if (!hideEmpty) {
-      return allSubGroupData;
-    }
-
-    // Filter by count to show groups even when items aren't loaded yet
-    return allSubGroupData.filter((subGroup) => subGroup.count > 0);
-  }, [allSubGroupData, effectiveSubGroupConfig]);
-
-  // === Render ===
-
-  // Sub-grouped view: BoardColumnHeaders + Accordion with GroupSection + BoardColumns
-  if (effectiveSubGroupConfig) {
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-    return (
-      <div className={cn("relative max-w-full overflow-clip", className)}>
-        <div className="overflow-x-auto pb-4" ref={scrollContainerRef}>
-          <div className="min-w-fit">
-            {/* Column Headers (sticky) */}
+  // FLAT VIEW: Uses SuspendingGroupContent with __ungrouped__ key
+  // Both headers and content are inside Suspense so they appear together after data loads
+  return (
+    <div className={cn("relative max-w-full overflow-clip", className)}>
+      <div className="overflow-x-auto pb-4" ref={flatScrollContainerRef}>
+        <div className="min-w-fit">
+          <Suspense
+            fallback={
+              <BoardSkeleton
+                cardSize={cardSize}
+                cardsPerColumn={5}
+                columnCount={columns.length}
+                pagination={pagination}
+                propertyTypes={displayProperties.map((p) => p.type)}
+                withImage={Boolean(cardPreview)}
+              />
+            }
+          >
+            {/* Column Headers - inside Suspense to render with cards */}
             <BoardColumnHeaders
               columnHeader={getColumnHeader}
               columnWidth={columnWidth}
-              containerRef={scrollContainerRef}
+              containerRef={flatScrollContainerRef}
               getColumnBgClass={getColumnBgClass}
-              groups={groups}
+              groups={columns}
+              rounded="top"
               stickyHeader={{
                 enabled: true,
                 offset: 57,
               }}
             />
-
-            {/* Sub-group rows using GroupSection */}
-            <Accordion
-              multiple
-              onValueChange={effectiveSubGroupConfig.onExpandedChange}
-              value={effectiveSubGroupConfig.expanded}
-            >
-              {visibleSubGroups.map((subGroup) => (
-                <GroupSection
-                  group={subGroup}
-                  groupByPropertyDef={subGroupByPropertyDef}
-                  key={subGroup.key}
-                  showAggregation={true}
-                  stickyHeader={{
-                    enabled: true,
-                    offset: 93, // 57 (site header + border) + 36 (column headers)
-                  }}
-                >
-                  <BoardColumns
-                    cardContent={getCardContent}
-                    columnWidth={columnWidth}
-                    getColumnBgClass={getColumnBgClass}
-                    getItems={(groupKey) =>
-                      getItemsForCell(groupKey, subGroup.key)
-                    }
-                    groups={groups}
-                    keyExtractor={keyExtractor}
-                    renderFooter={(columnKey) =>
-                      renderFooter?.(subGroup.key, columnKey)
-                    }
-                    rounded="all"
-                  />
-                </GroupSection>
-              ))}
-            </Accordion>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Flat view: BoardColumnHeaders + BoardColumns
-  const flatScrollContainerRef = useRef<HTMLDivElement>(null);
-
-  return (
-    <div className={cn("relative max-w-full overflow-clip", className)}>
-      <div className="overflow-x-auto pb-4" ref={flatScrollContainerRef}>
-        <div className="min-w-fit">
-          {/* Column Headers */}
-          <BoardColumnHeaders
-            columnHeader={getColumnHeader}
-            columnWidth={columnWidth}
-            containerRef={flatScrollContainerRef}
-            getColumnBgClass={getColumnBgClass}
-            groups={groups}
-            rounded="top"
-            stickyHeader={{
-              enabled: true,
-              offset: 57,
-            }}
-          />
-
-          {/* Column Cards */}
-          <BoardColumns
-            cardContent={getCardContent}
-            columnWidth={columnWidth}
-            getColumnBgClass={getColumnBgClass}
-            groups={groups}
-            keyExtractor={keyExtractor}
-            renderFooter={renderFooter}
-            rounded="bottom"
-          />
+            <SuspendingGroupBoardContent<TData, TProperties>
+              columns={columns}
+              columnWidth={columnWidth}
+              getCardContent={getCardContent}
+              getColumnBgClass={getColumnBgClass}
+              groupKey="__ungrouped__"
+              keyExtractor={keyExtractor}
+              pagination={pagination}
+              parsedColumn={parsedColumn}
+              properties={properties}
+              rounded="bottom"
+            />
+          </Suspense>
         </div>
       </div>
     </div>
   );
 }
 
-// Re-export from shared with view-specific aliases
-export type { DataViewContextValue as BoardContextValue } from "../../../lib/providers/data-view-context";
-// biome-ignore lint/performance/noBarrelFile: Re-exporting shared components with view-specific names
-export { useDataViewContext as useBoardContext } from "../../../lib/providers/data-view-context";
-export type { DataViewProviderProps as BoardProviderProps } from "../../../lib/providers/data-view-provider";
-export { DataViewProvider as BoardProvider } from "../../../lib/providers/data-view-provider";
-// Re-export GroupCounts from types for backwards compatibility
-export type { GroupCounts } from "../../../types";
-export {
-  Visibility,
-  type VisibilityProps,
-} from "../../ui/toolbar/visibility";
-// Skeleton
-export { BoardSkeleton } from "./board-skeleton";
+// Static marker for view type detection in DataViewProvider
+BoardView.dataViewType = "board" as const;
+
+// ============================================================================
+// Suspending Group Content Component
+// ============================================================================
+
+interface SuspendingGroupBoardContentProps<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+> {
+  columns: GroupedDataItem<TData>[];
+  columnWidth: string;
+  getCardContent: (item: TData) => React.ReactNode;
+  getColumnBgClass: (columnName: string) => string;
+  groupKey: string;
+  keyExtractor: (item: TData, index: number) => string;
+  pagination?: PaginationMode;
+  parsedColumn?: {
+    property: string;
+    showAs?:
+      | "day"
+      | "week"
+      | "month"
+      | "year"
+      | "relative"
+      | "group"
+      | "option";
+    startWeekOn?: "monday" | "sunday";
+    textShowAs?: "exact" | "alphabetical";
+    numberRange?: { range: [number, number]; step: number };
+  };
+  properties: TProperties;
+  rounded?: "top" | "bottom" | "all";
+}
+
+/**
+ * Internal component that fetches data for a group using Suspense.
+ * Groups the fetched data by column property and renders BoardColumns.
+ */
+function SuspendingGroupBoardContent<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+>({
+  columns,
+  columnWidth,
+  getCardContent,
+  getColumnBgClass,
+  groupKey,
+  keyExtractor,
+  pagination,
+  parsedColumn,
+  properties,
+  rounded = "all",
+}: SuspendingGroupBoardContentProps<TData, TProperties>) {
+  return (
+    <SuspendingGroupContent<TData> groupKey={groupKey}>
+      {(result: UseGroupQueryResult<TData>) => {
+        // Transform data with property definitions
+        const transformedItems = transformData(
+          result.data,
+          properties
+        ) as TData[];
+
+        // Group transformed data by column property
+        const { groups: columnGroups } = parsedColumn?.property
+          ? groupDataByProperty(
+              transformedItems,
+              parsedColumn.property,
+              properties,
+              {
+                showAs: parsedColumn.showAs,
+                startWeekOn: parsedColumn.startWeekOn,
+                textShowAs: parsedColumn.textShowAs,
+                numberRange: parsedColumn.numberRange,
+              }
+            )
+          : { groups: {} as Record<string, TData[]> };
+
+        // Build pagination context from query result
+        const paginationContext: PaginationContext = {
+          displayEnd: result.displayEnd,
+          displayStart: result.displayStart,
+          hasMoreThanMax: false,
+          hasNext: result.hasNext,
+          hasPrev: result.hasPrev,
+          isFetching: result.isFetching,
+          limit: result.limit,
+          onLimitChange: result.onLimitChange,
+          onNext: result.onNext,
+          onPrev: result.onPrev,
+          totalCount: transformedItems.length,
+        };
+
+        return (
+          <BoardColumns
+            cardContent={getCardContent}
+            columnWidth={columnWidth}
+            getColumnBgClass={getColumnBgClass}
+            getItems={(columnKey) => (columnGroups[columnKey] as TData[]) ?? []}
+            groups={columns}
+            keyExtractor={keyExtractor}
+            renderFooter={
+              pagination
+                ? () => renderPagination(pagination, paginationContext)
+                : undefined
+            }
+            rounded={rounded}
+          />
+        );
+      }}
+    </SuspendingGroupContent>
+  );
+}

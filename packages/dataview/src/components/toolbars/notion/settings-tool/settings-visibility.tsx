@@ -1,8 +1,7 @@
 "use client";
 
 import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { useDataViewContext } from "../../../../lib/providers";
-import type { PropertyMeta } from "../../../../types";
+import { useToolbarContext } from "../../../../lib/providers/toolbar-context";
 import {
   Command,
   CommandEmpty,
@@ -12,38 +11,28 @@ import {
   CommandList,
 } from "../../../ui/command";
 
+interface SettingsVisibilityProps {
+  /** Property IDs to exclude from the list */
+  excludedPropertyIds?: string[];
+}
+
 /**
  * Property visibility section for settings panel.
  *
- * Shows all available properties with toggle to show/hide.
+ * Reads properties and visibility state from ToolbarContext.
  */
-function SettingsVisibility() {
-  const {
-    propertyMetas,
-    propertyVisibility,
-    excludedPropertyIds,
-    setPropertyVisibility,
-  } = useDataViewContext();
+function SettingsVisibility({
+  excludedPropertyIds = [],
+}: SettingsVisibilityProps) {
+  const { properties, propertyVisibility, toggleProperty } =
+    useToolbarContext();
 
   // Filter out hidden and excluded properties
-  const availableProperties = propertyMetas.filter(
+  const availableProperties = properties.filter(
     (property) =>
       property.hidden !== true &&
-      !excludedPropertyIds.some((id) => id === property.id)
+      !excludedPropertyIds.includes(String(property.id))
   );
-
-  const toggleProperty = (property: PropertyMeta) => {
-    const propertyId = String(property.id);
-    const isVisible = propertyVisibility.includes(propertyId);
-
-    if (isVisible) {
-      setPropertyVisibility(
-        propertyVisibility.filter((id) => id !== propertyId)
-      );
-    } else {
-      setPropertyVisibility([...propertyVisibility, propertyId]);
-    }
-  };
 
   return (
     <Command className="p-0">
@@ -52,11 +41,12 @@ function SettingsVisibility() {
       <CommandList>
         <CommandGroup>
           {availableProperties.map((property) => {
-            const isVisible = propertyVisibility.includes(String(property.id));
+            const propertyId = String(property.id);
+            const isVisible = propertyVisibility.includes(propertyId);
             return (
               <CommandItem
-                key={String(property.id)}
-                onSelect={() => toggleProperty(property)}
+                key={propertyId}
+                onSelect={() => toggleProperty(propertyId)}
                 value={String(property.label ?? property.id)}
               >
                 <span className="flex-1 truncate">
@@ -72,4 +62,4 @@ function SettingsVisibility() {
   );
 }
 
-export { SettingsVisibility };
+export { SettingsVisibility, type SettingsVisibilityProps };

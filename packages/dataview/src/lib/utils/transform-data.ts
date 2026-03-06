@@ -10,7 +10,7 @@ export type TransformedData = Record<string, unknown>;
  * This reduces memory footprint and improves React render performance.
  *
  * For each property:
- * - Formula properties: Set to null (rendered in PropertyDisplay with full context)
+ * - Formula properties: Set to null (rendered in DataCell with full context)
  * - Other properties: Auto-maps item[property.id] to transformed[property.id]
  *
  * All other fields from raw data are dropped.
