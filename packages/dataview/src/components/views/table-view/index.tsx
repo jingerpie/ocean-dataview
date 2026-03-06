@@ -285,7 +285,7 @@ export function TableView<
                     fallback={
                       <TableSkeleton
                         propertyTypes={displayProperties.map((p) => p.type)}
-                        rowCount={limit ?? 5}
+                        rowCount={limit}
                         withBulkActions={enableRowSelection}
                       />
                     }
@@ -346,7 +346,7 @@ export function TableView<
           <TableSkeleton
             pagination={pagination}
             propertyTypes={displayProperties.map((p) => p.type)}
-            rowCount={limit ?? 10}
+            rowCount={limit}
             withBulkActions={enableRowSelection}
           />
         }

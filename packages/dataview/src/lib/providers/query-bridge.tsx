@@ -907,6 +907,7 @@ function PageQueryBridgeInner<
         groupKeys={groupKeys}
         hasNextGroupPage={hasNextGroupPage}
         isFetchingNextGroupPage={isFetchingNextGroupPage}
+        limit={limit}
         onColumnChange={setColumn}
         onExpandedGroupsChange={setExpandedGroups}
         onLoadMoreGroups={onLoadMoreGroups}
@@ -1478,6 +1479,7 @@ function InfiniteQueryBridgeInner<
         groupKeys={groupKeys}
         hasNextGroupPage={hasNextGroupPage}
         isFetchingNextGroupPage={isFetchingNextGroupPage}
+        limit={limit}
         onColumnChange={setColumn}
         onExpandedGroupsChange={setExpandedGroups}
         onLoadMoreGroups={onLoadMoreGroups}

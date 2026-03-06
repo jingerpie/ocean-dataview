@@ -144,6 +144,7 @@ export function BoardView<
     hasNextGroupPage,
     isFetchingNextGroupPage,
     onLoadMoreGroups,
+    limit,
   } = useDataViewContext<TData, TProperties>();
 
   // Get sort order from URL params (managed by useGroupParams)
@@ -405,7 +406,7 @@ export function BoardView<
       return (
         <BoardSkeleton
           cardSize={cardSize}
-          cardsPerColumn={5}
+          cardsPerColumn={limit}
           columnCount={columns.length || 3}
           pagination={pagination}
           propertyTypes={displayProperties.map((p) => p.type)}
@@ -456,7 +457,7 @@ export function BoardView<
                         fallback={
                           <BoardSkeleton
                             cardSize={cardSize}
-                            cardsPerColumn={3}
+                            cardsPerColumn={limit}
                             columnCount={columns.length}
                             propertyTypes={displayProperties.map((p) => p.type)}
                             withImage={Boolean(cardPreview)}
@@ -530,7 +531,7 @@ export function BoardView<
             fallback={
               <BoardSkeleton
                 cardSize={cardSize}
-                cardsPerColumn={5}
+                cardsPerColumn={limit}
                 columnCount={columns.length}
                 pagination={pagination}
                 propertyTypes={displayProperties.map((p) => p.type)}

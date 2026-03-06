@@ -1,6 +1,7 @@
 "use client";
 
 import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
+import { parseAsInteger, useQueryState } from "nuqs";
 import {
   Children,
   isValidElement,
@@ -269,6 +270,9 @@ export function DataViewProvider<
   // Get actual group state from URL (for skeleton selection)
   const { isGrouped } = useGroupParams();
 
+  // Get limit from URL (for skeleton row count)
+  const [urlLimit] = useQueryState("limit", parseAsInteger);
+
   // Split children into toolbar (non-suspending) and content (may suspend)
   const { toolbarChildren, contentChildren } = splitChildren(children);
 
@@ -292,8 +296,8 @@ export function DataViewProvider<
     // Detect view type from children
     const viewType = detectViewType(contentChildren);
 
-    // Calculate skeleton values from known config
-    const limit = controllerProps.defaults?.limit ?? 10;
+    // Calculate skeleton values from URL or config
+    const limit = urlLimit ?? controllerProps.defaults?.limit ?? 10;
     const visibleProperties = properties.filter((p) => !p.hidden);
     const propertyTypes = visibleProperties.map((p) => p.type);
 
@@ -347,8 +351,8 @@ export function DataViewProvider<
     // Detect view type from children
     const viewType = detectViewType(contentChildren);
 
-    // Calculate skeleton values from known config
-    const limit = controllerProps.defaults?.limit ?? 10;
+    // Calculate skeleton values from URL or config
+    const limit = urlLimit ?? controllerProps.defaults?.limit ?? 10;
     const visibleProperties = properties.filter((p) => !p.hidden);
     const propertyTypes = visibleProperties.map((p) => p.type);
 

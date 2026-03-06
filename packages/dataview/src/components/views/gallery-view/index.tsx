@@ -174,7 +174,7 @@ export function GalleryView<
                   <Suspense
                     fallback={
                       <GallerySkeleton
-                        cardCount={limit ?? 6}
+                        cardCount={limit}
                         cardSize={cardSize}
                         propertyTypes={displayProperties.map((p) => p.type)}
                         withImage={Boolean(cardPreview)}
@@ -233,7 +233,7 @@ export function GalleryView<
       <Suspense
         fallback={
           <GallerySkeleton
-            cardCount={limit ?? 10}
+            cardCount={limit}
             cardSize={cardSize}
             pagination={pagination}
             propertyTypes={displayProperties.map((p) => p.type)}

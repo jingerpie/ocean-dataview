@@ -135,7 +135,7 @@ export function ListView<
                     fallback={
                       <ListSkeleton
                         propertyTypes={displayProperties.map((p) => p.type)}
-                        rowCount={limit ?? 5}
+                        rowCount={limit}
                       />
                     }
                   >
@@ -181,7 +181,7 @@ export function ListView<
           <ListSkeleton
             pagination={pagination}
             propertyTypes={displayProperties.map((p) => p.type)}
-            rowCount={limit ?? 10}
+            rowCount={limit}
           />
         }
       >
