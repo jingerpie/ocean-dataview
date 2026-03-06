@@ -1,6 +1,11 @@
 "use client";
 
-import { useGroupParams } from "@sparkyidea/dataview/hooks";
+import {
+  useFilterParams,
+  useGroupParams,
+  useSortParams,
+} from "@sparkyidea/dataview/hooks";
+import type { SortQuery, WhereNode } from "@sparkyidea/shared/types";
 import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
 import { Label } from "@sparkyidea/ui/components/label";
 import {
@@ -11,12 +16,17 @@ import {
   SelectValue,
 } from "@sparkyidea/ui/components/select";
 import { Tabs, TabsList, TabsTrigger } from "@sparkyidea/ui/components/tabs";
+import { useState } from "react";
 
 export interface TabOption {
+  /** Filter to apply when selected. undefined = no change, null = clear */
+  filter?: WhereNode[] | null;
   /** Group config to apply when selected. null = flat (no grouping) */
-  group: GroupConfigInput | null;
+  group?: GroupConfigInput | null;
   /** Display label for the tab */
   label: string;
+  /** Sort to apply when selected. undefined = no change, null = clear */
+  sort?: SortQuery[] | null;
 }
 
 interface DataViewTabProps {
@@ -27,39 +37,47 @@ interface DataViewTabProps {
 }
 
 /**
- * Tab component for switching between flat and grouped views.
+ * Tab component for switching between views with different filter, sort, and group settings.
  *
  * Uses URL state via nuqs to persist the view mode.
  * Shows tabs on desktop, select dropdown on mobile.
  *
  * @example
  * ```tsx
+ * // Group tabs
  * <DataViewTab
  *   options={[
  *     { label: "All", group: null },
  *     { label: "By Category", group: { bySelect: { property: "category" } } },
- *     { label: "By Status", group: { byStatus: { property: "availability" } } },
+ *   ]}
+ * />
+ *
+ * // Filter tabs
+ * <DataViewTab
+ *   options={[
+ *     { label: "All", filter: null },
+ *     { label: "In Stock", filter: [{ property: "availability", condition: "eq", value: "In stock" }] },
+ *   ]}
+ * />
+ *
+ * // Combined filter + sort tabs
+ * <DataViewTab
+ *   options={[
+ *     { label: "All", filter: null, sort: null },
+ *     { label: "Premium", filter: [{ property: "price", condition: "gte", value: 100 }], sort: [{ property: "price", direction: "desc" }] },
  *   ]}
  * />
  * ```
  */
 export function DataViewTab({ options, className }: DataViewTabProps) {
-  const { group, setGroup, clearGroup } = useGroupParams();
+  const { setGroup, clearGroup } = useGroupParams();
+  const { setFilter, clearFilter } = useFilterParams();
+  const { setSort, clearSort } = useSortParams();
 
-  // Find current selected option based on group state
-  const selectedOption = options.find((opt) => {
-    if (opt.group === null && group === null) {
-      return true;
-    }
-    if (opt.group === null || group === null) {
-      return false;
-    }
-    // Compare group configs by checking the property
-    return getGroupProperty(opt.group) === getGroupProperty(group);
-  });
-
-  const defaultOption = options[0];
-  const selectedValue = selectedOption?.label ?? defaultOption?.label ?? "";
+  // Track selected tab by label (defaults to first option)
+  const [selectedValue, setSelectedValue] = useState(
+    () => options[0]?.label ?? ""
+  );
 
   const handleValueChange = (label: string | null) => {
     if (!label) {
@@ -70,10 +88,29 @@ export function DataViewTab({ options, className }: DataViewTabProps) {
       return;
     }
 
-    if (option.group === null) {
-      clearGroup();
-    } else {
+    // Update selected tab
+    setSelectedValue(label);
+
+    // Set exact state - clear if undefined or null, otherwise set value
+    // Group
+    if (option.group) {
       setGroup(option.group);
+    } else {
+      clearGroup();
+    }
+
+    // Filter
+    if (option.filter) {
+      setFilter(option.filter);
+    } else {
+      clearFilter();
+    }
+
+    // Sort
+    if (option.sort) {
+      setSort(option.sort);
+    } else {
+      clearSort();
     }
   };
 
@@ -110,35 +147,4 @@ export function DataViewTab({ options, className }: DataViewTabProps) {
       </TabsList>
     </Tabs>
   );
-}
-
-/**
- * Extract property from group config.
- */
-function getGroupProperty(group: GroupConfigInput | null): string | null {
-  if (!group) {
-    return null;
-  }
-  if ("bySelect" in group) {
-    return group.bySelect.property;
-  }
-  if ("byStatus" in group) {
-    return group.byStatus.property;
-  }
-  if ("byDate" in group) {
-    return group.byDate.property;
-  }
-  if ("byCheckbox" in group) {
-    return group.byCheckbox.property;
-  }
-  if ("byMultiSelect" in group) {
-    return group.byMultiSelect.property;
-  }
-  if ("byText" in group) {
-    return group.byText.property;
-  }
-  if ("byNumber" in group) {
-    return group.byNumber.property;
-  }
-  return null;
 }
