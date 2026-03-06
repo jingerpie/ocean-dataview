@@ -23,7 +23,7 @@ export function LoadMorePagination({
   }
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center gap-2 px-2 py-3">
       {error && <p className="text-destructive text-sm">Failed to load more</p>}
       <Button
         className="gap-2 font-normal text-muted-foreground hover:text-foreground"

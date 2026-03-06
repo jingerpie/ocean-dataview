@@ -108,7 +108,7 @@ export function BoardColumns<TData>({
         return (
           <div
             className={cn(
-              "flex min-h-50 shrink-0 flex-col gap-4 p-2 transition-colors",
+              "flex min-h-50 shrink-0 flex-col p-2 transition-colors",
               roundedClass,
               bgClass
             )}

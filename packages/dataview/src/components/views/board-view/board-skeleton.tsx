@@ -124,7 +124,7 @@ export function BoardSkeleton({
         {Array.from({ length: columnCount }).map((_, colIndex) => (
           <div
             className={cn(
-              "flex min-h-50 shrink-0 flex-col gap-4 rounded-b-lg bg-muted/40 p-2",
+              "flex min-h-50 shrink-0 flex-col rounded-b-lg bg-muted/40 p-2",
               columnWidth
             )}
             key={colIndex}

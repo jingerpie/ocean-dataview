@@ -7,7 +7,7 @@ import { useDisplayProperties, useViewSetup } from "../../../hooks";
 import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import { cn, transformData } from "../../../lib/utils";
+import { transformData } from "../../../lib/utils";
 import type { DataViewProperty, PaginationContext } from "../../../types";
 import { Accordion } from "../../ui/accordion";
 import { GroupSection } from "../../ui/group-section";
@@ -20,11 +20,6 @@ import { ListRow } from "./list-row";
 import { ListSkeleton } from "./list-skeleton";
 
 export interface ListViewProps<TData> {
-  /**
-   * Additional className
-   */
-  className?: string;
-
   /**
    * Item click handler
    */
@@ -51,7 +46,7 @@ export function ListView<
   TData,
   TProperties extends
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
->({ className, onItemClick, pagination }: ListViewProps<TData>) {
+>({ onItemClick, pagination }: ListViewProps<TData>) {
   // Get data and properties from context
   const {
     data,
@@ -113,7 +108,7 @@ export function ListView<
   // GROUPED VIEW with Per-Group Suspense
   if (group && groupKeys && groupKeys.length > 0) {
     return (
-      <div className={cn("flex flex-col gap-4", className)}>
+      <div className="flex flex-col">
         <Accordion
           multiple
           onValueChange={onExpandedGroupsChange}
@@ -175,47 +170,45 @@ export function ListView<
 
   // FLAT VIEW: Uses SuspendingGroupContent with __ungrouped__ key
   return (
-    <div className={cn("flex flex-col gap-4", className)}>
-      <Suspense
-        fallback={
-          <ListSkeleton
-            pagination={pagination}
-            propertyTypes={displayProperties.map((p) => p.type)}
-            rowCount={limit ?? ListView.defaultLimit}
-          />
-        }
-      >
-        {useInfinitePagination ? (
-          <SuspendingInfiniteListContent<TData, TProperties>
-            displayProperties={displayProperties}
-            groupItem={{
-              key: "__ungrouped__",
-              items: [],
-              count: 0,
-              displayCount: "0",
-              sortValue: "",
-            }}
-            onItemClick={onItemClick}
-            pagination={pagination}
-            properties={properties}
-          />
-        ) : (
-          <SuspendingPageListContent<TData, TProperties>
-            displayProperties={displayProperties}
-            groupItem={{
-              key: "__ungrouped__",
-              items: [],
-              count: 0,
-              displayCount: "0",
-              sortValue: "",
-            }}
-            onItemClick={onItemClick}
-            pagination={pagination}
-            properties={properties}
-          />
-        )}
-      </Suspense>
-    </div>
+    <Suspense
+      fallback={
+        <ListSkeleton
+          pagination={pagination}
+          propertyTypes={displayProperties.map((p) => p.type)}
+          rowCount={limit ?? ListView.defaultLimit}
+        />
+      }
+    >
+      {useInfinitePagination ? (
+        <SuspendingInfiniteListContent<TData, TProperties>
+          displayProperties={displayProperties}
+          groupItem={{
+            key: "__ungrouped__",
+            items: [],
+            count: 0,
+            displayCount: "0",
+            sortValue: "",
+          }}
+          onItemClick={onItemClick}
+          pagination={pagination}
+          properties={properties}
+        />
+      ) : (
+        <SuspendingPageListContent<TData, TProperties>
+          displayProperties={displayProperties}
+          groupItem={{
+            key: "__ungrouped__",
+            items: [],
+            count: 0,
+            displayCount: "0",
+            sortValue: "",
+          }}
+          onItemClick={onItemClick}
+          pagination={pagination}
+          properties={properties}
+        />
+      )}
+    </Suspense>
   );
 }
 

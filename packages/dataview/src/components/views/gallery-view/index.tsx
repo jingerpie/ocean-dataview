@@ -33,11 +33,6 @@ export interface GalleryViewProps<TData> {
   cardSize?: "small" | "medium" | "large";
 
   /**
-   * Additional className
-   */
-  className?: string;
-
-  /**
    * Whether to fit media to card (object-cover vs object-contain)
    * @default true
    */
@@ -84,7 +79,6 @@ export function GalleryView<
 >({
   cardPreview,
   cardSize = "medium",
-  className,
   fitMedia = true,
   onCardClick,
   pagination,
@@ -153,7 +147,7 @@ export function GalleryView<
   // GROUPED VIEW with Per-Group Suspense
   if (group && groupKeys && groupKeys.length > 0) {
     return (
-      <div className={cn("flex flex-col gap-4", className)}>
+      <div className="flex flex-col">
         <Accordion
           multiple
           onValueChange={onExpandedGroupsChange}
@@ -229,61 +223,59 @@ export function GalleryView<
 
   // FLAT VIEW: Uses SuspendingGroupContent with __ungrouped__ key
   return (
-    <div className={cn("flex flex-col gap-4", className)}>
-      <Suspense
-        fallback={
-          <GallerySkeleton
-            cardCount={limit ?? GalleryView.defaultLimit}
-            cardSize={cardSize}
-            pagination={pagination}
-            propertyTypes={displayProperties.map((p) => p.type)}
-            withImage={Boolean(cardPreview)}
-          />
-        }
-      >
-        {useInfinitePagination ? (
-          <SuspendingInfiniteGalleryContent<TData, TProperties>
-            cardPreview={cardPreview}
-            cols={cols}
-            displayProperties={displayProperties}
-            fitMedia={fitMedia}
-            groupItem={{
-              key: "__ungrouped__",
-              items: [],
-              count: 0,
-              displayCount: "0",
-              sortValue: "",
-            }}
-            imageHeight={imageHeight}
-            onCardClick={onCardClick}
-            pagination={pagination}
-            properties={properties}
-            showPropertyNames={showPropertyNames}
-            wrapAllProperties={wrapAllProperties}
-          />
-        ) : (
-          <SuspendingPageGalleryContent<TData, TProperties>
-            cardPreview={cardPreview}
-            cols={cols}
-            displayProperties={displayProperties}
-            fitMedia={fitMedia}
-            groupItem={{
-              key: "__ungrouped__",
-              items: [],
-              count: 0,
-              displayCount: "0",
-              sortValue: "",
-            }}
-            imageHeight={imageHeight}
-            onCardClick={onCardClick}
-            pagination={pagination}
-            properties={properties}
-            showPropertyNames={showPropertyNames}
-            wrapAllProperties={wrapAllProperties}
-          />
-        )}
-      </Suspense>
-    </div>
+    <Suspense
+      fallback={
+        <GallerySkeleton
+          cardCount={limit ?? GalleryView.defaultLimit}
+          cardSize={cardSize}
+          pagination={pagination}
+          propertyTypes={displayProperties.map((p) => p.type)}
+          withImage={Boolean(cardPreview)}
+        />
+      }
+    >
+      {useInfinitePagination ? (
+        <SuspendingInfiniteGalleryContent<TData, TProperties>
+          cardPreview={cardPreview}
+          cols={cols}
+          displayProperties={displayProperties}
+          fitMedia={fitMedia}
+          groupItem={{
+            key: "__ungrouped__",
+            items: [],
+            count: 0,
+            displayCount: "0",
+            sortValue: "",
+          }}
+          imageHeight={imageHeight}
+          onCardClick={onCardClick}
+          pagination={pagination}
+          properties={properties}
+          showPropertyNames={showPropertyNames}
+          wrapAllProperties={wrapAllProperties}
+        />
+      ) : (
+        <SuspendingPageGalleryContent<TData, TProperties>
+          cardPreview={cardPreview}
+          cols={cols}
+          displayProperties={displayProperties}
+          fitMedia={fitMedia}
+          groupItem={{
+            key: "__ungrouped__",
+            items: [],
+            count: 0,
+            displayCount: "0",
+            sortValue: "",
+          }}
+          imageHeight={imageHeight}
+          onCardClick={onCardClick}
+          pagination={pagination}
+          properties={properties}
+          showPropertyNames={showPropertyNames}
+          wrapAllProperties={wrapAllProperties}
+        />
+      )}
+    </Suspense>
   );
 }
 

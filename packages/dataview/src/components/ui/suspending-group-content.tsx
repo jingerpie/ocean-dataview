@@ -35,7 +35,7 @@ export function SuspendingGroupContent<TData>({
   groupKey,
 }: SuspendingGroupContentProps<TData>) {
   const result = useGroupQuery<TData>({ groupKey });
-  return <div className="flex flex-col gap-2">{children(result)}</div>;
+  return children(result);
 }
 
 // ============================================================================
@@ -63,5 +63,5 @@ export function SuspendingInfiniteGroupContent<TData>({
   groupKey,
 }: SuspendingInfiniteGroupContentProps<TData>) {
   const result = useInfiniteGroupQuery<TData>({ groupKey });
-  return <div className="flex flex-col gap-4">{children(result)}</div>;
+  return children(result);
 }

@@ -8,7 +8,6 @@ import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import {
-  cn,
   getBadgeBgTransparentClass,
   groupByProperty as groupDataByProperty,
   parseGroupByConfig,
@@ -49,11 +48,6 @@ export interface BoardViewProps<TData> {
    * @default "medium"
    */
   cardSize?: "small" | "medium" | "large";
-
-  /**
-   * Additional className
-   */
-  className?: string;
 
   /**
    * Color column backgrounds based on property option colors
@@ -118,7 +112,6 @@ export function BoardView<
 >({
   cardPreview,
   cardSize = "medium",
-  className,
   colorColumns = false,
   counts: _counts,
   fitMedia = true,
@@ -415,7 +408,7 @@ export function BoardView<
       );
     }
     return (
-      <div className={cn("relative max-w-full overflow-clip", className)}>
+      <div className="relative max-w-full overflow-clip">
         <div className="overflow-x-auto pb-4" ref={groupedScrollContainerRef}>
           <div className="min-w-fit">
             {/* Column Headers (sticky) */}
@@ -524,7 +517,7 @@ export function BoardView<
   // FLAT VIEW: Uses SuspendingGroupContent with __ungrouped__ key
   // Both headers and content are inside Suspense so they appear together after data loads
   return (
-    <div className={cn("relative max-w-full overflow-clip", className)}>
+    <div className="relative max-w-full overflow-clip">
       <div className="overflow-x-auto pb-4" ref={flatScrollContainerRef}>
         <div className="min-w-fit">
           <Suspense

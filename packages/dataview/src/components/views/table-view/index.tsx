@@ -19,7 +19,7 @@ import { useDisplayProperties, useViewSetup } from "../../../hooks";
 import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import { cn, transformData } from "../../../lib/utils";
+import { transformData } from "../../../lib/utils";
 import type {
   BulkAction,
   DataViewProperty,
@@ -52,11 +52,6 @@ export interface TableViewProps<TData> {
    * For row-level actions, use button property type instead.
    */
   bulkActions?: BulkAction<TData>[];
-
-  /**
-   * Additional className
-   */
-  className?: string;
 
   /**
    * Row click handler
@@ -99,7 +94,6 @@ export function TableView<
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
   bulkActions,
-  className,
   onRowClick,
   pagination,
   showVerticalLines = true,
@@ -263,7 +257,7 @@ export function TableView<
   // GROUPED VIEW with Per-Group Suspense
   if (group && groupKeys && groupKeys.length > 0) {
     return (
-      <div className={cn("flex flex-col gap-4", className)}>
+      <div className="flex flex-col">
         <Accordion
           multiple
           onValueChange={onExpandedGroupsChange}
@@ -340,62 +334,60 @@ export function TableView<
 
   // FLAT VIEW: Uses SuspendingGroupContent with __ungrouped__ key
   return (
-    <div className={cn("flex flex-col gap-4", className)}>
-      <Suspense
-        fallback={
-          <TableSkeleton
-            pagination={pagination}
-            propertyTypes={displayProperties.map((p) => p.type)}
-            rowCount={limit ?? TableView.defaultLimit}
-            withBulkActions={enableRowSelection}
-          />
-        }
-      >
-        {useInfinitePagination ? (
-          <SuspendingInfiniteTableContent<TData, TProperties>
-            actionBar={actionBar}
-            columns={columns}
-            enableRowSelection={enableRowSelection}
-            groupItem={{
-              key: "__ungrouped__",
-              items: [],
-              count: 0,
-              displayCount: "0",
-              sortValue: "",
-            }}
-            headerOffset={57}
-            onRowClick={onRowClick}
-            onRowSelectionChange={setRowSelection}
-            pagination={pagination}
-            properties={properties}
-            rowSelection={rowSelection}
-            showVerticalLines={showVerticalLines}
-            wrapAllColumns={wrapAllColumns}
-          />
-        ) : (
-          <SuspendingPageTableContent<TData, TProperties>
-            actionBar={actionBar}
-            columns={columns}
-            enableRowSelection={enableRowSelection}
-            groupItem={{
-              key: "__ungrouped__",
-              items: [],
-              count: 0,
-              displayCount: "0",
-              sortValue: "",
-            }}
-            headerOffset={57}
-            onRowClick={onRowClick}
-            onRowSelectionChange={setRowSelection}
-            pagination={pagination}
-            properties={properties}
-            rowSelection={rowSelection}
-            showVerticalLines={showVerticalLines}
-            wrapAllColumns={wrapAllColumns}
-          />
-        )}
-      </Suspense>
-    </div>
+    <Suspense
+      fallback={
+        <TableSkeleton
+          pagination={pagination}
+          propertyTypes={displayProperties.map((p) => p.type)}
+          rowCount={limit ?? TableView.defaultLimit}
+          withBulkActions={enableRowSelection}
+        />
+      }
+    >
+      {useInfinitePagination ? (
+        <SuspendingInfiniteTableContent<TData, TProperties>
+          actionBar={actionBar}
+          columns={columns}
+          enableRowSelection={enableRowSelection}
+          groupItem={{
+            key: "__ungrouped__",
+            items: [],
+            count: 0,
+            displayCount: "0",
+            sortValue: "",
+          }}
+          headerOffset={57}
+          onRowClick={onRowClick}
+          onRowSelectionChange={setRowSelection}
+          pagination={pagination}
+          properties={properties}
+          rowSelection={rowSelection}
+          showVerticalLines={showVerticalLines}
+          wrapAllColumns={wrapAllColumns}
+        />
+      ) : (
+        <SuspendingPageTableContent<TData, TProperties>
+          actionBar={actionBar}
+          columns={columns}
+          enableRowSelection={enableRowSelection}
+          groupItem={{
+            key: "__ungrouped__",
+            items: [],
+            count: 0,
+            displayCount: "0",
+            sortValue: "",
+          }}
+          headerOffset={57}
+          onRowClick={onRowClick}
+          onRowSelectionChange={setRowSelection}
+          pagination={pagination}
+          properties={properties}
+          rowSelection={rowSelection}
+          showVerticalLines={showVerticalLines}
+          wrapAllColumns={wrapAllColumns}
+        />
+      )}
+    </Suspense>
   );
 }
 
