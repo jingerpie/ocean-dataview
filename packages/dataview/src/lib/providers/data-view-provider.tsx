@@ -378,7 +378,7 @@ export function DataViewProvider<
       group={directProps.group}
       properties={propertyMetas}
     >
-      <div className={cn("flex flex-col gap-2", className)}>
+      <div className={cn("flex flex-col", className)}>
         {toolbarChildren}
         <DataViewProviderCore<TData, TProperties> {...directProps}>
           {contentChildren}
@@ -402,7 +402,6 @@ export function DataViewProviderCore<
     readonly DataViewProperty<TData>[] = readonly DataViewProperty<TData>[],
 >({
   children,
-  className,
   column,
   columnCounts,
   counts,
@@ -497,7 +496,7 @@ export function DataViewProviderCore<
 
   return (
     <DataViewContext.Provider value={contextValue}>
-      <div className={cn("flex flex-col gap-2", className)}>{children}</div>
+      {children}
     </DataViewContext.Provider>
   );
 }
