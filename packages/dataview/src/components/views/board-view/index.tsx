@@ -380,24 +380,28 @@ export function BoardView<
     );
   }
 
-  // Empty state
+  // Determine view mode
   const hasColumns = columns.length > 0;
   const hasRowGroups = rowGroups.length > 0;
   const isGroupedBoard = Boolean(groupConfig);
-  const isEmpty = isGroupedBoard ? !hasRowGroups : !hasColumns;
-
-  if (isEmpty) {
-    return (
-      <EmptyState
-        description="There are no items to display"
-        icon={Columns3}
-        title="No items available"
-      />
-    );
-  }
 
   // GROUPED VIEW: Accordion rows with columns inside each
+  // Check groupKeys from context (populated by SuspendingGroupKeys in QueryBridge)
+  // Note: Headers render from context counts (not suspended), each row has its own Suspense
   if (isGroupedBoard && groupKeys && groupKeys.length > 0) {
+    // Show skeleton while group counts are loading
+    if (!hasRowGroups) {
+      return (
+        <BoardSkeleton
+          cardSize={cardSize}
+          cardsPerColumn={5}
+          columnCount={columns.length || 3}
+          pagination={pagination}
+          propertyTypes={displayProperties.map((p) => p.type)}
+          withImage={Boolean(cardPreview)}
+        />
+      );
+    }
     return (
       <div className={cn("relative max-w-full overflow-clip", className)}>
         <div className="overflow-x-auto pb-4" ref={groupedScrollContainerRef}>
@@ -443,6 +447,7 @@ export function BoardView<
                             cardSize={cardSize}
                             cardsPerColumn={3}
                             columnCount={columns.length}
+                            propertyTypes={displayProperties.map((p) => p.type)}
                             withImage={Boolean(cardPreview)}
                           />
                         }
@@ -471,36 +476,48 @@ export function BoardView<
     );
   }
 
+  // FLAT VIEW: Empty state when no columns
+  if (!hasColumns) {
+    return (
+      <EmptyState
+        description="There are no items to display"
+        icon={Columns3}
+        title="No items available"
+      />
+    );
+  }
+
   // FLAT VIEW: Uses SuspendingGroupContent with __ungrouped__ key
+  // Both headers and content are inside Suspense so they appear together after data loads
   return (
     <div className={cn("relative max-w-full overflow-clip", className)}>
       <div className="overflow-x-auto pb-4" ref={flatScrollContainerRef}>
         <div className="min-w-fit">
-          {/* Column Headers */}
-          <BoardColumnHeaders
-            columnHeader={getColumnHeader}
-            columnWidth={columnWidth}
-            containerRef={flatScrollContainerRef}
-            getColumnBgClass={getColumnBgClass}
-            groups={columns}
-            rounded="top"
-            stickyHeader={{
-              enabled: true,
-              offset: 57,
-            }}
-          />
-
-          {/* Column Cards via Suspense */}
           <Suspense
             fallback={
               <BoardSkeleton
                 cardSize={cardSize}
                 cardsPerColumn={5}
                 columnCount={columns.length}
+                pagination={pagination}
+                propertyTypes={displayProperties.map((p) => p.type)}
                 withImage={Boolean(cardPreview)}
               />
             }
           >
+            {/* Column Headers - inside Suspense to render with cards */}
+            <BoardColumnHeaders
+              columnHeader={getColumnHeader}
+              columnWidth={columnWidth}
+              containerRef={flatScrollContainerRef}
+              getColumnBgClass={getColumnBgClass}
+              groups={columns}
+              rounded="top"
+              stickyHeader={{
+                enabled: true,
+                offset: 57,
+              }}
+            />
             <SuspendingGroupBoardContent<TData, TProperties>
               columns={columns}
               columnWidth={columnWidth}
@@ -519,6 +536,9 @@ export function BoardView<
     </div>
   );
 }
+
+// Static marker for view type detection in DataViewProvider
+BoardView.dataViewType = "board" as const;
 
 // ============================================================================
 // Suspending Group Content Component
@@ -631,18 +651,3 @@ function SuspendingGroupBoardContent<
     </SuspendingGroupContent>
   );
 }
-
-// Re-export from shared with view-specific aliases
-export type { DataViewContextValue as BoardContextValue } from "../../../lib/providers/data-view-context";
-// biome-ignore lint/performance/noBarrelFile: Re-exporting shared components with view-specific names
-export { useDataViewContext as useBoardContext } from "../../../lib/providers/data-view-context";
-export type { DataViewProviderProps as BoardProviderProps } from "../../../lib/providers/data-view-provider";
-export { DataViewProvider as BoardProvider } from "../../../lib/providers/data-view-provider";
-// Re-export GroupCounts from types for backwards compatibility
-export type { GroupCounts } from "../../../types";
-export {
-  Visibility,
-  type VisibilityProps,
-} from "../../ui/toolbar/visibility";
-// Skeleton
-export { BoardSkeleton } from "./board-skeleton";

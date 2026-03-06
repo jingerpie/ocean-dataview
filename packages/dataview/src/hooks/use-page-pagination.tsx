@@ -38,9 +38,15 @@ export type {
 export interface UsePagePaginationOptions<
   TQueryOptions extends BaseQueryOptions = BaseQueryOptions,
 > {
+  /** Factory for fetching column counts (board-specific) */
+  columnQueryOptionsFactory?: (
+    columnConfig: GroupConfigInput
+  ) => BaseQueryOptions;
+  /** Factory for fetching group counts (accordion rows) */
   groupQueryOptionsFactory?: (
     groupConfig: GroupConfigInput
   ) => BaseQueryOptions;
+  /** Factory for fetching data items */
   queryOptionsFactory: PageQueryOptionsFactory<TQueryOptions>;
 }
 
@@ -53,7 +59,11 @@ export function usePagePagination<
 >(
   options: UsePagePaginationOptions<TQueryOptions>
 ): UsePagePaginationResult<TQueryOptions> {
-  const { groupQueryOptionsFactory, queryOptionsFactory } = options;
+  const {
+    columnQueryOptionsFactory,
+    groupQueryOptionsFactory,
+    queryOptionsFactory,
+  } = options;
 
   const factoryRef = useRef(queryOptionsFactory);
   factoryRef.current = queryOptionsFactory;
@@ -62,6 +72,25 @@ export function usePagePagination<
     []
   );
 
+  // Stable column factory (board-specific)
+  const columnFactoryRef = useRef(columnQueryOptionsFactory);
+  columnFactoryRef.current = columnQueryOptionsFactory;
+  const stableColumnFactory = useMemo<
+    ((columnConfig: GroupConfigInput) => BaseQueryOptions) | undefined
+  >(() => {
+    if (!columnQueryOptionsFactory) {
+      return undefined;
+    }
+    return (columnConfig) => {
+      const factory = columnFactoryRef.current;
+      if (!factory) {
+        throw new Error("columnQueryOptionsFactory ref is unexpectedly null");
+      }
+      return factory(columnConfig);
+    };
+  }, [Boolean(columnQueryOptionsFactory)]);
+
+  // Stable group factory (accordion rows)
   const groupFactoryRef = useRef(groupQueryOptionsFactory);
   groupFactoryRef.current = groupQueryOptionsFactory;
   const stableGroupFactory = useMemo<
@@ -81,11 +110,12 @@ export function usePagePagination<
 
   const pagination = useMemo<PagePaginationController<TQueryOptions>>(
     () => ({
+      columnQueryOptionsFactory: stableColumnFactory,
       groupQueryOptionsFactory: stableGroupFactory,
       queryOptionsFactory: stableFactory,
       type: "page",
     }),
-    [stableGroupFactory, stableFactory]
+    [stableColumnFactory, stableGroupFactory, stableFactory]
   );
 
   return { pagination };

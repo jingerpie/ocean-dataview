@@ -255,6 +255,46 @@ function SuspendingGroupKeys({
 }
 
 // ============================================================================
+// Suspending Column Keys Provider (Board-specific)
+// ============================================================================
+
+interface SuspendingColumnKeysProps {
+  children: (data: {
+    columnCounts: GroupQueryResponse["counts"];
+    columnKeys: string[];
+    columnSortValues: GroupQueryResponse["sortValues"];
+  }) => ReactNode;
+  columnByConfig: GroupConfigInput;
+  columnQueryOptionsFactory: (columnConfig: GroupConfigInput) => {
+    queryFn?: unknown;
+    queryKey: readonly unknown[];
+  };
+}
+
+/**
+ * Suspending component that fetches column keys using useSuspenseQuery.
+ * Board-specific: ensures columns are available before rendering board structure.
+ */
+function SuspendingColumnKeys({
+  children,
+  columnByConfig,
+  columnQueryOptionsFactory,
+}: SuspendingColumnKeysProps) {
+  const factoryOptions = columnQueryOptionsFactory(columnByConfig);
+  const { data: rawColumnData } = useSuspenseQuery({
+    queryKey: factoryOptions.queryKey,
+    queryFn: factoryOptions.queryFn as () => Promise<GroupQueryResponse>,
+  });
+
+  const columnData = rawColumnData as GroupQueryResponse | null | undefined;
+  const columnKeys = Object.keys(columnData?.counts ?? {});
+  const columnCounts = columnData?.counts;
+  const columnSortValues = columnData?.sortValues;
+
+  return <>{children({ columnKeys, columnCounts, columnSortValues })}</>;
+}
+
+// ============================================================================
 // Page Query Bridge
 // ============================================================================
 
@@ -853,7 +893,11 @@ export function InfiniteQueryBridge<
   defaults,
   viewProps,
 }: InfiniteQueryBridgeProps<TData, TProperties, TQueryOptions>) {
-  const { groupQueryOptionsFactory, queryOptionsFactory } = controller;
+  const {
+    columnQueryOptionsFactory,
+    groupQueryOptionsFactory,
+    queryOptionsFactory,
+  } = controller;
 
   // Defaults from provider props
   const {
@@ -909,13 +953,21 @@ export function InfiniteQueryBridge<
   const limit = (urlLimit ?? defaultLimit) as Limit;
 
   // ============================================================================
-  // Group Mode Detection
+  // Column & Group Mode Detection
   // ============================================================================
 
-  // For accordion grouping: use `group` config (NOT column)
-  // - `column` is board-specific visual organization (handled via columnCounts prop)
-  // - `group` is accordion-style data grouping (handled via groupQueryOptionsFactory)
-  // Only grouped mode if we have BOTH a group config AND a factory to fetch group keys
+  // Column mode (board-specific): visual columns across the board
+  // Only active if we have BOTH a column config AND a factory to fetch column counts
+  const hasColumnMode = Boolean(column && columnQueryOptionsFactory);
+
+  // Extract column config for query (uses same structure as group)
+  const columnByConfig = useMemo(
+    () => (column ? getGroupByConfig(column) : null),
+    [column]
+  );
+
+  // Group mode (accordion rows): vertical grouping within each column
+  // Only active if we have BOTH a group config AND a factory to fetch group keys
   const isGrouped = Boolean(group && groupQueryOptionsFactory);
 
   // Extract only structural config (without sort/hideEmpty) for query
@@ -980,23 +1032,25 @@ export function InfiniteQueryBridge<
   );
 
   // ============================================================================
-  // Render Inner Component with Group Data
+  // Render Inner Component with Column & Group Data
   // ============================================================================
 
-  // Inner component that receives group data as props
+  // Inner component that receives column and group data as props
   const renderInner = useCallback(
     ({
+      columnCounts,
       groupCounts,
       groupKeys,
       groupSortValues,
     }: {
+      columnCounts: GroupQueryResponse["counts"];
       groupCounts: GroupQueryResponse["counts"];
       groupKeys: string[];
       groupSortValues: GroupQueryResponse["sortValues"];
     }) => (
       <InfiniteQueryBridgeInner<TData, TProperties>
         column={column}
-        columnCounts={viewProps.columnCounts}
+        columnCounts={columnCounts}
         defaultExpanded={defaultExpanded}
         filter={filter}
         group={group}
@@ -1043,27 +1097,53 @@ export function InfiniteQueryBridge<
   );
 
   // ============================================================================
-  // Flat vs Grouped Mode Branching
+  // Render with Column & Group Data Fetching
   // ============================================================================
 
-  // FLAT MODE: Render directly with static groupKeys
-  if (!(isGrouped && groupByConfig && groupQueryOptionsFactory)) {
+  // Helper to wrap with group suspense if needed
+  const wrapWithGroupSuspense = (
+    columnCounts: GroupQueryResponse["counts"]
+  ) => {
+    if (isGrouped && groupByConfig && groupQueryOptionsFactory) {
+      return (
+        <SuspendingGroupKeys
+          groupByConfig={groupByConfig}
+          groupQueryOptionsFactory={groupQueryOptionsFactory}
+        >
+          {({ groupCounts, groupKeys, groupSortValues }) =>
+            renderInner({
+              columnCounts,
+              groupCounts,
+              groupKeys,
+              groupSortValues,
+            })
+          }
+        </SuspendingGroupKeys>
+      );
+    }
+    // No group mode - use flat mode with __ungrouped__
     return renderInner({
+      columnCounts,
       groupCounts: undefined,
       groupKeys: ["__ungrouped__"],
       groupSortValues: undefined,
     });
+  };
+
+  // If column mode is active, wrap with column suspense first
+  if (hasColumnMode && columnByConfig && columnQueryOptionsFactory) {
+    return (
+      <SuspendingColumnKeys
+        columnByConfig={columnByConfig}
+        columnQueryOptionsFactory={columnQueryOptionsFactory}
+      >
+        {({ columnCounts }) => wrapWithGroupSuspense(columnCounts)}
+      </SuspendingColumnKeys>
+    );
   }
 
-  // GROUPED MODE: Use SuspendingGroupKeys to suspend until group data is ready
-  return (
-    <SuspendingGroupKeys
-      groupByConfig={groupByConfig}
-      groupQueryOptionsFactory={groupQueryOptionsFactory}
-    >
-      {renderInner}
-    </SuspendingGroupKeys>
-  );
+  // No column mode - just handle groups (or flat)
+  return wrapWithGroupSuspense(undefined);
 }
 
 // ============================================================================
@@ -1122,6 +1202,7 @@ function InfiniteQueryBridgeInner<
 >({
   children,
   column,
+  columnCounts,
   defaultExpanded,
   filter,
   group,
@@ -1272,7 +1353,7 @@ function InfiniteQueryBridgeInner<
       <DataViewProviderCore<TData, TProperties>
         {...(viewProps as DataViewProviderProps<TData, TProperties>)}
         column={column}
-        columnCounts={viewProps.columnCounts}
+        columnCounts={columnCounts}
         counts={mergedCounts}
         data={[]}
         expandedGroups={localExpanded}

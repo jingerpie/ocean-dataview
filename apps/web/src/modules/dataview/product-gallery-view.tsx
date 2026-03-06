@@ -4,18 +4,18 @@ import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
-import { ListView } from "@sparkyidea/dataview/views/list-view";
+import { GalleryView } from "@sparkyidea/dataview/views/gallery-view";
 import type { WhereNode } from "@sparkyidea/shared/types";
 import type { Limit } from "@sparkyidea/shared/types/pagination.type";
 import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
-import { productProperties } from "@/properties/product-properties";
 import { combineGroupFilter } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
+import { DataViewTab } from "./dataview-tab";
+import { productProperties } from "./product-properties";
+import { productTabOptions } from "./product-tab-options";
 
-const groupConfig = { bySelect: { property: "category" } } as const;
-
-interface GroupListProps {
+interface ProductGalleryViewProps {
   filter: WhereNode[] | null;
   group: GroupConfigInput | null;
   limit: Limit;
@@ -24,29 +24,40 @@ interface GroupListProps {
 }
 
 /**
- * Grouped List - grouped by category with per-group load more.
+ * Product Gallery View - auto flat/grouped based on URL group param.
  *
  * NotionToolbar uses context from DataViewProvider (never suspends).
- * ListView may suspend while loading data.
+ * GalleryView may suspend while loading data.
  */
-export function GroupList({ filter, limit, search, sort }: GroupListProps) {
+export function ProductGalleryView({
+  filter,
+  group,
+  limit,
+  search,
+  sort,
+}: ProductGalleryViewProps) {
   const trpc = useTRPC();
   const searchableFields = getSearchableProperties(productProperties);
 
   const { pagination } = useInfinitePagination({
-    // Factory for group counts - used internally by QueryBridge
-    groupQueryOptionsFactory: (groupCfg) =>
-      trpc.product.getGroup.queryOptions({ groupBy: groupCfg }),
+    // Factory for group counts - called internally by QueryBridge when group is set
+    groupQueryOptionsFactory: (groupConfig) =>
+      trpc.product.getGroup.queryOptions({
+        groupBy: groupConfig,
+      }),
 
-    // Factory for data items
+    // Factory for data items - receives groupConfig from internal state
     queryOptionsFactory: (params) =>
       trpc.product.getMany.infiniteQueryOptions(
         {
-          filter: combineGroupFilter(
-            params.groupConfig ?? groupConfig,
-            params.groupKey ?? "",
-            params.filter
-          ),
+          filter:
+            params.groupConfig && params.groupKey
+              ? combineGroupFilter(
+                  params.groupConfig,
+                  params.groupKey,
+                  params.filter
+                )
+              : params.filter,
           search: buildSearchFilter(params.search, searchableFields),
           sort: params.sort ?? [],
           limit: params.limit,
@@ -58,11 +69,14 @@ export function GroupList({ filter, limit, search, sort }: GroupListProps) {
       ),
   });
 
+  // Add view options to group config
+  const groupConfigForView = group ? { ...group, showCount: true } : undefined;
+
   return (
     <DataViewProvider
       defaults={{
         filter,
-        group: { ...groupConfig, showCount: true },
+        group: groupConfigForView,
         limit,
         search,
         sort: sort ?? [],
@@ -70,8 +84,15 @@ export function GroupList({ filter, limit, search, sort }: GroupListProps) {
       pagination={pagination}
       properties={productProperties}
     >
-      <NotionToolbar enableSettings groupProperty="Category" />
-      <ListView pagination="loadMore" />
+      <NotionToolbar enableSettings>
+        <DataViewTab options={productTabOptions} />
+      </NotionToolbar>
+      <GalleryView
+        cardPreview="productImage"
+        cardSize="medium"
+        fitMedia
+        pagination="loadMore"
+      />
     </DataViewProvider>
   );
 }

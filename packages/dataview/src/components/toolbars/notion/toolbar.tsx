@@ -50,6 +50,16 @@ function getGroupPropertyId(
   return null;
 }
 
+/**
+ * Extract the property ID from a ColumnConfig.
+ * ColumnConfig uses the same structure as GroupConfig.
+ */
+function getColumnPropertyId(
+  column: GroupConfig | null | undefined
+): string | null {
+  return getGroupPropertyId(column);
+}
+
 interface NotionToolbarProps extends ComponentProps<"div"> {
   /** Children (tabs, etc.) - always visible on left */
   children?: ReactNode;
@@ -125,6 +135,22 @@ function NotionToolbarComponent({
     return meta?.label ?? groupPropertyId;
   })();
 
+  // Derive column property label from context if not provided
+  const derivedColumnProperty = (() => {
+    if (columnProperty !== undefined) {
+      return columnProperty;
+    }
+    const colPropertyId = getColumnPropertyId(ctx?.column);
+    if (!colPropertyId) {
+      return undefined;
+    }
+    const meta = properties.find((p) => p.id === colPropertyId);
+    return meta?.label ?? colPropertyId;
+  })();
+
+  // Auto-enable column settings when column config exists (board view)
+  const shouldEnableColumn = enableColumn || ctx?.column != null;
+
   // State managed via hooks that read/write URL directly
   const { filter, setFilter: onFilterChange, resetFilter } = useFilterParams();
   const { search, setSearch: onSearchChange } = useSearchParams();
@@ -177,8 +203,8 @@ function NotionToolbarComponent({
           {/* Settings */}
           {enableSettings && (
             <SettingsTool
-              columnProperty={columnProperty}
-              enableColumn={enableColumn}
+              columnProperty={derivedColumnProperty}
+              enableColumn={shouldEnableColumn}
               groupProperty={derivedGroupProperty}
               variant="icon"
             />

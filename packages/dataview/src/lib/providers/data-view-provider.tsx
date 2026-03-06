@@ -5,9 +5,16 @@ import {
   Children,
   isValidElement,
   type ReactNode,
+  Suspense,
   useMemo,
   useState,
 } from "react";
+import { GroupSectionSkeleton } from "../../components/ui/group-section-skeleton";
+import { BoardSkeleton } from "../../components/views/board-view/board-skeleton";
+import { GallerySkeleton } from "../../components/views/gallery-view/gallery-skeleton";
+import { ListSkeleton } from "../../components/views/list-view/list-skeleton";
+import { TableSkeleton } from "../../components/views/table-view/table-skeleton";
+import type { PropertyType } from "../../types";
 import {
   type ColumnConfig,
   type DataViewProperty,
@@ -28,17 +35,21 @@ import { InfiniteQueryBridge, PageQueryBridge } from "./query-bridge";
 import { ToolbarContextProvider } from "./toolbar-context";
 
 // ============================================================================
-// Child Slot Splitting
+// Child Slot Splitting & View Type Detection
 // ============================================================================
 
 /** Static marker for toolbar components */
 export const TOOLBAR_SLOT = "toolbar" as const;
 
+/** View type markers for skeleton selection */
+export type DataViewType = "board" | "table" | "list" | "gallery";
+
 /**
- * Component type with optional dataViewSlot marker.
+ * Component type with optional dataViewSlot and dataViewType markers.
  */
-interface SlottedComponent {
+interface MarkedComponent {
   dataViewSlot?: typeof TOOLBAR_SLOT;
+  dataViewType?: DataViewType;
 }
 
 /**
@@ -54,7 +65,7 @@ function splitChildren(children: ReactNode): {
 
   for (const child of Children.toArray(children)) {
     if (isValidElement(child)) {
-      const type = child.type as SlottedComponent;
+      const type = child.type as MarkedComponent;
       if (type.dataViewSlot === TOOLBAR_SLOT) {
         toolbarChildren.push(child);
         continue;
@@ -64,6 +75,62 @@ function splitChildren(children: ReactNode): {
   }
 
   return { toolbarChildren, contentChildren };
+}
+
+/**
+ * Detect view type from content children.
+ * Views are identified by the static `dataViewType` marker.
+ */
+function detectViewType(children: ReactNode[]): DataViewType | undefined {
+  for (const child of children) {
+    if (isValidElement(child)) {
+      const type = child.type as MarkedComponent;
+      if (type.dataViewType) {
+        return type.dataViewType;
+      }
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Render the appropriate skeleton based on detected view type.
+ */
+function renderViewSkeleton(
+  viewType: DataViewType | undefined,
+  propertyTypes: PropertyType[],
+  rowCount: number,
+  isGrouped: boolean
+): ReactNode {
+  // For grouped views (except board which handles it internally), show group section skeleton
+  if (isGrouped && viewType !== "board") {
+    return <GroupSectionSkeleton />;
+  }
+
+  switch (viewType) {
+    case "board":
+      return (
+        <BoardSkeleton
+          cardsPerColumn={rowCount}
+          columnCount={10}
+          groupCount={isGrouped ? 10 : 0}
+          propertyTypes={propertyTypes}
+        />
+      );
+    case "table":
+      return (
+        <TableSkeleton propertyTypes={propertyTypes} rowCount={rowCount} />
+      );
+    case "list":
+      return <ListSkeleton propertyTypes={propertyTypes} rowCount={rowCount} />;
+    case "gallery":
+      return (
+        <GallerySkeleton cardCount={rowCount} propertyTypes={propertyTypes} />
+      );
+    default:
+      // Fallback for unknown view types
+      return <GroupSectionSkeleton />;
+  }
 }
 
 // ============================================================================
@@ -158,7 +225,7 @@ interface ControllerProps<
 > {
   children: ReactNode;
   className?: string;
-  /** Column counts - passed directly for board views */
+  /** Column counts - passed directly for board views (deprecated, use columnQueryOptionsFactory in pagination hook) */
   columnCounts?: GroupCounts;
   counts?: Partial<ViewCounts>;
   /** URL defaults - values used when URL has no corresponding parameter */
@@ -206,26 +273,47 @@ export function DataViewProvider<
       TQueryOptions
     >;
     const viewProps = {
-      className,
       columnCounts: controllerProps.columnCounts,
       counts: controllerProps.counts,
       properties,
       propertyVisibility: controllerProps.propertyVisibility,
     };
 
+    // Detect view type from children and grouped mode
+    const viewType = detectViewType(contentChildren);
+    const isGrouped = Boolean(controllerProps.defaults?.group);
+
+    // Calculate skeleton values from known config
+    const limit = controllerProps.defaults?.limit ?? 10;
+    const visibleProperties = properties.filter((p) => !p.hidden);
+    const propertyTypes = visibleProperties.map((p) => p.type);
+
+    // Choose appropriate skeleton based on detected view type
+    const fallbackSkeleton = renderViewSkeleton(
+      viewType,
+      propertyTypes,
+      limit,
+      isGrouped
+    );
+
     return (
       <ToolbarContextProvider
+        column={controllerProps.defaults?.column}
         group={controllerProps.defaults?.group}
         properties={propertyMetas}
       >
-        {toolbarChildren}
-        <PageQueryBridge<TData, TProperties, TQueryOptions>
-          controller={pagination}
-          defaults={controllerProps.defaults}
-          viewProps={viewProps}
-        >
-          {contentChildren}
-        </PageQueryBridge>
+        <div className={cn("flex flex-col gap-2", className)}>
+          {toolbarChildren}
+          <Suspense fallback={fallbackSkeleton}>
+            <PageQueryBridge<TData, TProperties, TQueryOptions>
+              controller={pagination}
+              defaults={controllerProps.defaults}
+              viewProps={viewProps}
+            >
+              {contentChildren}
+            </PageQueryBridge>
+          </Suspense>
+        </div>
       </ToolbarContextProvider>
     );
   }
@@ -237,26 +325,47 @@ export function DataViewProvider<
       TQueryOptions
     >;
     const viewProps = {
-      className,
       columnCounts: controllerProps.columnCounts,
       counts: controllerProps.counts,
       properties,
       propertyVisibility: controllerProps.propertyVisibility,
     };
 
+    // Detect view type from children and grouped mode
+    const viewType = detectViewType(contentChildren);
+    const isGrouped = Boolean(controllerProps.defaults?.group);
+
+    // Calculate skeleton values from known config
+    const limit = controllerProps.defaults?.limit ?? 10;
+    const visibleProperties = properties.filter((p) => !p.hidden);
+    const propertyTypes = visibleProperties.map((p) => p.type);
+
+    // Choose appropriate skeleton based on detected view type
+    const fallbackSkeleton = renderViewSkeleton(
+      viewType,
+      propertyTypes,
+      limit,
+      isGrouped
+    );
+
     return (
       <ToolbarContextProvider
+        column={controllerProps.defaults?.column}
         group={controllerProps.defaults?.group}
         properties={propertyMetas}
       >
-        {toolbarChildren}
-        <InfiniteQueryBridge<TData, TProperties, TQueryOptions>
-          controller={pagination}
-          defaults={controllerProps.defaults}
-          viewProps={viewProps}
-        >
-          {contentChildren}
-        </InfiniteQueryBridge>
+        <div className={cn("flex flex-col gap-2", className)}>
+          {toolbarChildren}
+          <Suspense fallback={fallbackSkeleton}>
+            <InfiniteQueryBridge<TData, TProperties, TQueryOptions>
+              controller={pagination}
+              defaults={controllerProps.defaults}
+              viewProps={viewProps}
+            >
+              {contentChildren}
+            </InfiniteQueryBridge>
+          </Suspense>
+        </div>
       </ToolbarContextProvider>
     );
   }
@@ -266,16 +375,16 @@ export function DataViewProvider<
 
   return (
     <ToolbarContextProvider
+      column={directProps.column}
       group={directProps.group}
       properties={propertyMetas}
     >
-      {toolbarChildren}
-      <DataViewProviderCore<TData, TProperties>
-        {...directProps}
-        className={className}
-      >
-        {contentChildren}
-      </DataViewProviderCore>
+      <div className={cn("flex flex-col gap-2", className)}>
+        {toolbarChildren}
+        <DataViewProviderCore<TData, TProperties> {...directProps}>
+          {contentChildren}
+        </DataViewProviderCore>
+      </div>
     </ToolbarContextProvider>
   );
 }

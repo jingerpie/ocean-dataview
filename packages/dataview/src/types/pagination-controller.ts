@@ -35,6 +35,15 @@ export type GroupQueryOptionsFactory = (
   groupConfig: GroupConfigInput
 ) => BaseQueryOptions;
 
+/**
+ * Query options factory for fetching column counts (board-specific).
+ * Called by QueryBridge when column mode is active.
+ * Uses same signature as GroupQueryOptionsFactory since columns use the same query structure.
+ */
+export type ColumnQueryOptionsFactory = (
+  columnConfig: GroupConfigInput
+) => BaseQueryOptions;
+
 // ============================================================================
 // Page Pagination Controller
 // ============================================================================
@@ -67,6 +76,9 @@ export type PageQueryOptionsFactory<TQueryOptions> = (
  * Contains query configuration only. Defaults are passed to DataViewProvider.
  */
 export interface PagePaginationController<TQueryOptions> {
+  /** Factory for fetching column counts (board-specific, enables column mode) */
+  readonly columnQueryOptionsFactory?: ColumnQueryOptionsFactory;
+
   /** Factory for fetching group counts (enables grouped mode) */
   readonly groupQueryOptionsFactory?: GroupQueryOptionsFactory;
 
@@ -107,6 +119,9 @@ export type InfiniteQueryOptionsFactory<TQueryOptions> = (
  * Contains query configuration only. Defaults are passed to DataViewProvider.
  */
 export interface InfinitePaginationController<TQueryOptions> {
+  /** Factory for fetching column counts (board-specific, enables column mode) */
+  readonly columnQueryOptionsFactory?: ColumnQueryOptionsFactory;
+
   /** Factory for fetching group counts (enables grouped mode) */
   readonly groupQueryOptionsFactory?: GroupQueryOptionsFactory;
 

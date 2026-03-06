@@ -97,6 +97,7 @@ export function TableView<
   // Get data and properties from context
   const {
     data,
+    limit,
     properties,
     propertyVisibility,
     pagination: contextPagination,
@@ -265,9 +266,9 @@ export function TableView<
                   <Suspense
                     fallback={
                       <TableSkeleton
-                        columnCount={displayProperties.length}
-                        rowCount={5}
-                        withPagination={false}
+                        propertyTypes={displayProperties.map((p) => p.type)}
+                        rowCount={limit ?? 5}
+                        withBulkActions={enableRowSelection}
                       />
                     }
                   >
@@ -303,9 +304,10 @@ export function TableView<
       <Suspense
         fallback={
           <TableSkeleton
-            columnCount={displayProperties.length}
-            rowCount={10}
-            withPagination={Boolean(pagination)}
+            pagination={pagination}
+            propertyTypes={displayProperties.map((p) => p.type)}
+            rowCount={limit ?? 10}
+            withBulkActions={enableRowSelection}
           />
         }
       >
@@ -335,6 +337,9 @@ export function TableView<
     </div>
   );
 }
+
+// Static marker for view type detection in DataViewProvider
+TableView.dataViewType = "table" as const;
 
 // ============================================================================
 // Suspending Group Content Component
@@ -428,16 +433,3 @@ function SuspendingGroupTableContent<
     </SuspendingGroupContent>
   );
 }
-
-// Re-export from shared with view-specific aliases
-export type { DataViewContextValue as TableContextValue } from "../../../lib/providers/data-view-context";
-// biome-ignore lint/performance/noBarrelFile: Re-exporting shared components with view-specific names
-export { useDataViewContext as useTableContext } from "../../../lib/providers/data-view-context";
-export type { DataViewProviderProps as TableProviderProps } from "../../../lib/providers/data-view-provider";
-export { DataViewProvider as TableProvider } from "../../../lib/providers/data-view-provider";
-export {
-  Visibility,
-  type VisibilityProps,
-} from "../../ui/toolbar/visibility";
-// Skeleton
-export { TableSkeleton } from "./table-skeleton";

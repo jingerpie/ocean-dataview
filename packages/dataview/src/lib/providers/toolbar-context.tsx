@@ -7,7 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { GroupConfig, PropertyMeta } from "../../types";
+import type { ColumnConfig, GroupConfig, PropertyMeta } from "../../types";
 
 // ============================================================================
 // Types
@@ -17,6 +17,8 @@ import type { GroupConfig, PropertyMeta } from "../../types";
  * Toolbar context value - non-suspending state for toolbar components.
  */
 export interface ToolbarContextValue {
+  /** Current column config (for deriving column property label, board view) */
+  column: ColumnConfig | null | undefined;
   /** Current group config (for deriving group property label) */
   group: GroupConfig | null | undefined;
   /** Hide all properties */
@@ -67,6 +69,8 @@ export function useToolbarContextOptional(): ToolbarContextValue | undefined {
 
 interface ToolbarContextProviderProps {
   children: React.ReactNode;
+  /** Column config (passed to toolbar for deriving column property label, board view) */
+  column?: ColumnConfig | null;
   /** Default visibility - if not provided, all non-hidden properties are visible */
   defaultVisibility?: string[];
   /** Group config (passed to toolbar for deriving group property label) */
@@ -81,6 +85,7 @@ interface ToolbarContextProviderProps {
  */
 export function ToolbarContextProvider({
   children,
+  column,
   defaultVisibility,
   group,
   properties,
@@ -140,6 +145,7 @@ export function ToolbarContextProvider({
 
   const value = useMemo<ToolbarContextValue>(
     () => ({
+      column,
       group,
       hideAllProperties,
       properties,
@@ -149,6 +155,7 @@ export function ToolbarContextProvider({
       toggleProperty,
     }),
     [
+      column,
       group,
       hideAllProperties,
       properties,

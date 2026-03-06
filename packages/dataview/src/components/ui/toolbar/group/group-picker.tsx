@@ -110,11 +110,13 @@ function GroupPicker({
       <CommandEmpty>No groupable properties found.</CommandEmpty>
       <CommandList>
         <CommandGroup>
-          {/* None option to clear grouping */}
-          <CommandItem onSelect={handleSelectNone} value="none">
-            <span className="text-muted-foreground">None</span>
-            {!property && <CheckIcon className="ml-auto size-4" />}
-          </CommandItem>
+          {/* None option to clear grouping (not shown for column mode since board requires column) */}
+          {mode !== "column" && (
+            <CommandItem onSelect={handleSelectNone} value="none">
+              <span className="text-muted-foreground">None</span>
+              {!property && <CheckIcon className="ml-auto size-4" />}
+            </CommandItem>
+          )}
           {groupableProperties.map((prop) => {
             const isSelected = prop.id === property;
             return (

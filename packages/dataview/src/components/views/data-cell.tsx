@@ -156,6 +156,3 @@ function DataCellComponent<T>({
  * Prevents unnecessary re-renders in table cells and list items
  */
 export const DataCell = memo(DataCellComponent) as typeof DataCellComponent;
-
-// Re-export with old name for backwards compatibility
-export { DataCell as PropertyDisplay };

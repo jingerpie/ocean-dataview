@@ -1,16 +1,16 @@
 import { productGroupPaginationParams } from "@/lib/validations";
-import { HybridList } from "@/modules/list/hybrid-list";
+import { ProductListView } from "@/modules/dataview/product-list-view";
 
-interface HybridListDemoProps {
+interface ProductListDemoProps {
   params: Record<string, string | string[] | undefined>;
 }
 
-export function HybridListDemo({ params }: HybridListDemoProps) {
+export function ProductListDemo({ params }: ProductListDemoProps) {
   const { filter, group, limit, search, sort } =
     productGroupPaginationParams.parse(params);
 
   return (
-    <HybridList
+    <ProductListView
       filter={filter}
       group={group}
       limit={limit}

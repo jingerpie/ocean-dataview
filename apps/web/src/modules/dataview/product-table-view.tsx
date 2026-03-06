@@ -1,19 +1,22 @@
 "use client";
 
-import { useInfinitePagination } from "@sparkyidea/dataview/hooks";
+import { usePagePagination } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
-import { GalleryView } from "@sparkyidea/dataview/views/gallery-view";
+import { TableView } from "@sparkyidea/dataview/views/table-view";
 import type { WhereNode } from "@sparkyidea/shared/types";
 import type { Limit } from "@sparkyidea/shared/types/pagination.type";
 import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
-import { productProperties } from "@/properties/product-properties";
 import { combineGroupFilter } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
+import { bulkActions } from "./bulk-actions";
+import { DataViewTab } from "./dataview-tab";
+import { productProperties } from "./product-properties";
+import { productTabOptions } from "./product-tab-options";
 
-interface HybridGalleryProps {
+interface ProductTableViewProps {
   filter: WhereNode[] | null;
   group: GroupConfigInput | null;
   limit: Limit;
@@ -22,22 +25,22 @@ interface HybridGalleryProps {
 }
 
 /**
- * Hybrid Gallery - auto flat/grouped based on URL group param.
+ * Product Table View - auto flat/grouped based on group param.
  *
  * NotionToolbar uses context from DataViewProvider (never suspends).
- * GalleryView may suspend while loading data.
+ * TableView may suspend while loading data.
  */
-export function HybridGallery({
+export function ProductTableView({
   filter,
   group,
   limit,
   search,
   sort,
-}: HybridGalleryProps) {
+}: ProductTableViewProps) {
   const trpc = useTRPC();
   const searchableFields = getSearchableProperties(productProperties);
 
-  const { pagination } = useInfinitePagination({
+  const { pagination } = usePagePagination({
     // Factory for group counts - called internally by QueryBridge when group is set
     groupQueryOptionsFactory: (groupConfig) =>
       trpc.product.getGroup.queryOptions({
@@ -46,25 +49,20 @@ export function HybridGallery({
 
     // Factory for data items - receives groupConfig from internal state
     queryOptionsFactory: (params) =>
-      trpc.product.getMany.infiniteQueryOptions(
-        {
-          filter:
-            params.groupConfig && params.groupKey
-              ? combineGroupFilter(
-                  params.groupConfig,
-                  params.groupKey,
-                  params.filter
-                )
-              : params.filter,
-          search: buildSearchFilter(params.search, searchableFields),
-          sort: params.sort ?? [],
-          limit: params.limit,
-        },
-        {
-          getNextPageParam: (lastPage) =>
-            lastPage.hasNextPage ? lastPage.endCursor : undefined,
-        }
-      ),
+      trpc.product.getMany.queryOptions({
+        ...(params.cursor ? { cursor: params.cursor } : {}),
+        filter:
+          params.groupConfig && params.groupKey
+            ? combineGroupFilter(
+                params.groupConfig,
+                params.groupKey,
+                params.filter
+              )
+            : params.filter,
+        limit: params.limit,
+        search: buildSearchFilter(params.search, searchableFields),
+        sort: params.sort ?? [],
+      }),
   });
 
   // Add view options to group config
@@ -82,12 +80,14 @@ export function HybridGallery({
       pagination={pagination}
       properties={productProperties}
     >
-      <NotionToolbar enableSettings />
-      <GalleryView
-        cardPreview="productImage"
-        cardSize="medium"
-        fitMedia
-        pagination="loadMore"
+      <NotionToolbar enableSettings>
+        <DataViewTab options={productTabOptions} />
+      </NotionToolbar>
+      <TableView
+        bulkActions={bulkActions}
+        pagination="page"
+        showVerticalLines={false}
+        wrapAllColumns={false}
       />
     </DataViewProvider>
   );

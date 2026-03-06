@@ -3,6 +3,7 @@
 import { EyeIcon, EyeOffIcon, Settings2 } from "lucide-react";
 import { useState } from "react";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
+import { useToolbarContext } from "../../../lib/providers/toolbar-context";
 import type { PropertyMeta } from "../../../types";
 import { Button } from "../button";
 import {
@@ -33,12 +34,8 @@ export interface VisibilityProps {
  */
 export function Visibility({ variant = "default" }: VisibilityProps = {}) {
   const [open, setOpen] = useState(false);
-  const {
-    propertyMetas,
-    propertyVisibility,
-    excludedPropertyIds,
-    setPropertyVisibility,
-  } = useDataViewContext();
+  const { propertyMetas, excludedPropertyIds } = useDataViewContext();
+  const { propertyVisibility, setPropertyVisibility } = useToolbarContext();
 
   // Filter out:
   // 1. Properties with hidden: true

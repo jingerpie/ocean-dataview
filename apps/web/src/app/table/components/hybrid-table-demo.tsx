@@ -1,16 +1,16 @@
 import { productGroupPaginationParams } from "@/lib/validations";
-import { HybridTable } from "@/modules/table/hybrid-table";
+import { ProductTableView } from "@/modules/dataview/product-table-view";
 
-interface HybridTableDemoProps {
+interface ProductTableDemoProps {
   params: Record<string, string | string[] | undefined>;
 }
 
-export function HybridTableDemo({ params }: HybridTableDemoProps) {
+export function ProductTableDemo({ params }: ProductTableDemoProps) {
   const { filter, group, limit, search, sort } =
     productGroupPaginationParams.parse(params);
 
   return (
-    <HybridTable
+    <ProductTableView
       filter={filter}
       group={group}
       limit={limit}

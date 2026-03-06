@@ -45,9 +45,15 @@ export type {
 export interface UseInfinitePaginationOptions<
   TQueryOptions extends InfiniteQueryOptions = InfiniteQueryOptions,
 > {
+  /** Factory for fetching column counts (board-specific) */
+  columnQueryOptionsFactory?: (
+    columnConfig: GroupConfigInput
+  ) => BaseQueryOptions;
+  /** Factory for fetching group counts (accordion rows) */
   groupQueryOptionsFactory?: (
     groupConfig: GroupConfigInput
   ) => BaseQueryOptions;
+  /** Factory for fetching data items */
   queryOptionsFactory: InfiniteQueryOptionsFactory<TQueryOptions>;
 }
 
@@ -60,7 +66,11 @@ export function useInfinitePagination<
 >(
   options: UseInfinitePaginationOptions<TQueryOptions>
 ): UseInfinitePaginationResult<TQueryOptions> {
-  const { groupQueryOptionsFactory, queryOptionsFactory } = options;
+  const {
+    columnQueryOptionsFactory,
+    groupQueryOptionsFactory,
+    queryOptionsFactory,
+  } = options;
 
   const factoryRef = useRef(queryOptionsFactory);
   factoryRef.current = queryOptionsFactory;
@@ -69,6 +79,25 @@ export function useInfinitePagination<
     []
   );
 
+  // Stable column factory (board-specific)
+  const columnFactoryRef = useRef(columnQueryOptionsFactory);
+  columnFactoryRef.current = columnQueryOptionsFactory;
+  const stableColumnFactory = useMemo<
+    ((columnConfig: GroupConfigInput) => BaseQueryOptions) | undefined
+  >(() => {
+    if (!columnQueryOptionsFactory) {
+      return undefined;
+    }
+    return (columnConfig) => {
+      const factory = columnFactoryRef.current;
+      if (!factory) {
+        throw new Error("columnQueryOptionsFactory ref is unexpectedly null");
+      }
+      return factory(columnConfig);
+    };
+  }, [Boolean(columnQueryOptionsFactory)]);
+
+  // Stable group factory (accordion rows)
   const groupFactoryRef = useRef(groupQueryOptionsFactory);
   groupFactoryRef.current = groupQueryOptionsFactory;
   const stableGroupFactory = useMemo<
@@ -88,11 +117,12 @@ export function useInfinitePagination<
 
   const pagination = useMemo<InfinitePaginationController<TQueryOptions>>(
     () => ({
+      columnQueryOptionsFactory: stableColumnFactory,
       groupQueryOptionsFactory: stableGroupFactory,
       queryOptionsFactory: stableFactory,
       type: "infinite",
     }),
-    [stableGroupFactory, stableFactory]
+    [stableColumnFactory, stableGroupFactory, stableFactory]
   );
 
   return { pagination };

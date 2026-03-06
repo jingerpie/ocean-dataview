@@ -51,6 +51,7 @@ export function ListView<
   // Get data and properties from context
   const {
     data,
+    limit,
     properties,
     propertyVisibility,
     pagination: contextPagination,
@@ -121,7 +122,10 @@ export function ListView<
                 {isExpanded ? (
                   <Suspense
                     fallback={
-                      <ListSkeleton rowCount={5} withPagination={false} />
+                      <ListSkeleton
+                        propertyTypes={displayProperties.map((p) => p.type)}
+                        rowCount={limit ?? 5}
+                      />
                     }
                   >
                     <SuspendingGroupListContent<TData, TProperties>
@@ -146,7 +150,11 @@ export function ListView<
     <div className={cn("flex flex-col gap-4", className)}>
       <Suspense
         fallback={
-          <ListSkeleton rowCount={10} withPagination={Boolean(pagination)} />
+          <ListSkeleton
+            pagination={pagination}
+            propertyTypes={displayProperties.map((p) => p.type)}
+            rowCount={limit ?? 10}
+          />
         }
       >
         <SuspendingGroupListContent<TData, TProperties>
@@ -166,6 +174,9 @@ export function ListView<
     </div>
   );
 }
+
+// Static marker for view type detection in DataViewProvider
+ListView.dataViewType = "list" as const;
 
 // ============================================================================
 // Suspending Group Content Component
@@ -235,16 +246,3 @@ function SuspendingGroupListContent<
     </SuspendingGroupContent>
   );
 }
-
-// Re-export from shared with view-specific aliases
-export type { DataViewContextValue as ListContextValue } from "../../../lib/providers/data-view-context";
-// biome-ignore lint/performance/noBarrelFile: Re-exporting shared components with view-specific names
-export { useDataViewContext as useListContext } from "../../../lib/providers/data-view-context";
-export type { DataViewProviderProps as ListProviderProps } from "../../../lib/providers/data-view-provider";
-export { DataViewProvider as ListProvider } from "../../../lib/providers/data-view-provider";
-export {
-  Visibility,
-  type VisibilityProps,
-} from "../../ui/toolbar/visibility";
-// Skeleton
-export { ListSkeleton } from "./list-skeleton";

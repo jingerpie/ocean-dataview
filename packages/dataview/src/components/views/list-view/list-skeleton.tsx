@@ -1,96 +1,74 @@
 "use client";
 
+import {
+  ROW_PATTERNS,
+  ROW_SKELETON_WIDTHS,
+} from "../../../lib/constants/skeleton-widths";
 import { cn } from "../../../lib/utils";
+import type { PropertyType } from "../../../types";
+import { PaginationSkeleton } from "../../ui/pagination-skeleton";
 import { Skeleton } from "../../ui/skeleton";
+
+type PaginationMode = "page" | "loadMore" | "infiniteScroll";
 
 interface ListSkeletonProps extends React.ComponentProps<"div"> {
   /**
-   * Number of property lines per row
-   * @default 3
+   * Pagination mode - matches ListView pagination prop
    */
-  propertyCount?: number;
+  pagination?: PaginationMode;
+  /**
+   * Property types for each column - determines realistic widths
+   */
+  propertyTypes: PropertyType[];
   /**
    * Number of rows to display
    * @default 8
    */
   rowCount?: number;
-  /**
-   * Show dividers between rows
-   * @default true
-   */
-  withDividers?: boolean;
-  /**
-   * Show pagination skeleton
-   * @default true
-   */
-  withPagination?: boolean;
 }
 
 export function ListSkeleton({
+  pagination,
+  propertyTypes,
   rowCount = 8,
-  withPagination = true,
-  withDividers = true,
-  propertyCount = 3,
   className,
   ...props
 }: ListSkeletonProps) {
   return (
-    <div
-      className={cn("flex w-full flex-col gap-2.5 overflow-auto", className)}
-      {...props}
-    >
-      {/* List Rows */}
-      <div className="flex flex-col">
-        {Array.from({ length: rowCount }).map((_, i) => (
-          <div key={i}>
-            <div
-              className={cn(
-                "flex flex-col gap-2 rounded-lg p-4",
-                !withDividers && "border"
-              )}
-            >
-              {/* Title line - wider */}
-              <Skeleton className="h-5 w-1/3" />
+    <div className={cn("flex w-full flex-col gap-2.5", className)} {...props}>
+      <div className="overflow-clip">
+        <div className="flex w-max min-w-full flex-col">
+          {Array.from({ length: rowCount }).map((_, rowIndex) => {
+            // Use row pattern for visual variety
+            const patternOffset =
+              ROW_PATTERNS[rowIndex % ROW_PATTERNS.length] ?? 0;
 
-              {/* Property lines - varying widths */}
-              {Array.from({ length: propertyCount - 1 }).map((_, j) => (
-                <Skeleton
-                  className="h-4"
-                  key={j}
-                  style={{ width: j === 0 ? "100%" : "66%" }}
-                />
-              ))}
-            </div>
+            return (
+              <div
+                className="flex items-center gap-4 rounded-md px-2 py-1"
+                key={rowIndex}
+              >
+                {propertyTypes.map((type, colIndex) => {
+                  // Apply pattern offset to create visual variety
+                  const offsetIndex =
+                    (colIndex + patternOffset) % propertyTypes.length;
+                  const offsetType = propertyTypes[offsetIndex] ?? type;
 
-            {/* Divider */}
-            {withDividers && i < rowCount - 1 && (
-              <div className="border-border border-b" />
-            )}
-          </div>
-        ))}
+                  return (
+                    <Skeleton
+                      className="h-6 shrink-0"
+                      key={colIndex}
+                      style={{ minWidth: ROW_SKELETON_WIDTHS[offsetType] }}
+                    />
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Pagination */}
-      {withPagination && (
-        <div className="flex w-full items-center justify-between gap-4 overflow-auto p-1 sm:gap-8">
-          <Skeleton className="h-7 w-40 shrink-0" />
-          <div className="flex items-center gap-4 sm:gap-6 lg:gap-8">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-7 w-24" />
-              <Skeleton className="h-7 w-[4.5rem]" />
-            </div>
-            <div className="flex items-center justify-center font-medium text-sm">
-              <Skeleton className="h-7 w-20" />
-            </div>
-            <div className="flex items-center gap-2">
-              <Skeleton className="hidden size-7 lg:block" />
-              <Skeleton className="size-7" />
-              <Skeleton className="size-7" />
-              <Skeleton className="hidden size-7 lg:block" />
-            </div>
-          </div>
-        </div>
-      )}
+      <PaginationSkeleton mode={pagination} />
     </div>
   );
 }

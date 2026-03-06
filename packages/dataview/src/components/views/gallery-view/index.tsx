@@ -90,6 +90,7 @@ export function GalleryView<
   // Get data and properties from context
   const {
     data,
+    limit,
     properties,
     propertyVisibility,
     pagination: contextPagination,
@@ -162,9 +163,10 @@ export function GalleryView<
                   <Suspense
                     fallback={
                       <GallerySkeleton
-                        cardCount={6}
+                        cardCount={limit ?? 6}
                         cardSize={cardSize}
-                        withPagination={false}
+                        propertyTypes={displayProperties.map((p) => p.type)}
+                        withImage={Boolean(cardPreview)}
                       />
                     }
                   >
@@ -197,9 +199,11 @@ export function GalleryView<
       <Suspense
         fallback={
           <GallerySkeleton
-            cardCount={10}
+            cardCount={limit ?? 10}
             cardSize={cardSize}
-            withPagination={Boolean(pagination)}
+            pagination={pagination}
+            propertyTypes={displayProperties.map((p) => p.type)}
+            withImage={Boolean(cardPreview)}
           />
         }
       >
@@ -226,6 +230,9 @@ export function GalleryView<
     </div>
   );
 }
+
+// Static marker for view type detection in DataViewProvider
+GalleryView.dataViewType = "gallery" as const;
 
 // ============================================================================
 // Suspending Group Content Component
@@ -324,16 +331,3 @@ function SuspendingGroupGalleryContent<
     </SuspendingGroupContent>
   );
 }
-
-// Re-export from shared with view-specific aliases
-export type { DataViewContextValue as GalleryContextValue } from "../../../lib/providers/data-view-context";
-// biome-ignore lint/performance/noBarrelFile: Re-exporting shared components with view-specific names
-export { useDataViewContext as useGalleryContext } from "../../../lib/providers/data-view-context";
-export type { DataViewProviderProps as GalleryProviderProps } from "../../../lib/providers/data-view-provider";
-export { DataViewProvider as GalleryProvider } from "../../../lib/providers/data-view-provider";
-export {
-  Visibility,
-  type VisibilityProps,
-} from "../../ui/toolbar/visibility";
-// Skeleton
-export { GallerySkeleton } from "./gallery-skeleton";

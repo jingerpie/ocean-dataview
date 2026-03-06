@@ -1,7 +1,7 @@
 import type { BulkAction } from "@sparkyidea/dataview/types";
 import { Edit, Eye, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import type { Product } from "@/properties/product-properties";
+import type { Product } from "./product-properties";
 
 export const bulkActions: BulkAction<Product>[] = [
   {

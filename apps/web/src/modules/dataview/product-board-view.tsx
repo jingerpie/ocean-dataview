@@ -9,13 +9,14 @@ import type { WhereNode } from "@sparkyidea/shared/types";
 import type { Limit } from "@sparkyidea/shared/types/pagination.type";
 import type { ColumnConfigInput } from "@sparkyidea/shared/utils/parsers/column";
 import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
-import { useQuery } from "@tanstack/react-query";
-import { productProperties } from "@/properties/product-properties";
-import { getGroupProperty } from "@/utils/group-filter";
+import { combineGroupFilter } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
+import { DataViewTab } from "./dataview-tab";
+import { productProperties } from "./product-properties";
+import { productTabOptions } from "./product-tab-options";
 
-interface HybridBoardProps {
+interface ProductBoardViewProps {
   /** Column configuration (board columns) */
   column: ColumnConfigInput | null;
   filter: WhereNode[] | null;
@@ -27,52 +28,50 @@ interface HybridBoardProps {
 }
 
 /**
- * Hybrid Board - auto flat/grouped based on column param.
+ * Product Board View - auto flat/grouped based on column param.
  *
  * NotionToolbar uses context from DataViewProvider (never suspends).
  * BoardView may suspend while loading data.
  */
-export function HybridBoard({
+export function ProductBoardView({
   column,
   filter,
   group,
   limit,
   search,
   sort,
-}: HybridBoardProps) {
+}: ProductBoardViewProps) {
   const trpc = useTRPC();
-
-  const columnProperty = getGroupProperty(column);
-  const groupProperty = getGroupProperty(group);
-  const isGrouped = Boolean(group && groupProperty);
-
   const searchableFields = getSearchableProperties(productProperties);
 
   // Default column config for boards (always need columns)
   const defaultColumnConfig = { bySelect: { property: "category" } } as const;
   const effectiveColumnConfig = column ?? defaultColumnConfig;
-  const effectiveColumnProperty = columnProperty ?? "category";
-
-  // Fetch column counts separately (board-specific)
-  // This provides columnCounts for BoardView to build columns
-  const columnCountsQuery = useQuery(
-    trpc.product.getGroup.queryOptions({ groupBy: effectiveColumnConfig })
-  );
 
   const { pagination } = useInfinitePagination({
-    // Factory for accordion row counts - only when group is configured
-    groupQueryOptionsFactory: isGrouped
-      ? (groupConfig) =>
-          trpc.product.getGroup.queryOptions({ groupBy: groupConfig })
-      : undefined,
+    // Factory for column counts (board columns) - fetched via SuspendingColumnKeys
+    columnQueryOptionsFactory: (columnConfig) =>
+      trpc.product.getGroup.queryOptions({ groupBy: columnConfig }),
+
+    // Factory for accordion row counts - always provide so users can switch to grouped mode via UI
+    groupQueryOptionsFactory: (groupConfig) =>
+      trpc.product.getGroup.queryOptions({ groupBy: groupConfig }),
 
     // Factory for data items - fetches ALL columns in one query
+    // When grouped, filter to only show data for the current group
     queryOptionsFactory: (params) =>
       trpc.product.getManyByColumn.infiniteQueryOptions(
         {
           columnBy: effectiveColumnConfig,
           limit: params.limit,
-          filter: params.filter,
+          filter:
+            params.groupConfig && params.groupKey
+              ? combineGroupFilter(
+                  params.groupConfig,
+                  params.groupKey,
+                  params.filter
+                )
+              : params.filter,
           sort: params.sort ?? [],
           search: buildSearchFilter(params.search, searchableFields),
         },
@@ -99,16 +98,8 @@ export function HybridBoard({
   const columnConfigForView = { ...effectiveColumnConfig, showCount: true };
   const groupConfigForView = group ? { ...group, showCount: true } : undefined;
 
-  // Get column property label for toolbar display (board-specific)
-  const columnPropertyMeta = productProperties.find(
-    (p) => p.id === effectiveColumnProperty
-  );
-  const columnPropertyLabel =
-    columnPropertyMeta?.label ?? effectiveColumnProperty;
-
   return (
     <DataViewProvider
-      columnCounts={columnCountsQuery.data?.counts}
       defaults={{
         column: columnConfigForView,
         filter,
@@ -120,7 +111,9 @@ export function HybridBoard({
       pagination={pagination}
       properties={productProperties}
     >
-      <NotionToolbar columnProperty={columnPropertyLabel} enableSettings />
+      <NotionToolbar enableSettings>
+        <DataViewTab options={productTabOptions} />
+      </NotionToolbar>
       <BoardView
         cardPreview="productImage"
         cardSize="medium"

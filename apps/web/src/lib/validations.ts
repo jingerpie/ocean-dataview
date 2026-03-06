@@ -7,7 +7,7 @@ import {
 } from "@sparkyidea/shared/utils/parsers/pagination";
 import { sortServerParser } from "@sparkyidea/shared/utils/parsers/sort";
 import { createParser, createSearchParamsCache } from "nuqs/server";
-import { productProperties } from "@/properties/product-properties";
+import { productProperties } from "@/modules/dataview/product-properties";
 
 // Search parser for server-side parsing
 const parseAsSearch = createParser({

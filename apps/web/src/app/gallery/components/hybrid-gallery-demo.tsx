@@ -1,16 +1,16 @@
 import { productGroupPaginationParams } from "@/lib/validations";
-import { HybridGallery } from "@/modules/gallery/hybrid-gallery";
+import { ProductGalleryView } from "@/modules/dataview/product-gallery-view";
 
-interface HybridGalleryDemoProps {
+interface ProductGalleryDemoProps {
   params: Record<string, string | string[] | undefined>;
 }
 
-export function HybridGalleryDemo({ params }: HybridGalleryDemoProps) {
+export function ProductGalleryDemo({ params }: ProductGalleryDemoProps) {
   const { filter, group, limit, search, sort } =
     productGroupPaginationParams.parse(params);
 
   return (
-    <HybridGallery
+    <ProductGalleryView
       filter={filter}
       group={group}
       limit={limit}
