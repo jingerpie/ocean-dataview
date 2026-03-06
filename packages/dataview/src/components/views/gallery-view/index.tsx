@@ -174,7 +174,7 @@ export function GalleryView<
                   <Suspense
                     fallback={
                       <GallerySkeleton
-                        cardCount={limit}
+                        cardCount={limit ?? GalleryView.defaultLimit}
                         cardSize={cardSize}
                         propertyTypes={displayProperties.map((p) => p.type)}
                         withImage={Boolean(cardPreview)}
@@ -233,7 +233,7 @@ export function GalleryView<
       <Suspense
         fallback={
           <GallerySkeleton
-            cardCount={limit}
+            cardCount={limit ?? GalleryView.defaultLimit}
             cardSize={cardSize}
             pagination={pagination}
             propertyTypes={displayProperties.map((p) => p.type)}
@@ -289,6 +289,7 @@ export function GalleryView<
 
 // Static marker for view type detection in DataViewProvider
 GalleryView.dataViewType = "gallery" as const;
+GalleryView.defaultLimit = 50;
 
 // ============================================================================
 // Suspending Group Content Components

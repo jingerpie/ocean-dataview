@@ -414,7 +414,7 @@ export function PageQueryBridge<
     expanded: defaultExpanded,
     filter: defaultFilter = null,
     group: defaultGroup = null,
-    limit: defaultLimit = 10,
+    limit: defaultLimit = 25,
     search: defaultSearch = "",
     sort: defaultSort = [],
   } = defaults ?? {};
@@ -983,7 +983,7 @@ export function InfiniteQueryBridge<
     expanded: defaultExpanded,
     filter: defaultFilter = null,
     group: defaultGroup = null,
-    limit: defaultLimit = 10,
+    limit: defaultLimit = 25,
     search: defaultSearch = "",
     sort: defaultSort = [],
   } = defaults ?? {};

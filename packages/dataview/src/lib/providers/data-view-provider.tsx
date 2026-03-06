@@ -1,6 +1,6 @@
 "use client";
 
-import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
+import type { SortQuery, WhereNode } from "@sparkyidea/shared/types";
 import { parseAsInteger, useQueryState } from "nuqs";
 import {
   Children,
@@ -16,7 +16,7 @@ import { GallerySkeleton } from "../../components/views/gallery-view/gallery-ske
 import { ListSkeleton } from "../../components/views/list-view/list-skeleton";
 import { TableSkeleton } from "../../components/views/table-view/table-skeleton";
 import { useGroupParams } from "../../hooks/use-group-params";
-import type { PropertyType } from "../../types";
+import type { Limit, PropertyType } from "../../types";
 import {
   type ColumnConfig,
   type DataViewProperty,
@@ -47,11 +47,10 @@ export const TOOLBAR_SLOT = "toolbar" as const;
 export type DataViewType = "board" | "table" | "list" | "gallery";
 
 /**
- * Component type with optional dataViewSlot and dataViewType markers.
+ * Component type for toolbar slot detection.
  */
 interface MarkedComponent {
   dataViewSlot?: typeof TOOLBAR_SLOT;
-  dataViewType?: DataViewType;
 }
 
 /**
@@ -80,26 +79,40 @@ function splitChildren(children: ReactNode): {
 }
 
 /**
- * Detect view type from content children.
- * Views are identified by the static `dataViewType` marker.
+ * Component type with required view markers.
  */
-function detectViewType(children: ReactNode[]): DataViewType | undefined {
+interface ViewComponent {
+  dataViewType: DataViewType;
+  defaultLimit: Limit;
+}
+
+/**
+ * Detect view metadata from content children.
+ * Views define their type via `dataViewType` and default limit via `defaultLimit` markers.
+ * Throws if no view component is found.
+ */
+function detectViewMetadata(children: ReactNode[]): ViewComponent {
   for (const child of children) {
     if (isValidElement(child)) {
-      const type = child.type as MarkedComponent;
-      if (type.dataViewType) {
-        return type.dataViewType;
+      const type = child.type as Partial<ViewComponent>;
+      if (type.dataViewType && type.defaultLimit !== undefined) {
+        return {
+          dataViewType: type.dataViewType,
+          defaultLimit: type.defaultLimit,
+        };
       }
     }
   }
-  return undefined;
+  throw new Error(
+    "DataViewProvider requires a view component (TableView, ListView, GalleryView, or BoardView) as a child."
+  );
 }
 
 /**
  * Render the appropriate skeleton based on detected view type.
  */
 function renderViewSkeleton(
-  viewType: DataViewType | undefined,
+  viewType: DataViewType,
   propertyTypes: PropertyType[],
   rowCount: number,
   isGrouped: boolean
@@ -130,8 +143,7 @@ function renderViewSkeleton(
         <GallerySkeleton cardCount={rowCount} propertyTypes={propertyTypes} />
       );
     default:
-      // Fallback for unknown view types
-      return <GroupSectionSkeleton />;
+      throw new Error(`Unknown view type: ${viewType}`);
   }
 }
 
@@ -280,7 +292,10 @@ export function DataViewProvider<
   const propertyMetas = toPropertyMetaArray(properties);
 
   // Route to QueryBridge if pagination is a controller
-  if (isPageController(pagination)) {
+  const isPage = isPageController(pagination);
+  const isInfinite = isInfiniteController(pagination);
+
+  if (isPage || isInfinite) {
     const controllerProps = props as ControllerProps<
       TData,
       TProperties,
@@ -293,17 +308,21 @@ export function DataViewProvider<
       propertyVisibility: controllerProps.propertyVisibility,
     };
 
-    // Detect view type from children
-    const viewType = detectViewType(contentChildren);
+    // Detect view metadata (type and default limit)
+    const viewMetadata = detectViewMetadata(contentChildren);
+    const mergedDefaults = {
+      ...controllerProps.defaults,
+      limit: controllerProps.defaults?.limit ?? viewMetadata.defaultLimit,
+    };
 
-    // Calculate skeleton values from URL or config
-    const limit = urlLimit ?? controllerProps.defaults?.limit ?? 10;
+    // Calculate skeleton values from URL or merged defaults
+    const limit = urlLimit ?? mergedDefaults.limit;
     const visibleProperties = properties.filter((p) => !p.hidden);
     const propertyTypes = visibleProperties.map((p) => p.type);
 
     // Choose appropriate skeleton based on detected view type and URL group state
     const fallbackSkeleton = renderViewSkeleton(
-      viewType,
+      viewMetadata.dataViewType,
       propertyTypes,
       limit,
       isGrouped
@@ -322,68 +341,23 @@ export function DataViewProvider<
             fallback={fallbackSkeleton}
             key={isGrouped ? "grouped" : "flat"}
           >
-            <PageQueryBridge<TData, TProperties, TQueryOptions>
-              controller={pagination}
-              defaults={controllerProps.defaults}
-              viewProps={viewProps}
-            >
-              {contentChildren}
-            </PageQueryBridge>
-          </Suspense>
-        </div>
-      </ToolbarContextProvider>
-    );
-  }
-
-  if (isInfiniteController(pagination)) {
-    const controllerProps = props as ControllerProps<
-      TData,
-      TProperties,
-      TQueryOptions
-    >;
-    const viewProps = {
-      columnCounts: controllerProps.columnCounts,
-      counts: controllerProps.counts,
-      properties,
-      propertyVisibility: controllerProps.propertyVisibility,
-    };
-
-    // Detect view type from children
-    const viewType = detectViewType(contentChildren);
-
-    // Calculate skeleton values from URL or config
-    const limit = urlLimit ?? controllerProps.defaults?.limit ?? 10;
-    const visibleProperties = properties.filter((p) => !p.hidden);
-    const propertyTypes = visibleProperties.map((p) => p.type);
-
-    // Choose appropriate skeleton based on detected view type and URL group state
-    const fallbackSkeleton = renderViewSkeleton(
-      viewType,
-      propertyTypes,
-      limit,
-      isGrouped
-    );
-
-    return (
-      <ToolbarContextProvider
-        column={controllerProps.defaults?.column}
-        group={controllerProps.defaults?.group}
-        properties={propertyMetas}
-      >
-        <div className={cn("flex flex-col gap-2", className)}>
-          {toolbarChildren}
-          {/* Key changes when isGrouped changes, forcing new Suspense boundary with correct fallback */}
-          <Suspense
-            fallback={fallbackSkeleton}
-            key={isGrouped ? "grouped" : "flat"}
-          >
-            <InfiniteQueryBridge<TData, TProperties, TQueryOptions>
-              controller={pagination}
-              defaults={controllerProps.defaults}
-              viewProps={viewProps}
-            >
-              {contentChildren}
-            </InfiniteQueryBridge>
+            {isPage ? (
+              <PageQueryBridge<TData, TProperties, TQueryOptions>
+                controller={pagination}
+                defaults={mergedDefaults}
+                viewProps={viewProps}
+              >
+                {contentChildren}
+              </PageQueryBridge>
+            ) : (
+              <InfiniteQueryBridge<TData, TProperties, TQueryOptions>
+                controller={pagination}
+                defaults={mergedDefaults}
+                viewProps={viewProps}
+              >
+                {contentChildren}
+              </InfiniteQueryBridge>
+            )}
           </Suspense>
         </div>
       </ToolbarContextProvider>

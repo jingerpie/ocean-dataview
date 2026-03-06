@@ -77,7 +77,7 @@ export function PagePagination({
         <span className="text-muted-foreground text-sm">Rows per page</span>
         <Select
           onValueChange={(value) =>
-            onLimitChange?.(Number(value) as 10 | 25 | 50 | 100 | 200)
+            onLimitChange?.(Number(value) as 10 | 25 | 50 | 100)
           }
           value={String(limit)}
         >
@@ -86,7 +86,7 @@ export function PagePagination({
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              {[10, 25, 50, 100, 200].map((size) => (
+              {[10, 25, 50, 100].map((size) => (
                 <SelectItem key={size} value={String(size)}>
                   {size}
                 </SelectItem>

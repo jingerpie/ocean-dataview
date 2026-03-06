@@ -135,7 +135,7 @@ export function ListView<
                     fallback={
                       <ListSkeleton
                         propertyTypes={displayProperties.map((p) => p.type)}
-                        rowCount={limit}
+                        rowCount={limit ?? ListView.defaultLimit}
                       />
                     }
                   >
@@ -181,7 +181,7 @@ export function ListView<
           <ListSkeleton
             pagination={pagination}
             propertyTypes={displayProperties.map((p) => p.type)}
-            rowCount={limit}
+            rowCount={limit ?? ListView.defaultLimit}
           />
         }
       >
@@ -221,6 +221,7 @@ export function ListView<
 
 // Static marker for view type detection in DataViewProvider
 ListView.dataViewType = "list" as const;
+ListView.defaultLimit = 25;
 
 // ============================================================================
 // Suspending Group Content Components

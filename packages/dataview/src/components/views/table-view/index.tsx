@@ -285,7 +285,7 @@ export function TableView<
                     fallback={
                       <TableSkeleton
                         propertyTypes={displayProperties.map((p) => p.type)}
-                        rowCount={limit}
+                        rowCount={limit ?? TableView.defaultLimit}
                         withBulkActions={enableRowSelection}
                       />
                     }
@@ -346,7 +346,7 @@ export function TableView<
           <TableSkeleton
             pagination={pagination}
             propertyTypes={displayProperties.map((p) => p.type)}
-            rowCount={limit}
+            rowCount={limit ?? TableView.defaultLimit}
             withBulkActions={enableRowSelection}
           />
         }
@@ -401,6 +401,7 @@ export function TableView<
 
 // Static marker for view type detection in DataViewProvider
 TableView.dataViewType = "table" as const;
+TableView.defaultLimit = 25;
 
 // ============================================================================
 // Suspending Group Content Components

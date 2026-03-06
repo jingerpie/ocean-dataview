@@ -406,7 +406,7 @@ export function BoardView<
       return (
         <BoardSkeleton
           cardSize={cardSize}
-          cardsPerColumn={limit}
+          cardsPerColumn={limit ?? BoardView.defaultLimit}
           columnCount={columns.length || 3}
           pagination={pagination}
           propertyTypes={displayProperties.map((p) => p.type)}
@@ -457,7 +457,7 @@ export function BoardView<
                         fallback={
                           <BoardSkeleton
                             cardSize={cardSize}
-                            cardsPerColumn={limit}
+                            cardsPerColumn={limit ?? BoardView.defaultLimit}
                             columnCount={columns.length}
                             propertyTypes={displayProperties.map((p) => p.type)}
                             withImage={Boolean(cardPreview)}
@@ -531,7 +531,7 @@ export function BoardView<
             fallback={
               <BoardSkeleton
                 cardSize={cardSize}
-                cardsPerColumn={limit}
+                cardsPerColumn={limit ?? BoardView.defaultLimit}
                 columnCount={columns.length}
                 pagination={pagination}
                 propertyTypes={displayProperties.map((p) => p.type)}
@@ -588,6 +588,7 @@ export function BoardView<
 
 // Static marker for view type detection in DataViewProvider
 BoardView.dataViewType = "board" as const;
+BoardView.defaultLimit = 25;
 
 // ============================================================================
 // Suspending Group Content Components
