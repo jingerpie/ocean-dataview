@@ -1,7 +1,8 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect } from "react";
+import { useIntersectionObserver } from "../../../hooks/use-intersection-observer";
 import type { PaginationContext } from "../../../types";
 
 type InfiniteScrollPaginationProps = Partial<PaginationContext>;
@@ -17,43 +18,15 @@ export function InfiniteScrollPagination({
   isFetchingNextPage = false,
   error,
 }: InfiniteScrollPaginationProps) {
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  // Use refs to avoid stale closures in the callback
-  const stateRef = useRef({ hasNext, isFetchingNextPage, onNext });
-  stateRef.current = { hasNext, isFetchingNextPage, onNext };
-
-  const handleIntersect = useCallback(() => {
-    const { hasNext, isFetchingNextPage, onNext } = stateRef.current;
-    if (hasNext && !isFetchingNextPage && onNext) {
-      onNext();
-    }
-  }, []);
+  const { targetRef, isIntersecting } = useIntersectionObserver({
+    rootMargin: "100px",
+  });
 
   useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) {
-      return;
+    if (isIntersecting && hasNext && !isFetchingNextPage && onNext) {
+      onNext();
     }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          handleIntersect();
-        }
-      },
-      {
-        rootMargin: "100px", // Trigger 100px before reaching the sentinel
-        threshold: 0,
-      }
-    );
-
-    observer.observe(sentinel);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [handleIntersect]);
+  }, [isIntersecting, hasNext, isFetchingNextPage, onNext]);
 
   // Don't render if no more items and not loading
   if (!(hasNext || isFetchingNextPage)) {
@@ -61,7 +34,7 @@ export function InfiniteScrollPagination({
   }
 
   return (
-    <div className="flex items-center justify-center py-4" ref={sentinelRef}>
+    <div className="flex items-center justify-center py-4" ref={targetRef}>
       {error && <p className="text-destructive text-sm">Failed to load</p>}
       {isFetchingNextPage && (
         <div className="flex items-center gap-2 text-muted-foreground">

@@ -37,6 +37,7 @@ export type {
 } from "./use-infinite-controller";
 export { useInfiniteController } from "./use-infinite-controller";
 export { useInteractiveLegend } from "./use-interactive-legend";
+export { useIntersectionObserver } from "./use-intersection-observer";
 // usePageController - Page navigation pagination (returns controller)
 export type {
   PageGroupInfo,

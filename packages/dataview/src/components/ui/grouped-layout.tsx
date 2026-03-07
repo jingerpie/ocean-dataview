@@ -1,8 +1,9 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect } from "react";
 import type { GroupedDataItem } from "../../hooks";
+import { useIntersectionObserver } from "../../hooks/use-intersection-observer";
 import type { DataViewProperty, PaginationContext } from "../../types";
 import { Accordion } from "./accordion";
 import { GroupSection } from "./group-section";
@@ -64,52 +65,25 @@ export function GroupedLayout<TData>({
   isFetchingNextGroupPage,
   onLoadMoreGroups,
 }: GroupedLayoutProps<TData>) {
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  // Use refs to avoid stale closures in the intersection observer callback
-  const stateRef = useRef({
-    hasNextGroupPage,
-    isFetchingNextGroupPage,
-    onLoadMoreGroups,
+  const { targetRef, isIntersecting } = useIntersectionObserver({
+    rootMargin: "200px",
   });
-  stateRef.current = {
-    hasNextGroupPage,
-    isFetchingNextGroupPage,
-    onLoadMoreGroups,
-  };
-
-  const handleIntersect = useCallback(() => {
-    const { hasNextGroupPage, isFetchingNextGroupPage, onLoadMoreGroups } =
-      stateRef.current;
-    if (hasNextGroupPage && !isFetchingNextGroupPage && onLoadMoreGroups) {
-      onLoadMoreGroups();
-    }
-  }, []);
 
   useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) {
-      return;
+    if (
+      isIntersecting &&
+      hasNextGroupPage &&
+      !isFetchingNextGroupPage &&
+      onLoadMoreGroups
+    ) {
+      onLoadMoreGroups();
     }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          handleIntersect();
-        }
-      },
-      {
-        rootMargin: "200px", // Trigger 200px before reaching the sentinel
-        threshold: 0,
-      }
-    );
-
-    observer.observe(sentinel);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [handleIntersect]);
+  }, [
+    isIntersecting,
+    hasNextGroupPage,
+    isFetchingNextGroupPage,
+    onLoadMoreGroups,
+  ]);
 
   return (
     <div className={className}>
@@ -137,10 +111,7 @@ export function GroupedLayout<TData>({
 
       {/* Infinite scroll sentinel for loading more groups */}
       {(hasNextGroupPage || isFetchingNextGroupPage) && (
-        <div
-          className="flex items-center justify-center py-4"
-          ref={sentinelRef}
-        >
+        <div className="flex items-center justify-center py-4" ref={targetRef}>
           {isFetchingNextGroupPage && (
             <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="size-4 animate-spin" />
