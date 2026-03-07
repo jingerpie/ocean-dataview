@@ -38,7 +38,7 @@ function AdvancedFilterEditor({
   };
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 p-1">
       {/* Filter Content */}
       <FilterGroup
         filter={filter}

@@ -254,7 +254,7 @@ export function FilterGroup({
     <div className={cn(containerStyles, className)}>
       {/* Render items - only when there are items */}
       {items.length > 0 && (
-        <div className="flex flex-col gap-2 pt-2 pl-2">
+        <div className="flex flex-col gap-2 pt-1 pl-1">
           {items.map((item, index) => {
             if (isWhereRule(item)) {
               return (
