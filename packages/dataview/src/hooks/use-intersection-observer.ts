@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface UseIntersectionObserverOptions {
   /**
@@ -43,12 +43,18 @@ export function useIntersectionObserver({
   rootMargin = "0px",
   threshold = 0,
 }: UseIntersectionObserverOptions = {}) {
-  const targetRef = useRef<HTMLDivElement>(null);
+  const [target, setTarget] = useState<HTMLDivElement | null>(null);
   const [isIntersecting, setIsIntersecting] = useState(false);
 
+  // Callback ref to track when the element mounts/unmounts
+  const targetRef = useCallback((node: HTMLDivElement | null) => {
+    setTarget(node);
+  }, []);
+
   useEffect(() => {
-    const target = targetRef.current;
     if (!target) {
+      // Reset intersection state when target unmounts
+      setIsIntersecting(false);
       return;
     }
 
@@ -67,7 +73,7 @@ export function useIntersectionObserver({
     return () => {
       observer.disconnect();
     };
-  }, [root, rootMargin, threshold]);
+  }, [target, root, rootMargin, threshold]);
 
   return { targetRef, isIntersecting };
 }
