@@ -1,6 +1,6 @@
 "use client";
 
-import { ROW_SKELETON_WIDTHS } from "../../../lib/constants/skeleton-widths";
+import { TABLE_COLUMN_WIDTHS } from "../../../lib/constants/skeleton-widths";
 import { cn } from "../../../lib/utils";
 import type { PropertyType } from "../../../types";
 import { PaginationSkeleton } from "../../ui/pagination-skeleton";
@@ -52,14 +52,17 @@ export function TableSkeleton({
             <TableRow className="hover:bg-transparent">
               {/* Bulk selection checkbox column */}
               {withBulkActions && (
-                <TableHead className="w-10 pr-0">
+                <TableHead className="w-6 pr-0">
                   <Skeleton className="size-4 rounded" />
                 </TableHead>
               )}
               {propertyTypes.map((type, j) => (
                 <TableHead
                   key={j}
-                  style={{ minWidth: ROW_SKELETON_WIDTHS[type] }}
+                  style={{
+                    minWidth: TABLE_COLUMN_WIDTHS[type],
+                    maxWidth: TABLE_COLUMN_WIDTHS[type],
+                  }}
                 >
                   <Skeleton className="h-6 w-full" />
                 </TableHead>
@@ -71,14 +74,17 @@ export function TableSkeleton({
               <TableRow className="hover:bg-transparent" key={i}>
                 {/* Bulk selection checkbox column */}
                 {withBulkActions && (
-                  <TableCell className="w-10 pr-0">
+                  <TableCell className="w-6 pr-0">
                     <Skeleton className="size-4 rounded" />
                   </TableCell>
                 )}
                 {propertyTypes.map((type, j) => (
                   <TableCell
                     key={j}
-                    style={{ minWidth: ROW_SKELETON_WIDTHS[type] }}
+                    style={{
+                      minWidth: TABLE_COLUMN_WIDTHS[type],
+                      maxWidth: TABLE_COLUMN_WIDTHS[type],
+                    }}
                   >
                     <Skeleton className="h-6 w-full" />
                   </TableCell>

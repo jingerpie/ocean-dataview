@@ -46,6 +46,8 @@ export type {
   ViewCounts,
 } from "./pagination-types";
 export * from "./property.type";
+// TanStack Table type augmentation (for ColumnMeta)
+import "./table.type";
 
 // Pagination result interface
 export interface PaginationResult<T> {

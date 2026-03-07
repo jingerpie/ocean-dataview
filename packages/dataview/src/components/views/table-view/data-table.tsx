@@ -10,7 +10,14 @@ import {
 } from "@tanstack/react-table";
 import type * as React from "react";
 import { useRef } from "react";
+import {
+  TABLE_COLUMN_WIDTHS,
+  TABLE_HEADER_CHAR_WIDTH,
+  TABLE_HEADER_MAX_WIDTH,
+  TABLE_HEADER_PADDING,
+} from "../../../lib/constants/skeleton-widths";
 import { cn } from "../../../lib/utils";
+import type { PropertyType } from "../../../types";
 import {
   Table,
   TableBody,
@@ -20,6 +27,26 @@ import {
   TableRow,
 } from "../../ui/table";
 import { DataTableStickyHeader } from "./data-table-sticky-header";
+
+/**
+ * Calculate column width based on property type and header label
+ * Returns max(propertyWidth, headerLabelWidth), capped at TABLE_HEADER_MAX_WIDTH
+ */
+function calculateColumnWidth(
+  propertyType: PropertyType | undefined,
+  headerLabel: string | undefined
+): number | undefined {
+  if (!propertyType) {
+    return undefined;
+  }
+
+  const propertyWidth = TABLE_COLUMN_WIDTHS[propertyType];
+  const headerWidth = headerLabel
+    ? headerLabel.length * TABLE_HEADER_CHAR_WIDTH + TABLE_HEADER_PADDING
+    : 0;
+
+  return Math.min(Math.max(propertyWidth, headerWidth), TABLE_HEADER_MAX_WIDTH);
+}
 
 interface HeaderConfig {
   enabled: boolean;
@@ -153,16 +180,36 @@ export function DataTable<TData>({
               <TableHeader ref={tableHeaderRef}>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead colSpan={header.colSpan} key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    ))}
+                    {headerGroup.headers.map((header) => {
+                      const propertyType = header.column.columnDef.meta
+                        ?.propertyType as PropertyType | undefined;
+                      const headerDef = header.column.columnDef.header;
+                      const headerLabel =
+                        typeof headerDef === "string" ? headerDef : undefined;
+                      const columnWidth = calculateColumnWidth(
+                        propertyType,
+                        headerLabel
+                      );
+                      const isSelectionColumn = header.id === "select";
+                      return (
+                        <TableHead
+                          className={cn(isSelectionColumn && "pr-0")}
+                          colSpan={header.colSpan}
+                          key={header.id}
+                          style={{
+                            minWidth: columnWidth,
+                            maxWidth: columnWidth,
+                          }}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      );
+                    })}
                   </TableRow>
                 ))}
               </TableHeader>
@@ -185,20 +232,37 @@ export function DataTable<TData>({
                     key={row.id}
                     onClick={() => onRowClick?.(row.original)}
                   >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        className={cn(
-                          showVerticalLines && "border-r last:border-r-0",
-                          wrapAllColumns ? "whitespace-normal" : "truncate"
-                        )}
-                        key={cell.id}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
+                    {row.getVisibleCells().map((cell) => {
+                      const propertyType = cell.column.columnDef.meta
+                        ?.propertyType as PropertyType | undefined;
+                      const headerDef = cell.column.columnDef.header;
+                      const headerLabel =
+                        typeof headerDef === "string" ? headerDef : undefined;
+                      const columnWidth = calculateColumnWidth(
+                        propertyType,
+                        headerLabel
+                      );
+                      const isSelectionColumn = cell.column.id === "select";
+                      return (
+                        <TableCell
+                          className={cn(
+                            showVerticalLines && "border-r last:border-r-0",
+                            wrapAllColumns ? "whitespace-normal" : "truncate",
+                            isSelectionColumn && "pr-0"
+                          )}
+                          key={cell.id}
+                          style={{
+                            minWidth: columnWidth,
+                            maxWidth: columnWidth,
+                          }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 ))
               )}

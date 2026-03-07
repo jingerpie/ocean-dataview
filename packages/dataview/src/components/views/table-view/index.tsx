@@ -163,6 +163,9 @@ export function TableView<
             value={getValue()}
           />
         ),
+        meta: {
+          propertyType: property.type,
+        },
       })
     );
 

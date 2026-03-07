@@ -1,6 +1,41 @@
 import type { PropertyType } from "../../types";
 
 /**
+ * Fixed column widths for table columns based on property type (in pixels)
+ * Used as minimum width; actual width may be larger if header label is wider
+ */
+export const TABLE_COLUMN_WIDTHS: Record<PropertyType, number> = {
+  checkbox: 32,
+  button: 200,
+  filesMedia: 100,
+  number: 150,
+  date: 200,
+  select: 150,
+  status: 150,
+  phone: 200,
+  multiSelect: 200,
+  email: 200,
+  url: 200,
+  text: 200,
+  formula: 300,
+};
+
+/**
+ * Average character width for estimating header label width (in pixels)
+ */
+export const TABLE_HEADER_CHAR_WIDTH = 8;
+
+/**
+ * Padding added to header label width calculation (in pixels)
+ */
+export const TABLE_HEADER_PADDING = 24;
+
+/**
+ * Maximum width for table header/column (in pixels)
+ */
+export const TABLE_HEADER_MAX_WIDTH = 300;
+
+/**
  * Skeleton widths for row-based layouts (Table columns, List flex rows)
  * Used by: TableSkeleton, ListSkeleton
  */
