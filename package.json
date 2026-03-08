@@ -100,5 +100,17 @@
       "bun x ultracite fix"
     ]
   },
-  "packageManager": "bun@1.3.9"
+  "packageManager": "bun@1.3.9",
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">=22",
+      "onFail": "error"
+    },
+    "packageManager": {
+      "name": "bun",
+      "version": ">=1.3.9",
+      "onFail": "error"
+    }
+  }
 }
