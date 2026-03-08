@@ -1,0 +1,113 @@
+# Issue Types
+- name: bug
+  color: "d73a4a"
+  description: "Something isn't working"
+
+- name: enhancement
+  color: "a2eeef"
+  description: "New feature or request"
+
+- name: documentation
+  color: "0075ca"
+  description: "Improvements or additions to documentation"
+
+- name: question
+  color: "d876e3"
+  description: "Further information is requested"
+
+# Workflow
+- name: triage
+  color: "fbca04"
+  description: "Needs initial review and categorization"
+
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers"
+
+- name: "help wanted"
+  color: "008672"
+  description: "Extra attention is needed"
+
+- name: wontfix
+  color: "ffffff"
+  description: "This will not be worked on"
+
+- name: duplicate
+  color: "cfd3d7"
+  description: "This issue or pull request already exists"
+
+- name: invalid
+  color: "e4e669"
+  description: "This doesn't seem right"
+
+# Priority
+- name: "priority: critical"
+  color: "b60205"
+  description: "Must be fixed ASAP"
+
+- name: "priority: high"
+  color: "d93f0b"
+  description: "High priority"
+
+- name: "priority: medium"
+  color: "fbca04"
+  description: "Medium priority"
+
+- name: "priority: low"
+  color: "0e8a16"
+  description: "Low priority"
+
+# Scope (packages)
+- name: "scope: dataview"
+  color: "1d76db"
+  description: "@sparkyidea/dataview package"
+
+- name: "scope: trpc"
+  color: "1d76db"
+  description: "@sparkyidea/trpc package"
+
+- name: "scope: db"
+  color: "1d76db"
+  description: "@sparkyidea/db package"
+
+- name: "scope: shared"
+  color: "1d76db"
+  description: "@sparkyidea/shared package"
+
+- name: "scope: ui"
+  color: "1d76db"
+  description: "@sparkyidea/ui package"
+
+- name: "scope: web"
+  color: "1d76db"
+  description: "apps/web frontend"
+
+- name: "scope: server"
+  color: "1d76db"
+  description: "apps/server backend"
+
+# Automation
+- name: dependencies
+  color: "0366d6"
+  description: "Pull requests that update dependencies"
+
+- name: automated
+  color: "ededed"
+  description: "Automated pull request"
+
+- name: ci
+  color: "5319e7"
+  description: "CI/CD related changes"
+
+# Status
+- name: "status: blocked"
+  color: "b60205"
+  description: "Blocked by another issue or external factor"
+
+- name: "status: in progress"
+  color: "fbca04"
+  description: "Currently being worked on"
+
+- name: "status: needs review"
+  color: "0e8a16"
+  description: "Ready for review"

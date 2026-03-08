@@ -1,0 +1,48 @@
+# PR Labeler configuration
+# Automatically applies labels based on changed files
+
+"scope: dataview":
+  - changed-files:
+      - any-glob-to-any-file: "packages/dataview/**"
+
+"scope: trpc":
+  - changed-files:
+      - any-glob-to-any-file: "packages/trpc/**"
+
+"scope: db":
+  - changed-files:
+      - any-glob-to-any-file: "packages/db/**"
+
+"scope: shared":
+  - changed-files:
+      - any-glob-to-any-file: "packages/shared/**"
+
+"scope: ui":
+  - changed-files:
+      - any-glob-to-any-file: "packages/ui/**"
+
+"scope: web":
+  - changed-files:
+      - any-glob-to-any-file: "apps/web/**"
+
+"scope: server":
+  - changed-files:
+      - any-glob-to-any-file: "apps/server/**"
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+          - "turbo.json"
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "docs/**"
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/package.json"
+          - "bun.lock"
