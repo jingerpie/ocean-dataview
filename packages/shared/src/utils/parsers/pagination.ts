@@ -159,7 +159,7 @@ function parseCursorItem(parts: string[]): [string, CursorValue] | null {
   if (parts.length === 3) {
     // Flat mode: direction.cursor.start
     const [direction, cursorValue, startStr] = parts;
-    if (!cursorValue) {
+    if (!(direction && cursorValue)) {
       return null;
     }
     const cursor = buildCursorValue(
@@ -173,7 +173,7 @@ function parseCursorItem(parts: string[]): [string, CursorValue] | null {
   if (parts.length >= 4) {
     // Grouped mode: group.direction.cursor.start
     const [groupKey, direction, cursorValue, startStr] = parts;
-    if (!(groupKey && cursorValue)) {
+    if (!(groupKey && direction && cursorValue)) {
       return null;
     }
     const cursor = buildCursorValue(

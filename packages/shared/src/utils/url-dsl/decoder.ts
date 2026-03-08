@@ -359,11 +359,16 @@ export function decodeOptions(
 
   let i = 0;
   while (i < parts.length) {
-    const key = unescapeValue(parts[i]).value;
+    const part = parts[i];
+    if (part === undefined) {
+      i++;
+      continue;
+    }
+    const key = unescapeValue(part).value;
 
     // Check if next part is a value (contains no colon and isn't a known key pattern)
-    if (i + 1 < parts.length) {
-      const nextPart = parts[i + 1];
+    const nextPart = parts[i + 1];
+    if (nextPart !== undefined) {
       // Simple heuristic: if it looks like a value, treat it as key:value
       const parsed = parsePrimitive(nextPart);
       if (typeof parsed !== "string" || !nextPart.includes(":")) {
