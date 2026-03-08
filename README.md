@@ -32,7 +32,7 @@ flowchart TB
     style OLD fill:#ef444414,stroke:#ef4444,stroke-width:2px
 ```
 
-That fragmentation inspired the unified model:
+Notion's elegant approach to data visualization inspired this unified model:
 
 ```mermaid
 flowchart TB
