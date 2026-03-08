@@ -1,7 +1,6 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
 import { useIntersectionObserver } from "../../../hooks/use-intersection-observer";
 import type { PaginationContext } from "../../../types";
 
@@ -18,15 +17,15 @@ export function InfiniteScrollPagination({
   isFetchingNextPage = false,
   error,
 }: InfiniteScrollPaginationProps) {
-  const { targetRef, isIntersecting } = useIntersectionObserver({
+  const { targetRef } = useIntersectionObserver({
     rootMargin: "100px",
+    recheckOn: [isFetchingNextPage],
+    onVisible: () => {
+      if (hasNext && !isFetchingNextPage && onNext) {
+        onNext();
+      }
+    },
   });
-
-  useEffect(() => {
-    if (isIntersecting && hasNext && !isFetchingNextPage && onNext) {
-      onNext();
-    }
-  }, [isIntersecting, hasNext, isFetchingNextPage, onNext]);
 
   // Don't render if no more items and not loading
   if (!(hasNext || isFetchingNextPage)) {

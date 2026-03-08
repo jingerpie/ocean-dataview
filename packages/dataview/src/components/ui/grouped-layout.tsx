@@ -1,7 +1,6 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
 import type { GroupedDataItem } from "../../hooks";
 import { useIntersectionObserver } from "../../hooks/use-intersection-observer";
 import type { DataViewProperty, PaginationContext } from "../../types";
@@ -65,25 +64,15 @@ export function GroupedLayout<TData>({
   isFetchingNextGroupPage,
   onLoadMoreGroups,
 }: GroupedLayoutProps<TData>) {
-  const { targetRef, isIntersecting } = useIntersectionObserver({
+  const { targetRef } = useIntersectionObserver({
     rootMargin: "200px",
+    recheckOn: [isFetchingNextGroupPage],
+    onVisible: () => {
+      if (hasNextGroupPage && !isFetchingNextGroupPage && onLoadMoreGroups) {
+        onLoadMoreGroups();
+      }
+    },
   });
-
-  useEffect(() => {
-    if (
-      isIntersecting &&
-      hasNextGroupPage &&
-      !isFetchingNextGroupPage &&
-      onLoadMoreGroups
-    ) {
-      onLoadMoreGroups();
-    }
-  }, [
-    isIntersecting,
-    hasNextGroupPage,
-    isFetchingNextGroupPage,
-    onLoadMoreGroups,
-  ]);
 
   return (
     <div className={className}>

@@ -615,7 +615,7 @@ function InfiniteScrollGroupsSentinel({
   isFetching,
   onLoadMore,
 }: InfiniteScrollGroupsSentinelProps) {
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   // Use refs to avoid stale closures in the intersection observer callback
   const stateRef = useRef({ hasNext, isFetching, onLoadMore });
@@ -628,37 +628,64 @@ function InfiniteScrollGroupsSentinel({
     }
   }, []);
 
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          handleIntersect();
-        }
-      },
-      {
-        rootMargin: "200px",
-        threshold: 0,
+  const sentinelRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
       }
-    );
 
-    observer.observe(sentinel);
+      if (!node) {
+        return;
+      }
 
-    return () => {
-      observer.disconnect();
-    };
-  }, [handleIntersect]);
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0]?.isIntersecting) {
+            handleIntersect();
+          }
+        },
+        {
+          rootMargin: "200px",
+          threshold: 0,
+        }
+      );
+
+      observer.observe(node);
+      observerRef.current = observer;
+    },
+    [handleIntersect] // Re-bind if handleIntersect changes
+  );
+
+  // We need to re-run the intersection observer when isFetching changes
+  // to ensure it checks visibility after fetching state resolves from cache hits.
+  useEffect(() => {
+    // If we're no longer fetching, and we have an observer and a node...
+    // Actually, reconnecting the observer will force an immediate intersection check.
+    if (
+      !isFetching &&
+      observerRef.current &&
+      observerRef.current.takeRecords().length === 0
+    ) {
+      // Disconnect and reconnect to force a re-evaluation
+      observerRef.current.disconnect();
+      const node = document.getElementById("infinite-scroll-sentinel");
+      if (node) {
+        observerRef.current.observe(node);
+      }
+    }
+  }, [isFetching]);
 
   if (!(hasNext || isFetching)) {
     return null;
   }
 
   return (
-    <div className="flex items-center justify-center py-4" ref={sentinelRef}>
+    <div
+      className="flex items-center justify-center py-4"
+      id="infinite-scroll-sentinel"
+      ref={sentinelRef}
+    >
       {isFetching && (
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="size-4 animate-spin" />
