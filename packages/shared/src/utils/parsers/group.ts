@@ -69,7 +69,8 @@ type GroupType = keyof typeof TYPE_MAP;
 
 /**
  * Encode group config to DSL format.
- * Example: { byMultiSelect: { property: "tags" }, sort: "desc" } → "multiselect.tags:sort:desc"
+ * Example: { byMultiSelect: { property: "tags" }, sort: "desc" } → "multiselect.tags.desc"
+ * Sort is appended to the tuple, hideEmpty remains as option.
  */
 export function encodeGroup(config: GroupConfigInput): string {
   let type: GroupType | null = null;
@@ -112,9 +113,15 @@ export function encodeGroup(config: GroupConfigInput): string {
     return "";
   }
 
+  // Append sort direction only if desc (asc is the default)
+  if (config.sort === "desc") {
+    parts.push(config.sort);
+  }
+
   const base = encodeTuple([type, ...parts]);
+
+  // hideEmpty stays as option (display-only, doesn't affect query)
   const options = encodeOptions({
-    sort: config.sort,
     hideEmpty: config.hideEmpty,
   });
 
@@ -203,8 +210,27 @@ function decodeNumberConfig(
 // ============================================================================
 
 /**
+ * Extract sort direction from the end of parts array if present.
+ * Returns the sort direction and the parts array without the sort.
+ */
+function extractSort(parts: string[]): {
+  sort: "asc" | "desc" | undefined;
+  partsWithoutSort: string[];
+} {
+  const lastPart = parts.at(-1);
+  if (lastPart === "asc" || lastPart === "desc") {
+    return {
+      sort: lastPart,
+      partsWithoutSort: parts.slice(0, -1),
+    };
+  }
+  return { sort: undefined, partsWithoutSort: parts };
+}
+
+/**
  * Decode DSL format to group config.
- * Example: "multiselect.tags:sort:desc" → { byMultiSelect: { property: "tags" }, sort: "desc" }
+ * Example: "multiselect.tags.desc" → { byMultiSelect: { property: "tags" }, sort: "desc" }
+ * Sort is extracted from the end of the tuple, hideEmpty from options.
  */
 export function decodeGroup(value: string): GroupConfigInput | null {
   if (!value) {
@@ -216,10 +242,13 @@ export function decodeGroup(value: string): GroupConfigInput | null {
   const base = colonIndex === -1 ? value : value.slice(0, colonIndex);
   const optionsStr = colonIndex === -1 ? "" : value.slice(colonIndex);
 
-  const parts = decodeTupleStrings(base);
-  if (parts.length < 2) {
+  const rawParts = decodeTupleStrings(base);
+  if (rawParts.length < 2) {
     return null;
   }
+
+  // Extract sort from the end of parts if present
+  const { sort, partsWithoutSort: parts } = extractSort(rawParts);
 
   const typeStr = parts[0];
   if (!(typeStr && typeStr in TYPE_MAP)) {
@@ -267,12 +296,8 @@ export function decodeGroup(value: string): GroupConfigInput | null {
     return null;
   }
 
-  // Parse and add options
+  // Parse options (hideEmpty only, sort is from tuple)
   const options = decodeOptions(optionsStr);
-  const sort =
-    options.sort === "asc" || options.sort === "desc"
-      ? options.sort
-      : undefined;
   const hideEmpty = options.hideEmpty === true;
 
   return {

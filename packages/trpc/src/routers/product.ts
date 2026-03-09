@@ -8,11 +8,15 @@ import {
   searchQuerySchema,
   whereNodeSchema,
 } from "@sparkyidea/shared/types";
-import { and, count, gt } from "drizzle-orm";
+import { and, count } from "drizzle-orm";
 import { z } from "zod";
 import { publicProcedure, router } from "../index";
 import { buildWhere } from "../lib/filter-columns";
-import { buildGroupBy, buildGroupWhere } from "../lib/group-columns";
+import {
+  buildGroupBy,
+  buildGroupCursor,
+  buildGroupWhere,
+} from "../lib/group-columns";
 import { buildCursor } from "../lib/sort-columns";
 
 // Property configs for grouping (status needs group structure)
@@ -111,18 +115,21 @@ export const productRouter = router({
    * Get group counts with full GroupByConfig support.
    * Supports all group strategies: byDate, byStatus, bySelect, byMultiSelect, byCheckbox, byText, byNumber
    * Supports cursor-based pagination for large numbers of groups.
+   * Supports sort direction (asc/desc) for group ordering.
    */
   getGroup: publicProcedure
     .input(
       z.object({
         groupBy: groupByConfigSchema,
+        // Sort direction for groups (default: asc)
+        sort: z.enum(["asc", "desc"]).optional(),
         // Pagination params
         limit: z.number().int().min(1).max(100).default(25),
         cursor: z.string().nullable().optional(), // Group sortValue to start after
       })
     )
     .query(async ({ input }) => {
-      const { groupBy, limit, cursor } = input;
+      const { groupBy, sort = "asc", limit, cursor } = input;
       const parsed = parseGroupByConfig(groupBy);
       const propertyConfig =
         productPropertyConfigs[
@@ -142,6 +149,13 @@ export const productRouter = router({
 
       const { groupKey, orderBy } = groupByResult;
 
+      // Build cursor pagination with sort direction
+      const { orderByClause, cursorFilter } = buildGroupCursor({
+        orderBy,
+        cursor,
+        sort,
+      });
+
       // Build base query - must chain in correct order: groupBy -> having -> orderBy -> limit
       const baseQuery = db
         .select({
@@ -152,13 +166,13 @@ export const productRouter = router({
         .from(product)
         .groupBy(groupKey, orderBy);
 
-      // Apply cursor filter if provided (skip groups before cursor), then order and limit
-      const results = cursor
+      // Apply cursor filter if present, then order and limit
+      const results = cursorFilter
         ? await baseQuery
-            .having(gt(orderBy, cursor))
-            .orderBy(orderBy)
+            .having(cursorFilter)
+            .orderBy(orderByClause)
             .limit(limit + 1)
-        : await baseQuery.orderBy(orderBy).limit(limit + 1);
+        : await baseQuery.orderBy(orderByClause).limit(limit + 1);
 
       const hasNextPage = results.length > limit;
       const groups = hasNextPage ? results.slice(0, limit) : results;

@@ -1,5 +1,5 @@
 import type { ParsedGroupConfig } from "@sparkyidea/shared/types";
-import { count, type SQL, sql, type Table } from "drizzle-orm";
+import { count, desc, gt, lt, type SQL, sql, type Table } from "drizzle-orm";
 import { getColumn } from "./filter-columns";
 
 // Regex for parsing number range groups (e.g., "100-200")
@@ -25,6 +25,53 @@ interface PropertyConfig {
 interface GroupByResult {
   groupKey: SQL;
   orderBy: SQL;
+}
+
+interface GroupCursorResult {
+  cursorFilter: SQL | undefined;
+  orderByClause: SQL;
+}
+
+/**
+ * Builds orderBy clause and cursor filter for group pagination.
+ *
+ * Unlike row-level buildCursor which uses ID-based subquery lookup,
+ * group cursors use the sort value directly since groups don't have IDs.
+ *
+ * @param options.orderBy - The SQL expression used for ordering groups
+ * @param options.cursor - The cursor value (sort value from previous page)
+ * @param options.sort - Sort direction ("asc" or "desc", defaults to "asc")
+ * @returns orderByClause with direction applied, and cursorFilter for pagination
+ *
+ * @example
+ * const { orderByClause, cursorFilter } = buildGroupCursor({
+ *   orderBy: groupByResult.orderBy,
+ *   cursor: input.cursor,
+ *   sort: "desc",
+ * });
+ * // Use in query: .having(cursorFilter).orderBy(orderByClause)
+ */
+export function buildGroupCursor(options: {
+  orderBy: SQL;
+  cursor?: string | null;
+  sort?: "asc" | "desc";
+}): GroupCursorResult {
+  const { orderBy, cursor, sort = "asc" } = options;
+  const isDesc = sort === "desc";
+
+  // Build orderBy with direction
+  const orderByClause = isDesc ? desc(orderBy) : orderBy;
+
+  // If no cursor, no filter needed
+  if (!cursor) {
+    return { orderByClause, cursorFilter: undefined };
+  }
+
+  // For desc: use lt() since we want values "less than" the cursor
+  // For asc: use gt() since we want values "greater than" the cursor
+  const cursorFilter = isDesc ? lt(orderBy, cursor) : gt(orderBy, cursor);
+
+  return { orderByClause, cursorFilter };
 }
 
 /**

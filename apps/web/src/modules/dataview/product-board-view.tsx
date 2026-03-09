@@ -54,7 +54,11 @@ export function ProductBoardView({
 
     groupQuery: (groupConfig) =>
       trpc.product.getGroup.infiniteQueryOptions(
-        { groupBy: groupConfig, limit: 25 },
+        {
+          groupBy: groupConfig,
+          sort: groupConfig.sort,
+          limit: 25,
+        },
         { getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined }
       ),
 
