@@ -38,21 +38,40 @@ export interface InfiniteGroupQueryOptions {
 }
 
 /**
+ * Params for group query options factory.
+ * Mirrors data query params for consistency (filter, search affect group counts).
+ */
+export interface GroupQueryOptionsFactoryParams {
+  filter: WhereNode[] | null;
+  groupConfig: GroupConfigInput;
+  search: string;
+}
+
+/**
  * Query options factory for fetching group counts with pagination.
  * Called by QueryBridge when group mode is active.
  * Returns InfiniteGroupQueryOptions for cursor-based group pagination.
  */
 export type GroupQueryOptionsFactory = (
-  groupConfig: GroupConfigInput
+  params: GroupQueryOptionsFactoryParams
 ) => InfiniteGroupQueryOptions;
+
+/**
+ * Params for column query options factory.
+ * Mirrors group query params for consistency.
+ */
+export interface ColumnQueryOptionsFactoryParams {
+  columnConfig: GroupConfigInput;
+  filter: WhereNode[] | null;
+  search: string;
+}
 
 /**
  * Query options factory for fetching column counts (board-specific).
  * Called by QueryBridge when column mode is active.
- * Uses same signature as GroupQueryOptionsFactory since columns use the same query structure.
  */
 export type ColumnQueryOptionsFactory = (
-  columnConfig: GroupConfigInput
+  params: ColumnQueryOptionsFactoryParams
 ) => BaseQueryOptions;
 
 // ============================================================================

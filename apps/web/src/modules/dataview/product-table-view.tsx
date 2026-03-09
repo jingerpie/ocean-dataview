@@ -41,11 +41,13 @@ export function ProductTableView({
   const searchableFields = getSearchableProperties(productProperties);
 
   const { controller } = usePageController({
-    groupQuery: (groupConfig) =>
+    groupQuery: (params) =>
       trpc.product.getGroup.infiniteQueryOptions(
         {
-          groupBy: groupConfig,
-          sort: groupConfig.sort,
+          filter: params.filter,
+          groupBy: params.groupConfig,
+          search: buildSearchFilter(params.search, searchableFields),
+          sort: params.groupConfig.sort,
           limit: 25,
         },
         { getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined }

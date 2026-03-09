@@ -40,11 +40,13 @@ export function ProductGalleryView({
   const searchableFields = getSearchableProperties(productProperties);
 
   const { controller } = useInfiniteController({
-    groupQuery: (groupConfig) =>
+    groupQuery: (params) =>
       trpc.product.getGroup.infiniteQueryOptions(
         {
-          groupBy: groupConfig,
-          sort: groupConfig.sort,
+          filter: params.filter,
+          groupBy: params.groupConfig,
+          search: buildSearchFilter(params.search, searchableFields),
+          sort: params.groupConfig.sort,
           limit: 25,
         },
         { getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined }

@@ -120,7 +120,10 @@ export const productRouter = router({
   getGroup: publicProcedure
     .input(
       z.object({
+        filter: z.array(whereNodeSchema).nullish(),
         groupBy: groupByConfigSchema,
+        // Search filter (same as getMany)
+        search: searchQuerySchema.nullish(),
         // Sort direction for groups (default: asc)
         sort: z.enum(["asc", "desc"]).optional(),
         // Pagination params
@@ -129,7 +132,7 @@ export const productRouter = router({
       })
     )
     .query(async ({ input }) => {
-      const { groupBy, sort = "asc", limit, cursor } = input;
+      const { filter, groupBy, search, sort = "asc", limit, cursor } = input;
       const parsed = parseGroupByConfig(groupBy);
       const propertyConfig =
         productPropertyConfigs[
@@ -156,7 +159,12 @@ export const productRouter = router({
         sort,
       });
 
-      // Build base query - must chain in correct order: groupBy -> having -> orderBy -> limit
+      // Build filter and search conditions
+      const filterCondition = buildWhere(product, filter ?? undefined);
+      const searchCondition = buildWhere(product, search ? [search] : null);
+      const whereCondition = and(filterCondition, searchCondition);
+
+      // Build base query - must chain in correct order: where -> groupBy -> having -> orderBy -> limit
       const baseQuery = db
         .select({
           groupKey,
@@ -164,6 +172,7 @@ export const productRouter = router({
           count: count(),
         })
         .from(product)
+        .where(whereCondition)
         .groupBy(groupKey, orderBy);
 
       // Apply cursor filter if present, then order and limit

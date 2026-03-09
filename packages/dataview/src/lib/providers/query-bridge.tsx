@@ -240,10 +240,16 @@ interface InfiniteGroupKeysProps {
     isFetchingNextGroupPage: boolean;
     onLoadMoreGroups: () => void;
   }) => ReactNode;
+  filter: WhereNode[] | null;
   groupByConfig: GroupConfigInput;
   // Accept any function that returns infinite query options (tRPC or manual)
-  // biome-ignore lint/suspicious/noExplicitAny: Must accept tRPC's infiniteQueryOptions return type
-  groupQuery: (groupConfig: GroupConfigInput) => any;
+  groupQuery: (params: {
+    filter: WhereNode[] | null;
+    groupConfig: GroupConfigInput;
+    search: string;
+    // biome-ignore lint/suspicious/noExplicitAny: Must accept tRPC's infiniteQueryOptions return type
+  }) => any;
+  search: string;
 }
 
 /**
@@ -254,10 +260,16 @@ interface InfiniteGroupKeysProps {
  */
 function InfiniteGroupKeys({
   children,
+  filter,
   groupByConfig,
   groupQuery,
+  search,
 }: InfiniteGroupKeysProps) {
-  const factoryOptions = groupQuery(groupByConfig);
+  const factoryOptions = groupQuery({
+    filter,
+    groupConfig: groupByConfig,
+    search,
+  });
 
   // Spread tRPC options directly - tRPC's infiniteQueryOptions returns a complete config
   // We only provide fallbacks for getNextPageParam and initialPageParam if not present
@@ -316,10 +328,16 @@ interface SuspendingColumnKeysProps {
     columnSortValues: GroupQueryResponse["sortValues"];
   }) => ReactNode;
   columnByConfig: GroupConfigInput;
-  columnQuery: (columnConfig: GroupConfigInput) => {
+  columnQuery: (params: {
+    columnConfig: GroupConfigInput;
+    filter: WhereNode[] | null;
+    search: string;
+  }) => {
     queryFn?: unknown;
     queryKey: readonly unknown[];
   };
+  filter: WhereNode[] | null;
+  search: string;
 }
 
 /**
@@ -330,8 +348,14 @@ function SuspendingColumnKeys({
   children,
   columnByConfig,
   columnQuery,
+  filter,
+  search,
 }: SuspendingColumnKeysProps) {
-  const factoryOptions = columnQuery(columnByConfig);
+  const factoryOptions = columnQuery({
+    columnConfig: columnByConfig,
+    filter,
+    search,
+  });
   const { data: rawColumnData } = useSuspenseQuery({
     queryKey: factoryOptions.queryKey,
     queryFn: factoryOptions.queryFn as () => Promise<GroupQueryResponse>,
@@ -670,7 +694,12 @@ export function PageQueryBridge<
 
   // GROUPED MODE: Use InfiniteGroupKeys to suspend until group data is ready
   return (
-    <InfiniteGroupKeys groupByConfig={groupByConfig} groupQuery={groupQuery}>
+    <InfiniteGroupKeys
+      filter={filter}
+      groupByConfig={groupByConfig}
+      groupQuery={groupQuery}
+      search={search}
+    >
       {renderInner}
     </InfiniteGroupKeys>
   );
@@ -1194,8 +1223,10 @@ export function InfiniteQueryBridge<
     if (isGrouped && groupByConfig && groupQuery) {
       return (
         <InfiniteGroupKeys
+          filter={filter}
           groupByConfig={groupByConfig}
           groupQuery={groupQuery}
+          search={search}
         >
           {({
             groupCounts,
@@ -1236,6 +1267,8 @@ export function InfiniteQueryBridge<
       <SuspendingColumnKeys
         columnByConfig={columnByConfig}
         columnQuery={columnQuery}
+        filter={filter}
+        search={search}
       >
         {({ columnCounts }) => wrapWithGroupSuspense(columnCounts)}
       </SuspendingColumnKeys>

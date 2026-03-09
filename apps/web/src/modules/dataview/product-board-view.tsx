@@ -49,14 +49,20 @@ export function ProductBoardView({
   const effectiveColumnConfig = column ?? defaultColumnConfig;
 
   const { controller } = useInfiniteController({
-    columnQuery: (columnConfig) =>
-      trpc.product.getGroup.queryOptions({ groupBy: columnConfig }),
+    columnQuery: (params) =>
+      trpc.product.getGroup.queryOptions({
+        filter: params.filter,
+        groupBy: params.columnConfig,
+        search: buildSearchFilter(params.search, searchableFields),
+      }),
 
-    groupQuery: (groupConfig) =>
+    groupQuery: (params) =>
       trpc.product.getGroup.infiniteQueryOptions(
         {
-          groupBy: groupConfig,
-          sort: groupConfig.sort,
+          filter: params.filter,
+          groupBy: params.groupConfig,
+          search: buildSearchFilter(params.search, searchableFields),
+          sort: params.groupConfig.sort,
           limit: 25,
         },
         { getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined }

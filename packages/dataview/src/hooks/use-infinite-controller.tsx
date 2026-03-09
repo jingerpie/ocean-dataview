@@ -47,11 +47,19 @@ export interface UseInfiniteControllerOptions<
   TQueryOptions extends InfiniteQueryOptions = InfiniteQueryOptions,
 > {
   /** Factory for fetching column counts (board-specific) */
-  columnQuery?: (columnConfig: GroupConfigInput) => BaseQueryOptions;
+  columnQuery?: (params: {
+    columnConfig: GroupConfigInput;
+    filter: import("@sparkyidea/shared/types").WhereNode[] | null;
+    search: string;
+  }) => BaseQueryOptions;
   /** Factory for fetching data items */
   dataQuery: InfiniteQueryOptionsFactory<TQueryOptions>;
   /** Factory for fetching group counts with pagination (accordion rows) */
-  groupQuery?: (groupConfig: GroupConfigInput) => InfiniteGroupQueryOptions;
+  groupQuery?: (params: {
+    filter: import("@sparkyidea/shared/types").WhereNode[] | null;
+    groupConfig: GroupConfigInput;
+    search: string;
+  }) => InfiniteGroupQueryOptions;
 }
 
 export interface UseInfiniteControllerResult<TQueryOptions> {
@@ -75,17 +83,22 @@ export function useInfiniteController<
   const columnQueryRef = useRef(columnQuery);
   columnQueryRef.current = columnQuery;
   const stableColumnQuery = useMemo<
-    ((columnConfig: GroupConfigInput) => BaseQueryOptions) | undefined
+    | ((params: {
+        columnConfig: GroupConfigInput;
+        filter: import("@sparkyidea/shared/types").WhereNode[] | null;
+        search: string;
+      }) => BaseQueryOptions)
+    | undefined
   >(() => {
     if (!columnQuery) {
       return undefined;
     }
-    return (columnConfig) => {
+    return (params) => {
       const factory = columnQueryRef.current;
       if (!factory) {
         throw new Error("columnQuery ref is unexpectedly null");
       }
-      return factory(columnConfig);
+      return factory(params);
     };
   }, [Boolean(columnQuery)]);
 
@@ -93,17 +106,22 @@ export function useInfiniteController<
   const groupQueryRef = useRef(groupQuery);
   groupQueryRef.current = groupQuery;
   const stableGroupQuery = useMemo<
-    ((groupConfig: GroupConfigInput) => InfiniteGroupQueryOptions) | undefined
+    | ((params: {
+        filter: import("@sparkyidea/shared/types").WhereNode[] | null;
+        groupConfig: GroupConfigInput;
+        search: string;
+      }) => InfiniteGroupQueryOptions)
+    | undefined
   >(() => {
     if (!groupQuery) {
       return undefined;
     }
-    return (groupConfig) => {
+    return (params) => {
       const factory = groupQueryRef.current;
       if (!factory) {
         throw new Error("groupQuery ref is unexpectedly null");
       }
-      return factory(groupConfig);
+      return factory(params);
     };
   }, [Boolean(groupQuery)]);
 
