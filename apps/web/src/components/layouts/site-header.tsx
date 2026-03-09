@@ -1,4 +1,5 @@
 import { Button } from "@sparkyidea/ui/components/button";
+import { Separator } from "@sparkyidea/ui/components/separator";
 import { LayoutGrid } from "lucide-react";
 import Link from "next/link";
 import { GitHubLink } from "@/components/layouts/github-link";
@@ -24,8 +25,9 @@ export function SiteHeader() {
           <Link href="/board">Board</Link>
           <Link href="/charts">Charts</Link>
         </nav>
-        <nav className="flex flex-1 items-center md:justify-end">
+        <nav className="flex flex-1 items-center gap-2 md:justify-end">
           <GitHubLink />
+          <Separator className="self-center! h-4" orientation="vertical" />
           <ModeToggle />
         </nav>
       </div>

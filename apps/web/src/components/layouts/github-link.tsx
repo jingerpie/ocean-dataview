@@ -19,7 +19,6 @@ export function GitHubLink() {
           target="_blank"
         />
       }
-      size="sm"
       variant="ghost"
     >
       <Icons.gitHub className="size-4" />
