@@ -118,7 +118,6 @@ export function TableView<
 
   // Use shared view setup hook
   const {
-    groupConfig,
     groupedData,
     groupByProperty,
     validationError,
@@ -140,8 +139,7 @@ export function TableView<
   // Use shared hook for display properties filtering
   const displayProperties = useDisplayProperties(
     properties,
-    propertyVisibility,
-    groupConfig ? [groupConfig.groupBy] : undefined
+    propertyVisibility
   );
 
   // Determine if we're using infinite pagination for data
