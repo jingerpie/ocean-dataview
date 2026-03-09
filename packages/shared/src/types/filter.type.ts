@@ -99,6 +99,7 @@ export const conditionValues = [
   "isRelativeToToday",
   "startsWith",
   "endsWith",
+  "startsWithNonAlpha",
 ] as const;
 
 /**

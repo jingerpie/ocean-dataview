@@ -6,6 +6,9 @@ const LESS_THAN_REGEX = /^< (\d+)$/;
 const PLUS_REGEX = /^(\d+)\+$/;
 const RANGE_REGEX = /^(\d+)-(\d+)$/;
 
+// Regex for matching single uppercase letter (A-Z)
+const SINGLE_LETTER_REGEX = /^[A-Z]$/;
+
 /**
  * Extracts the property name from a GroupByConfigInput.
  */
@@ -37,6 +40,28 @@ export function getGroupProperty(
     return group.byNumber.property;
   }
   return null;
+}
+
+/**
+ * Parse a text alphabetical group key into filter rule.
+ * Handles single letters (A-Z) and "#" for non-alphabetic.
+ */
+function parseTextAlphabeticalFilter(
+  property: string,
+  groupKey: string
+): WhereRule {
+  // "#" group: non-alphabetic first character (empty, null, or starts with non-letter)
+  if (groupKey === "#") {
+    return { property, condition: "startsWithNonAlpha", value: true };
+  }
+
+  // Single letter (A-Z): use startsWith (case-insensitive via ILIKE on server)
+  if (SINGLE_LETTER_REGEX.test(groupKey)) {
+    return { property, condition: "startsWith", value: groupKey };
+  }
+
+  // Fallback to exact match
+  return { property, condition: "eq", value: groupKey };
 }
 
 /**
@@ -94,11 +119,19 @@ export function combineGroupFilter(
     return userFilter ?? [];
   }
 
-  // For number groups, parse range formats (e.g., "0-100", "< 100", "500+")
-  const groupRule: WhereRule =
-    "byNumber" in group
-      ? parseNumberRangeFilter(property, groupKey)
-      : { property, condition: "eq", value: groupKey };
+  // Build group rule based on group type
+  let groupRule: WhereRule;
+
+  if ("byNumber" in group) {
+    // Number groups: parse range formats (e.g., "0-100", "< 100", "500+")
+    groupRule = parseNumberRangeFilter(property, groupKey);
+  } else if ("byText" in group && group.byText.showAs === "alphabetical") {
+    // Text alphabetical groups: parse letter or "#" for non-alphabetic
+    groupRule = parseTextAlphabeticalFilter(property, groupKey);
+  } else {
+    // Default: exact match
+    groupRule = { property, condition: "eq", value: groupKey };
+  }
 
   if (!userFilter || userFilter.length === 0) {
     return [groupRule];

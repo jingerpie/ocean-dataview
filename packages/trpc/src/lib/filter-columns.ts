@@ -154,6 +154,11 @@ function buildCondition<T extends Table>(
         ? sql`CAST(${column} AS TEXT) ILIKE ${`%${value}`}`
         : undefined;
 
+    case "startsWithNonAlpha":
+      // Matches NULL, empty string, or values starting with non-alphabetic character
+      // Used for alphabetical text grouping "#" bucket
+      return sql`(${column} IS NULL OR ${column} = '' OR NOT (UPPER(SUBSTR(CAST(${column} AS TEXT), 1, 1)) ~ '[A-Z]'))`;
+
     // ============================================
     // Equality conditions (with date-only midnight boundary support)
     // ============================================
