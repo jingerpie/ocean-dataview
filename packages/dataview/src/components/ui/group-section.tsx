@@ -272,6 +272,14 @@ export function GroupSection<TData>({
       }
     }
 
+    // For email and phone properties, render as plain text (not clickable links)
+    if (
+      groupByPropertyDef?.type === "email" ||
+      groupByPropertyDef?.type === "phone"
+    ) {
+      return <span className="text-sm">{group.key || "-"}</span>;
+    }
+
     // Use DataCell for property types (select, multiSelect, status, date/relative, checkbox, etc.)
     if (groupByPropertyDef) {
       return (
