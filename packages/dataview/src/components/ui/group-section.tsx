@@ -237,11 +237,11 @@ export function GroupSection<TData>({
       ? { dateFormat: "relativeGroup" }
       : undefined;
 
-  // For checkbox groups, convert string "Checked"/"Unchecked" to boolean
-  // since CheckboxProperty expects boolean, not string
+  // For checkbox groups, convert "true"/"false" string to boolean for DataCell
+  // "Checked"/"Unchecked" labels are rendered by CheckboxProperty
   const getGroupValue = () => {
     if (groupByPropertyDef?.type === "checkbox") {
-      return group.key === "Checked";
+      return group.key === "true";
     }
     return group.key;
   };

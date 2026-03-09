@@ -318,8 +318,10 @@ export function buildGroupBy<T extends Table>(
     }
 
     case "checkbox":
+      // Return "true"/"false" strings (object keys must be strings)
+      // "Checked"/"Unchecked" are display labels only (handled by client)
       return {
-        groupKey: sql`CASE WHEN ${column} = true THEN 'Checked' ELSE 'Unchecked' END`,
+        groupKey: sql`CASE WHEN ${column} = true THEN 'true' ELSE 'false' END`,
         orderBy: sql`CASE WHEN ${column} = true THEN 0 ELSE 1 END`,
       };
 
@@ -479,7 +481,8 @@ export function buildGroupWhere<T extends Table>(
     }
 
     case "checkbox":
-      if (groupKey === "Checked") {
+      // groupKey is "true" or "false" string
+      if (groupKey === "true") {
         return sql`${column} = true`;
       }
       return sql`(${column} IS NULL OR ${column} = false)`;

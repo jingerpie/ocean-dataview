@@ -395,14 +395,12 @@ function isBooleanColumn<T extends Table>(
 
 /**
  * Normalize a filter value for boolean columns.
- * Converts checkbox group keys ("Checked"/"Unchecked") to actual booleans.
+ * Filter values are already boolean (from checkbox-filter.tsx or combineGroupFilter).
  */
-function normalizeBooleanValue(value: unknown): unknown {
-  if (value === "Checked") {
-    return true;
+function normalizeBooleanValue(value: unknown): boolean {
+  if (typeof value === "boolean") {
+    return value;
   }
-  if (value === "Unchecked") {
-    return false;
-  }
-  return value;
+  // Fallback for any edge cases
+  return false;
 }

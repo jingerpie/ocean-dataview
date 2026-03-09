@@ -351,11 +351,12 @@ function getGroupKeyAndSortValue(
     return handleNumberRangeGrouping(value, numberRange);
   }
 
-  // Handle checkbox grouping
+  // Handle checkbox grouping - use "true"/"false" strings
+  // "Checked"/"Unchecked" are display labels only
   if (parsed.propertyType === "checkbox") {
     const boolValue = Boolean(value);
     return {
-      groupKey: boolValue ? "Checked" : "Unchecked",
+      groupKey: boolValue ? "true" : "false",
       sortValue: boolValue ? 0 : 1,
     };
   }

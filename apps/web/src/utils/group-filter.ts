@@ -122,7 +122,10 @@ export function combineGroupFilter(
   // Build group rule based on group type
   let groupRule: WhereRule;
 
-  if ("byNumber" in group) {
+  if ("byCheckbox" in group) {
+    // Checkbox groups: "true" → true, "false" → false
+    groupRule = { property, condition: "eq", value: groupKey === "true" };
+  } else if ("byNumber" in group) {
     // Number groups: parse range formats (e.g., "0-100", "< 100", "500+")
     groupRule = parseNumberRangeFilter(property, groupKey);
   } else if ("byText" in group && group.byText.showAs === "alphabetical") {
