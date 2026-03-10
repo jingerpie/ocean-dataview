@@ -34,7 +34,7 @@ export const byDateConfigSchema = z.object({
 
 export const byStatusConfigSchema = z.object({
   property: z.string(),
-  showAs: statusShowAsSchema,
+  showAs: statusShowAsSchema.optional().default("option"),
 });
 
 export const bySelectConfigSchema = z.object({

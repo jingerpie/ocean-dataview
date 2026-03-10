@@ -79,6 +79,7 @@ type GroupType = keyof typeof TYPE_MAP;
  *
  * Format: type.property,showAs,sort,hideEmpty
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: switch cases for each type
 export function encodeGroup(config: GroupConfigInput): string {
   let type: GroupType | null = null;
   let property = "";
@@ -90,7 +91,7 @@ export function encodeGroup(config: GroupConfigInput): string {
   } else if ("byStatus" in config) {
     type = "status";
     property = config.byStatus.property;
-    showAsParts = [config.byStatus.showAs];
+    showAsParts = config.byStatus.showAs ? [config.byStatus.showAs] : [];
   } else if ("byDate" in config) {
     type = "date";
     property = config.byDate.property;
