@@ -53,6 +53,7 @@ export function ProductBoardView({
       trpc.product.getGroup.queryOptions({
         filter: params.filter,
         groupBy: params.columnConfig,
+        hideEmpty: params.hideEmpty,
         search: buildSearchFilter(params.search, searchableFields),
       }),
 
@@ -61,6 +62,7 @@ export function ProductBoardView({
         {
           filter: params.filter,
           groupBy: params.groupConfig,
+          hideEmpty: params.hideEmpty,
           search: buildSearchFilter(params.search, searchableFields),
           sort: params.groupConfig.sort,
           limit: 25,

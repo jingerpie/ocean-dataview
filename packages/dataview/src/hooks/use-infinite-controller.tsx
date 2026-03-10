@@ -50,6 +50,7 @@ export interface UseInfiniteControllerOptions<
   columnQuery?: (params: {
     columnConfig: GroupConfigInput;
     filter: import("@sparkyidea/shared/types").WhereNode[] | null;
+    hideEmpty: boolean;
     search: string;
   }) => BaseQueryOptions;
   /** Factory for fetching data items */
@@ -58,6 +59,7 @@ export interface UseInfiniteControllerOptions<
   groupQuery?: (params: {
     filter: import("@sparkyidea/shared/types").WhereNode[] | null;
     groupConfig: GroupConfigInput;
+    hideEmpty: boolean;
     search: string;
   }) => InfiniteGroupQueryOptions;
 }
@@ -86,6 +88,7 @@ export function useInfiniteController<
     | ((params: {
         columnConfig: GroupConfigInput;
         filter: import("@sparkyidea/shared/types").WhereNode[] | null;
+        hideEmpty: boolean;
         search: string;
       }) => BaseQueryOptions)
     | undefined
@@ -109,6 +112,7 @@ export function useInfiniteController<
     | ((params: {
         filter: import("@sparkyidea/shared/types").WhereNode[] | null;
         groupConfig: GroupConfigInput;
+        hideEmpty: boolean;
         search: string;
       }) => InfiniteGroupQueryOptions)
     | undefined

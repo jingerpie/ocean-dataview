@@ -246,9 +246,11 @@ interface InfiniteGroupKeysProps {
   groupQuery: (params: {
     filter: WhereNode[] | null;
     groupConfig: GroupConfigInput;
+    hideEmpty: boolean;
     search: string;
     // biome-ignore lint/suspicious/noExplicitAny: Must accept tRPC's infiniteQueryOptions return type
   }) => any;
+  hideEmpty: boolean;
   search: string;
 }
 
@@ -263,11 +265,13 @@ function InfiniteGroupKeys({
   filter,
   groupByConfig,
   groupQuery,
+  hideEmpty,
   search,
 }: InfiniteGroupKeysProps) {
   const factoryOptions = groupQuery({
     filter,
     groupConfig: groupByConfig,
+    hideEmpty,
     search,
   });
 
@@ -331,12 +335,14 @@ interface SuspendingColumnKeysProps {
   columnQuery: (params: {
     columnConfig: GroupConfigInput;
     filter: WhereNode[] | null;
+    hideEmpty: boolean;
     search: string;
   }) => {
     queryFn?: unknown;
     queryKey: readonly unknown[];
   };
   filter: WhereNode[] | null;
+  hideEmpty: boolean;
   search: string;
 }
 
@@ -349,11 +355,13 @@ function SuspendingColumnKeys({
   columnByConfig,
   columnQuery,
   filter,
+  hideEmpty,
   search,
 }: SuspendingColumnKeysProps) {
   const factoryOptions = columnQuery({
     columnConfig: columnByConfig,
     filter,
+    hideEmpty,
     search,
   });
   const { data: rawColumnData } = useSuspenseQuery({
@@ -698,6 +706,7 @@ export function PageQueryBridge<
       filter={filter}
       groupByConfig={groupByConfig}
       groupQuery={groupQuery}
+      hideEmpty={group?.hideEmpty ?? false}
       search={search}
     >
       {renderInner}
@@ -1226,6 +1235,7 @@ export function InfiniteQueryBridge<
           filter={filter}
           groupByConfig={groupByConfig}
           groupQuery={groupQuery}
+          hideEmpty={group?.hideEmpty ?? false}
           search={search}
         >
           {({
@@ -1268,6 +1278,7 @@ export function InfiniteQueryBridge<
         columnByConfig={columnByConfig}
         columnQuery={columnQuery}
         filter={filter}
+        hideEmpty={column?.hideEmpty ?? false}
         search={search}
       >
         {({ columnCounts }) => wrapWithGroupSuspense(columnCounts)}

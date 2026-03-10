@@ -44,6 +44,8 @@ export interface InfiniteGroupQueryOptions {
 export interface GroupQueryOptionsFactoryParams {
   filter: WhereNode[] | null;
   groupConfig: GroupConfigInput;
+  /** Whether to hide groups with 0 items (defaults to true) */
+  hideEmpty: boolean;
   search: string;
 }
 
@@ -63,6 +65,8 @@ export type GroupQueryOptionsFactory = (
 export interface ColumnQueryOptionsFactoryParams {
   columnConfig: GroupConfigInput;
   filter: WhereNode[] | null;
+  /** Whether to hide columns with 0 items (defaults to true) */
+  hideEmpty: boolean;
   search: string;
 }
 

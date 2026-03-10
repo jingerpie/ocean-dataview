@@ -19,26 +19,6 @@ import {
 } from "../lib/group-columns";
 import { buildCursor } from "../lib/sort-columns";
 
-// Property configs for grouping (status needs group structure)
-const productPropertyConfigs = {
-  availability: {
-    type: "status" as const,
-    config: {
-      groups: [
-        { label: "Available", color: "green", options: ["In stock"] },
-        { label: "Warning", color: "yellow", options: ["Low stock"] },
-        { label: "Unavailable", color: "red", options: ["Out of stock"] },
-      ],
-    },
-  },
-  category: { type: "select" as const },
-  featured: { type: "checkbox" as const },
-  lastRestocked: { type: "date" as const },
-  price: { type: "number" as const },
-  productName: { type: "text" as const },
-  tags: { type: "multiSelect" as const },
-};
-
 export const productRouter = router({
   getMany: publicProcedure
     .input(productSearchParamsSchema)
@@ -122,6 +102,8 @@ export const productRouter = router({
       z.object({
         filter: z.array(whereNodeSchema).nullish(),
         groupBy: groupByConfigSchema,
+        // Whether to hide groups with 0 items (default: false, add :hideEmpty flag to URL to enable)
+        hideEmpty: z.boolean().default(false),
         // Search filter (same as getMany)
         search: searchQuerySchema.nullish(),
         // Sort direction for groups (default: asc)
@@ -131,16 +113,20 @@ export const productRouter = router({
         cursor: z.string().nullable().optional(), // Group sortValue to start after
       })
     )
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: cursor + hideEmpty conditionals
     .query(async ({ input }) => {
-      const { filter, groupBy, search, sort = "asc", limit, cursor } = input;
+      const {
+        filter,
+        groupBy,
+        hideEmpty,
+        search,
+        sort = "asc",
+        limit,
+        cursor,
+      } = input;
       const parsed = parseGroupByConfig(groupBy);
-      const propertyConfig =
-        productPropertyConfigs[
-          parsed.property as keyof typeof productPropertyConfigs
-        ];
 
-      // Build SQL GROUP BY expression
-      const groupByResult = buildGroupBy(product, parsed, propertyConfig);
+      const groupByResult = buildGroupBy(product, parsed);
       if (!groupByResult) {
         return {
           counts: {},
@@ -151,54 +137,68 @@ export const productRouter = router({
       }
 
       const { groupKey, orderBy } = groupByResult;
-
-      // Build cursor pagination with sort direction
       const { orderByClause, cursorFilter } = buildGroupCursor({
         orderBy,
         cursor,
         sort,
       });
 
-      // Build filter and search conditions
+      // Build filter/search conditions
       const filterCondition = buildWhere(product, filter ?? undefined);
       const searchCondition = buildWhere(product, search ? [search] : null);
       const whereCondition = and(filterCondition, searchCondition);
 
-      // Build base query - must chain in correct order: where -> groupBy -> having -> orderBy -> limit
-      const baseQuery = db
-        .select({
-          groupKey,
-          sortValue: orderBy,
-          count: count(),
-        })
-        .from(product)
-        .where(whereCondition)
-        .groupBy(groupKey, orderBy);
-
-      // Apply cursor filter if present, then order and limit
-      const results = cursorFilter
-        ? await baseQuery
-            .having(cursorFilter)
+      // Get paginated distinct values (source of all possible groups)
+      const distinctQuery = db
+        .selectDistinct({ groupKey, sortValue: orderBy })
+        .from(product);
+      const distinctResults = cursorFilter
+        ? await distinctQuery
+            .where(cursorFilter)
             .orderBy(orderByClause)
             .limit(limit + 1)
-        : await baseQuery.orderBy(orderByClause).limit(limit + 1);
+        : await distinctQuery.orderBy(orderByClause).limit(limit + 1);
 
-      const hasNextPage = results.length > limit;
-      const groups = hasNextPage ? results.slice(0, limit) : results;
+      const hasNextPage = distinctResults.length > limit;
+      const groups = hasNextPage
+        ? distinctResults.slice(0, limit)
+        : distinctResults;
 
-      // Build counts with sortValues
-      const counts: Record<string, { count: number; hasMore: boolean }> = {};
-      const sortValues: Record<string, string | number> = {};
+      // Get filtered counts
+      const countsResult = await db
+        .select({ groupKey, count: count() })
+        .from(product)
+        .where(whereCondition)
+        .groupBy(groupKey);
 
-      for (const row of groups) {
-        // Convert Date to ISO string for proper serialization
+      const countsMap = new Map<string, number>();
+      for (const row of countsResult) {
         const key =
           row.groupKey instanceof Date
             ? row.groupKey.toISOString()
             : String(row.groupKey ?? `No ${parsed.property}`);
+        countsMap.set(key, Number(row.count));
+      }
+
+      // Build output
+      const counts: Record<string, { count: number; hasMore: boolean }> = {};
+      const sortValues: Record<string, string | number> = {};
+
+      for (const row of groups) {
+        const key =
+          row.groupKey instanceof Date
+            ? row.groupKey.toISOString()
+            : String(row.groupKey ?? `No ${parsed.property}`);
+        const rawCount = countsMap.get(key) ?? 0;
+
+        // Skip empty groups when hideEmpty is true
+        if (hideEmpty && rawCount === 0) {
+          continue;
+        }
+
         counts[key] = {
-          count: Math.min(Number(row.count), 100),
-          hasMore: Number(row.count) > 100,
+          count: Math.min(rawCount, 100),
+          hasMore: rawCount > 100,
         };
         sortValues[key] =
           typeof row.sortValue === "number"
@@ -206,7 +206,6 @@ export const productRouter = router({
             : String(row.sortValue ?? key);
       }
 
-      // Next cursor is the sortValue of the last group
       const lastGroup = groups.at(-1);
       const nextCursor =
         hasNextPage && lastGroup
@@ -259,10 +258,6 @@ export const productRouter = router({
 
       // Parse the GroupByConfig for column
       const parsed = parseGroupByConfig(columnBy);
-      const propertyConfig =
-        productPropertyConfigs[
-          parsed.property as keyof typeof productPropertyConfigs
-        ];
 
       // Build common WHERE clauses
       const searchWhere = buildWhere(product, search ? [search] : null);
@@ -286,7 +281,7 @@ export const productRouter = router({
         columnKeysToFetch = requestedColumnKeys;
       } else {
         // Get distinct columns using buildGroupBy for transformed keys
-        const groupByResult = buildGroupBy(product, parsed, propertyConfig);
+        const groupByResult = buildGroupBy(product, parsed);
 
         if (!groupByResult) {
           return {
@@ -332,12 +327,7 @@ export const productRouter = router({
         }
 
         // Build column WHERE using buildGroupWhere
-        const columnWhere = buildGroupWhere(
-          product,
-          parsed,
-          columnKey,
-          propertyConfig
-        );
+        const columnWhere = buildGroupWhere(product, parsed, columnKey);
 
         if (!columnWhere) {
           continue;

@@ -45,6 +45,7 @@ export function ProductGalleryView({
         {
           filter: params.filter,
           groupBy: params.groupConfig,
+          hideEmpty: params.hideEmpty,
           search: buildSearchFilter(params.search, searchableFields),
           sort: params.groupConfig.sort,
           limit: 25,
