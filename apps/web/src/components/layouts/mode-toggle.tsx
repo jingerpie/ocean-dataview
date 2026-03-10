@@ -19,7 +19,7 @@ export function ModeToggle() {
       variant="ghost"
     >
       <svg
-        aria-label="Toggle theme"
+        aria-hidden="true"
         className="size-4"
         fill="none"
         height="24"

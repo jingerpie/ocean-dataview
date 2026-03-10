@@ -28,7 +28,7 @@ import { encodeTuple } from "../url-dsl/encoder";
  */
 export type GroupByConfigInput =
   | { bySelect: { property: string } }
-  | { byStatus: { property: string; showAs: "option" | "group" } }
+  | { byStatus: { property: string; showAs?: "option" | "group" } }
   | {
       byDate: {
         property: string;
@@ -172,9 +172,6 @@ export function decodeGroup(value: string): GroupConfigInput | null {
 
   // Split by comma into groups
   const groups = value.split(",");
-  if (groups.length < 1) {
-    return null;
-  }
 
   // Group 0: type.property
   const typeParts = decodeTupleStrings(groups[0] ?? "");
@@ -219,11 +216,13 @@ export function decodeGroup(value: string): GroupConfigInput | null {
       break;
 
     case "status": {
-      const showAs = showAsParts[0] as StatusShowAs;
-      if (showAs !== "option" && showAs !== "group") {
+      const showAs = (showAsParts[0] || undefined) as StatusShowAs | undefined;
+      if (showAs && showAs !== "option" && showAs !== "group") {
         return null;
       }
-      result = { byStatus: { property, showAs } };
+      result = showAs
+        ? { byStatus: { property, showAs } }
+        : { byStatus: { property } };
       break;
     }
 

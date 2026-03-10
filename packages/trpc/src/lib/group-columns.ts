@@ -1,5 +1,5 @@
 import type { ParsedGroupConfig } from "@sparkyidea/shared/types";
-import { desc, gt, lt, type SQL, sql, type Table } from "drizzle-orm";
+import { asc, desc, gt, lt, type SQL, sql, type Table } from "drizzle-orm";
 import { getColumn } from "./filter-columns";
 
 // Regex for parsing number range groups (e.g., "100-200")
@@ -60,7 +60,7 @@ export function buildGroupCursor(options: {
   const isDesc = sort === "desc";
 
   // Build orderBy with direction
-  const orderByClause = isDesc ? desc(orderBy) : orderBy;
+  const orderByClause = isDesc ? desc(orderBy) : asc(orderBy);
 
   // If no cursor, no filter needed
   if (!cursor) {

@@ -149,12 +149,22 @@ export const productRouter = router({
       const whereCondition = and(filterCondition, searchCondition);
 
       // Get paginated distinct values (source of all possible groups)
+      // When hideEmpty is true, apply whereCondition to exclude groups with no matching items
       const distinctQuery = db
         .selectDistinct({ groupKey, sortValue: orderBy })
         .from(product);
-      const distinctResults = cursorFilter
+
+      // Build distinct condition: combine whereCondition (when hideEmpty) with cursorFilter
+      let distinctCondition = cursorFilter;
+      if (hideEmpty && whereCondition) {
+        distinctCondition = cursorFilter
+          ? and(whereCondition, cursorFilter)
+          : whereCondition;
+      }
+
+      const distinctResults = distinctCondition
         ? await distinctQuery
-            .where(cursorFilter)
+            .where(distinctCondition)
             .orderBy(orderByClause)
             .limit(limit + 1)
         : await distinctQuery.orderBy(orderByClause).limit(limit + 1);

@@ -401,6 +401,5 @@ function normalizeBooleanValue(value: unknown): boolean {
   if (typeof value === "boolean") {
     return value;
   }
-  // Fallback for any edge cases
-  return false;
+  throw new Error(`Expected boolean value, got ${typeof value}: ${value}`);
 }

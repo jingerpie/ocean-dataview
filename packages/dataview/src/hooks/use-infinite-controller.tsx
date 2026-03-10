@@ -1,12 +1,12 @@
 "use client";
 
 import type { Limit } from "@sparkyidea/shared/types/pagination.type";
-import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
 import { useCallback, useMemo, useRef } from "react";
 import type {
   BaseQueryOptions,
+  ColumnQueryOptionsFactory,
+  GroupQueryOptionsFactory,
   InfiniteController,
-  InfiniteGroupQueryOptions,
   InfiniteQueryOptionsFactory,
 } from "../types/pagination-controller";
 
@@ -47,21 +47,11 @@ export interface UseInfiniteControllerOptions<
   TQueryOptions extends InfiniteQueryOptions = InfiniteQueryOptions,
 > {
   /** Factory for fetching column counts (board-specific) */
-  columnQuery?: (params: {
-    columnConfig: GroupConfigInput;
-    filter: import("@sparkyidea/shared/types").WhereNode[] | null;
-    hideEmpty: boolean;
-    search: string;
-  }) => BaseQueryOptions;
+  columnQuery?: ColumnQueryOptionsFactory;
   /** Factory for fetching data items */
   dataQuery: InfiniteQueryOptionsFactory<TQueryOptions>;
   /** Factory for fetching group counts with pagination (accordion rows) */
-  groupQuery?: (params: {
-    filter: import("@sparkyidea/shared/types").WhereNode[] | null;
-    groupConfig: GroupConfigInput;
-    hideEmpty: boolean;
-    search: string;
-  }) => InfiniteGroupQueryOptions;
+  groupQuery?: GroupQueryOptionsFactory;
 }
 
 export interface UseInfiniteControllerResult<TQueryOptions> {
@@ -85,13 +75,7 @@ export function useInfiniteController<
   const columnQueryRef = useRef(columnQuery);
   columnQueryRef.current = columnQuery;
   const stableColumnQuery = useMemo<
-    | ((params: {
-        columnConfig: GroupConfigInput;
-        filter: import("@sparkyidea/shared/types").WhereNode[] | null;
-        hideEmpty: boolean;
-        search: string;
-      }) => BaseQueryOptions)
-    | undefined
+    ColumnQueryOptionsFactory | undefined
   >(() => {
     if (!columnQuery) {
       return undefined;
@@ -108,15 +92,7 @@ export function useInfiniteController<
   // Stable group factory (accordion rows) with pagination support
   const groupQueryRef = useRef(groupQuery);
   groupQueryRef.current = groupQuery;
-  const stableGroupQuery = useMemo<
-    | ((params: {
-        filter: import("@sparkyidea/shared/types").WhereNode[] | null;
-        groupConfig: GroupConfigInput;
-        hideEmpty: boolean;
-        search: string;
-      }) => InfiniteGroupQueryOptions)
-    | undefined
-  >(() => {
+  const stableGroupQuery = useMemo<GroupQueryOptionsFactory | undefined>(() => {
     if (!groupQuery) {
       return undefined;
     }

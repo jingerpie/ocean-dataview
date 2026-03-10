@@ -30,24 +30,34 @@ export function GitHubLink() {
 }
 
 async function StarsCount() {
-  const data = await fetch(`https://api.github.com/repos/${GITHUB_REPO}`, {
-    next: { revalidate: 86_400 },
-  });
-  const json = await data.json();
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}`,
+      {
+        next: { revalidate: 86_400 },
+      }
+    );
+    if (!response.ok) {
+      return null;
+    }
+    const json = await response.json();
 
-  const count = json.stargazers_count;
-  if (count === undefined) {
+    const count = json.stargazers_count;
+    if (count === undefined) {
+      return null;
+    }
+
+    const formattedCount =
+      count >= 1000
+        ? `${(count / 1000).toFixed(1).replace(TRAILING_ZERO_REGEX, "")}k`
+        : count.toLocaleString();
+
+    return (
+      <span className="w-fit text-muted-foreground text-xs tabular-nums">
+        {formattedCount}
+      </span>
+    );
+  } catch {
     return null;
   }
-
-  const formattedCount =
-    count >= 1000
-      ? `${(count / 1000).toFixed(1).replace(TRAILING_ZERO_REGEX, "")}k`
-      : count.toLocaleString();
-
-  return (
-    <span className="w-fit text-muted-foreground text-xs tabular-nums">
-      {formattedCount}
-    </span>
-  );
 }
