@@ -18,8 +18,6 @@ export interface InfiniteGroupQueryState {
   isFetching: boolean;
   /** True when fetching more pages */
   isFetchingNextPage: boolean;
-  /** True when showing stale data while new data loads (deferred update pending) */
-  isStale: boolean;
 }
 
 export interface InfiniteGroupPaginationControls {
@@ -106,13 +104,6 @@ export function useInfiniteGroupQuery<TData = unknown>(
     initialPageParam: queryOptions.initialPageParam ?? undefined,
   });
 
-  const isStale =
-    deferredFilter !== filter ||
-    deferredSort !== sort ||
-    deferredSearch !== search ||
-    deferredLimit !== limit ||
-    deferredGroup !== group;
-
   const data = useMemo(() => {
     if (!query.data?.pages) {
       return [];
@@ -147,7 +138,6 @@ export function useInfiniteGroupQuery<TData = unknown>(
     isError: query.isError,
     isFetching: query.isFetching,
     isFetchingNextPage: query.isFetchingNextPage,
-    isStale,
     error: query.error,
     hasNextPage,
     onLoadMore,

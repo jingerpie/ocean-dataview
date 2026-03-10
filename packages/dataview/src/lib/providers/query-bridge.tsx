@@ -16,6 +16,7 @@ import {
   type ReactNode,
   useCallback,
   useContext,
+  useDeferredValue,
   useEffect,
   useMemo,
   useRef,
@@ -239,11 +240,18 @@ function InfiniteGroupKeys({
   hideEmpty,
   search,
 }: InfiniteGroupKeysProps) {
+  // Defer filter/search/hideEmpty to prevent re-suspending on changes
+  // This keeps previous group keys visible while new data loads
+  // Note: groupByConfig is NOT deferred - structural changes show skeleton
+  const deferredFilter = useDeferredValue(filter);
+  const deferredSearch = useDeferredValue(search);
+  const deferredHideEmpty = useDeferredValue(hideEmpty);
+
   const factoryOptions = groupQuery({
-    filter,
+    filter: deferredFilter,
     groupConfig: groupByConfig,
-    hideEmpty,
-    search,
+    hideEmpty: deferredHideEmpty,
+    search: deferredSearch,
   });
 
   // Spread tRPC options directly - tRPC's infiniteQueryOptions returns a complete config
@@ -329,11 +337,18 @@ function SuspendingColumnKeys({
   hideEmpty,
   search,
 }: SuspendingColumnKeysProps) {
+  // Defer filter/search/hideEmpty to prevent re-suspending on changes
+  // This keeps previous column keys visible while new data loads
+  // Note: columnByConfig is NOT deferred - structural changes show skeleton
+  const deferredFilter = useDeferredValue(filter);
+  const deferredSearch = useDeferredValue(search);
+  const deferredHideEmpty = useDeferredValue(hideEmpty);
+
   const factoryOptions = columnQuery({
     columnConfig: columnByConfig,
-    filter,
-    hideEmpty,
-    search,
+    filter: deferredFilter,
+    hideEmpty: deferredHideEmpty,
+    search: deferredSearch,
   });
   const { data: rawColumnData } = useSuspenseQuery({
     queryKey: factoryOptions.queryKey,
