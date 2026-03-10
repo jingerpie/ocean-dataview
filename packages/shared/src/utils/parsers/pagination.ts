@@ -213,69 +213,12 @@ export function decodeCursors(value: string): Cursors | null {
 }
 
 // ============================================================================
-// Legacy JSON Support (for migration)
-// ============================================================================
-
-function isLegacyFormat(value: string): boolean {
-  return value.startsWith("[") || value.startsWith("{");
-}
-
-function decodeLegacyExpanded(value: string): string[] | null {
-  try {
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed)) {
-      return null;
-    }
-    return parsed.every((v) => typeof v === "string")
-      ? (parsed as string[])
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-function decodeLegacyCursor(value: string): CursorValue | null {
-  try {
-    const parsed = JSON.parse(value);
-    if (
-      typeof parsed !== "object" ||
-      parsed === null ||
-      Array.isArray(parsed)
-    ) {
-      return null;
-    }
-    return parsed as CursorValue;
-  } catch {
-    return null;
-  }
-}
-
-function decodeLegacyCursors(value: string): Cursors | null {
-  try {
-    const parsed = JSON.parse(value);
-    if (
-      typeof parsed !== "object" ||
-      parsed === null ||
-      Array.isArray(parsed)
-    ) {
-      return null;
-    }
-    return parsed as Cursors;
-  } catch {
-    return null;
-  }
-}
-
-// ============================================================================
 // Validators
 // ============================================================================
 
 /** Expanded validator */
 export function expandedValidator(value: unknown): string[] | null {
   if (typeof value === "string") {
-    if (isLegacyFormat(value)) {
-      return decodeLegacyExpanded(value);
-    }
     return decodeExpanded(value);
   }
 
@@ -288,9 +231,6 @@ export function expandedValidator(value: unknown): string[] | null {
 /** Cursor validator */
 export function cursorValidator(value: unknown): CursorValue | null {
   if (typeof value === "string") {
-    if (isLegacyFormat(value)) {
-      return decodeLegacyCursor(value);
-    }
     return decodeCursor(value);
   }
 
@@ -303,9 +243,6 @@ export function cursorValidator(value: unknown): CursorValue | null {
 /** Cursors validator */
 export function cursorsValidator(value: unknown): Cursors | null {
   if (typeof value === "string") {
-    if (isLegacyFormat(value)) {
-      return decodeLegacyCursors(value);
-    }
     return decodeCursors(value);
   }
 

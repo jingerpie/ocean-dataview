@@ -227,7 +227,7 @@ export function BoardView<
         sortValue: rowGroupSortValues?.[key] ?? key,
       }))
       .filter((g) => {
-        if (groupConfig?.hideEmpty ?? true) {
+        if (groupConfig?.hideEmpty ?? false) {
           return g.count > 0;
         }
         return true;

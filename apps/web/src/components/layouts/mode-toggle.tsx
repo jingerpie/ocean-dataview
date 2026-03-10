@@ -1,41 +1,44 @@
 "use client";
 
 import { Button } from "@sparkyidea/ui/components/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@sparkyidea/ui/components/dropdown-menu";
-import { LaptopIcon, MoonIcon, SunIcon } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useCallback } from "react";
 
 export function ModeToggle() {
-  const { setTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
+
+  const toggleTheme = useCallback(() => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  }, [resolvedTheme, setTheme]);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={<Button className="size-8" size="icon" variant="ghost" />}
+    <Button
+      className="size-8"
+      onClick={toggleTheme}
+      size="icon"
+      variant="ghost"
+    >
+      <svg
+        aria-hidden="true"
+        className="size-4"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        <SunIcon className="size-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-        <MoonIcon className="absolute size-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-        <span className="sr-only">Toggle theme</span>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          <SunIcon className="mr-2 size-4" />
-          <span>Light</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          <MoonIcon className="mr-2 size-4" />
-          <span>Dark</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
-          <LaptopIcon className="mr-2 size-4" />
-          <span>System</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        <path d="M0 0h24v24H0z" fill="none" stroke="none" />
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+        <path d="M12 3l0 18" />
+        <path d="M12 9l4.65 -4.65" />
+        <path d="M12 14.3l7.37 -7.37" />
+        <path d="M12 19.6l8.85 -8.85" />
+      </svg>
+      <span className="sr-only">Toggle theme</span>
+    </Button>
   );
 }

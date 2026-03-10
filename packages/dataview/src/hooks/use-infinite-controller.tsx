@@ -1,12 +1,12 @@
 "use client";
 
 import type { Limit } from "@sparkyidea/shared/types/pagination.type";
-import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
 import { useCallback, useMemo, useRef } from "react";
 import type {
   BaseQueryOptions,
+  ColumnQueryOptionsFactory,
+  GroupQueryOptionsFactory,
   InfiniteController,
-  InfiniteGroupQueryOptions,
   InfiniteQueryOptionsFactory,
 } from "../types/pagination-controller";
 
@@ -47,11 +47,11 @@ export interface UseInfiniteControllerOptions<
   TQueryOptions extends InfiniteQueryOptions = InfiniteQueryOptions,
 > {
   /** Factory for fetching column counts (board-specific) */
-  columnQuery?: (columnConfig: GroupConfigInput) => BaseQueryOptions;
+  columnQuery?: ColumnQueryOptionsFactory;
   /** Factory for fetching data items */
   dataQuery: InfiniteQueryOptionsFactory<TQueryOptions>;
   /** Factory for fetching group counts with pagination (accordion rows) */
-  groupQuery?: (groupConfig: GroupConfigInput) => InfiniteGroupQueryOptions;
+  groupQuery?: GroupQueryOptionsFactory;
 }
 
 export interface UseInfiniteControllerResult<TQueryOptions> {
@@ -75,35 +75,33 @@ export function useInfiniteController<
   const columnQueryRef = useRef(columnQuery);
   columnQueryRef.current = columnQuery;
   const stableColumnQuery = useMemo<
-    ((columnConfig: GroupConfigInput) => BaseQueryOptions) | undefined
+    ColumnQueryOptionsFactory | undefined
   >(() => {
     if (!columnQuery) {
       return undefined;
     }
-    return (columnConfig) => {
+    return (params) => {
       const factory = columnQueryRef.current;
       if (!factory) {
         throw new Error("columnQuery ref is unexpectedly null");
       }
-      return factory(columnConfig);
+      return factory(params);
     };
   }, [Boolean(columnQuery)]);
 
   // Stable group factory (accordion rows) with pagination support
   const groupQueryRef = useRef(groupQuery);
   groupQueryRef.current = groupQuery;
-  const stableGroupQuery = useMemo<
-    ((groupConfig: GroupConfigInput) => InfiniteGroupQueryOptions) | undefined
-  >(() => {
+  const stableGroupQuery = useMemo<GroupQueryOptionsFactory | undefined>(() => {
     if (!groupQuery) {
       return undefined;
     }
-    return (groupConfig) => {
+    return (params) => {
       const factory = groupQueryRef.current;
       if (!factory) {
         throw new Error("groupQuery ref is unexpectedly null");
       }
-      return factory(groupConfig);
+      return factory(params);
     };
   }, [Boolean(groupQuery)]);
 

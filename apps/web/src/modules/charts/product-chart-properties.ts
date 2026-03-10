@@ -62,24 +62,6 @@ export const priceProperty = {
   type: "number",
 } as const satisfies DataViewProperty<Product>;
 
-export const stockLevelProperty = {
-  id: "stockLevel",
-  label: "Stock Level",
-  type: "number",
-} as const satisfies DataViewProperty<Product>;
-
-export const ratingProperty = {
-  id: "rating",
-  label: "Rating",
-  type: "number",
-} as const satisfies DataViewProperty<Product>;
-
-export const productNameProperty = {
-  id: "productName",
-  label: "Product Name",
-  type: "text",
-} as const satisfies DataViewProperty<Product>;
-
 export const createdAtProperty = {
   id: "createdAt",
   label: "Created At",

@@ -34,7 +34,7 @@ export const byDateConfigSchema = z.object({
 
 export const byStatusConfigSchema = z.object({
   property: z.string(),
-  showAs: statusShowAsSchema,
+  showAs: statusShowAsSchema.optional().default("option"),
 });
 
 export const bySelectConfigSchema = z.object({
@@ -71,6 +71,19 @@ export const groupByConfigSchema = z.union([
 ]);
 
 export type GroupByConfigInput = z.infer<typeof groupByConfigSchema>;
+
+// Sort direction schema
+export const groupSortSchema = z.enum(["asc", "desc"]);
+export type GroupSort = z.infer<typeof groupSortSchema>;
+
+// Full group config with sort (for server-side sorting)
+export const groupConfigSchema = groupByConfigSchema.and(
+  z.object({
+    sort: groupSortSchema.optional(),
+  })
+);
+
+export type GroupConfigSchemaInput = z.infer<typeof groupConfigSchema>;
 
 // Parsed group config (normalized format for processing)
 export interface ParsedGroupConfig {

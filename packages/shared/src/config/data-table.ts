@@ -84,6 +84,7 @@ export const dataTableConfig = {
     "isRelativeToToday",
     "startsWith",
     "endsWith",
+    "startsWithNonAlpha",
   ] as const,
   logicalOperators: ["and", "or"] as const,
 };

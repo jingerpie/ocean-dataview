@@ -237,11 +237,11 @@ export function GroupSection<TData>({
       ? { dateFormat: "relativeGroup" }
       : undefined;
 
-  // For checkbox groups, convert string "Checked"/"Unchecked" to boolean
-  // since CheckboxProperty expects boolean, not string
+  // For checkbox groups, convert "true"/"false" string to boolean for DataCell
+  // "Checked"/"Unchecked" labels are rendered by CheckboxProperty
   const getGroupValue = () => {
     if (groupByPropertyDef?.type === "checkbox") {
-      return group.key === "Checked";
+      return group.key === "true";
     }
     return group.key;
   };
@@ -270,6 +270,14 @@ export function GroupSection<TData>({
       if (dateLabel) {
         return <span className="font-medium text-sm">{dateLabel}</span>;
       }
+    }
+
+    // For email and phone properties, render as plain text (not clickable links)
+    if (
+      groupByPropertyDef?.type === "email" ||
+      groupByPropertyDef?.type === "phone"
+    ) {
+      return <span className="text-sm">{group.key || "-"}</span>;
     }
 
     // Use DataCell for property types (select, multiSelect, status, date/relative, checkbox, etc.)

@@ -10,7 +10,7 @@ export interface DateGroupConfig {
 /** Status grouping configuration */
 export interface StatusGroupConfig {
   property: string;
-  showAs: "option" | "group";
+  showAs?: "option" | "group";
 }
 
 /** Select grouping configuration */

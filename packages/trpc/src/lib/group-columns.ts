@@ -1,5 +1,5 @@
 import type { ParsedGroupConfig } from "@sparkyidea/shared/types";
-import { count, type SQL, sql, type Table } from "drizzle-orm";
+import { asc, desc, gt, lt, type SQL, sql, type Table } from "drizzle-orm";
 import { getColumn } from "./filter-columns";
 
 // Regex for parsing number range groups (e.g., "100-200")
@@ -25,6 +25,53 @@ interface PropertyConfig {
 interface GroupByResult {
   groupKey: SQL;
   orderBy: SQL;
+}
+
+interface GroupCursorResult {
+  cursorFilter: SQL | undefined;
+  orderByClause: SQL;
+}
+
+/**
+ * Builds orderBy clause and cursor filter for group pagination.
+ *
+ * Unlike row-level buildCursor which uses ID-based subquery lookup,
+ * group cursors use the sort value directly since groups don't have IDs.
+ *
+ * @param options.orderBy - The SQL expression used for ordering groups
+ * @param options.cursor - The cursor value (sort value from previous page)
+ * @param options.sort - Sort direction ("asc" or "desc", defaults to "asc")
+ * @returns orderByClause with direction applied, and cursorFilter for pagination
+ *
+ * @example
+ * const { orderByClause, cursorFilter } = buildGroupCursor({
+ *   orderBy: groupByResult.orderBy,
+ *   cursor: input.cursor,
+ *   sort: "desc",
+ * });
+ * // Use in query: .having(cursorFilter).orderBy(orderByClause)
+ */
+export function buildGroupCursor(options: {
+  orderBy: SQL;
+  cursor?: string | null;
+  sort?: "asc" | "desc";
+}): GroupCursorResult {
+  const { orderBy, cursor, sort = "asc" } = options;
+  const isDesc = sort === "desc";
+
+  // Build orderBy with direction
+  const orderByClause = isDesc ? desc(orderBy) : asc(orderBy);
+
+  // If no cursor, no filter needed
+  if (!cursor) {
+    return { orderByClause, cursorFilter: undefined };
+  }
+
+  // For desc: use lt() since we want values "less than" the cursor
+  // For asc: use gt() since we want values "greater than" the cursor
+  const cursorFilter = isDesc ? lt(orderBy, cursor) : gt(orderBy, cursor);
+
+  return { orderByClause, cursorFilter };
 }
 
 /**
@@ -271,8 +318,10 @@ export function buildGroupBy<T extends Table>(
     }
 
     case "checkbox":
+      // Return "true"/"false" strings (object keys must be strings)
+      // "Checked"/"Unchecked" are display labels only (handled by client)
       return {
-        groupKey: sql`CASE WHEN ${column} = true THEN 'Checked' ELSE 'Unchecked' END`,
+        groupKey: sql`CASE WHEN ${column} = true THEN 'true' ELSE 'false' END`,
         orderBy: sql`CASE WHEN ${column} = true THEN 0 ELSE 1 END`,
       };
 
@@ -432,7 +481,8 @@ export function buildGroupWhere<T extends Table>(
     }
 
     case "checkbox":
-      if (groupKey === "Checked") {
+      // groupKey is "true" or "false" string
+      if (groupKey === "true") {
         return sql`${column} = true`;
       }
       return sql`(${column} IS NULL OR ${column} = false)`;
@@ -448,61 +498,4 @@ export function buildGroupWhere<T extends Table>(
     default:
       return sql`${column} = ${groupKey}`;
   }
-}
-
-/**
- * Execute GROUP BY query and return counts with sort values.
- */
-export async function executeGroupByQuery<T extends Table>(
-  db: { execute: (query: SQL) => Promise<{ rows: unknown[] }> },
-  table: T,
-  tableName: string,
-  parsed: ParsedGroupConfig,
-  propertyConfig?: PropertyConfig
-): Promise<{
-  counts: Record<string, { count: number; hasMore: boolean }>;
-  sortValues: Record<string, string | number>;
-}> {
-  const groupByResult = buildGroupBy(table, parsed, propertyConfig);
-
-  if (!groupByResult) {
-    return { counts: {}, sortValues: {} };
-  }
-
-  const { groupKey, orderBy } = groupByResult;
-
-  const query = sql`
-    SELECT
-      ${groupKey} as group_key,
-      ${orderBy} as sort_value,
-      ${count()} as count
-    FROM ${sql.raw(tableName)}
-    GROUP BY ${groupKey}, ${orderBy}
-    ORDER BY ${orderBy}
-  `;
-
-  const result = await db.execute(query);
-
-  const counts: Record<string, { count: number; hasMore: boolean }> = {};
-  const sortValues: Record<string, string | number> = {};
-
-  for (const row of result.rows as Array<{
-    group_key: string | Date;
-    sort_value: string | number;
-    count: number;
-  }>) {
-    // Convert Date to ISO string for use as object key
-    // Client parses ISO string back to Date for formatting
-    const key =
-      row.group_key instanceof Date
-        ? row.group_key.toISOString()
-        : String(row.group_key);
-    counts[key] = {
-      count: Math.min(Number(row.count), 100),
-      hasMore: Number(row.count) > 100,
-    };
-    sortValues[key] = row.sort_value;
-  }
-
-  return { counts, sortValues };
 }

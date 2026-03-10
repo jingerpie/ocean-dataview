@@ -243,11 +243,12 @@ function getGroupKeyAndSortValue<TData>(
     return handleNumberRangeGrouping(value, numberRange);
   }
 
-  // Handle checkbox grouping - convert boolean to "Checked"/"Unchecked" to match server
+  // Handle checkbox grouping - use "true"/"false" strings
+  // "Checked"/"Unchecked" are display labels only (handled by GroupSection)
   if (property?.type === "checkbox") {
     const boolValue = Boolean(value);
     return {
-      groupKey: boolValue ? "Checked" : "Unchecked",
+      groupKey: boolValue ? "true" : "false",
       sortValue: boolValue ? 0 : 1,
     };
   }

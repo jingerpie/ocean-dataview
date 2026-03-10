@@ -160,8 +160,8 @@ export function useGroupConfig<TData>(
       sortValue: sortValues[key] ?? key,
     }));
 
-    // Apply defaults: hideEmptyGroups defaults to true
-    const hideEmptyGroups = groupConfig.hideEmptyGroups ?? true;
+    // Apply defaults: hideEmptyGroups defaults to false (show empty groups unless :hideEmpty flag in URL)
+    const hideEmptyGroups = groupConfig.hideEmptyGroups ?? false;
     if (hideEmptyGroups) {
       groupArray = groupArray.filter((group) => group.count > 0);
     }

@@ -154,6 +154,11 @@ function buildCondition<T extends Table>(
         ? sql`CAST(${column} AS TEXT) ILIKE ${`%${value}`}`
         : undefined;
 
+    case "startsWithNonAlpha":
+      // Matches NULL, empty string, or values starting with non-alphabetic character
+      // Used for alphabetical text grouping "#" bucket
+      return sql`(${column} IS NULL OR ${column} = '' OR NOT (UPPER(SUBSTR(CAST(${column} AS TEXT), 1, 1)) ~ '[A-Z]'))`;
+
     // ============================================
     // Equality conditions (with date-only midnight boundary support)
     // ============================================
@@ -390,14 +395,11 @@ function isBooleanColumn<T extends Table>(
 
 /**
  * Normalize a filter value for boolean columns.
- * Converts checkbox group keys ("Checked"/"Unchecked") to actual booleans.
+ * Filter values are already boolean (from checkbox-filter.tsx or combineGroupFilter).
  */
-function normalizeBooleanValue(value: unknown): unknown {
-  if (value === "Checked") {
-    return true;
+function normalizeBooleanValue(value: unknown): boolean {
+  if (typeof value === "boolean") {
+    return value;
   }
-  if (value === "Unchecked") {
-    return false;
-  }
-  return value;
+  throw new Error(`Expected boolean value, got ${typeof value}: ${value}`);
 }

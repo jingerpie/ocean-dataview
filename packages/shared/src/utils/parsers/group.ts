@@ -1,27 +1,34 @@
 import { createParser } from "nuqs/server";
-import { decodeOptions, decodeTupleStrings } from "../url-dsl/decoder";
-import { encodeOptions, encodeTuple } from "../url-dsl/encoder";
+import { decodeTupleStrings } from "../url-dsl/decoder";
+import { encodeTuple } from "../url-dsl/encoder";
 
 // ============================================================================
 // Types
 // ============================================================================
 
 /**
- * GroupBy URL format (DSL):
- *   select.property
- *   status.property.showAs
- *   date.property.showAs[.startWeekOn]
- *   checkbox.property
- *   multiselect.property
- *   text.property[.showAs]
- *   number.property.min.max.step
+ * GroupBy URL format (DSL) - Comma-separated groups:
  *
- * With options:
- *   multiselect.tags:sort:desc:hideEmpty
+ * Format: type.property,showAs,sort,hideEmpty
+ *
+ * - Comma separates logical groups
+ * - Dots within each group for sub-params
+ * - Empty group (,,) means use default
+ * - Trailing empties can be omitted
+ *
+ * Examples:
+ *   select.status                   ← all defaults
+ *   select.status,,desc             ← sort desc
+ *   select.status,,,true            ← hideEmpty
+ *   date.created,day                ← showAs=day
+ *   date.created,day.monday         ← showAs=day, startWeekOn=monday
+ *   date.created,day,desc,true      ← full config
+ *   number.price,0.100.10,desc      ← showAs with range
+ *   text.email,exact,,true          ← showAs=exact, hideEmpty
  */
 export type GroupByConfigInput =
   | { bySelect: { property: string } }
-  | { byStatus: { property: string; showAs: "option" | "group" } }
+  | { byStatus: { property: string; showAs?: "option" | "group" } }
   | {
       byDate: {
         property: string;
@@ -68,43 +75,47 @@ type GroupType = keyof typeof TYPE_MAP;
 // ============================================================================
 
 /**
- * Encode group config to DSL format.
- * Example: { byMultiSelect: { property: "tags" }, sort: "desc" } → "multiselect.tags:sort:desc"
+ * Encode group config to DSL format with comma-separated groups.
+ *
+ * Format: type.property,showAs,sort,hideEmpty
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: switch cases for each type
 export function encodeGroup(config: GroupConfigInput): string {
   let type: GroupType | null = null;
-  let parts: (string | number)[] = [];
+  let property = "";
+  let showAsParts: (string | number)[] = [];
 
   if ("bySelect" in config) {
     type = "select";
-    parts = [config.bySelect.property];
+    property = config.bySelect.property;
   } else if ("byStatus" in config) {
     type = "status";
-    parts = [config.byStatus.property, config.byStatus.showAs];
+    property = config.byStatus.property;
+    showAsParts = config.byStatus.showAs ? [config.byStatus.showAs] : [];
   } else if ("byDate" in config) {
     type = "date";
-    parts = [config.byDate.property, config.byDate.showAs];
-    if (config.byDate.startWeekOn) {
-      parts.push(config.byDate.startWeekOn);
-    }
+    property = config.byDate.property;
+    showAsParts = config.byDate.startWeekOn
+      ? [config.byDate.showAs, config.byDate.startWeekOn]
+      : [config.byDate.showAs];
   } else if ("byCheckbox" in config) {
     type = "checkbox";
-    parts = [config.byCheckbox.property];
+    property = config.byCheckbox.property;
   } else if ("byMultiSelect" in config) {
     type = "multiselect";
-    parts = [config.byMultiSelect.property];
+    property = config.byMultiSelect.property;
   } else if ("byText" in config) {
     type = "text";
-    parts = [config.byText.property];
+    property = config.byText.property;
     if (config.byText.showAs) {
-      parts.push(config.byText.showAs);
+      showAsParts = [config.byText.showAs];
     }
   } else if ("byNumber" in config) {
     type = "number";
-    parts = [config.byNumber.property];
+    property = config.byNumber.property;
     if (config.byNumber.showAs) {
       const { range, step } = config.byNumber.showAs;
-      parts.push(range[0], range[1], step);
+      showAsParts = [range[0], range[1], step];
     }
   }
 
@@ -112,17 +123,24 @@ export function encodeGroup(config: GroupConfigInput): string {
     return "";
   }
 
-  const base = encodeTuple([type, ...parts]);
-  const options = encodeOptions({
-    sort: config.sort,
-    hideEmpty: config.hideEmpty,
-  });
+  // Build comma-separated groups: type.property,showAs,sort,hideEmpty
+  const groups = [
+    encodeTuple([type, property]),
+    showAsParts.length > 0 ? encodeTuple(showAsParts) : "",
+    config.sort === "desc" ? "desc" : "",
+    config.hideEmpty ? "true" : "",
+  ];
 
-  return base + options;
+  // Trim trailing empty groups
+  while (groups.length > 1 && groups.at(-1) === "") {
+    groups.pop();
+  }
+
+  return groups.join(",");
 }
 
 // ============================================================================
-// Decoder Helpers
+// Decoder
 // ============================================================================
 
 type DateShowAs = "day" | "week" | "month" | "year" | "relative";
@@ -130,135 +148,137 @@ type TextShowAs = "exact" | "alphabetical";
 type StatusShowAs = "option" | "group";
 type WeekStart = "monday" | "sunday";
 
-const DATE_SHOW_AS_VALUES: DateShowAs[] = [
-  "day",
-  "week",
-  "month",
-  "year",
-  "relative",
-];
+const DATE_SHOW_AS = new Set(["day", "week", "month", "year", "relative"]);
 
-function decodeStatusConfig(
-  property: string,
-  parts: string[]
-): GroupByConfigInput | null {
-  const showAs = parts[2] as StatusShowAs | undefined;
-  if (showAs !== "option" && showAs !== "group") {
-    return null;
+function parseSort(val: string): "asc" | "desc" | undefined {
+  if (val === "desc") {
+    return "desc";
   }
-  return { byStatus: { property, showAs } };
+  if (val === "asc") {
+    return "asc";
+  }
+  return undefined;
 }
-
-function decodeDateConfig(
-  property: string,
-  parts: string[]
-): GroupByConfigInput | null {
-  const showAs = parts[2] as DateShowAs | undefined;
-  if (!(showAs && DATE_SHOW_AS_VALUES.includes(showAs))) {
-    return null;
-  }
-  const startWeekOn = parts[3] as WeekStart | undefined;
-  const config: {
-    property: string;
-    showAs: DateShowAs;
-    startWeekOn?: WeekStart;
-  } = {
-    property,
-    showAs,
-  };
-  if (startWeekOn === "monday" || startWeekOn === "sunday") {
-    config.startWeekOn = startWeekOn;
-  }
-  return { byDate: config };
-}
-
-function decodeTextConfig(
-  property: string,
-  parts: string[]
-): GroupByConfigInput | null {
-  const showAs = parts[2] as TextShowAs | undefined;
-  if (showAs && showAs !== "exact" && showAs !== "alphabetical") {
-    return null;
-  }
-  return showAs ? { byText: { property, showAs } } : { byText: { property } };
-}
-
-function decodeNumberConfig(
-  property: string,
-  parts: string[]
-): GroupByConfigInput {
-  if (parts.length >= 5) {
-    const min = Number(parts[2]);
-    const max = Number(parts[3]);
-    const step = Number(parts[4]);
-    if (!(Number.isNaN(min) || Number.isNaN(max) || Number.isNaN(step))) {
-      return { byNumber: { property, showAs: { range: [min, max], step } } };
-    }
-  }
-  return { byNumber: { property } };
-}
-
-// ============================================================================
-// Decoder
-// ============================================================================
 
 /**
- * Decode DSL format to group config.
- * Example: "multiselect.tags:sort:desc" → { byMultiSelect: { property: "tags" }, sort: "desc" }
+ * Decode DSL format to group config using comma-separated groups.
+ *
+ * Format: type.property,showAs,sort,hideEmpty
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: switch cases for each type
 export function decodeGroup(value: string): GroupConfigInput | null {
   if (!value) {
     return null;
   }
 
-  // Split base from options
-  const colonIndex = value.indexOf(":");
-  const base = colonIndex === -1 ? value : value.slice(0, colonIndex);
-  const optionsStr = colonIndex === -1 ? "" : value.slice(colonIndex);
+  // Split by comma into groups
+  const groups = value.split(",");
 
-  const parts = decodeTupleStrings(base);
-  if (parts.length < 2) {
+  // Group 0: type.property
+  const typeParts = decodeTupleStrings(groups[0] ?? "");
+  if (typeParts.length < 2) {
     return null;
   }
 
-  const typeStr = parts[0];
+  const typeStr = typeParts[0];
   if (!(typeStr && typeStr in TYPE_MAP)) {
     return null;
   }
 
   const type = typeStr as GroupType;
-  const byKey = TYPE_MAP[type];
-  const property = parts[1];
-
+  const property = typeParts[1];
   if (!property) {
     return null;
   }
 
-  // Parse the group config based on type
+  // Group 1: showAs (type-specific)
+  const showAsParts = decodeTupleStrings(groups[1] ?? "");
+
+  // Group 2: sort
+  const sort = parseSort(groups[2] ?? "");
+
+  // Group 3: hideEmpty
+  const hideEmpty = (groups[3] ?? "") === "true";
+
+  // Parse type-specific config
   let result: GroupByConfigInput | null = null;
 
-  switch (byKey) {
-    case "bySelect":
+  switch (type) {
+    case "select":
       result = { bySelect: { property } };
       break;
-    case "byStatus":
-      result = decodeStatusConfig(property, parts);
-      break;
-    case "byDate":
-      result = decodeDateConfig(property, parts);
-      break;
-    case "byCheckbox":
+
+    case "checkbox":
       result = { byCheckbox: { property } };
       break;
-    case "byMultiSelect":
+
+    case "multiselect":
       result = { byMultiSelect: { property } };
       break;
-    case "byText":
-      result = decodeTextConfig(property, parts);
+
+    case "status": {
+      const showAs = (showAsParts[0] || undefined) as StatusShowAs | undefined;
+      if (showAs && showAs !== "option" && showAs !== "group") {
+        return null;
+      }
+      result = showAs
+        ? { byStatus: { property, showAs } }
+        : { byStatus: { property } };
       break;
-    case "byNumber":
-      result = decodeNumberConfig(property, parts);
+    }
+
+    case "text": {
+      const showAs = (showAsParts[0] || undefined) as TextShowAs | undefined;
+      if (showAs && showAs !== "exact" && showAs !== "alphabetical") {
+        return null;
+      }
+      result = showAs
+        ? { byText: { property, showAs } }
+        : { byText: { property } };
       break;
+    }
+
+    case "date": {
+      const showAs = showAsParts[0] as DateShowAs;
+      if (!DATE_SHOW_AS.has(showAs)) {
+        return null;
+      }
+      const startWeekOn = (showAsParts[1] || undefined) as
+        | WeekStart
+        | undefined;
+      const dateConfig: {
+        property: string;
+        showAs: DateShowAs;
+        startWeekOn?: WeekStart;
+      } = {
+        property,
+        showAs,
+      };
+      if (startWeekOn === "monday" || startWeekOn === "sunday") {
+        dateConfig.startWeekOn = startWeekOn;
+      }
+      result = { byDate: dateConfig };
+      break;
+    }
+
+    case "number": {
+      if (showAsParts.length >= 3) {
+        const min = Number(showAsParts[0]);
+        const max = Number(showAsParts[1]);
+        const step = Number(showAsParts[2]);
+        if (Number.isNaN(min) || Number.isNaN(max) || Number.isNaN(step)) {
+          result = { byNumber: { property } };
+        } else {
+          result = {
+            byNumber: { property, showAs: { range: [min, max], step } },
+          };
+        }
+      } else {
+        result = { byNumber: { property } };
+      }
+      break;
+    }
+
     default:
       return null;
   }
@@ -266,14 +286,6 @@ export function decodeGroup(value: string): GroupConfigInput | null {
   if (!result) {
     return null;
   }
-
-  // Parse and add options
-  const options = decodeOptions(optionsStr);
-  const sort =
-    options.sort === "asc" || options.sort === "desc"
-      ? options.sort
-      : undefined;
-  const hideEmpty = options.hideEmpty === true;
 
   return {
     ...result,
@@ -283,74 +295,17 @@ export function decodeGroup(value: string): GroupConfigInput | null {
 }
 
 // ============================================================================
-// Legacy JSON Support (for migration)
-// ============================================================================
-
-function isLegacyFormat(value: string): boolean {
-  return value.startsWith("{");
-}
-
-function decodeLegacyGroup(value: string): GroupConfigInput | null {
-  try {
-    const parsed = JSON.parse(value);
-    return groupConfigValidator(parsed);
-  } catch {
-    return null;
-  }
-}
-
-// ============================================================================
-// Validator
-// ============================================================================
-
-/**
- * Validate GroupConfigInput from parsed value.
- * Structural check only - tRPC validates property names.
- */
-export function groupConfigValidator(value: unknown): GroupConfigInput | null {
-  if (typeof value === "string") {
-    // DSL format or legacy JSON
-    if (isLegacyFormat(value)) {
-      return decodeLegacyGroup(value);
-    }
-    return decodeGroup(value);
-  }
-
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return null;
-  }
-
-  const obj = value as Record<string, unknown>;
-
-  const hasValidByKey =
-    "bySelect" in obj ||
-    "byStatus" in obj ||
-    "byDate" in obj ||
-    "byCheckbox" in obj ||
-    "byMultiSelect" in obj ||
-    "byText" in obj ||
-    "byNumber" in obj;
-
-  if (!hasValidByKey) {
-    return null;
-  }
-
-  return value as GroupConfigInput;
-}
-
-// ============================================================================
 // Parsers
 // ============================================================================
 
 /** Server-side parser for group config */
 export const groupServerParser = createParser({
-  parse: groupConfigValidator,
-  serialize: (value: GroupConfigInput) => encodeGroup(value),
+  parse: decodeGroup,
+  serialize: encodeGroup,
 });
 
 /** Client-side parser for group config */
 export const parseAsGroupBy = createParser({
-  parse: (value: string): GroupConfigInput | null =>
-    groupConfigValidator(value),
-  serialize: (value: GroupConfigInput) => encodeGroup(value),
+  parse: decodeGroup,
+  serialize: encodeGroup,
 });

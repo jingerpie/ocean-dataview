@@ -53,8 +53,9 @@ const THROTTLE_MS = 50;
 // ============================================================================
 
 /**
- * Extract only the structural parts of a group config (without sort/hideEmpty).
- * This determines which groups exist - display options don't affect the group list.
+ * Extract the structural parts of a group config plus sort (without hideEmpty).
+ * Sort affects server-side ordering, so it must be included in the query.
+ * hideEmpty is display-only and doesn't affect the group list.
  */
 function getGroupByConfig(
   group: GroupConfigInput | null
@@ -63,30 +64,35 @@ function getGroupByConfig(
     return null;
   }
 
-  // Extract only the byXxx config, excluding sort and hideEmpty
+  // Extract the byXxx config plus sort, excluding hideEmpty
+  let base: GroupConfigInput | null = null;
+
   if ("bySelect" in group) {
-    return { bySelect: group.bySelect };
-  }
-  if ("byStatus" in group) {
-    return { byStatus: group.byStatus };
-  }
-  if ("byCheckbox" in group) {
-    return { byCheckbox: group.byCheckbox };
-  }
-  if ("byDate" in group) {
-    return { byDate: group.byDate };
-  }
-  if ("byMultiSelect" in group) {
-    return { byMultiSelect: group.byMultiSelect };
-  }
-  if ("byText" in group) {
-    return { byText: group.byText };
-  }
-  if ("byNumber" in group) {
-    return { byNumber: group.byNumber };
+    base = { bySelect: group.bySelect };
+  } else if ("byStatus" in group) {
+    base = { byStatus: group.byStatus };
+  } else if ("byCheckbox" in group) {
+    base = { byCheckbox: group.byCheckbox };
+  } else if ("byDate" in group) {
+    base = { byDate: group.byDate };
+  } else if ("byMultiSelect" in group) {
+    base = { byMultiSelect: group.byMultiSelect };
+  } else if ("byText" in group) {
+    base = { byText: group.byText };
+  } else if ("byNumber" in group) {
+    base = { byNumber: group.byNumber };
   }
 
-  return group;
+  if (!base) {
+    return group;
+  }
+
+  // Include sort if present (affects server-side ordering)
+  if (group.sort) {
+    return { ...base, sort: group.sort };
+  }
+
+  return base;
 }
 
 // ============================================================================
@@ -234,10 +240,18 @@ interface InfiniteGroupKeysProps {
     isFetchingNextGroupPage: boolean;
     onLoadMoreGroups: () => void;
   }) => ReactNode;
+  filter: WhereNode[] | null;
   groupByConfig: GroupConfigInput;
   // Accept any function that returns infinite query options (tRPC or manual)
-  // biome-ignore lint/suspicious/noExplicitAny: Must accept tRPC's infiniteQueryOptions return type
-  groupQuery: (groupConfig: GroupConfigInput) => any;
+  groupQuery: (params: {
+    filter: WhereNode[] | null;
+    groupConfig: GroupConfigInput;
+    hideEmpty: boolean;
+    search: string;
+    // biome-ignore lint/suspicious/noExplicitAny: Must accept tRPC's infiniteQueryOptions return type
+  }) => any;
+  hideEmpty: boolean;
+  search: string;
 }
 
 /**
@@ -248,10 +262,18 @@ interface InfiniteGroupKeysProps {
  */
 function InfiniteGroupKeys({
   children,
+  filter,
   groupByConfig,
   groupQuery,
+  hideEmpty,
+  search,
 }: InfiniteGroupKeysProps) {
-  const factoryOptions = groupQuery(groupByConfig);
+  const factoryOptions = groupQuery({
+    filter,
+    groupConfig: groupByConfig,
+    hideEmpty,
+    search,
+  });
 
   // Spread tRPC options directly - tRPC's infiniteQueryOptions returns a complete config
   // We only provide fallbacks for getNextPageParam and initialPageParam if not present
@@ -310,10 +332,18 @@ interface SuspendingColumnKeysProps {
     columnSortValues: GroupQueryResponse["sortValues"];
   }) => ReactNode;
   columnByConfig: GroupConfigInput;
-  columnQuery: (columnConfig: GroupConfigInput) => {
+  columnQuery: (params: {
+    columnConfig: GroupConfigInput;
+    filter: WhereNode[] | null;
+    hideEmpty: boolean;
+    search: string;
+  }) => {
     queryFn?: unknown;
     queryKey: readonly unknown[];
   };
+  filter: WhereNode[] | null;
+  hideEmpty: boolean;
+  search: string;
 }
 
 /**
@@ -324,8 +354,16 @@ function SuspendingColumnKeys({
   children,
   columnByConfig,
   columnQuery,
+  filter,
+  hideEmpty,
+  search,
 }: SuspendingColumnKeysProps) {
-  const factoryOptions = columnQuery(columnByConfig);
+  const factoryOptions = columnQuery({
+    columnConfig: columnByConfig,
+    filter,
+    hideEmpty,
+    search,
+  });
   const { data: rawColumnData } = useSuspenseQuery({
     queryKey: factoryOptions.queryKey,
     queryFn: factoryOptions.queryFn as () => Promise<GroupQueryResponse>,
@@ -664,7 +702,13 @@ export function PageQueryBridge<
 
   // GROUPED MODE: Use InfiniteGroupKeys to suspend until group data is ready
   return (
-    <InfiniteGroupKeys groupByConfig={groupByConfig} groupQuery={groupQuery}>
+    <InfiniteGroupKeys
+      filter={filter}
+      groupByConfig={groupByConfig}
+      groupQuery={groupQuery}
+      hideEmpty={group?.hideEmpty ?? false}
+      search={search}
+    >
       {renderInner}
     </InfiniteGroupKeys>
   );
@@ -1188,8 +1232,11 @@ export function InfiniteQueryBridge<
     if (isGrouped && groupByConfig && groupQuery) {
       return (
         <InfiniteGroupKeys
+          filter={filter}
           groupByConfig={groupByConfig}
           groupQuery={groupQuery}
+          hideEmpty={group?.hideEmpty ?? false}
+          search={search}
         >
           {({
             groupCounts,
@@ -1230,6 +1277,9 @@ export function InfiniteQueryBridge<
       <SuspendingColumnKeys
         columnByConfig={columnByConfig}
         columnQuery={columnQuery}
+        filter={filter}
+        hideEmpty={column?.hideEmpty ?? false}
+        search={search}
       >
         {({ columnCounts }) => wrapWithGroupSuspense(columnCounts)}
       </SuspendingColumnKeys>
