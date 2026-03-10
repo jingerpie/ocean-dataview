@@ -1,113 +1,202 @@
-# Issue Types
-- name: bug
+# GitHub labels configuration (see .github/workflows/automation-labels.yml)
+# Area labels - which part of the codebase
+- name: "area: web"
+  color: "26b5ce"
+  description: "Changes to the web app (apps/web)"
+
+- name: "area: server"
+  color: "26b5ce"
+  description: "Changes to the server app (apps/server)"
+
+- name: "area: dataview"
+  color: "26b5ce"
+  description: "Changes to the dataview package (packages/dataview)"
+
+- name: "area: trpc"
+  color: "26b5ce"
+  description: "Changes to the tRPC package (packages/trpc)"
+
+- name: "area: db"
+  color: "26b5ce"
+  description: "Changes to the database package (packages/db)"
+
+- name: "area: shared"
+  color: "26b5ce"
+  description: "Changes to the shared package (packages/shared)"
+
+- name: "area: ui"
+  color: "26b5ce"
+  description: "Changes to UI components (packages/ui)"
+
+- name: "area: env"
+  color: "26b5ce"
+  description: "Changes to environment package (packages/env)"
+
+- name: "area: documentation"
+  color: "26b5ce"
+  description: "Improvements or additions to documentation"
+
+- name: "area: github actions"
+  color: "26b5ce"
+  description: "Changes to GitHub Actions workflows"
+  from_name: "github_actions"
+
+- name: "area: config"
+  color: "26b5ce"
+  description: "Changes to repository configuration files"
+
+# Type labels - what kind of change
+- name: "type: bug"
   color: "d73a4a"
   description: "Something isn't working"
 
-- name: enhancement
+- name: "type: enhancement"
   color: "a2eeef"
   description: "New feature or request"
 
-- name: documentation
-  color: "0075ca"
-  description: "Improvements or additions to documentation"
-
-- name: question
+- name: "type: question"
   color: "d876e3"
   description: "Further information is requested"
 
-# Workflow
-- name: triage
+# Change labels - conventional commit type
+- name: "change: feat"
+  color: "32e52f"
+  description: "New feature"
+
+- name: "change: fix"
+  color: "158c01"
+  description: "Bug fix"
+
+- name: "change: chore"
+  color: "ededed"
+  description: "Maintenance and chores"
+
+- name: "change: docs"
+  color: "0075ca"
+  description: "Documentation changes"
+
+- name: "change: refactor"
   color: "fbca04"
-  description: "Needs initial review and categorization"
+  description: "Code refactoring"
 
-- name: "good first issue"
-  color: "7057ff"
-  description: "Good for newcomers"
+- name: "change: test"
+  color: "bfd4f2"
+  description: "Test changes"
 
-- name: "help wanted"
-  color: "008672"
-  description: "Extra attention is needed"
+- name: "change: ci"
+  color: "000000"
+  description: "CI/CD changes"
 
-- name: wontfix
-  color: "ffffff"
-  description: "This will not be worked on"
+- name: "change: perf"
+  color: "f9d0c4"
+  description: "Performance improvements"
 
-- name: duplicate
+- name: "change: build"
+  color: "5319e7"
+  description: "Build system changes"
+
+- name: "change: style"
+  color: "c5def5"
+  description: "Code style changes"
+
+- name: "change: revert"
+  color: "d93f0b"
+  description: "Reverting changes"
+
+- name: "change: deps"
+  color: "0366d6"
+  description: "Dependency updates"
+
+# Status labels
+- name: "status: do not merge"
+  color: "e11d21"
+  description: "PR should not be merged"
+
+- name: "status: duplicate"
   color: "cfd3d7"
   description: "This issue or pull request already exists"
 
-- name: invalid
+- name: "status: invalid"
   color: "e4e669"
   description: "This doesn't seem right"
 
-# Priority
-- name: "priority: critical"
-  color: "b60205"
-  description: "Must be fixed ASAP"
+- name: "status: revision required"
+  color: "e11d21"
+  description: "Changes requested"
 
-- name: "priority: high"
-  color: "d93f0b"
-  description: "High priority"
+- name: "status: help wanted"
+  color: "008672"
+  description: "Needs assistance and is ready for work to be started/continued"
+  from_name: "help wanted"
 
-- name: "priority: medium"
-  color: "fbca04"
-  description: "Medium priority"
-
-- name: "priority: low"
-  color: "0e8a16"
-  description: "Low priority"
-
-# Scope (packages)
-- name: "scope: dataview"
-  color: "1d76db"
-  description: "@sparkyidea/dataview package"
-
-- name: "scope: trpc"
-  color: "1d76db"
-  description: "@sparkyidea/trpc package"
-
-- name: "scope: db"
-  color: "1d76db"
-  description: "@sparkyidea/db package"
-
-- name: "scope: shared"
-  color: "1d76db"
-  description: "@sparkyidea/shared package"
-
-- name: "scope: ui"
-  color: "1d76db"
-  description: "@sparkyidea/ui package"
-
-- name: "scope: web"
-  color: "1d76db"
-  description: "apps/web frontend"
-
-- name: "scope: server"
-  color: "1d76db"
-  description: "apps/server backend"
-
-# Automation
-- name: dependencies
-  color: "0366d6"
-  description: "Pull requests that update dependencies"
-
-- name: automated
-  color: "ededed"
-  description: "Automated pull request"
-
-- name: ci
-  color: "5319e7"
-  description: "CI/CD related changes"
-
-# Status
 - name: "status: blocked"
-  color: "b60205"
-  description: "Blocked by another issue or external factor"
+  color: "e11d21"
+  description: "This issue or pull request is blocked"
 
 - name: "status: in progress"
-  color: "fbca04"
-  description: "Currently being worked on"
+  color: "cccccc"
+  description: "Work is currently being done"
 
-- name: "status: needs review"
-  color: "0e8a16"
+- name: "status: triage"
+  color: "fef2c0"
+  description: "Needs to be triaged by a maintainer"
+
+- name: "status: complete"
+  color: "339E62"
+  description: "Work is complete"
+
+- name: "status: interest check"
+  color: "cd2b90"
+  description: "Expression of interest only. Not looking for contributors."
+
+- name: "status: maintainers only"
+  color: "aaaaaa"
+  description: "Only maintainers should work on this"
+
+- name: "status: response requested"
+  color: "DF2386"
+  description: "Waiting for response from author"
+
+- name: "status: stalled"
+  color: "FFA657"
+  description: "No recent activity. May be closed soon."
+
+- name: "status: ready"
+  color: "339E62"
   description: "Ready for review"
+
+# Priority labels
+- name: "priority: 0"
+  color: "b60205"
+  description: "Critical priority"
+
+- name: "priority: 1"
+  color: "b60205"
+  description: "High priority"
+
+- name: "priority: 2"
+  color: "eab308"
+  description: "Medium priority"
+
+- name: "priority: 3"
+  color: "0e8a16"
+  description: "Normal priority"
+
+# Contributor labels
+- name: "contributor: ai"
+  color: "3bc8b6"
+  description: "AI-assisted contribution"
+
+- name: "contributor: bot"
+  color: "0366d6"
+  description: "Created by a bot"
+
+- name: "contributor: external"
+  color: "6f42c1"
+  description: "Created by an external contributor"
+  from_name: "contributor: community"
+
+# Community labels
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers"

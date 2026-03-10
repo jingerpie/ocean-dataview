@@ -1,6 +1,7 @@
 import { Button } from "@sparkyidea/ui/components/button";
 import { LayoutGrid } from "lucide-react";
 import Link from "next/link";
+import { GitHubLink } from "@/components/layouts/github-link";
 import { ModeToggle } from "@/components/layouts/mode-toggle";
 
 export function SiteHeader() {
@@ -24,16 +25,7 @@ export function SiteHeader() {
           <Link href="/charts">Charts</Link>
         </nav>
         <nav className="flex flex-1 items-center md:justify-end">
-          {/* <Button variant="ghost" size="icon" className="size-8" asChild>
-						<Link
-							aria-label="GitHub repo"
-							href={siteConfig.links.github}
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							<Icons.gitHub className="size-4" aria-hidden="true" />
-						</Link>
-					</Button> */}
+          <GitHubLink />
           <ModeToggle />
         </nav>
       </div>
