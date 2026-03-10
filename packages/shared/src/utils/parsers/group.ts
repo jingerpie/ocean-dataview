@@ -1,74 +1,66 @@
 import { createParser } from "nuqs/server";
+import type {
+  DateShowAs,
+  GroupablePropertyType,
+  GroupByConfig,
+  GroupConfigInput,
+  StatusShowAs,
+  TextShowAs,
+  WeekStartDay,
+} from "../../types/group-config";
 import { decodeTupleStrings } from "../url-dsl/decoder";
 import { encodeTuple } from "../url-dsl/encoder";
 
+// Re-export types for convenience (canonical types are in @sparkyidea/shared/types)
+export type { GroupByConfig, GroupConfigInput } from "../../types/group-config";
+
 // ============================================================================
-// Types
+// URL Type Mappings
 // ============================================================================
 
 /**
- * GroupBy URL format (DSL) - Comma-separated groups:
- *
- * Format: type.property,showAs,sort,hideEmpty
- *
- * - Comma separates logical groups
- * - Dots within each group for sub-params
- * - Empty group (,,) means use default
- * - Trailing empties can be omitted
- *
- * Examples:
- *   select.status                   ← all defaults
- *   select.status,,desc             ← sort desc
- *   select.status,,,true            ← hideEmpty
- *   date.created,day                ← showAs=day
- *   date.created,day.monday         ← showAs=day, startWeekOn=monday
- *   date.created,day,desc,true      ← full config
- *   number.price,0.100.10,desc      ← showAs with range
- *   text.email,exact,,true          ← showAs=exact, hideEmpty
+ * Map URL type strings to canonical propertyType values.
+ * Note: URL uses "multiselect" (lowercase), canonical uses "multiSelect" (camelCase)
  */
-export type GroupByConfigInput =
-  | { bySelect: { property: string } }
-  | { byStatus: { property: string; showAs?: "option" | "group" } }
-  | {
-      byDate: {
-        property: string;
-        showAs: "day" | "week" | "month" | "year" | "relative";
-        startWeekOn?: "monday" | "sunday";
-      };
-    }
-  | { byCheckbox: { property: string } }
-  | { byMultiSelect: { property: string } }
-  | { byText: { property: string; showAs?: "exact" | "alphabetical" } }
-  | {
-      byNumber: {
-        property: string;
-        showAs?: { range: [number, number]; step: number };
-      };
-    };
-
-/**
- * Group configuration with settings.
- */
-export type GroupConfigInput = GroupByConfigInput & {
-  sort?: "asc" | "desc";
-  hideEmpty?: boolean;
+const URL_TO_PROPERTY_TYPE: Record<string, GroupablePropertyType> = {
+  select: "select",
+  status: "status",
+  date: "date",
+  checkbox: "checkbox",
+  multiselect: "multiSelect",
+  text: "text",
+  number: "number",
 };
 
+/**
+ * Map canonical propertyType to URL type string.
+ */
+const PROPERTY_TYPE_TO_URL: Record<GroupablePropertyType, string> = {
+  select: "select",
+  status: "status",
+  date: "date",
+  checkbox: "checkbox",
+  multiSelect: "multiselect",
+  text: "text",
+  number: "number",
+};
+
+type UrlType = keyof typeof URL_TO_PROPERTY_TYPE;
+
 // ============================================================================
-// Type Mappings
+// Validation Sets
 // ============================================================================
 
-const TYPE_MAP = {
-  select: "bySelect",
-  status: "byStatus",
-  date: "byDate",
-  checkbox: "byCheckbox",
-  multiselect: "byMultiSelect",
-  text: "byText",
-  number: "byNumber",
-} as const;
-
-type GroupType = keyof typeof TYPE_MAP;
+const DATE_SHOW_AS = new Set<string>([
+  "day",
+  "week",
+  "month",
+  "year",
+  "relative",
+]);
+const STATUS_SHOW_AS = new Set<string>(["option", "group"]);
+const TEXT_SHOW_AS = new Set<string>(["exact", "alphabetical"]);
+const WEEK_START = new Set<string>(["monday", "sunday"]);
 
 // ============================================================================
 // Encoder
@@ -78,54 +70,59 @@ type GroupType = keyof typeof TYPE_MAP;
  * Encode group config to DSL format with comma-separated groups.
  *
  * Format: type.property,showAs,sort,hideEmpty
+ *
+ * Examples:
+ *   select.status                   ← all defaults
+ *   select.status,,desc             ← sort desc
+ *   date.created,day                ← showAs=day
+ *   date.created,day.monday         ← showAs=day, startWeekOn=monday
+ *   number.price,0.100.10,desc      ← showAs with range
  */
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: switch cases for each type
 export function encodeGroup(config: GroupConfigInput): string {
-  let type: GroupType | null = null;
-  let property = "";
-  let showAsParts: (string | number)[] = [];
-
-  if ("bySelect" in config) {
-    type = "select";
-    property = config.bySelect.property;
-  } else if ("byStatus" in config) {
-    type = "status";
-    property = config.byStatus.property;
-    showAsParts = config.byStatus.showAs ? [config.byStatus.showAs] : [];
-  } else if ("byDate" in config) {
-    type = "date";
-    property = config.byDate.property;
-    showAsParts = config.byDate.startWeekOn
-      ? [config.byDate.showAs, config.byDate.startWeekOn]
-      : [config.byDate.showAs];
-  } else if ("byCheckbox" in config) {
-    type = "checkbox";
-    property = config.byCheckbox.property;
-  } else if ("byMultiSelect" in config) {
-    type = "multiselect";
-    property = config.byMultiSelect.property;
-  } else if ("byText" in config) {
-    type = "text";
-    property = config.byText.property;
-    if (config.byText.showAs) {
-      showAsParts = [config.byText.showAs];
-    }
-  } else if ("byNumber" in config) {
-    type = "number";
-    property = config.byNumber.property;
-    if (config.byNumber.showAs) {
-      const { range, step } = config.byNumber.showAs;
-      showAsParts = [range[0], range[1], step];
-    }
+  const urlType = PROPERTY_TYPE_TO_URL[config.propertyType];
+  if (!urlType) {
+    return "";
   }
 
-  if (!type) {
-    return "";
+  let showAsParts: (string | number)[] = [];
+
+  // biome-ignore lint/style/useDefaultSwitchClause: All property types are handled exhaustively
+  switch (config.propertyType) {
+    case "date":
+      showAsParts = config.startWeekOn
+        ? [config.showAs, config.startWeekOn]
+        : [config.showAs];
+      break;
+
+    case "status":
+      if (config.showAs) {
+        showAsParts = [config.showAs];
+      }
+      break;
+
+    case "text":
+      if (config.showAs) {
+        showAsParts = [config.showAs];
+      }
+      break;
+
+    case "number":
+      if (config.numberRange) {
+        const { range, step } = config.numberRange;
+        showAsParts = [range[0], range[1], step];
+      }
+      break;
+
+    case "select":
+    case "multiSelect":
+    case "checkbox":
+      // No showAs for these types
+      break;
   }
 
   // Build comma-separated groups: type.property,showAs,sort,hideEmpty
   const groups = [
-    encodeTuple([type, property]),
+    encodeTuple([urlType, config.propertyId]),
     showAsParts.length > 0 ? encodeTuple(showAsParts) : "",
     config.sort === "desc" ? "desc" : "",
     config.hideEmpty ? "true" : "",
@@ -143,13 +140,6 @@ export function encodeGroup(config: GroupConfigInput): string {
 // Decoder
 // ============================================================================
 
-type DateShowAs = "day" | "week" | "month" | "year" | "relative";
-type TextShowAs = "exact" | "alphabetical";
-type StatusShowAs = "option" | "group";
-type WeekStart = "monday" | "sunday";
-
-const DATE_SHOW_AS = new Set(["day", "week", "month", "year", "relative"]);
-
 function parseSort(val: string): "asc" | "desc" | undefined {
   if (val === "desc") {
     return "desc";
@@ -165,7 +155,7 @@ function parseSort(val: string): "asc" | "desc" | undefined {
  *
  * Format: type.property,showAs,sort,hideEmpty
  */
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: switch cases for each type
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Parser handles multiple property types with different validation rules
 export function decodeGroup(value: string): GroupConfigInput | null {
   if (!value) {
     return null;
@@ -180,14 +170,14 @@ export function decodeGroup(value: string): GroupConfigInput | null {
     return null;
   }
 
-  const typeStr = typeParts[0];
-  if (!(typeStr && typeStr in TYPE_MAP)) {
+  const urlType = typeParts[0];
+  if (!(urlType && urlType in URL_TO_PROPERTY_TYPE)) {
     return null;
   }
 
-  const type = typeStr as GroupType;
-  const property = typeParts[1];
-  if (!property) {
+  const propertyType = URL_TO_PROPERTY_TYPE[urlType as UrlType];
+  const propertyId = typeParts[1];
+  if (!propertyId) {
     return null;
   }
 
@@ -200,41 +190,47 @@ export function decodeGroup(value: string): GroupConfigInput | null {
   // Group 3: hideEmpty
   const hideEmpty = (groups[3] ?? "") === "true";
 
-  // Parse type-specific config
-  let result: GroupByConfigInput | null = null;
+  // Build base options
+  const options = {
+    ...(sort && { sort }),
+    ...(hideEmpty && { hideEmpty }),
+  };
 
-  switch (type) {
+  // Parse type-specific config
+  let result: GroupByConfig;
+
+  switch (propertyType) {
     case "select":
-      result = { bySelect: { property } };
+      result = { propertyType: "select", propertyId };
       break;
 
     case "checkbox":
-      result = { byCheckbox: { property } };
+      result = { propertyType: "checkbox", propertyId };
       break;
 
-    case "multiselect":
-      result = { byMultiSelect: { property } };
+    case "multiSelect":
+      result = { propertyType: "multiSelect", propertyId };
       break;
 
     case "status": {
-      const showAs = (showAsParts[0] || undefined) as StatusShowAs | undefined;
-      if (showAs && showAs !== "option" && showAs !== "group") {
+      const showAs = showAsParts[0] as StatusShowAs | undefined;
+      if (showAs && !STATUS_SHOW_AS.has(showAs)) {
         return null;
       }
       result = showAs
-        ? { byStatus: { property, showAs } }
-        : { byStatus: { property } };
+        ? { propertyType: "status", propertyId, showAs }
+        : { propertyType: "status", propertyId };
       break;
     }
 
     case "text": {
-      const showAs = (showAsParts[0] || undefined) as TextShowAs | undefined;
-      if (showAs && showAs !== "exact" && showAs !== "alphabetical") {
+      const showAs = showAsParts[0] as TextShowAs | undefined;
+      if (showAs && !TEXT_SHOW_AS.has(showAs)) {
         return null;
       }
       result = showAs
-        ? { byText: { property, showAs } }
-        : { byText: { property } };
+        ? { propertyType: "text", propertyId, showAs }
+        : { propertyType: "text", propertyId };
       break;
     }
 
@@ -243,21 +239,14 @@ export function decodeGroup(value: string): GroupConfigInput | null {
       if (!DATE_SHOW_AS.has(showAs)) {
         return null;
       }
-      const startWeekOn = (showAsParts[1] || undefined) as
-        | WeekStart
-        | undefined;
-      const dateConfig: {
-        property: string;
-        showAs: DateShowAs;
-        startWeekOn?: WeekStart;
-      } = {
-        property,
-        showAs,
-      };
-      if (startWeekOn === "monday" || startWeekOn === "sunday") {
-        dateConfig.startWeekOn = startWeekOn;
+      const startWeekOn = showAsParts[1] as WeekStartDay | undefined;
+      if (startWeekOn && !WEEK_START.has(startWeekOn)) {
+        result = { propertyType: "date", propertyId, showAs };
+      } else {
+        result = startWeekOn
+          ? { propertyType: "date", propertyId, showAs, startWeekOn }
+          : { propertyType: "date", propertyId, showAs };
       }
-      result = { byDate: dateConfig };
       break;
     }
 
@@ -267,14 +256,16 @@ export function decodeGroup(value: string): GroupConfigInput | null {
         const max = Number(showAsParts[1]);
         const step = Number(showAsParts[2]);
         if (Number.isNaN(min) || Number.isNaN(max) || Number.isNaN(step)) {
-          result = { byNumber: { property } };
+          result = { propertyType: "number", propertyId };
         } else {
           result = {
-            byNumber: { property, showAs: { range: [min, max], step } },
+            propertyType: "number",
+            propertyId,
+            numberRange: { range: [min, max], step },
           };
         }
       } else {
-        result = { byNumber: { property } };
+        result = { propertyType: "number", propertyId };
       }
       break;
     }
@@ -283,15 +274,7 @@ export function decodeGroup(value: string): GroupConfigInput | null {
       return null;
   }
 
-  if (!result) {
-    return null;
-  }
-
-  return {
-    ...result,
-    ...(sort && { sort }),
-    ...(hideEmpty && { hideEmpty }),
-  };
+  return { ...result, ...options };
 }
 
 // ============================================================================

@@ -5,10 +5,12 @@ import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import { BoardView } from "@sparkyidea/dataview/views/board-view";
-import type { WhereNode } from "@sparkyidea/shared/types";
-import type { Limit } from "@sparkyidea/shared/types/pagination.type";
-import type { ColumnConfigInput } from "@sparkyidea/shared/utils/parsers/column";
-import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
+import type {
+  ColumnConfigInput,
+  GroupConfigInput,
+  Limit,
+  WhereNode,
+} from "@sparkyidea/shared/types";
 import { combineGroupFilter } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
@@ -45,7 +47,10 @@ export function ProductBoardView({
   const searchableFields = getSearchableProperties(productProperties);
 
   // Default column config for boards (always need columns)
-  const defaultColumnConfig = { bySelect: { property: "category" } } as const;
+  const defaultColumnConfig = {
+    propertyType: "select",
+    propertyId: "category",
+  } as const;
   const effectiveColumnConfig = column ?? defaultColumnConfig;
 
   const { controller } = useInfiniteController({

@@ -1,13 +1,6 @@
 "use client";
 
-import type {
-  ColumnByConfigInput,
-  ColumnConfigInput,
-} from "@sparkyidea/shared/utils/parsers/column";
-import type {
-  GroupByConfigInput,
-  GroupConfigInput,
-} from "@sparkyidea/shared/utils/parsers/group";
+import type { GroupByConfig, GroupConfigInput } from "@sparkyidea/shared/types";
 import { useColumnParams } from "./use-column-params";
 import { useGroupParams } from "./use-group-params";
 
@@ -17,15 +10,15 @@ export interface GroupingParams {
   /** Clear the grouping */
   clearConfig: () => void;
   /** Current grouping config */
-  config: GroupConfigInput | ColumnConfigInput | null;
+  config: GroupConfigInput | null;
   /** Whether to hide empty groups */
   hideEmpty: boolean;
   /** Whether grouping is active */
   isGrouped: boolean;
   /** Property being grouped by */
   property: string | null;
-  /** Set the grouping config */
-  setConfig: (config: GroupByConfigInput | ColumnByConfigInput | null) => void;
+  /** Set the grouping config (base config without options) */
+  setConfig: (config: GroupByConfig | null) => void;
   /** Set hide empty groups */
   setHideEmpty: (hide: boolean) => void;
   /** Set the sort order */

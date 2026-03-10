@@ -1,4 +1,10 @@
 // biome-ignore-all lint/performance/noBarrelFile: Intentional public API barrel file
+
+// Re-export adapter function from shared
+export {
+  type ParsedGroupConfig,
+  toParsedGroupConfig,
+} from "@sparkyidea/shared/types";
 export {
   BADGE_BG_CLASSES,
   BADGE_COLOR_CLASSES,
@@ -18,10 +24,6 @@ export {
 } from "./date-picker-utils";
 export { groupByField } from "./group";
 export { paginateData } from "./paginate";
-export {
-  type ParsedGroupConfig,
-  parseGroupByConfig,
-} from "./parse-group-config";
 export { searchData } from "./search";
 export { sortData } from "./sort";
 export { transformData } from "./transform-data";

@@ -1,6 +1,11 @@
 "use client";
 
-import type { SortQuery, WhereNode } from "@sparkyidea/shared/types";
+import type {
+  ColumnConfigInput,
+  GroupConfigInput,
+  SortQuery,
+  WhereNode,
+} from "@sparkyidea/shared/types";
 import { parseAsInteger, useQueryState } from "nuqs";
 import {
   Children,
@@ -18,9 +23,7 @@ import { TableSkeleton } from "../../components/views/table-view/table-skeleton"
 import { useGroupParams } from "../../hooks/use-group-params";
 import type { Limit, PropertyType } from "../../types";
 import {
-  type ColumnConfig,
   type DataViewProperty,
-  type GroupConfig,
   type GroupCounts,
   toPropertyMetaArray,
   type ViewCounts,
@@ -159,13 +162,13 @@ function renderViewSkeleton(
  */
 export interface DefaultsConfig {
   /** Default column config for board (includes view options like showCount) */
-  column?: ColumnConfig | null;
+  column?: ColumnConfigInput | null;
   /** Default expanded groups */
   expanded?: string[];
   /** Default filter */
   filter?: WhereNode[] | null;
   /** Default group config (includes view options like showCount) */
-  group?: GroupConfig | null;
+  group?: GroupConfigInput | null;
   /** Default page size @default 10 */
   limit?: Limit;
   /** Default search */
@@ -211,13 +214,13 @@ interface DirectDataProps<
 > {
   children: ReactNode;
   className?: string;
-  column?: ColumnConfig | null;
+  column?: ColumnConfigInput | null;
   columnCounts?: GroupCounts;
   counts?: ViewCounts;
   data: TData[];
   expandedGroups?: string[];
   filter?: WhereNode[] | null;
-  group?: GroupConfig | null;
+  group?: GroupConfigInput | null;
   /** Keys for all groups (from server group counts query) */
   groupKeys?: string[];
   /** Whether there are more groups to load */
@@ -225,7 +228,7 @@ interface DirectDataProps<
   /** Whether currently fetching more groups */
   isFetchingNextGroupPage?: boolean;
   limit?: number;
-  onColumnChange?: (column: ColumnConfig | null) => void;
+  onColumnChange?: (column: ColumnConfigInput | null) => void;
   onExpandedGroupsChange?: (groups: string[]) => void;
   /** Callback to load more groups */
   onLoadMoreGroups?: () => void;

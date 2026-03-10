@@ -1,10 +1,10 @@
 "use client";
 
-import {
-  type ColumnByConfigInput,
-  type ColumnConfigInput,
-  parseAsColumnBy,
-} from "@sparkyidea/shared/utils/parsers/column";
+import type {
+  ColumnConfigInput,
+  GroupByConfig,
+} from "@sparkyidea/shared/types";
+import { parseAsColumnBy } from "@sparkyidea/shared/utils/parsers/column";
 import { useQueryState } from "nuqs";
 import { useCallback } from "react";
 
@@ -33,7 +33,7 @@ export function useColumnParams() {
 
   // Set column configuration (replaces entire config)
   const setColumn = useCallback(
-    (newColumn: ColumnByConfigInput | null) => {
+    (newColumn: GroupByConfig | null) => {
       if (!newColumn) {
         void setUrlColumn(null);
         return;
@@ -78,63 +78,11 @@ export function useColumnParams() {
     [column, setUrlColumn]
   );
 
-  // Extract property from column config
-  const columnProperty = (() => {
-    if (!column) {
-      return null;
-    }
-    if ("bySelect" in column) {
-      return column.bySelect.property;
-    }
-    if ("byStatus" in column) {
-      return column.byStatus.property;
-    }
-    if ("byDate" in column) {
-      return column.byDate.property;
-    }
-    if ("byCheckbox" in column) {
-      return column.byCheckbox.property;
-    }
-    if ("byMultiSelect" in column) {
-      return column.byMultiSelect.property;
-    }
-    if ("byText" in column) {
-      return column.byText.property;
-    }
-    if ("byNumber" in column) {
-      return column.byNumber.property;
-    }
-    return null;
-  })();
+  // Extract property from column config using canonical propertyId field
+  const columnProperty = column?.propertyId ?? null;
 
-  // Extract column type from config
-  const columnType = (() => {
-    if (!column) {
-      return null;
-    }
-    if ("bySelect" in column) {
-      return "select";
-    }
-    if ("byStatus" in column) {
-      return "status";
-    }
-    if ("byDate" in column) {
-      return "date";
-    }
-    if ("byCheckbox" in column) {
-      return "checkbox";
-    }
-    if ("byMultiSelect" in column) {
-      return "multiSelect";
-    }
-    if ("byText" in column) {
-      return "text";
-    }
-    if ("byNumber" in column) {
-      return "number";
-    }
-    return null;
-  })();
+  // Extract column type from config using canonical propertyType field
+  const columnType = column?.propertyType ?? null;
 
   // Get sort order (defaults to "asc")
   const columnSortOrder = column?.sort ?? "asc";

@@ -14,7 +14,11 @@ export const productTabOptions: TabOption[] = [
   // Grouping example
   {
     label: "By Status",
-    group: { byStatus: { property: "availability", showAs: "option" } },
+    group: {
+      propertyType: "status",
+      propertyId: "availability",
+      showAs: "option",
+    },
   },
 
   // Simple filter: category + availability
