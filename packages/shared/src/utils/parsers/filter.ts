@@ -188,125 +188,16 @@ export function decodeFilter(value: string): WhereNode[] | null {
 }
 
 // ============================================================================
-// Legacy JSON Support (for migration)
-// ============================================================================
-
-function isLegacyFormat(value: string): boolean {
-  return value.startsWith("[");
-}
-
-/**
- * Transform legacy URL node to code node.
- */
-function transformLegacyNode(node: unknown): WhereNode | null {
-  // Rule: positional array [property, condition, value?]
-  if (Array.isArray(node)) {
-    const [property, condition, value] = node;
-
-    if (typeof property !== "string" || !property) {
-      return null;
-    }
-    if (typeof condition !== "string") {
-      return null;
-    }
-
-    return { property, condition, value } as WhereNode;
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return null;
-  }
-
-  // Expression: { and: [...] } or { or: [...] }
-  if ("and" in node || "or" in node) {
-    const expr = node as { and?: unknown[]; or?: unknown[] };
-    if (expr.and) {
-      const transformedAnd = expr.and
-        .map(transformLegacyNode)
-        .filter((n): n is WhereNode => n !== null);
-      return { and: transformedAnd };
-    }
-    if (expr.or) {
-      const transformedOr = expr.or
-        .map(transformLegacyNode)
-        .filter((n): n is WhereNode => n !== null);
-      return { or: transformedOr };
-    }
-  }
-
-  return null;
-}
-
-function decodeLegacyFilter(value: string): WhereNode[] | null {
-  try {
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed)) {
-      return null;
-    }
-
-    return parsed
-      .map(transformLegacyNode)
-      .filter((n): n is WhereNode => n !== null);
-  } catch {
-    return null;
-  }
-}
-
-// ============================================================================
-// Code to URL Transform (for legacy serialize - kept for compatibility)
-// ============================================================================
-
-/**
- * Transform code node to URL node (legacy JSON format).
- * @deprecated Use encodeFilter instead
- */
-export const transformCodeToUrl = (node: WhereNode): unknown => {
-  if (isWhereRule(node)) {
-    if (node.value == null) {
-      return [node.property, node.condition];
-    }
-    return [node.property, node.condition, node.value];
-  }
-
-  if (isWhereExpression(node)) {
-    if (node.and) {
-      return { and: node.and.map(transformCodeToUrl) };
-    }
-    if (node.or) {
-      return { or: node.or.map(transformCodeToUrl) };
-    }
-  }
-
-  return node;
-};
-
-/**
- * Transform URL node to code node (legacy JSON format).
- * @deprecated Use decodeFilter instead
- */
-export const transformUrlToCode = transformLegacyNode;
-
-// ============================================================================
 // Validator
 // ============================================================================
 
 /**
  * Validate and transform filter from URL.
- * Supports both new DSL format and legacy JSON format.
  */
 export function filterValidator(value: unknown): WhereNode[] | null {
-  if (typeof value !== "string") {
+  if (typeof value !== "string" || !value) {
     return null;
   }
-  if (!value) {
-    return null;
-  }
-
-  // Check for legacy JSON format
-  if (isLegacyFormat(value)) {
-    return decodeLegacyFilter(value);
-  }
-
   return decodeFilter(value);
 }
 

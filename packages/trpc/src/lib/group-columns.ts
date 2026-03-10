@@ -1,5 +1,5 @@
 import type { ParsedGroupConfig } from "@sparkyidea/shared/types";
-import { count, desc, gt, lt, type SQL, sql, type Table } from "drizzle-orm";
+import { desc, gt, lt, type SQL, sql, type Table } from "drizzle-orm";
 import { getColumn } from "./filter-columns";
 
 // Regex for parsing number range groups (e.g., "100-200")
@@ -498,61 +498,4 @@ export function buildGroupWhere<T extends Table>(
     default:
       return sql`${column} = ${groupKey}`;
   }
-}
-
-/**
- * Execute GROUP BY query and return counts with sort values.
- */
-export async function executeGroupByQuery<T extends Table>(
-  db: { execute: (query: SQL) => Promise<{ rows: unknown[] }> },
-  table: T,
-  tableName: string,
-  parsed: ParsedGroupConfig,
-  propertyConfig?: PropertyConfig
-): Promise<{
-  counts: Record<string, { count: number; hasMore: boolean }>;
-  sortValues: Record<string, string | number>;
-}> {
-  const groupByResult = buildGroupBy(table, parsed, propertyConfig);
-
-  if (!groupByResult) {
-    return { counts: {}, sortValues: {} };
-  }
-
-  const { groupKey, orderBy } = groupByResult;
-
-  const query = sql`
-    SELECT
-      ${groupKey} as group_key,
-      ${orderBy} as sort_value,
-      ${count()} as count
-    FROM ${sql.raw(tableName)}
-    GROUP BY ${groupKey}, ${orderBy}
-    ORDER BY ${orderBy}
-  `;
-
-  const result = await db.execute(query);
-
-  const counts: Record<string, { count: number; hasMore: boolean }> = {};
-  const sortValues: Record<string, string | number> = {};
-
-  for (const row of result.rows as Array<{
-    group_key: string | Date;
-    sort_value: string | number;
-    count: number;
-  }>) {
-    // Convert Date to ISO string for use as object key
-    // Client parses ISO string back to Date for formatting
-    const key =
-      row.group_key instanceof Date
-        ? row.group_key.toISOString()
-        : String(row.group_key);
-    counts[key] = {
-      count: Math.min(Number(row.count), 100),
-      hasMore: Number(row.count) > 100,
-    };
-    sortValues[key] = row.sort_value;
-  }
-
-  return { counts, sortValues };
 }

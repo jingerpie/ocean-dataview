@@ -12,9 +12,7 @@ const SINGLE_LETTER_REGEX = /^[A-Z]$/;
 /**
  * Extracts the property name from a GroupByConfigInput.
  */
-export function getGroupProperty(
-  group: GroupByConfigInput | null
-): string | null {
+function getGroupProperty(group: GroupByConfigInput | null): string | null {
   if (!group) {
     return null;
   }

@@ -295,53 +295,17 @@ export function decodeGroup(value: string): GroupConfigInput | null {
 }
 
 // ============================================================================
-// Validator
-// ============================================================================
-
-/**
- * Validate GroupConfigInput from parsed value.
- * Structural check only - tRPC validates property names.
- */
-export function groupConfigValidator(value: unknown): GroupConfigInput | null {
-  if (typeof value === "string") {
-    return decodeGroup(value);
-  }
-
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return null;
-  }
-
-  const obj = value as Record<string, unknown>;
-
-  const hasValidByKey =
-    "bySelect" in obj ||
-    "byStatus" in obj ||
-    "byDate" in obj ||
-    "byCheckbox" in obj ||
-    "byMultiSelect" in obj ||
-    "byText" in obj ||
-    "byNumber" in obj;
-
-  if (!hasValidByKey) {
-    return null;
-  }
-
-  return value as GroupConfigInput;
-}
-
-// ============================================================================
 // Parsers
 // ============================================================================
 
 /** Server-side parser for group config */
 export const groupServerParser = createParser({
-  parse: groupConfigValidator,
-  serialize: (value: GroupConfigInput) => encodeGroup(value),
+  parse: decodeGroup,
+  serialize: encodeGroup,
 });
 
 /** Client-side parser for group config */
 export const parseAsGroupBy = createParser({
-  parse: (value: string): GroupConfigInput | null =>
-    groupConfigValidator(value),
-  serialize: (value: GroupConfigInput) => encodeGroup(value),
+  parse: decodeGroup,
+  serialize: encodeGroup,
 });

@@ -4,7 +4,6 @@ import {
   encodeGroup,
   type GroupByConfigInput,
   type GroupConfigInput,
-  groupConfigValidator,
 } from "./group";
 
 // ============================================================================
@@ -15,7 +14,7 @@ import {
  * ColumnBy URL format - same structure as GroupBy.
  * Board columns use the same configuration options as groups.
  *
- * URL param: ?column=select.category:sort:desc
+ * URL param: ?column=select.category,sort,desc
  */
 export type ColumnByConfigInput = GroupByConfigInput;
 
@@ -31,7 +30,6 @@ export type ColumnConfigInput = GroupConfigInput;
 
 export const encodeColumn = encodeGroup;
 export const decodeColumn = decodeGroup;
-export const columnConfigValidator = groupConfigValidator;
 
 // ============================================================================
 // Parsers
@@ -39,13 +37,12 @@ export const columnConfigValidator = groupConfigValidator;
 
 /** Server-side parser for column config */
 export const columnServerParser = createParser({
-  parse: columnConfigValidator,
-  serialize: (value: ColumnConfigInput) => encodeColumn(value),
+  parse: decodeColumn,
+  serialize: encodeColumn,
 });
 
 /** Client-side parser for column config */
 export const parseAsColumnBy = createParser({
-  parse: (value: string): ColumnConfigInput | null =>
-    columnConfigValidator(value),
-  serialize: (value: ColumnConfigInput) => encodeColumn(value),
+  parse: decodeColumn,
+  serialize: encodeColumn,
 });

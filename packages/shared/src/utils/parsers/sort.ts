@@ -55,58 +55,16 @@ export function decodeSort(value: string): SortQuery[] | null {
 }
 
 // ============================================================================
-// Legacy JSON Support (for migration)
-// ============================================================================
-
-function isLegacyFormat(value: string): boolean {
-  return value.startsWith("[");
-}
-
-function decodeLegacySort(value: string): SortQuery[] | null {
-  try {
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed)) {
-      return null;
-    }
-
-    return parsed
-      .map((item) => {
-        if (!Array.isArray(item) || item.length !== 2) {
-          return null;
-        }
-        const [property, direction] = item;
-        if (typeof property !== "string" || typeof direction !== "string") {
-          return null;
-        }
-        return { property, direction: direction as "asc" | "desc" };
-      })
-      .filter((s): s is SortQuery => s !== null);
-  } catch {
-    return null;
-  }
-}
-
-// ============================================================================
 // Validator
 // ============================================================================
 
 /**
  * Validate and transform sort from URL.
- * Supports both new DSL format and legacy JSON format.
  */
 export function sortValidator(value: unknown): SortQuery[] | null {
-  if (typeof value !== "string") {
+  if (typeof value !== "string" || !value) {
     return null;
   }
-  if (!value) {
-    return null;
-  }
-
-  // Check for legacy JSON format
-  if (isLegacyFormat(value)) {
-    return decodeLegacySort(value);
-  }
-
   return decodeSort(value);
 }
 
