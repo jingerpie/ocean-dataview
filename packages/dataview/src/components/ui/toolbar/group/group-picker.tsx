@@ -70,31 +70,43 @@ function GroupPicker({
 
   const handleSelect = useCallback(
     (prop: PropertyMeta) => {
-      // Build the group config based on property type
+      // Build the group config based on property type using canonical structure
       switch (prop.type) {
         case "select":
-          setConfig({ bySelect: { property: prop.id } });
+          setConfig({ propertyType: "select", propertyId: prop.id });
           break;
         case "multiSelect":
-          setConfig({ byMultiSelect: { property: prop.id } });
+          setConfig({ propertyType: "multiSelect", propertyId: prop.id });
           break;
         case "status":
-          setConfig({ byStatus: { property: prop.id, showAs: "option" } });
+          setConfig({
+            propertyType: "status",
+            propertyId: prop.id,
+            showAs: "option",
+          });
           break;
         case "checkbox":
-          setConfig({ byCheckbox: { property: prop.id } });
+          setConfig({ propertyType: "checkbox", propertyId: prop.id });
           break;
         case "date":
-          setConfig({ byDate: { property: prop.id, showAs: "day" } });
+          setConfig({
+            propertyType: "date",
+            propertyId: prop.id,
+            showAs: "day",
+          });
           break;
         case "number":
-          setConfig({ byNumber: { property: prop.id } });
+          setConfig({ propertyType: "number", propertyId: prop.id });
           break;
         case "text":
         case "url":
         case "email":
         case "phone":
-          setConfig({ byText: { property: prop.id, showAs: "exact" } });
+          setConfig({
+            propertyType: "text",
+            propertyId: prop.id,
+            showAs: "exact",
+          });
           break;
         default:
           return;

@@ -1,10 +1,9 @@
 import { createParser } from "nuqs/server";
-import {
-  decodeGroup,
-  encodeGroup,
-  type GroupByConfigInput,
-  type GroupConfigInput,
-} from "./group";
+import type { GroupByConfig } from "../../types/group-config";
+import { decodeGroup, encodeGroup } from "./group";
+
+// Re-export types for consumers
+export type { ColumnConfigInput } from "../../types/group-config";
 
 // ============================================================================
 // Types
@@ -16,13 +15,7 @@ import {
  *
  * URL param: ?column=select.category,sort,desc
  */
-export type ColumnByConfigInput = GroupByConfigInput;
-
-/**
- * Column configuration - same structure as GroupConfig.
- * Board columns support the same options as groups.
- */
-export type ColumnConfigInput = GroupConfigInput;
+export type ColumnByConfigInput = GroupByConfig;
 
 // ============================================================================
 // Encoder/Decoder (reuse group logic)

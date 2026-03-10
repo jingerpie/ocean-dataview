@@ -5,8 +5,12 @@
  * They contain query factories - actual URL state is managed by QueryBridge.
  */
 
-import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
-import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
+import type {
+  GroupConfigInput,
+  Limit,
+  SortQuery,
+  WhereNode,
+} from "@sparkyidea/shared/types";
 import type { CursorValue } from "./pagination-types";
 
 // ============================================================================

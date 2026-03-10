@@ -10,7 +10,7 @@ import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import {
   getBadgeBgTransparentClass,
   groupByProperty as groupDataByProperty,
-  parseGroupByConfig,
+  toParsedGroupConfig,
   transformData,
   validatePropertyKeys,
 } from "../../../lib/utils";
@@ -152,11 +152,11 @@ export function BoardView<
   // Parse configs from discriminated unions
   // parsedColumn = board columns, parsedGroup = accordion rows
   const parsedColumn = useMemo(
-    () => (columnConfig ? parseGroupByConfig(columnConfig) : undefined),
+    () => (columnConfig ? toParsedGroupConfig(columnConfig) : undefined),
     [columnConfig]
   );
   const parsedGroup = useMemo(
-    () => (groupConfig ? parseGroupByConfig(groupConfig) : undefined),
+    () => (groupConfig ? toParsedGroupConfig(groupConfig) : undefined),
     [groupConfig]
   );
 

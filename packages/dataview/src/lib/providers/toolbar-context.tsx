@@ -7,7 +7,11 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { ColumnConfig, GroupConfig, PropertyMeta } from "../../types";
+import type {
+  ColumnConfigInput,
+  GroupConfigInput,
+  PropertyMeta,
+} from "../../types";
 
 // ============================================================================
 // Types
@@ -18,9 +22,9 @@ import type { ColumnConfig, GroupConfig, PropertyMeta } from "../../types";
  */
 export interface ToolbarContextValue {
   /** Current column config (for deriving column property label, board view) */
-  column: ColumnConfig | null | undefined;
+  column: ColumnConfigInput | null | undefined;
   /** Current group config (for deriving group property label) */
-  group: GroupConfig | null | undefined;
+  group: GroupConfigInput | null | undefined;
   /** Hide all properties */
   hideAllProperties: () => void;
   /** Array of property metadata */
@@ -70,11 +74,11 @@ export function useToolbarContextOptional(): ToolbarContextValue | undefined {
 interface ToolbarContextProviderProps {
   children: React.ReactNode;
   /** Column config (passed to toolbar for deriving column property label, board view) */
-  column?: ColumnConfig | null;
+  column?: ColumnConfigInput | null;
   /** Default visibility - if not provided, all non-hidden properties are visible */
   defaultVisibility?: string[];
   /** Group config (passed to toolbar for deriving group property label) */
-  group?: GroupConfig | null;
+  group?: GroupConfigInput | null;
   /** Property definitions */
   properties: readonly PropertyMeta[];
 }

@@ -1,15 +1,9 @@
 "use client";
 
 import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
-import {
-  type ColumnConfigInput,
-  parseAsColumnBy,
-} from "@sparkyidea/shared/utils/parsers/column";
+import { parseAsColumnBy } from "@sparkyidea/shared/utils/parsers/column";
 import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
-import {
-  type GroupConfigInput,
-  parseAsGroupBy,
-} from "@sparkyidea/shared/utils/parsers/group";
+import { parseAsGroupBy } from "@sparkyidea/shared/utils/parsers/group";
 import { parseAsCursors } from "@sparkyidea/shared/utils/parsers/pagination";
 import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
 import {
@@ -28,7 +22,7 @@ import {
   useState,
   useTransition,
 } from "react";
-import type { ColumnConfig, GroupConfig } from "../../types/group-types";
+import type { ColumnConfigInput, GroupConfigInput } from "../../types";
 import type {
   InfiniteController,
   PageController,
@@ -64,35 +58,12 @@ function getGroupByConfig(
     return null;
   }
 
-  // Extract the byXxx config plus sort, excluding hideEmpty
-  let base: GroupConfigInput | null = null;
+  // Extract the core group config plus sort, excluding hideEmpty
+  // With the new canonical structure, we just need to spread the config
+  // and exclude hideEmpty since it's display-only
+  const { hideEmpty: _, ...configWithoutHideEmpty } = group;
 
-  if ("bySelect" in group) {
-    base = { bySelect: group.bySelect };
-  } else if ("byStatus" in group) {
-    base = { byStatus: group.byStatus };
-  } else if ("byCheckbox" in group) {
-    base = { byCheckbox: group.byCheckbox };
-  } else if ("byDate" in group) {
-    base = { byDate: group.byDate };
-  } else if ("byMultiSelect" in group) {
-    base = { byMultiSelect: group.byMultiSelect };
-  } else if ("byText" in group) {
-    base = { byText: group.byText };
-  } else if ("byNumber" in group) {
-    base = { byNumber: group.byNumber };
-  }
-
-  if (!base) {
-    return group;
-  }
-
-  // Include sort if present (affects server-side ordering)
-  if (group.sort) {
-    return { ...base, sort: group.sort };
-  }
-
-  return base;
+  return configWithoutHideEmpty;
 }
 
 // ============================================================================
@@ -390,10 +361,10 @@ const noopSetCursor = (_groupKey: string, _cursor: CursorValue | null) => {
  * URL defaults configuration.
  */
 interface DefaultsConfig {
-  column?: ColumnConfig | null;
+  column?: ColumnConfigInput | null;
   expanded?: string[];
   filter?: WhereNode[] | null;
-  group?: GroupConfig | null;
+  group?: GroupConfigInput | null;
   limit?: Limit;
   search?: string;
   sort?: SortQuery[];
@@ -723,7 +694,7 @@ interface PageQueryBridgeInnerProps<
   TProperties extends readonly DataViewProperty<TData>[],
 > {
   children: ReactNode;
-  column: ColumnConfig | null;
+  column: ColumnConfigInput | null;
   columnCounts?: GroupCounts;
   cursors: Cursors;
   dataQuery: (params: unknown) => unknown;
@@ -1299,7 +1270,7 @@ interface InfiniteQueryBridgeInnerProps<
   TProperties extends readonly DataViewProperty<TData>[],
 > {
   children: ReactNode;
-  column: ColumnConfig | null;
+  column: ColumnConfigInput | null;
   columnCounts?: GroupCounts;
   dataQuery: (params: unknown) => unknown;
   defaultExpanded?: string[];

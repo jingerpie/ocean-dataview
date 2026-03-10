@@ -1,7 +1,6 @@
 "use client";
 
-import type { Limit } from "@sparkyidea/shared/types/pagination.type";
-import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
+import type { GroupConfigInput, Limit } from "@sparkyidea/shared/types";
 import { useCallback, useMemo, useRef } from "react";
 import type {
   BaseQueryOptions,

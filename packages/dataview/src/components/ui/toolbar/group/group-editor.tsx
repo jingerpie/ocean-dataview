@@ -96,25 +96,24 @@ function GroupEditor({
       ? SHOW_AS_OPTIONS[type as ShowAsGroupType]
       : null;
 
-  // Get current show-as value
+  // Get current show-as value using canonical propertyType discriminant
   const getCurrentShowAs = () => {
     if (!config) {
       return null;
     }
-    if ("byStatus" in config) {
-      return config.byStatus.showAs;
+    switch (config.propertyType) {
+      case "status":
+        return config.showAs;
+      case "date":
+        return config.showAs;
+      case "text":
+        return config.showAs ?? "exact";
+      case "number":
+        // Number uses step value as the showAs identifier
+        return String(config.numberRange?.step ?? 100);
+      default:
+        return null;
     }
-    if ("byDate" in config) {
-      return config.byDate.showAs;
-    }
-    if ("byText" in config) {
-      return config.byText.showAs ?? "exact";
-    }
-    if ("byNumber" in config) {
-      // Number uses step value as the showAs identifier
-      return String(config.byNumber.showAs?.step ?? 100);
-    }
-    return null;
   };
 
   const currentShowAs = getCurrentShowAs();

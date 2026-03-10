@@ -5,9 +5,11 @@ import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { getSearchableProperties } from "@sparkyidea/dataview/types";
 import { GalleryView } from "@sparkyidea/dataview/views/gallery-view";
-import type { WhereNode } from "@sparkyidea/shared/types";
-import type { Limit } from "@sparkyidea/shared/types/pagination.type";
-import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
+import type {
+  GroupConfigInput,
+  Limit,
+  WhereNode,
+} from "@sparkyidea/shared/types";
 import { combineGroupFilter } from "@/utils/group-filter";
 import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";

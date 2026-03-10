@@ -1,10 +1,7 @@
 "use client";
 
-import {
-  type GroupByConfigInput,
-  type GroupConfigInput,
-  parseAsGroupBy,
-} from "@sparkyidea/shared/utils/parsers/group";
+import type { GroupByConfig, GroupConfigInput } from "@sparkyidea/shared/types";
+import { parseAsGroupBy } from "@sparkyidea/shared/utils/parsers/group";
 import { parseAsExpanded } from "@sparkyidea/shared/utils/parsers/pagination";
 import { useQueryState } from "nuqs";
 import { useCallback } from "react";
@@ -38,7 +35,7 @@ export function useGroupParams() {
 
   // Set group configuration (replaces entire config)
   const setGroup = useCallback(
-    (newGroup: GroupByConfigInput | null) => {
+    (newGroup: GroupByConfig | null) => {
       if (!newGroup) {
         void setUrlGroup(null);
         void setUrlExpanded(null);
@@ -87,63 +84,11 @@ export function useGroupParams() {
     [group, setUrlGroup]
   );
 
-  // Extract property from group config
-  const groupProperty = (() => {
-    if (!group) {
-      return null;
-    }
-    if ("bySelect" in group) {
-      return group.bySelect.property;
-    }
-    if ("byStatus" in group) {
-      return group.byStatus.property;
-    }
-    if ("byDate" in group) {
-      return group.byDate.property;
-    }
-    if ("byCheckbox" in group) {
-      return group.byCheckbox.property;
-    }
-    if ("byMultiSelect" in group) {
-      return group.byMultiSelect.property;
-    }
-    if ("byText" in group) {
-      return group.byText.property;
-    }
-    if ("byNumber" in group) {
-      return group.byNumber.property;
-    }
-    return null;
-  })();
+  // Extract property from group config using canonical propertyId field
+  const groupProperty = group?.propertyId ?? null;
 
-  // Extract group type from config
-  const groupType = (() => {
-    if (!group) {
-      return null;
-    }
-    if ("bySelect" in group) {
-      return "select";
-    }
-    if ("byStatus" in group) {
-      return "status";
-    }
-    if ("byDate" in group) {
-      return "date";
-    }
-    if ("byCheckbox" in group) {
-      return "checkbox";
-    }
-    if ("byMultiSelect" in group) {
-      return "multiSelect";
-    }
-    if ("byText" in group) {
-      return "text";
-    }
-    if ("byNumber" in group) {
-      return "number";
-    }
-    return null;
-  })();
+  // Extract group type from config using canonical propertyType field
+  const groupType = group?.propertyType ?? null;
 
   // Get sort order (defaults to "asc")
   const groupSortOrder = group?.sort ?? "asc";

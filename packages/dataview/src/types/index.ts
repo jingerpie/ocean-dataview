@@ -1,24 +1,25 @@
-// Export all property types
+// biome-ignore-all lint/performance/noBarrelFile: Intentional public API barrel file
 
+// Export group config types (canonical names from @sparkyidea/shared/types)
+export type {
+  CheckboxGroupByConfig,
+  ColumnConfigInput,
+  DateGroupByConfig,
+  GroupByConfig,
+  GroupConfigInput,
+  GroupOptions,
+  MultiSelectGroupByConfig,
+  NumberGroupByConfig,
+  ParsedGroupConfig,
+  SelectGroupByConfig,
+  StatusGroupByConfig,
+  TextGroupByConfig,
+} from "@sparkyidea/shared/types";
+export { toParsedGroupConfig } from "@sparkyidea/shared/types";
 // Export action types
 export type { BulkAction } from "./action.type";
 // Export chart types
-// biome-ignore lint/performance/noBarrelFile: Intentional public API barrel file
 export * from "./chart.type";
-// Export group config types
-export type {
-  CheckboxGroupConfig,
-  ColumnConfig,
-  DateGroupConfig,
-  GroupByConfig,
-  GroupConfig,
-  MultiSelectGroupConfig,
-  NumberGroupConfig,
-  SelectGroupConfig,
-  SharedGroupOptions,
-  StatusGroupConfig,
-  TextGroupConfig,
-} from "./group-types";
 // Export pagination types
 export {
   LIMIT_OPTIONS,
@@ -43,6 +44,7 @@ export type {
   GroupCounts,
   GroupSortValues,
   InferItemsFromQueryOptions,
+  PaginatedGroupResponse,
   ViewCounts,
 } from "./pagination-types";
 export * from "./property.type";

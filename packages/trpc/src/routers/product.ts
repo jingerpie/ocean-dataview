@@ -3,9 +3,9 @@ import { product } from "@sparkyidea/db/schema/product";
 import {
   getCursorParams,
   groupByConfigSchema,
-  parseGroupByConfig,
   productSearchParamsSchema,
   searchQuerySchema,
+  toParsedGroupConfig,
   whereNodeSchema,
 } from "@sparkyidea/shared/types";
 import { and, count } from "drizzle-orm";
@@ -93,7 +93,7 @@ export const productRouter = router({
 
   /**
    * Get group counts with full GroupByConfig support.
-   * Supports all group strategies: byDate, byStatus, bySelect, byMultiSelect, byCheckbox, byText, byNumber
+   * Supports all property types: date, status, select, multiSelect, checkbox, text, number
    * Supports cursor-based pagination for large numbers of groups.
    * Supports sort direction (asc/desc) for group ordering.
    */
@@ -124,7 +124,7 @@ export const productRouter = router({
         limit,
         cursor,
       } = input;
-      const parsed = parseGroupByConfig(groupBy);
+      const parsed = toParsedGroupConfig(groupBy);
 
       const groupByResult = buildGroupBy(product, parsed);
       if (!groupByResult) {
@@ -267,7 +267,7 @@ export const productRouter = router({
       } = input;
 
       // Parse the GroupByConfig for column
-      const parsed = parseGroupByConfig(columnBy);
+      const parsed = toParsedGroupConfig(columnBy);
 
       // Build common WHERE clauses
       const searchWhere = buildWhere(product, search ? [search] : null);
