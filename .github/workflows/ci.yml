@@ -2,59 +2,49 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   lint:
-    name: Lint & Format
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Run Ultracite (lint + format)
+      - name: Run Check (Lint + Format)
         run: bun run check
 
-  typecheck:
-    name: Type Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Run TypeScript check
+      - name: Run Type Check
         run: bun run check-types
 
   build:
-    name: Build
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Build all packages
+      - name: Build
         run: bun run build
+
+  status:
+    needs: [lint, build]
+    if: ${{ always() }}
+    uses: ./.github/workflows/workflow-check.yml
+    with:
+      json-needs: ${{ toJSON(needs) }}
+      error-message: "One or more of the CI jobs have failed. Please view the jobs for this workflow run for more details."
