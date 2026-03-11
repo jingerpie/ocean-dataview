@@ -6,89 +6,32 @@ import type {
 import { getDefaultFilterCondition } from "./filter";
 
 // ============================================================================
-// Default Value for Conditions
-// ============================================================================
-
-/**
- * Gets the default value for a condition that requires one.
- * Returns undefined for conditions that don't need a default value.
- *
- * This is the single source of truth for condition default values.
- * Used by both `createRuleFromProperty` (new filters) and
- * `transformValueForCondition` (switching conditions).
- *
- * @param condition - The filter condition
- * @param propertyType - Optional property type for type-specific defaults
- * @returns Default value or undefined
- */
-export function getDefaultValueForCondition(
-  condition: FilterCondition,
-  propertyType?: PropertyType
-): unknown {
-  switch (condition) {
-    // Date: isRelativeToToday needs ["direction", count, "unit"]
-    case "isRelativeToToday":
-      return ["this", 1, "week"];
-
-    // Checkbox: eq condition needs boolean default
-    case "eq":
-      if (propertyType === "checkbox") {
-        return true;
-      }
-      return undefined;
-
-    default:
-      return undefined;
-  }
-}
-
-// ============================================================================
 // Filter Value Transformation (for condition changes)
 // ============================================================================
 
+/** Returns the default value for a condition */
+function getDefaultValueForCondition(condition: FilterCondition): unknown {
+  return condition === "isRelativeToToday" ? ["this", 1, "week"] : undefined;
+}
+
 /**
  * Transforms a filter value when the condition changes.
- *
- * Conditions with incompatible value formats:
- * - isEmpty/isNotEmpty: no value needed
- * - isBetween: needs [start, end] array
- * - isRelativeToToday: needs [direction, count, unit] tuple
- *
- * Switching to/from these resets the value (validateFilter removes incomplete filters).
+ * Entering or leaving special conditions resets to the new condition's default.
  */
-export function transformValueForCondition(
+function transformValueForCondition(
   oldCondition: FilterCondition,
   newCondition: FilterCondition,
-  value: unknown,
-  propertyType?: PropertyType
+  value: unknown
 ): unknown {
-  // Check if new condition has a default value
-  const defaultValue = getDefaultValueForCondition(newCondition, propertyType);
-  if (defaultValue !== undefined) {
-    return defaultValue;
-  }
+  const isSpecial = (c: FilterCondition) =>
+    c === "isRelativeToToday" ||
+    c === "isEmpty" ||
+    c === "isNotEmpty" ||
+    c === "isBetween";
 
-  // To isEmpty/isNotEmpty - no value needed
-  if (newCondition === "isEmpty" || newCondition === "isNotEmpty") {
-    return undefined;
+  if (isSpecial(newCondition) || isSpecial(oldCondition)) {
+    return getDefaultValueForCondition(newCondition);
   }
-
-  // From isEmpty/isNotEmpty/isRelativeToToday/isBetween - reset (incompatible format)
-  if (
-    oldCondition === "isEmpty" ||
-    oldCondition === "isNotEmpty" ||
-    oldCondition === "isRelativeToToday" ||
-    oldCondition === "isBetween"
-  ) {
-    return undefined;
-  }
-
-  // To isBetween - reset (user picks fresh range)
-  if (newCondition === "isBetween") {
-    return undefined;
-  }
-
-  // All other transitions - keep value
   return value;
 }
 
@@ -120,22 +63,12 @@ interface PropertyForFilter {
  * // { property: "createdAt", condition: "isRelativeToToday", value: ["this", 1, "week"] }
  */
 export function createRuleFromProperty(property: PropertyForFilter): WhereRule {
-  const defaultCondition = getDefaultFilterCondition(property.type);
-  const defaultValue = getDefaultValueForCondition(
-    defaultCondition,
-    property.type
-  );
-
-  const rule: WhereRule = {
+  const condition = getDefaultFilterCondition(property.type);
+  return {
     property: String(property.id),
-    condition: defaultCondition,
+    condition,
+    value: getDefaultValueForCondition(condition),
   };
-
-  if (defaultValue !== undefined) {
-    rule.value = defaultValue;
-  }
-
-  return rule;
 }
 
 /**
@@ -144,7 +77,6 @@ export function createRuleFromProperty(property: PropertyForFilter): WhereRule {
  *
  * @param rule - The current rule
  * @param newCondition - The new condition to apply
- * @param propertyType - Optional property type for type-specific defaults (e.g., checkbox)
  * @returns A new rule with the updated condition and transformed value
  *
  * @example
@@ -154,14 +86,12 @@ export function createRuleFromProperty(property: PropertyForFilter): WhereRule {
  */
 export function applyConditionChange(
   rule: WhereRule,
-  newCondition: FilterCondition,
-  propertyType?: PropertyType
+  newCondition: FilterCondition
 ): WhereRule {
   const newValue = transformValueForCondition(
     rule.condition,
     newCondition,
-    rule.value,
-    propertyType
+    rule.value
   );
   return {
     ...rule,

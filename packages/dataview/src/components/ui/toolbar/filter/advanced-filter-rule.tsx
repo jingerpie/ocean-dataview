@@ -81,7 +81,7 @@ function FilterRule({
 
   // Handle condition change
   const handleConditionChange = (newCondition: FilterCondition) => {
-    onRuleChange(applyConditionChange(rule, newCondition, property?.type));
+    onRuleChange(applyConditionChange(rule, newCondition));
   };
 
   return (

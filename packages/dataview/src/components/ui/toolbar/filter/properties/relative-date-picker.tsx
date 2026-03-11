@@ -52,7 +52,7 @@ function RelativeDateDropdowns({
   onChange,
   className,
 }: RelativeDateDropdownsProps) {
-  // Value is [direction, count, unit] - always set by getDefaultValueForCondition
+  // Value is [direction, count, unit]
   const [direction, count, unit] = value ?? ["this", 1, "week"];
 
   // Show count input only for past/next (not "this")
@@ -142,7 +142,7 @@ function RelativeDatePickerContent({
   value,
   onChange,
 }: RelativeDatePickerProps) {
-  // Value is [direction, count, unit] - always set by getDefaultValueForCondition
+  // Value is [direction, count, unit]
   const [direction, count, unit] = value ?? ["this", 1, "week"];
 
   // Calculate date range for calendar display

@@ -40,7 +40,7 @@ function SimpleFilterEditor({
   const label = property.label ?? String(property.id);
 
   const handleConditionChange = (newCondition: FilterCondition) => {
-    onRuleChange(applyConditionChange(rule, newCondition, property.type));
+    onRuleChange(applyConditionChange(rule, newCondition));
   };
 
   const handleValueChange = (value: unknown) => {

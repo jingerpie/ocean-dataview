@@ -1,4 +1,5 @@
 import {
+  type FilterCondition,
   isWhereExpression,
   type WhereNode,
   type WhereRule,
@@ -23,6 +24,18 @@ import {
   sql,
   type Table,
 } from "drizzle-orm";
+
+/** Checks if a filter rule is a draft (incomplete) that should be skipped. */
+function isDraftFilter(condition: FilterCondition, value: unknown): boolean {
+  return !(
+    condition === "isEmpty" ||
+    condition === "isNotEmpty" ||
+    condition === "startsWithNonAlpha" ||
+    (Array.isArray(value)
+      ? value.length > 0
+      : value !== "" && value !== null && value !== undefined)
+  );
+}
 
 // ============================================
 // Date-only string helpers for midnight boundary logic
@@ -116,6 +129,7 @@ function buildNode<T extends Table>(
 
 /**
  * Builds SQL condition for a single filter rule.
+ * Draft rules (incomplete value) are skipped and return undefined.
  */
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex SQL condition building logic
 function buildCondition<T extends Table>(
@@ -126,6 +140,11 @@ function buildCondition<T extends Table>(
   const column = getColumn(table, property as keyof T);
 
   if (!column) {
+    return undefined;
+  }
+
+  // Skip draft rules - they remain visible in UI but don't affect query results
+  if (isDraftFilter(condition, value)) {
     return undefined;
   }
 
