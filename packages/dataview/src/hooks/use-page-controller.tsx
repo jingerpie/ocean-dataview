@@ -1,7 +1,7 @@
 "use client";
 
-import type { GroupConfigInput, Limit } from "@sparkyidea/shared/types";
 import { useCallback, useMemo, useRef } from "react";
+import type { GroupConfigInput, Limit, WhereNode } from "../types";
 import type {
   BaseQueryOptions,
   InfiniteGroupQueryOptions,
@@ -41,7 +41,7 @@ export interface UsePageControllerOptions<
   /** Factory for fetching column counts (board-specific) */
   columnQuery?: (params: {
     columnConfig: GroupConfigInput;
-    filter: import("@sparkyidea/shared/types").WhereNode[] | null;
+    filter: WhereNode[] | null;
     hideEmpty: boolean;
     search: string;
   }) => BaseQueryOptions;
@@ -49,7 +49,7 @@ export interface UsePageControllerOptions<
   dataQuery: PageQueryOptionsFactory<TQueryOptions>;
   /** Factory for fetching group counts with pagination (accordion rows) */
   groupQuery?: (params: {
-    filter: import("@sparkyidea/shared/types").WhereNode[] | null;
+    filter: WhereNode[] | null;
     groupConfig: GroupConfigInput;
     hideEmpty: boolean;
     search: string;
@@ -80,7 +80,7 @@ export function usePageController<
   const stableColumnQuery = useMemo<
     | ((params: {
         columnConfig: GroupConfigInput;
-        filter: import("@sparkyidea/shared/types").WhereNode[] | null;
+        filter: WhereNode[] | null;
         hideEmpty: boolean;
         search: string;
       }) => BaseQueryOptions)
@@ -103,7 +103,7 @@ export function usePageController<
   groupQueryRef.current = groupQuery;
   const stableGroupQuery = useMemo<
     | ((params: {
-        filter: import("@sparkyidea/shared/types").WhereNode[] | null;
+        filter: WhereNode[] | null;
         groupConfig: GroupConfigInput;
         hideEmpty: boolean;
         search: string;

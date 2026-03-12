@@ -2,12 +2,11 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { SortQuery } from "@sparkyidea/shared/types";
 import { GripVerticalIcon, XIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useSortParams } from "../../../../hooks";
 import { cn } from "../../../../lib/utils";
-import type { PropertyMeta } from "../../../../types";
+import type { PropertyMeta, SortQuery } from "../../../../types";
 import { Button } from "../../button";
 import {
   Command,

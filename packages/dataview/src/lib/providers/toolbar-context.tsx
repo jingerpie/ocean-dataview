@@ -7,11 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import type {
-  ColumnConfigInput,
-  GroupConfigInput,
-  PropertyMeta,
-} from "../../types";
+import type { PropertyMeta } from "../../types";
 
 // ============================================================================
 // Types
@@ -19,12 +15,11 @@ import type {
 
 /**
  * Toolbar context value - non-suspending state for toolbar components.
+ *
+ * Contains UI-only concerns (properties and visibility).
+ * Query params (filter, sort, group, column) are managed by QueryParamsContext.
  */
 export interface ToolbarContextValue {
-  /** Current column config (for deriving column property label, board view) */
-  column: ColumnConfigInput | null | undefined;
-  /** Current group config (for deriving group property label) */
-  group: GroupConfigInput | null | undefined;
   /** Hide all properties */
   hideAllProperties: () => void;
   /** Array of property metadata */
@@ -73,25 +68,21 @@ export function useToolbarContextOptional(): ToolbarContextValue | undefined {
 
 interface ToolbarContextProviderProps {
   children: React.ReactNode;
-  /** Column config (passed to toolbar for deriving column property label, board view) */
-  column?: ColumnConfigInput | null;
   /** Default visibility - if not provided, all non-hidden properties are visible */
   defaultVisibility?: string[];
-  /** Group config (passed to toolbar for deriving group property label) */
-  group?: GroupConfigInput | null;
   /** Property definitions */
   properties: readonly PropertyMeta[];
 }
 
 /**
- * Provider for toolbar-specific state.
+ * Provider for toolbar-specific state (UI concerns only).
+ *
  * This is non-suspending and renders immediately.
+ * Query params (filter, sort, group, column) are managed by QueryParamsContext.
  */
 export function ToolbarContextProvider({
   children,
-  column,
   defaultVisibility,
-  group,
   properties,
 }: ToolbarContextProviderProps) {
   // Get all property IDs that CAN be visible (hidden !== true in definition)
@@ -149,8 +140,6 @@ export function ToolbarContextProvider({
 
   const value = useMemo<ToolbarContextValue>(
     () => ({
-      column,
-      group,
       hideAllProperties,
       properties,
       propertyVisibility,
@@ -159,8 +148,6 @@ export function ToolbarContextProvider({
       toggleProperty,
     }),
     [
-      column,
-      group,
       hideAllProperties,
       properties,
       propertyVisibility,

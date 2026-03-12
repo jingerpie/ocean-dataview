@@ -1,11 +1,14 @@
 "use client";
 
-import type { WhereExpression, WhereRule } from "@sparkyidea/shared/types";
-import { isWhereRule } from "@sparkyidea/shared/types";
 import { ListFilterIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
 import { useCallback } from "react";
 import { useAdvanceFilterBuilder, useFilterParams } from "../../../../hooks";
 import { cn } from "../../../../lib/utils";
+import {
+  isWhereRule,
+  type WhereExpression,
+  type WhereRule,
+} from "../../../../types";
 import { Button } from "../../button";
 import {
   DropdownMenu,

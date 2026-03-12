@@ -1,19 +1,16 @@
 "use client";
 
-import type { SortQuery } from "@sparkyidea/shared/types";
-import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
-import { useQueryState } from "nuqs";
-import { useCallback, useContext } from "react";
-import { DataViewContext } from "../lib/providers/data-view-context";
-
-const THROTTLE_MS = 50;
+import { useCallback } from "react";
+import {
+  useQueryParamsActions,
+  useQueryParamsState,
+} from "../lib/providers/query-params-context";
+import type { SortQuery } from "../types";
 
 /**
  * Hook for managing sort state via URL.
  *
- * When used inside DataViewProvider, reads from context (which has defaults applied).
- * When used outside, reads directly from URL.
- * Writes always go to URL.
+ * Reads from QueryParamsContext (single source of truth for validated state).
  *
  * @example
  * ```ts
@@ -21,25 +18,8 @@ const THROTTLE_MS = 50;
  * ```
  */
 export function useSortParams() {
-  // Try to read from context (has defaults applied)
-  const context = useContext(DataViewContext);
-
-  // URL state for writes and fallback reads
-  const [urlSort, setUrlSort] = useQueryState(
-    "sort",
-    parseAsSort.withDefault([]).withOptions({ throttleMs: THROTTLE_MS })
-  );
-
-  // Use context value if available (has defaults), otherwise URL value
-  const sort = context?.sort ?? urlSort;
-
-  // Set entire sort array
-  const setSort = useCallback(
-    (newSort: SortQuery[]) => {
-      void setUrlSort(newSort.length > 0 ? newSort : null);
-    },
-    [setUrlSort]
-  );
+  const { sort } = useQueryParamsState();
+  const { setSort } = useQueryParamsActions();
 
   // Add or toggle sort
   const addSort = useCallback(
@@ -58,18 +38,18 @@ export function useSortParams() {
         newSort = [...sort, { property: prop, direction }];
       }
 
-      void setUrlSort(newSort);
+      setSort(newSort);
     },
-    [sort, setUrlSort]
+    [sort, setSort]
   );
 
   // Remove sort
   const removeSort = useCallback(
     (prop: string) => {
       const newSort = sort.filter((s) => s.property !== prop);
-      void setUrlSort(newSort.length > 0 ? newSort : null);
+      setSort(newSort);
     },
-    [sort, setUrlSort]
+    [sort, setSort]
   );
 
   // Update sort (for inline editing)
@@ -78,15 +58,15 @@ export function useSortParams() {
       const newSort = sort.map((s) =>
         s.property === prop ? { ...s, ...updates } : s
       );
-      void setUrlSort(newSort);
+      setSort(newSort);
     },
-    [sort, setUrlSort]
+    [sort, setSort]
   );
 
   // Clear sort
   const clearSort = useCallback(() => {
-    void setUrlSort(null);
-  }, [setUrlSort]);
+    setSort([]);
+  }, [setSort]);
 
   // Reset sort (same as clear)
   const resetSort = clearSort;

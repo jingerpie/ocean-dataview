@@ -1,19 +1,16 @@
 "use client";
 
-import type { WhereNode } from "@sparkyidea/shared/types";
-import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
-import { useQueryState } from "nuqs";
-import { useCallback, useContext } from "react";
-import { DataViewContext } from "../lib/providers/data-view-context";
-
-const THROTTLE_MS = 50;
+import { useCallback } from "react";
+import {
+  useQueryParamsActions,
+  useQueryParamsState,
+} from "../lib/providers/query-params-context";
+import type { WhereNode } from "../types";
 
 /**
  * Hook for managing filter state via URL.
  *
- * When used inside DataViewProvider, reads from context (which has defaults applied).
- * When used outside, reads directly from URL.
- * Writes always go to URL.
+ * Reads from QueryParamsContext (single source of truth for validated state).
  *
  * @example
  * ```ts
@@ -21,33 +18,16 @@ const THROTTLE_MS = 50;
  * ```
  */
 export function useFilterParams() {
-  // Try to read from context (has defaults applied)
-  const context = useContext(DataViewContext);
-
-  // URL state for writes and fallback reads
-  const [urlFilter, setUrlFilter] = useQueryState(
-    "filter",
-    parseAsFilter.withOptions({ throttleMs: THROTTLE_MS })
-  );
-
-  // Use context value if available (has defaults), otherwise URL value
-  const filter = context?.filter ?? urlFilter;
-
-  // Set filter (replaces entire filter)
-  const setFilter = useCallback(
-    (newFilter: WhereNode[] | null) => {
-      void setUrlFilter(newFilter);
-    },
-    [setUrlFilter]
-  );
+  const { filter } = useQueryParamsState();
+  const { setFilter } = useQueryParamsActions();
 
   // Add filter - immediate
   const addFilter = useCallback(
     (node: WhereNode) => {
       const current = filter ?? [];
-      void setUrlFilter([...current, node]);
+      setFilter([...current, node]);
     },
-    [filter, setUrlFilter]
+    [filter, setFilter]
   );
 
   // Remove filter - immediate
@@ -64,15 +44,15 @@ export function useFilterParams() {
         return true;
       });
 
-      void setUrlFilter(newFilter.length > 0 ? newFilter : null);
+      setFilter(newFilter.length > 0 ? newFilter : null);
     },
-    [filter, setUrlFilter]
+    [filter, setFilter]
   );
 
   // Clear all filters
   const clearFilter = useCallback(() => {
-    void setUrlFilter(null);
-  }, [setUrlFilter]);
+    setFilter(null);
+  }, [setFilter]);
 
   // Reset filter (same as clear)
   const resetFilter = clearFilter;

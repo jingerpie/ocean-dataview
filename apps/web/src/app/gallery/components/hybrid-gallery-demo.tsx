@@ -1,4 +1,8 @@
-import { productGroupPaginationParams } from "@/lib/validations";
+import {
+  productPaginationParams,
+  validateProductFilter,
+  validateProductSort,
+} from "@/lib/validations";
 import { ProductGalleryView } from "@/modules/dataview/product-gallery-view";
 
 interface ProductGalleryDemoProps {
@@ -7,15 +11,19 @@ interface ProductGalleryDemoProps {
 
 export function ProductGalleryDemo({ params }: ProductGalleryDemoProps) {
   const { filter, group, limit, search, sort } =
-    productGroupPaginationParams.parse(params);
+    productPaginationParams.parse(params);
+
+  // Validate against product properties
+  const validatedFilter = validateProductFilter(filter);
+  const validatedSort = validateProductSort(sort);
 
   return (
     <ProductGalleryView
-      filter={filter}
+      filter={validatedFilter}
       group={group}
       limit={limit}
-      search={search}
-      sort={sort}
+      search={search ?? ""}
+      sort={validatedSort ?? []}
     />
   );
 }

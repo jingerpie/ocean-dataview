@@ -1,13 +1,13 @@
 "use client";
 
+import { useSortParams } from "../../../hooks";
+import { cn } from "../../../lib/utils";
 import type {
+  PropertyMeta,
   WhereExpression,
   WhereNode,
   WhereRule,
-} from "@sparkyidea/shared/types";
-import { useSortParams } from "../../../hooks";
-import { cn } from "../../../lib/utils";
-import type { PropertyMeta } from "../../../types";
+} from "../../../types";
 import { Button } from "../../ui/button";
 import { Separator } from "../../ui/separator";
 import { FilterTrigger } from "../../ui/toolbar/filter/filter-trigger";

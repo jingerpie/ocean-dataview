@@ -281,13 +281,13 @@ export function decodeGroup(value: string): GroupConfigInput | null {
 // Parsers
 // ============================================================================
 
-/** Server-side parser for group config */
+/** Server-side parser for group config (no validation) */
 export const groupServerParser = createParser({
   parse: decodeGroup,
   serialize: encodeGroup,
 });
 
-/** Client-side parser for group config */
+/** Client-side parser for group config (no validation) */
 export const parseAsGroupBy = createParser({
   parse: decodeGroup,
   serialize: encodeGroup,

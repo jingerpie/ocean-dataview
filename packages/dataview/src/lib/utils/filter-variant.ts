@@ -1,8 +1,4 @@
-import type {
-  FilterCondition,
-  PropertyType,
-  WhereRule,
-} from "@sparkyidea/shared/types";
+import type { FilterCondition, PropertyType, WhereRule } from "../../types";
 import { getDefaultFilterCondition } from "./filter";
 
 // ============================================================================

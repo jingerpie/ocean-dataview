@@ -1,19 +1,19 @@
 "use client";
 
-import { parseAsString, useQueryState } from "nuqs";
-import { useCallback, useContext, useState } from "react";
-import { DataViewContext } from "../lib/providers/data-view-context";
+import { useCallback, useState } from "react";
+import {
+  useQueryParamsActions,
+  useQueryParamsState,
+} from "../lib/providers/query-params-context";
 import { useDebouncedCallback } from "./use-debounced-callback";
 
-const THROTTLE_MS = 50;
 const SEARCH_DEBOUNCE_MS = 300;
 
 /**
  * Hook for managing search term with debouncing (300ms).
  *
- * When used inside DataViewProvider, reads from context (which has defaults applied).
- * When used outside, reads directly from URL.
- * Writes always go to URL.
+ * Reads from QueryParamsContext (single source of truth).
+ * Local state provides immediate input feedback, debounced to URL.
  *
  * @example
  * ```ts
@@ -21,24 +21,15 @@ const SEARCH_DEBOUNCE_MS = 300;
  * ```
  */
 export function useSearchParams() {
-  // Try to read from context (has defaults applied)
-  const context = useContext(DataViewContext);
-
-  // URL state for writes and fallback reads
-  const [urlSearch, setUrlSearch] = useQueryState(
-    "search",
-    parseAsString.withDefault("").withOptions({ throttleMs: THROTTLE_MS })
-  );
-
-  // Use context value if available (has defaults), otherwise URL value
-  const effectiveSearch = context?.search ?? urlSearch;
+  const { search } = useQueryParamsState();
+  const { setSearch: setSearchAction } = useQueryParamsActions();
 
   // Local state for immediate input feedback (debounced to URL)
-  const [inputValue, setInputValue] = useState(effectiveSearch);
+  const [inputValue, setInputValue] = useState(search);
 
-  // Debounced URL update
+  // Debounced URL update via context action
   const debouncedSetUrl = useDebouncedCallback((value: string) => {
-    setUrlSearch(value || null);
+    setSearchAction(value);
   }, SEARCH_DEBOUNCE_MS);
 
   const setSearch = useCallback(
@@ -53,8 +44,8 @@ export function useSearchParams() {
   const clearSearch = useCallback(() => {
     setInputValue("");
     // Clear immediately (no debounce)
-    void setUrlSearch(null);
-  }, [setUrlSearch]);
+    setSearchAction("");
+  }, [setSearchAction]);
 
   return {
     search: inputValue,

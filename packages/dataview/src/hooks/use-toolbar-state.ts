@@ -1,12 +1,8 @@
 "use client";
 
-import type {
-  WhereExpression,
-  WhereNode,
-  WhereRule,
-} from "@sparkyidea/shared/types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { analyzeFilter } from "../lib/utils/filter-builder";
+import type { WhereExpression, WhereNode, WhereRule } from "../types";
 
 export interface UseToolbarStateOptions {
   filter: WhereNode[] | null;

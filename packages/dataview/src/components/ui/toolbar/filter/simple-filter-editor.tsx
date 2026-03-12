@@ -1,8 +1,11 @@
 "use client";
 
-import type { FilterCondition, WhereRule } from "@sparkyidea/shared/types";
 import { applyConditionChange } from "../../../../lib/utils/filter-variant";
-import type { PropertyMeta } from "../../../../types";
+import type {
+  FilterCondition,
+  PropertyMeta,
+  WhereRule,
+} from "../../../../types";
 import { ConditionPicker } from "./condition-picker";
 import { CheckboxValueEditor } from "./properties/checkbox-filter";
 import { DateValueEditor } from "./properties/date-filter";

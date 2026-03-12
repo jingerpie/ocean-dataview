@@ -1,9 +1,9 @@
 "use client";
 
-import type { Limit } from "@sparkyidea/shared/types";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { useCallback, useDeferredValue, useMemo } from "react";
 import { useQueryControllerContext } from "../lib/providers/query-bridge";
+import type { Limit } from "../types";
 import type { BasePaginatedResponse } from "../types/pagination-types";
 
 export interface UseInfiniteGroupQueryOptions {

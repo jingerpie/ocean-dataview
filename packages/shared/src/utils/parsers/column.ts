@@ -28,13 +28,13 @@ export const decodeColumn = decodeGroup;
 // Parsers
 // ============================================================================
 
-/** Server-side parser for column config */
+/** Server-side parser for column config (no validation) */
 export const columnServerParser = createParser({
   parse: decodeColumn,
   serialize: encodeColumn,
 });
 
-/** Client-side parser for column config */
+/** Client-side parser for column config (no validation) */
 export const parseAsColumnBy = createParser({
   parse: decodeColumn,
   serialize: encodeColumn,

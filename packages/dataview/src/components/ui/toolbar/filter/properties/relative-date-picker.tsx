@@ -5,7 +5,7 @@ import {
   type RelativeDirection,
   type RelativeToTodayValue,
   type RelativeUnit,
-} from "@sparkyidea/shared/utils/get-relative-date-range";
+} from "../../../../../lib/utils/relative-date";
 import { Calendar } from "../../../calendar";
 import { Input } from "../../../input";
 import {
@@ -188,5 +188,5 @@ function RelativeDatePicker({ value, onChange }: RelativeDatePickerProps) {
 }
 
 export type { RelativeDatePickerProps };
-export type { RelativeToTodayValue } from "@sparkyidea/shared/utils/get-relative-date-range";
+export type { RelativeToTodayValue } from "../../../../../lib/utils/relative-date";
 export { RelativeDatePicker, RelativeDatePickerContent };

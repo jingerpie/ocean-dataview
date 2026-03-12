@@ -1,20 +1,16 @@
 "use client";
 
-import type {
-  ColumnConfigInput,
-  GroupByConfig,
-} from "@sparkyidea/shared/types";
-import { parseAsColumnBy } from "@sparkyidea/shared/utils/parsers/column";
-import { useQueryState } from "nuqs";
 import { useCallback } from "react";
-
-const THROTTLE_MS = 50;
+import {
+  useQueryParamsActions,
+  useQueryParamsState,
+} from "../lib/providers/query-params-context";
+import type { ColumnConfigInput, GroupByConfig } from "../types";
 
 /**
  * Hook for managing column configuration via URL (board-specific).
  *
- * Uses URL as source of truth with shallow: true (default).
- * All actions update URL immediately (no debouncing needed).
+ * Reads from QueryParamsContext (single source of truth for validated state).
  *
  * Columns are board-specific groupings that define the visual columns.
  * This is separate from group (accordion rows) which is shared across views.
@@ -25,17 +21,14 @@ const THROTTLE_MS = 50;
  * ```
  */
 export function useColumnParams() {
-  // URL state - source of truth
-  const [column, setUrlColumn] = useQueryState(
-    "column",
-    parseAsColumnBy.withOptions({ throttleMs: THROTTLE_MS })
-  );
+  const { column } = useQueryParamsState();
+  const { setColumn: setColumnBase } = useQueryParamsActions();
 
   // Set column configuration (replaces entire config)
   const setColumn = useCallback(
     (newColumn: GroupByConfig | null) => {
       if (!newColumn) {
-        void setUrlColumn(null);
+        setColumnBase(null);
         return;
       }
 
@@ -46,15 +39,15 @@ export function useColumnParams() {
         hideEmpty: column?.hideEmpty,
       };
 
-      void setUrlColumn(config);
+      setColumnBase(config);
     },
-    [column, setUrlColumn]
+    [column, setColumnBase]
   );
 
   // Clear column (remove column grouping)
   const clearColumn = useCallback(() => {
-    void setUrlColumn(null);
-  }, [setUrlColumn]);
+    setColumnBase(null);
+  }, [setColumnBase]);
 
   // Set sort order
   const setColumnSortOrder = useCallback(
@@ -62,9 +55,9 @@ export function useColumnParams() {
       if (!column) {
         return;
       }
-      void setUrlColumn({ ...column, sort });
+      setColumnBase({ ...column, sort });
     },
-    [column, setUrlColumn]
+    [column, setColumnBase]
   );
 
   // Set hide empty columns
@@ -73,9 +66,9 @@ export function useColumnParams() {
       if (!column) {
         return;
       }
-      void setUrlColumn({ ...column, hideEmpty });
+      setColumnBase({ ...column, hideEmpty });
     },
-    [column, setUrlColumn]
+    [column, setColumnBase]
   );
 
   // Extract property from column config using canonical propertyId field

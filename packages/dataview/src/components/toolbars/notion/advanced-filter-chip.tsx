@@ -1,8 +1,7 @@
 "use client";
 
-import type { WhereExpression, WhereNode } from "@sparkyidea/shared/types";
 import { useAdvanceFilterBuilder } from "../../../hooks";
-import type { PropertyMeta } from "../../../types";
+import type { PropertyMeta, WhereExpression, WhereNode } from "../../../types";
 import { AdvancedFilterEditor } from "../../ui/toolbar/filter/advanced-filter-editor";
 import { FilterTrigger } from "../../ui/toolbar/filter/filter-trigger";
 

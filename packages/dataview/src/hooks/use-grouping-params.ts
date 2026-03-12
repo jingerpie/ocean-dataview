@@ -1,6 +1,6 @@
 "use client";
 
-import type { GroupByConfig, GroupConfigInput } from "@sparkyidea/shared/types";
+import type { GroupByConfig, GroupConfigInput } from "../types";
 import { useColumnParams } from "./use-column-params";
 import { useGroupParams } from "./use-group-params";
 

@@ -1,10 +1,9 @@
 "use client";
 
-import type { WhereRule } from "@sparkyidea/shared/types";
 import { ChevronDownIcon } from "lucide-react";
 import { useSimpleFilterChip } from "../../../hooks";
 import { getFilterPreview } from "../../../lib/filter-preview";
-import type { PropertyMeta } from "../../../types";
+import type { PropertyMeta, WhereRule } from "../../../types";
 import { Button } from "../../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 import { PropertyIcon } from "../../ui/property-icon";

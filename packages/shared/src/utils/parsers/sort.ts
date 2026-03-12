@@ -72,13 +72,13 @@ export function sortValidator(value: unknown): SortQuery[] | null {
 // Parsers
 // ============================================================================
 
-/** Server-side parser for sort */
+/** Server-side parser for sort (no column validation, no default) */
 export const sortServerParser = createParser({
   parse: sortValidator,
   serialize: (value: SortQuery[]) => encodeSort(value),
-}).withDefault([]);
+});
 
-/** Client-side parser for sort */
+/** Client-side parser for sort (no column validation) */
 export const parseAsSort = createParser({
   parse: (value: string): SortQuery[] | null => sortValidator(value),
   serialize: (value: SortQuery[]) => encodeSort(value),

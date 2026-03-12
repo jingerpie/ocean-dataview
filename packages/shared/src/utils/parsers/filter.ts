@@ -17,6 +17,10 @@ import {
   encodeTuple,
 } from "../url-dsl/encoder";
 
+// Re-export type guards for external use (used by dataview validators)
+// biome-ignore lint/performance/noBarrelFile: Intentional re-export for validators
+export { isWhereExpression, isWhereRule } from "../../types/filter.type";
+
 // ============================================================================
 // DSL Format
 // ============================================================================
@@ -199,71 +203,6 @@ export function filterValidator(value: unknown): WhereNode[] | null {
     return null;
   }
   return decodeFilter(value);
-}
-
-// ============================================================================
-// Column Validation
-// ============================================================================
-
-/**
- * Check if filter contains any invalid column names.
- */
-function filterHasInvalidColumn(
-  nodes: WhereNode[],
-  validKeys: Set<string>
-): boolean {
-  for (const node of nodes) {
-    if (isWhereRule(node)) {
-      if (!validKeys.has(node.property)) {
-        return true;
-      }
-    } else if (isWhereExpression(node)) {
-      const items = node.and ?? node.or ?? [];
-      if (filterHasInvalidColumn(items, validKeys)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-/**
- * Create a filter parser with optional column validation.
- * When validColumns is provided, filters with unknown column names are rejected.
- *
- * @example
- * ```ts
- * // Without validation (accepts any column name)
- * const parser = createFilterParser();
- *
- * // With validation (rejects unknown columns)
- * const productColumns = new Set(['name', 'price', 'category']);
- * const parser = createFilterParser(productColumns);
- * ```
- */
-export function createFilterParser(validColumns?: string[] | Set<string>) {
-  let validKeys: Set<string> | null = null;
-  if (validColumns) {
-    validKeys =
-      validColumns instanceof Set ? validColumns : new Set(validColumns);
-  }
-
-  return createParser({
-    parse: (value: string): WhereNode[] | null => {
-      const filter = filterValidator(value);
-      if (!filter) {
-        return null;
-      }
-
-      // Validate column IDs if validation set is provided
-      if (validKeys && filterHasInvalidColumn(filter, validKeys)) {
-        return null;
-      }
-
-      return filter;
-    },
-    serialize: (value: WhereNode[]) => encodeFilter(value),
-  });
 }
 
 // ============================================================================

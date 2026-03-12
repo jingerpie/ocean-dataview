@@ -1,6 +1,5 @@
 "use client";
 
-import type { WhereRule } from "@sparkyidea/shared/types";
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 import { getBadgeClasses } from "../../../../../lib/utils";
@@ -10,6 +9,7 @@ import type {
   PropertyMeta,
   SelectConfig,
   SelectOption,
+  WhereRule,
 } from "../../../../../types";
 import { Button } from "../../../button";
 import { Checkbox } from "../../../checkbox";
