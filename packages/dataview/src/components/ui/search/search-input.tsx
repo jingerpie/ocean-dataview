@@ -2,9 +2,9 @@
 
 import { SearchIcon, XIcon } from "lucide-react";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
-import { cn } from "../../../../lib/utils";
-import { Button } from "../../button";
-import { Input } from "../../input";
+import { cn } from "../../../lib/utils";
+import { Button } from "../button";
+import { Input } from "../input";
 
 interface SearchInputProps {
   /** Additional class names */
