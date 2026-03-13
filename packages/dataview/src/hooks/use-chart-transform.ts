@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import {
   type ChartDataPoint,
-  type ComputationType,
   computeData,
   computeGroupedData,
   getGroup,
@@ -12,6 +11,7 @@ import {
 } from "../lib/utils/compute-data";
 import { transformData } from "../lib/utils/transform-data";
 import { validateChartConfig } from "../lib/utils/validate-chart-config";
+import type { ComputationType } from "../types";
 import type { ChartType, DateGroupingType } from "../types/chart.type";
 import type { DataViewProperty } from "../types/property.type";
 

@@ -7,11 +7,11 @@ import {
   limitServerParser,
   sortServerParser,
 } from "@sparkyidea/dataview/parsers";
-import type { Limit } from "@sparkyidea/dataview/types";
 import { getTableColumns, type Table } from "drizzle-orm";
 import { createParser, createSearchParamsCache } from "nuqs/server";
 import { z } from "zod";
 import { searchQuerySchema, whereNodeSchema } from "../types/filter.type";
+import type { Limit } from "../types/pagination.type";
 import { cursorValueSchema } from "../types/pagination.type";
 
 // ============================================================================
