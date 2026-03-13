@@ -26,12 +26,6 @@
     "./utils/parsers/sort": {
       "default": "./src/utils/parsers/sort.ts"
     },
-    "./lib": {
-      "default": "./src/lib/index.ts"
-    },
-    "./lib/*": {
-      "default": "./src/lib/*.ts"
-    },
     "./config": {
       "default": "./src/config/index.ts"
     },

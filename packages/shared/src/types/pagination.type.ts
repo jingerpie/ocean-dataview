@@ -4,7 +4,7 @@ import { z } from "zod";
  * Standard limit values for pagination.
  * Used across all pagination hooks and components.
  */
-export const LIMIT_OPTIONS = [10, 25, 50, 100, 200] as const;
+export const LIMIT_OPTIONS = [10, 25, 50, 100] as const;
 
 /**
  * Valid limit values for pagination.
