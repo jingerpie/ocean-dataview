@@ -30,23 +30,45 @@ export function useFilterParams() {
     [filter, setFilter]
   );
 
-  // Remove filter - immediate
+  // Recursively remove property from a single node
+  const removePropertyFromNode = useCallback(
+    (node: WhereNode, propertyId: string): WhereNode | null => {
+      // If it's a rule with matching property, remove it
+      if ("property" in node) {
+        return node.property === propertyId ? null : node;
+      }
+
+      // If it's an and/or expression, recurse into children
+      const children = node.and ?? node.or ?? [];
+      const filtered = children
+        .map((child) => removePropertyFromNode(child, propertyId))
+        .filter((child): child is WhereNode => child !== null);
+
+      // If no children remain, remove the entire expression
+      if (filtered.length === 0) {
+        return null;
+      }
+
+      // Return updated expression
+      return node.and ? { and: filtered } : { or: filtered };
+    },
+    []
+  );
+
+  // Remove filter - immediate (recursive)
   const removeFilter = useCallback(
     (propertyId: string) => {
       if (!filter) {
         return;
       }
 
-      const newFilter = filter.filter((node) => {
-        if ("property" in node) {
-          return node.property !== propertyId;
-        }
-        return true;
-      });
+      const newFilter = filter
+        .map((node) => removePropertyFromNode(node, propertyId))
+        .filter((node): node is WhereNode => node !== null);
 
       setFilter(newFilter.length > 0 ? newFilter : null);
     },
-    [filter, setFilter]
+    [filter, setFilter, removePropertyFromNode]
   );
 
   // Clear all filters

@@ -57,8 +57,10 @@ export function getRelativeDateRange(
         return { start: startOfMonth(now), end: endOfMonth(now) };
       case "year":
         return { start: startOfYear(now), end: endOfYear(now) };
-      default:
-        return undefined;
+      default: {
+        const exhaustiveCheck: never = unit;
+        throw new Error(`Unknown unit: ${exhaustiveCheck}`);
+      }
     }
   }
 

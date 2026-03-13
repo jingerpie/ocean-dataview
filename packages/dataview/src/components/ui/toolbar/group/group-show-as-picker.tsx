@@ -80,8 +80,18 @@ function GroupShowAsPicker({
       case "number":
         // Number uses step value as the showAs identifier
         return String(config.numberRange?.step ?? 100);
-      default:
+      case "select":
+      case "multiSelect":
+      case "checkbox":
+        // These types don't have showAs options
         return null;
+
+      default: {
+        const exhaustiveCheck: never = config;
+        throw new Error(
+          `Unknown propertyType: ${(exhaustiveCheck as GroupByConfig).propertyType}`
+        );
+      }
     }
   };
 
@@ -117,12 +127,25 @@ function GroupShowAsPicker({
           const step = Number.parseInt(value, 10);
           newConfig = {
             ...config,
-            numberRange: { range: [0, 1000], step },
+            numberRange: {
+              range: config.numberRange?.range ?? [0, 1000],
+              step,
+            },
           };
           break;
         }
-        default:
+        case "select":
+        case "multiSelect":
+        case "checkbox":
+          // These types don't have showAs options
           return;
+
+        default: {
+          const exhaustiveCheck: never = config;
+          throw new Error(
+            `Unknown propertyType: ${(exhaustiveCheck as GroupByConfig).propertyType}`
+          );
+        }
       }
 
       setConfig(newConfig);

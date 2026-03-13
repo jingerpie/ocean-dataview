@@ -10,10 +10,15 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { useCallbackRef } from "./use-callback-ref";
 
+export interface DebouncedFunction<T extends (...args: never[]) => unknown> {
+  cancel: () => void;
+  (...args: Parameters<T>): void;
+}
+
 export function useDebouncedCallback<T extends (...args: never[]) => unknown>(
   callback: T,
   delay: number
-) {
+): DebouncedFunction<T> {
   const handleCallback = useCallbackRef(callback);
   const debounceTimerRef = useRef(0);
   const pendingArgsRef = useRef<Parameters<T> | null>(null);
@@ -30,6 +35,11 @@ export function useDebouncedCallback<T extends (...args: never[]) => unknown>(
     [handleCallback]
   );
 
+  const cancel = useCallback(() => {
+    window.clearTimeout(debounceTimerRef.current);
+    pendingArgsRef.current = null;
+  }, []);
+
   const setValue = useCallback(
     (...args: Parameters<T>) => {
       window.clearTimeout(debounceTimerRef.current);
@@ -40,7 +50,9 @@ export function useDebouncedCallback<T extends (...args: never[]) => unknown>(
       }, delay);
     },
     [handleCallback, delay]
-  );
+  ) as DebouncedFunction<T>;
+
+  setValue.cancel = cancel;
 
   return setValue;
 }

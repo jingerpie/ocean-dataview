@@ -47,10 +47,12 @@ export function useSearchParams() {
   );
 
   const clearSearch = useCallback(() => {
+    // Cancel any pending debounced update before clearing
+    debouncedSetUrl.cancel();
     setInputValue("");
     // Clear immediately (no debounce)
     setSearchAction("");
-  }, [setSearchAction]);
+  }, [debouncedSetUrl, setSearchAction]);
 
   return {
     search: inputValue,

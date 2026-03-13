@@ -100,10 +100,10 @@ export interface ViewCounts {
  * Includes counts, sortValues, and pagination metadata.
  */
 export interface PaginatedGroupResponse {
-  counts: Record<string, { count: number; hasMore: boolean }>;
+  counts: GroupCounts;
   hasNextPage: boolean;
   nextCursor: string | null;
-  sortValues: Record<string, string | number>;
+  sortValues: GroupSortValues;
 }
 
 // ============================================================================

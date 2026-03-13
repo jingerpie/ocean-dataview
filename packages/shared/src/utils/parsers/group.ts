@@ -261,7 +261,8 @@ export function decodeGroup(value: string): GroupConfigInput | null {
           Number.isNaN(min) ||
           Number.isNaN(max) ||
           Number.isNaN(step) ||
-          step <= 0
+          step <= 0 ||
+          min > max
         ) {
           result = { propertyType: "number", propertyId };
         } else {

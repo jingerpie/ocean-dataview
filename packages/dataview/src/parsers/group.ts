@@ -78,7 +78,9 @@ const WEEK_START = new Set<string>(["monday", "sunday"]);
 export function encodeGroup(config: GroupConfigInput): string {
   const urlType = PROPERTY_TYPE_TO_URL[config.propertyType];
   if (!urlType) {
-    return "";
+    throw new Error(
+      `Invalid propertyType for encodeGroup: ${config.propertyType}`
+    );
   }
 
   let showAsParts: (string | number)[] = [];
@@ -286,8 +288,5 @@ export const groupServerParser = createParser({
   serialize: encodeGroup,
 });
 
-/** Client-side parser for group config (no validation) */
-export const parseAsGroupBy = createParser({
-  parse: decodeGroup,
-  serialize: encodeGroup,
-});
+/** Client-side parser for group config (alias of groupServerParser) */
+export const parseAsGroupBy = groupServerParser;

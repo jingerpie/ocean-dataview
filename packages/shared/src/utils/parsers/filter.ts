@@ -52,7 +52,15 @@ function encodeRule(rule: WhereRule): string {
 
   // Handle array values with parentheses wrapper
   if (Array.isArray(value)) {
-    const arrayStr = encodeArrayValue(value as (string | number | boolean)[]);
+    // Filter to only primitive elements
+    const primitives = value.filter(
+      (v): v is string | number | boolean =>
+        typeof v === "string" || typeof v === "number" || typeof v === "boolean"
+    );
+    if (primitives.length === 0) {
+      return baseParts.join(".");
+    }
+    const arrayStr = encodeArrayValue(primitives);
     return `${baseParts.join(".")}.${arrayStr}`;
   }
 
@@ -66,6 +74,10 @@ function encodeRule(rule: WhereRule): string {
   }
 
   // Fallback: serialize to JSON string for complex objects
+  // NOTE: This is asymmetric with decode - complex values remain as JSON strings
+  // when decoded since parsePrimitive does not attempt JSON.parse. This is intentional
+  // as it preserves safety (avoiding arbitrary object injection) at the cost of
+  // round-trip fidelity for non-primitive filter values.
   return encodeTuple([rule.property, rule.condition, JSON.stringify(value)]);
 }
 

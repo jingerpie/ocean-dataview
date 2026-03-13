@@ -111,7 +111,10 @@ export function applyConditionChange(
  */
 export function extractSelectValues(value: unknown): string[] {
   if (Array.isArray(value)) {
-    return value as string[];
+    // Filter to only string elements, coerce others
+    return value
+      .filter((v) => v != null)
+      .map((v) => (typeof v === "string" ? v : String(v)));
   }
   if (value != null && value !== "") {
     return [String(value)];

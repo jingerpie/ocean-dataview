@@ -41,8 +41,14 @@ export function getFilterConditions(propertyType: PropertyType) {
       // Formula only supports isEmpty/isNotEmpty
       return DATA_TABLE_CONFIG.filesConditions;
 
-    default:
-      return DATA_TABLE_CONFIG.textConditions;
+    case "button":
+      // Button is not filterable
+      throw new Error(`PropertyType "${propertyType}" is not filterable`);
+
+    default: {
+      const exhaustiveCheck: never = propertyType;
+      throw new Error(`Unknown PropertyType: ${exhaustiveCheck}`);
+    }
   }
 }
 

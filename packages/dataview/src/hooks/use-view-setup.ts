@@ -17,9 +17,11 @@ import { useGroupParams } from "./use-group-params";
 interface InternalGroupConfig {
   groupBy: string;
   hideEmptyGroups?: boolean;
+  numberRange?: { range: [number, number]; step: number };
   showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option";
   sort?: "propertyAscending" | "propertyDescending";
   startWeekOn?: "monday" | "sunday";
+  textShowAs?: "exact" | "alphabetical";
 }
 
 /**
@@ -131,10 +133,12 @@ export function useViewSetup<
       };
     return {
       groupBy: parsedGroup.property,
-      showAs: parsedGroup.showAs,
-      startWeekOn: parsedGroup.startWeekOn,
-      sort: sortMap[groupSortOrder],
       hideEmptyGroups,
+      numberRange: parsedGroup.numberRange,
+      showAs: parsedGroup.showAs,
+      sort: sortMap[groupSortOrder],
+      startWeekOn: parsedGroup.startWeekOn,
+      textShowAs: parsedGroup.textShowAs,
     };
   }, [parsedGroup, hasGroupedPagination, groupSortOrder, hideEmptyGroups]);
 

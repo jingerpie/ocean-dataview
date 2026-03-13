@@ -186,6 +186,11 @@ export function splitByDot(value: string): string[] {
     }
   }
 
+  // Reject unbalanced quotes
+  if (inQuotes) {
+    throw new Error("Unbalanced quotes in input");
+  }
+
   if (current) {
     results.push(current);
   }
