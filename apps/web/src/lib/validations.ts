@@ -1,9 +1,17 @@
-import { validateFilter, validateSort } from "@sparkyidea/dataview/validators";
+import {
+  validateColumn,
+  validateFilter,
+  validateSort,
+} from "@sparkyidea/dataview/validators";
 import {
   createDataViewParamsCache,
   type InferParamsType,
 } from "@sparkyidea/shared/search-params";
-import type { SortQuery, WhereNode } from "@sparkyidea/shared/types";
+import type {
+  ColumnConfigInput,
+  SortQuery,
+  WhereNode,
+} from "@sparkyidea/shared/types";
 import { productProperties } from "@/modules/dataview/product-properties";
 
 // ============================================================================
@@ -19,6 +27,13 @@ export const productPaginationParams = createDataViewParamsCache();
 // ============================================================================
 // Re-export Validators for Demo Components
 // ============================================================================
+
+/**
+ * Validate column against product properties.
+ */
+export function validateProductColumn(column: ColumnConfigInput | null) {
+  return validateColumn(column, productProperties);
+}
 
 /**
  * Validate filter against product properties.

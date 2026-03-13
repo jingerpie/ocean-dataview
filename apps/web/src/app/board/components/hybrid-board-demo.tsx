@@ -1,5 +1,6 @@
 import {
   productPaginationParams,
+  validateProductColumn,
   validateProductFilter,
   validateProductSort,
 } from "@/lib/validations";
@@ -14,12 +15,13 @@ export function ProductBoardDemo({ params }: ProductBoardDemoProps) {
     productPaginationParams.parse(params);
 
   // Validate against product properties
+  const validatedColumn = validateProductColumn(column);
   const validatedFilter = validateProductFilter(filter);
   const validatedSort = validateProductSort(sort);
 
   return (
     <ProductBoardView
-      column={column}
+      column={validatedColumn}
       filter={validatedFilter}
       group={group}
       limit={limit}

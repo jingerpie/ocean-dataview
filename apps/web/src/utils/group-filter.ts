@@ -5,9 +5,12 @@ import type {
 } from "@sparkyidea/shared/types";
 
 // Regex patterns for parsing number range group keys
-const LESS_THAN_REGEX = /^< (\d+)$/;
-const PLUS_REGEX = /^(\d+)\+$/;
-const RANGE_REGEX = /^(\d+)-(\d+)$/;
+// Supports negative numbers and decimals (e.g., "< -10", "-5.5+", "-10-0", "1.5-2.5")
+const LESS_THAN_REGEX = /^< (-?\d+(?:\.\d+)?)$/;
+const PLUS_REGEX = /^(-?\d+(?:\.\d+)?)\+$/;
+// Range regex: handles "min-max" including negative ranges like "-10-0" or "-10--5"
+// Uses lookbehind to distinguish range separator from negative sign
+const RANGE_REGEX = /^(-?\d+(?:\.\d+)?)-(-?\d+(?:\.\d+)?)$/;
 
 // Regex for matching single uppercase letter (A-Z)
 const SINGLE_LETTER_REGEX = /^[A-Z]$/;
@@ -61,8 +64,13 @@ function parseNumberRangeFilter(property: string, groupKey: string): WhereRule {
     };
   }
 
-  // Fallback: exact number match
-  return { property, condition: "eq", value: groupKey };
+  // Fallback: exact number match (parse as number if valid)
+  const numValue = Number(groupKey);
+  return {
+    property,
+    condition: "eq",
+    value: Number.isNaN(numValue) ? groupKey : numValue,
+  };
 }
 
 /**

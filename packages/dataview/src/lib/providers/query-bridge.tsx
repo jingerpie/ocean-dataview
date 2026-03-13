@@ -10,11 +10,9 @@ import {
   useCallback,
   useContext,
   useDeferredValue,
-  useEffect,
   useMemo,
-  useRef,
-  useState,
 } from "react";
+import { useExpandedGroups } from "../../hooks/use-expanded-groups";
 import type {
   ColumnConfigInput,
   GroupConfigInput,
@@ -669,51 +667,12 @@ function PageQueryBridgeInner<
   // Expanded State
   // ============================================================================
 
-  // Compute initial expanded value
-  const getInitialExpanded = useCallback(() => {
-    if (defaultExpanded && defaultExpanded.length > 0) {
-      return defaultExpanded;
-    }
-    // Flat mode (not grouped) - always expand to show data
-    if (groupKeys.length === 1 && groupKeys[0] === "__ungrouped__") {
-      return ["__ungrouped__"];
-    }
-    // Grouped mode - collapse all by default
-    return [];
-  }, [defaultExpanded, groupKeys]);
-
-  // Local state for expanded groups (not persisted to URL)
-  const [localExpanded, setLocalExpanded] =
-    useState<string[]>(getInitialExpanded);
-
-  // Track groupKeys for detecting changes
-  const prevGroupKeysRef = useRef(groupKeys);
-
-  // Handle groupKeys changes (e.g., switching between flat/grouped mode)
-  useEffect(() => {
-    const prevKeys = prevGroupKeysRef.current;
-    const keysChanged =
-      prevKeys.length !== groupKeys.length ||
-      prevKeys.some((k, i) => k !== groupKeys[i]);
-
-    if (keysChanged) {
-      prevGroupKeysRef.current = groupKeys;
-      setLocalExpanded(getInitialExpanded());
-    }
-  }, [groupKeys, getInitialExpanded]);
-
-  const setExpandedGroups = useCallback((groups: string[]) => {
-    setLocalExpanded(groups);
-  }, []);
-
-  // Reset expanded groups when group config changes
-  const handleSetGroup = useCallback(
-    (newGroup: GroupConfigInput | null) => {
-      setGroup(newGroup);
-      setLocalExpanded([]);
-    },
-    [setGroup]
-  );
+  const { expandedGroups, handleSetGroup, setExpandedGroups } =
+    useExpandedGroups({
+      defaultExpanded,
+      groupKeys,
+      setGroup,
+    });
 
   // ============================================================================
   // Build Runtime State for Context
@@ -722,7 +681,7 @@ function PageQueryBridgeInner<
   const runtimeState = useMemo<QueryRuntimeState>(
     () => ({
       cursors,
-      expandedGroups: localExpanded,
+      expandedGroups,
       filter,
       group,
       groupCounts,
@@ -747,7 +706,7 @@ function PageQueryBridgeInner<
     }),
     [
       cursors,
-      localExpanded,
+      expandedGroups,
       filter,
       group,
       groupCounts,
@@ -803,7 +762,7 @@ function PageQueryBridgeInner<
         columnCounts={viewProps.columnCounts}
         counts={mergedCounts}
         data={[]}
-        expandedGroups={localExpanded}
+        expandedGroups={expandedGroups}
         filter={filter}
         group={group}
         groupKeys={groupKeys}
@@ -1147,51 +1106,12 @@ function InfiniteQueryBridgeInner<
   // Expanded State
   // ============================================================================
 
-  // Compute initial expanded value
-  const getInitialExpanded = useCallback(() => {
-    if (defaultExpanded && defaultExpanded.length > 0) {
-      return defaultExpanded;
-    }
-    // Flat mode (not grouped) - always expand to show data
-    if (groupKeys.length === 1 && groupKeys[0] === "__ungrouped__") {
-      return ["__ungrouped__"];
-    }
-    // Grouped mode - collapse all by default
-    return [];
-  }, [defaultExpanded, groupKeys]);
-
-  // Local state for expanded groups (not persisted to URL)
-  const [localExpanded, setLocalExpanded] =
-    useState<string[]>(getInitialExpanded);
-
-  // Track groupKeys for detecting changes
-  const prevGroupKeysRef = useRef(groupKeys);
-
-  // Handle groupKeys changes (e.g., switching between flat/grouped mode)
-  useEffect(() => {
-    const prevKeys = prevGroupKeysRef.current;
-    const keysChanged =
-      prevKeys.length !== groupKeys.length ||
-      prevKeys.some((k, i) => k !== groupKeys[i]);
-
-    if (keysChanged) {
-      prevGroupKeysRef.current = groupKeys;
-      setLocalExpanded(getInitialExpanded());
-    }
-  }, [groupKeys, getInitialExpanded]);
-
-  const setExpandedGroups = useCallback((groups: string[]) => {
-    setLocalExpanded(groups);
-  }, []);
-
-  // Reset expanded groups when group config changes
-  const handleSetGroup = useCallback(
-    (newGroup: GroupConfigInput | null) => {
-      setGroup(newGroup);
-      setLocalExpanded([]);
-    },
-    [setGroup]
-  );
+  const { expandedGroups, handleSetGroup, setExpandedGroups } =
+    useExpandedGroups({
+      defaultExpanded,
+      groupKeys,
+      setGroup,
+    });
 
   // ============================================================================
   // Build Runtime State for Context
@@ -1201,7 +1121,7 @@ function InfiniteQueryBridgeInner<
   const runtimeState = useMemo<QueryRuntimeState>(
     () => ({
       cursors: {},
-      expandedGroups: localExpanded,
+      expandedGroups,
       filter,
       group,
       groupCounts,
@@ -1225,7 +1145,7 @@ function InfiniteQueryBridgeInner<
       type: "infinite",
     }),
     [
-      localExpanded,
+      expandedGroups,
       filter,
       group,
       groupCounts,
@@ -1280,7 +1200,7 @@ function InfiniteQueryBridgeInner<
         columnCounts={columnCounts}
         counts={mergedCounts}
         data={[]}
-        expandedGroups={localExpanded}
+        expandedGroups={expandedGroups}
         filter={filter}
         group={group}
         groupKeys={groupKeys}
