@@ -48,7 +48,11 @@ function encodeRule(rule: WhereRule): string {
 
   // Handle array values with parentheses wrapper
   if (Array.isArray(value)) {
-    const arrayStr = encodeArrayValue(value as (string | number | boolean)[]);
+    const primitiveArray = value.filter(
+      (v): v is string | number | boolean =>
+        typeof v === "string" || typeof v === "number" || typeof v === "boolean"
+    );
+    const arrayStr = encodeArrayValue(primitiveArray);
     return `${baseParts.join(".")}.${arrayStr}`;
   }
 

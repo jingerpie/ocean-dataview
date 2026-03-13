@@ -8,6 +8,8 @@ import { encodeArray, encodeTuple } from "../lib/url-dsl/encoder";
 import {
   type Cursors,
   type CursorValue,
+  cursorsSchema,
+  cursorValueSchema,
   LIMIT_OPTIONS,
   type Limit,
 } from "../types/pagination";
@@ -228,28 +230,24 @@ export function expandedValidator(value: unknown): string[] | null {
   return value.every((v) => typeof v === "string") ? (value as string[]) : null;
 }
 
-/** Cursor validator */
+/** Cursor validator - validates object structure using zod schema */
 export function cursorValidator(value: unknown): CursorValue | null {
   if (typeof value === "string") {
     return decodeCursor(value);
   }
 
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return null;
-  }
-  return value as CursorValue;
+  const result = cursorValueSchema.safeParse(value);
+  return result.success ? result.data : null;
 }
 
-/** Cursors validator */
+/** Cursors validator - validates object structure using zod schema */
 export function cursorsValidator(value: unknown): Cursors | null {
   if (typeof value === "string") {
     return decodeCursors(value);
   }
 
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return null;
-  }
-  return value as Cursors;
+  const result = cursorsSchema.safeParse(value);
+  return result.success ? result.data : null;
 }
 
 // ============================================================================

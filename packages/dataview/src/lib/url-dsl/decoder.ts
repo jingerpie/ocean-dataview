@@ -106,6 +106,8 @@ export function parsePrimitive(value: string): string | number | boolean {
  *
  * Commas inside quoted strings ("Smith, John") are not treated as separators.
  * Parentheses inside quoted strings don't affect depth counting.
+ *
+ * @throws Error if quotes are unbalanced
  */
 export function splitRespectingParens(
   value: string,
@@ -142,6 +144,10 @@ export function splitRespectingParens(
     } else {
       current += char;
     }
+  }
+
+  if (inQuotes) {
+    throw new Error("Unbalanced quotes in input");
   }
 
   if (current) {

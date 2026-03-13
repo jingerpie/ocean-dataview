@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   useQueryParamsActions,
   useQueryParamsState,
@@ -26,6 +26,11 @@ export function useSearchParams() {
 
   // Local state for immediate input feedback (debounced to URL)
   const [inputValue, setInputValue] = useState(search);
+
+  // Sync local state when external search changes (e.g., browser navigation)
+  useEffect(() => {
+    setInputValue(search);
+  }, [search]);
 
   // Debounced URL update via context action
   const debouncedSetUrl = useDebouncedCallback((value: string) => {

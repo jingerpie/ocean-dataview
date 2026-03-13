@@ -232,9 +232,11 @@ export function decodeGroup(value: string): GroupConfigInput | null {
     }
 
     case "date": {
-      const showAs = showAsParts[0] as DateShowAs;
-      if (!DATE_SHOW_AS.has(showAs)) {
-        return null;
+      const showAs = showAsParts[0] as DateShowAs | undefined;
+      // Default to "day" when showAs is missing or invalid (consistent with other types)
+      if (!(showAs && DATE_SHOW_AS.has(showAs))) {
+        result = { propertyType: "date", propertyId, showAs: "day" };
+        break;
       }
       const startWeekOn = showAsParts[1] as WeekStartDay | undefined;
       if (startWeekOn && !WEEK_START.has(startWeekOn)) {

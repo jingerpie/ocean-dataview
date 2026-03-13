@@ -1,6 +1,6 @@
-export type DataTableConfig = typeof dataTableConfig;
+export type DataTableConfig = typeof DATA_TABLE_CONFIG;
 
-export const dataTableConfig = {
+export const DATA_TABLE_CONFIG = {
   textConditions: [
     { label: "Is", value: "eq" as const },
     { label: "Is not", value: "ne" as const },

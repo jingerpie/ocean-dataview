@@ -73,8 +73,10 @@ export function getRelativeDateRange(
         return subMonths(date, n);
       case "year":
         return subYears(date, n);
-      default:
-        return date;
+      default: {
+        const exhaustiveCheck: never = unit;
+        throw new Error(`Unknown unit: ${exhaustiveCheck}`);
+      }
     }
   };
 
@@ -88,8 +90,10 @@ export function getRelativeDateRange(
         return addMonths(date, n);
       case "year":
         return addYears(date, n);
-      default:
-        return date;
+      default: {
+        const exhaustiveCheck: never = unit;
+        throw new Error(`Unknown unit: ${exhaustiveCheck}`);
+      }
     }
   };
 

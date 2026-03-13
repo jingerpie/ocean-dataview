@@ -5,7 +5,7 @@ export type { BulkAction } from "./action.type";
 // Export chart types
 export * from "./chart.type";
 // Export config
-export { type DataTableConfig, dataTableConfig } from "./config";
+export { DATA_TABLE_CONFIG, type DataTableConfig } from "./config";
 // Export filter types
 export {
   conditionValues,
