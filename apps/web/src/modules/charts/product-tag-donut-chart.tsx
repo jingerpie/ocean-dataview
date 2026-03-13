@@ -14,7 +14,7 @@ const productProperties = [availabilityProperty] as const;
 function ProductAvailabilityDonut() {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(
-    trpc.product.getMany.queryOptions({ limit: 200 })
+    trpc.product.getMany.queryOptions({ limit: 100 })
   );
 
   return (

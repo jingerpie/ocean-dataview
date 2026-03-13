@@ -17,7 +17,7 @@ export default async function ChartsPage() {
 
   // Prefetch product data for all charts
   await queryClient.prefetchQuery(
-    trpc.product.getMany.queryOptions({ limit: 200 })
+    trpc.product.getMany.queryOptions({ limit: 100 })
   );
 
   return (
