@@ -12,7 +12,7 @@ import { getGalleryCardDimensions } from "../../../lib/utils/get-card-sizes";
 import type { DataViewProperty, PaginationContext } from "../../../types";
 import { Accordion } from "../../ui/accordion";
 import { GroupSection } from "../../ui/group-section";
-import { type PaginationMode, renderPagination } from "../../ui/paginations";
+import { Pagination, type PaginationMode } from "../../ui/pagination";
 import {
   SuspendingGroupContent,
   SuspendingInfiniteGroupContent,
@@ -414,7 +414,9 @@ function SuspendingPageGalleryContent<
             fitMedia={fitMedia}
             imageHeight={imageHeight}
             onCardClick={onCardClick}
-            paginationNode={renderPagination(pagination, paginationContext)}
+            paginationNode={
+              <Pagination context={paginationContext} mode={pagination} />
+            }
             properties={properties}
             showPropertyNames={showPropertyNames}
             wrapAllProperties={wrapAllProperties}
@@ -476,7 +478,9 @@ function SuspendingInfiniteGalleryContent<
             fitMedia={fitMedia}
             imageHeight={imageHeight}
             onCardClick={onCardClick}
-            paginationNode={renderPagination(pagination, paginationContext)}
+            paginationNode={
+              <Pagination context={paginationContext} mode={pagination} />
+            }
             properties={properties}
             showPropertyNames={showPropertyNames}
             wrapAllProperties={wrapAllProperties}

@@ -11,7 +11,7 @@ import { transformData } from "../../../lib/utils";
 import type { DataViewProperty, PaginationContext } from "../../../types";
 import { Accordion } from "../../ui/accordion";
 import { GroupSection } from "../../ui/group-section";
-import { type PaginationMode, renderPagination } from "../../ui/paginations";
+import { Pagination, type PaginationMode } from "../../ui/pagination";
 import {
   SuspendingGroupContent,
   SuspendingInfiniteGroupContent,
@@ -300,7 +300,9 @@ function SuspendingPageListContent<
             data={result.data}
             displayProperties={displayProperties}
             onItemClick={onItemClick}
-            paginationNode={renderPagination(pagination, paginationContext)}
+            paginationNode={
+              <Pagination context={paginationContext} mode={pagination} />
+            }
             properties={properties}
           />
         );
@@ -350,7 +352,9 @@ function SuspendingInfiniteListContent<
             data={result.data}
             displayProperties={displayProperties}
             onItemClick={onItemClick}
-            paginationNode={renderPagination(pagination, paginationContext)}
+            paginationNode={
+              <Pagination context={paginationContext} mode={pagination} />
+            }
             properties={properties}
           />
         );

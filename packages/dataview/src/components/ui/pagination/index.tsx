@@ -14,18 +14,19 @@ import { PagePagination } from "./page-pagination";
  */
 export type PaginationMode = "page" | "loadMore" | "infiniteScroll";
 
+interface PaginationProps {
+  context: PaginationContext | undefined;
+  mode: PaginationMode | undefined;
+}
+
 /**
  * Renders the appropriate pagination component based on mode.
  * Used internally by view components (TableView, ListView, GalleryView, BoardView).
- *
- * @param mode - The pagination mode
- * @param context - The pagination context with controls and state
- * @returns The pagination component or null
  */
-export function renderPagination(
-  mode: PaginationMode | undefined,
-  context: PaginationContext | undefined
-): React.ReactNode {
+export function Pagination({
+  mode,
+  context,
+}: PaginationProps): React.ReactNode {
   if (!(mode && context)) {
     return null;
   }

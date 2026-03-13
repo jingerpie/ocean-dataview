@@ -26,7 +26,7 @@ import { Accordion } from "../../ui/accordion";
 import { Badge } from "../../ui/badge";
 import { EmptyState } from "../../ui/empty-state";
 import { GroupSection } from "../../ui/group-section";
-import { type PaginationMode, renderPagination } from "../../ui/paginations";
+import { Pagination, type PaginationMode } from "../../ui/pagination";
 import {
   SuspendingGroupContent,
   SuspendingInfiniteGroupContent,
@@ -723,7 +723,9 @@ function SuspendingPageBoardContent<
             properties={properties}
             renderFooter={
               pagination
-                ? () => renderPagination(pagination, paginationContext)
+                ? () => (
+                    <Pagination context={paginationContext} mode={pagination} />
+                  )
                 : undefined
             }
             rounded={rounded}
@@ -787,7 +789,9 @@ function SuspendingInfiniteBoardContent<
             properties={properties}
             renderFooter={
               pagination
-                ? () => renderPagination(pagination, paginationContext)
+                ? () => (
+                    <Pagination context={paginationContext} mode={pagination} />
+                  )
                 : undefined
             }
             rounded={rounded}
