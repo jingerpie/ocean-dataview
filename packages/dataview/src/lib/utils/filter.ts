@@ -1,5 +1,8 @@
-import { dataTableConfig } from "@sparkyidea/shared/config";
-import type { FilterCondition, PropertyType } from "@sparkyidea/shared/types";
+import {
+  DATA_TABLE_CONFIG,
+  type FilterCondition,
+  type PropertyType,
+} from "../../types";
 
 /**
  * Gets available filter conditions for a property type.
@@ -12,34 +15,40 @@ export function getFilterConditions(propertyType: PropertyType) {
     case "url":
     case "email":
     case "phone":
-      return dataTableConfig.textConditions;
+      return DATA_TABLE_CONFIG.textConditions;
 
     case "number":
-      return dataTableConfig.numericConditions;
+      return DATA_TABLE_CONFIG.numericConditions;
 
     // Select-like types share select conditions
     case "select":
     case "status":
-      return dataTableConfig.selectConditions;
+      return DATA_TABLE_CONFIG.selectConditions;
 
     case "multiSelect":
-      return dataTableConfig.multiSelectConditions;
+      return DATA_TABLE_CONFIG.multiSelectConditions;
 
     case "date":
-      return dataTableConfig.dateConditions;
+      return DATA_TABLE_CONFIG.dateConditions;
 
     case "checkbox":
-      return dataTableConfig.booleanConditions;
+      return DATA_TABLE_CONFIG.booleanConditions;
 
     case "filesMedia":
-      return dataTableConfig.filesConditions;
+      return DATA_TABLE_CONFIG.filesConditions;
 
     case "formula":
       // Formula only supports isEmpty/isNotEmpty
-      return dataTableConfig.filesConditions;
+      return DATA_TABLE_CONFIG.filesConditions;
 
-    default:
-      return dataTableConfig.textConditions;
+    case "button":
+      // Button is not filterable
+      throw new Error(`PropertyType "${propertyType}" is not filterable`);
+
+    default: {
+      const exhaustiveCheck: never = propertyType;
+      throw new Error(`Unknown PropertyType: ${exhaustiveCheck}`);
+    }
   }
 }
 

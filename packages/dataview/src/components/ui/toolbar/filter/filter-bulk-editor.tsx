@@ -1,11 +1,10 @@
 "use client";
 
-import type { WhereRule } from "@sparkyidea/shared/types";
-import { isWhereRule } from "@sparkyidea/shared/types";
 import { ChevronDownIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useFilterParams } from "../../../../hooks";
 import type { PropertyMeta } from "../../../../types";
+import { isWhereRule, type WhereRule } from "../../../../types";
 import {
   Command,
   CommandGroup,

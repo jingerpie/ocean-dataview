@@ -1,21 +1,16 @@
 "use client";
 
-import {
-  type GroupByConfigInput,
-  type GroupConfigInput,
-  parseAsGroupBy,
-} from "@sparkyidea/shared/utils/parsers/group";
-import { parseAsExpanded } from "@sparkyidea/shared/utils/parsers/pagination";
-import { useQueryState } from "nuqs";
 import { useCallback } from "react";
-
-const THROTTLE_MS = 50;
+import {
+  useQueryParamsActions,
+  useQueryParamsState,
+} from "../lib/providers/query-params-context";
+import type { GroupByConfig, GroupConfigInput } from "../types";
 
 /**
  * Hook for managing group configuration via URL.
  *
- * Uses URL as source of truth with shallow: true (default).
- * All actions update URL immediately (no debouncing needed).
+ * Reads from QueryParamsContext (single source of truth for validated state).
  *
  * When group property or type changes, expanded groups are automatically
  * cleared since old group keys are no longer valid.
@@ -26,22 +21,14 @@ const THROTTLE_MS = 50;
  * ```
  */
 export function useGroupParams() {
-  // URL state - source of truth
-  const [group, setUrlGroup] = useQueryState(
-    "group",
-    parseAsGroupBy.withOptions({ throttleMs: THROTTLE_MS })
-  );
-  const [, setUrlExpanded] = useQueryState(
-    "expanded",
-    parseAsExpanded.withOptions({ throttleMs: THROTTLE_MS })
-  );
+  const { group } = useQueryParamsState();
+  const { setGroup: setGroupBase } = useQueryParamsActions();
 
   // Set group configuration (replaces entire config)
   const setGroup = useCallback(
-    (newGroup: GroupByConfigInput | null) => {
+    (newGroup: GroupByConfig | null) => {
       if (!newGroup) {
-        void setUrlGroup(null);
-        void setUrlExpanded(null);
+        setGroupBase(null);
         return;
       }
 
@@ -52,18 +39,15 @@ export function useGroupParams() {
         hideEmpty: group?.hideEmpty,
       };
 
-      void setUrlGroup(config);
-      // Clear expanded - old group keys are no longer valid
-      void setUrlExpanded(null);
+      setGroupBase(config);
     },
-    [group, setUrlGroup, setUrlExpanded]
+    [group, setGroupBase]
   );
 
   // Clear group (remove grouping)
   const clearGroup = useCallback(() => {
-    void setUrlGroup(null);
-    void setUrlExpanded(null);
-  }, [setUrlGroup, setUrlExpanded]);
+    setGroupBase(null);
+  }, [setGroupBase]);
 
   // Set sort order
   const setGroupSortOrder = useCallback(
@@ -71,9 +55,9 @@ export function useGroupParams() {
       if (!group) {
         return;
       }
-      void setUrlGroup({ ...group, sort });
+      setGroupBase({ ...group, sort });
     },
-    [group, setUrlGroup]
+    [group, setGroupBase]
   );
 
   // Set hide empty groups
@@ -82,68 +66,16 @@ export function useGroupParams() {
       if (!group) {
         return;
       }
-      void setUrlGroup({ ...group, hideEmpty });
+      setGroupBase({ ...group, hideEmpty });
     },
-    [group, setUrlGroup]
+    [group, setGroupBase]
   );
 
-  // Extract property from group config
-  const groupProperty = (() => {
-    if (!group) {
-      return null;
-    }
-    if ("bySelect" in group) {
-      return group.bySelect.property;
-    }
-    if ("byStatus" in group) {
-      return group.byStatus.property;
-    }
-    if ("byDate" in group) {
-      return group.byDate.property;
-    }
-    if ("byCheckbox" in group) {
-      return group.byCheckbox.property;
-    }
-    if ("byMultiSelect" in group) {
-      return group.byMultiSelect.property;
-    }
-    if ("byText" in group) {
-      return group.byText.property;
-    }
-    if ("byNumber" in group) {
-      return group.byNumber.property;
-    }
-    return null;
-  })();
+  // Extract property from group config using canonical propertyId field
+  const groupProperty = group?.propertyId ?? null;
 
-  // Extract group type from config
-  const groupType = (() => {
-    if (!group) {
-      return null;
-    }
-    if ("bySelect" in group) {
-      return "select";
-    }
-    if ("byStatus" in group) {
-      return "status";
-    }
-    if ("byDate" in group) {
-      return "date";
-    }
-    if ("byCheckbox" in group) {
-      return "checkbox";
-    }
-    if ("byMultiSelect" in group) {
-      return "multiSelect";
-    }
-    if ("byText" in group) {
-      return "text";
-    }
-    if ("byNumber" in group) {
-      return "number";
-    }
-    return null;
-  })();
+  // Extract group type from config using canonical propertyType field
+  const groupType = group?.propertyType ?? null;
 
   // Get sort order (defaults to "asc")
   const groupSortOrder = group?.sort ?? "asc";

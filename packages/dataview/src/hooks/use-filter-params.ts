@@ -1,19 +1,16 @@
 "use client";
 
-import type { WhereNode } from "@sparkyidea/shared/types";
-import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
-import { useQueryState } from "nuqs";
-import { useCallback, useContext } from "react";
-import { DataViewContext } from "../lib/providers/data-view-context";
-
-const THROTTLE_MS = 50;
+import { useCallback } from "react";
+import {
+  useQueryParamsActions,
+  useQueryParamsState,
+} from "../lib/providers/query-params-context";
+import type { WhereNode } from "../types";
 
 /**
  * Hook for managing filter state via URL.
  *
- * When used inside DataViewProvider, reads from context (which has defaults applied).
- * When used outside, reads directly from URL.
- * Writes always go to URL.
+ * Reads from QueryParamsContext (single source of truth for validated state).
  *
  * @example
  * ```ts
@@ -21,58 +18,63 @@ const THROTTLE_MS = 50;
  * ```
  */
 export function useFilterParams() {
-  // Try to read from context (has defaults applied)
-  const context = useContext(DataViewContext);
-
-  // URL state for writes and fallback reads
-  const [urlFilter, setUrlFilter] = useQueryState(
-    "filter",
-    parseAsFilter.withOptions({ throttleMs: THROTTLE_MS })
-  );
-
-  // Use context value if available (has defaults), otherwise URL value
-  const filter = context?.filter ?? urlFilter;
-
-  // Set filter (replaces entire filter)
-  const setFilter = useCallback(
-    (newFilter: WhereNode[] | null) => {
-      void setUrlFilter(newFilter);
-    },
-    [setUrlFilter]
-  );
+  const { filter } = useQueryParamsState();
+  const { setFilter } = useQueryParamsActions();
 
   // Add filter - immediate
   const addFilter = useCallback(
     (node: WhereNode) => {
       const current = filter ?? [];
-      void setUrlFilter([...current, node]);
+      setFilter([...current, node]);
     },
-    [filter, setUrlFilter]
+    [filter, setFilter]
   );
 
-  // Remove filter - immediate
+  // Recursively remove property from a single node
+  const removePropertyFromNode = useCallback(
+    (node: WhereNode, propertyId: string): WhereNode | null => {
+      // If it's a rule with matching property, remove it
+      if ("property" in node) {
+        return node.property === propertyId ? null : node;
+      }
+
+      // If it's an and/or expression, recurse into children
+      const children = node.and ?? node.or ?? [];
+      const filtered = children
+        .map((child) => removePropertyFromNode(child, propertyId))
+        .filter((child): child is WhereNode => child !== null);
+
+      // If no children remain, remove the entire expression
+      if (filtered.length === 0) {
+        return null;
+      }
+
+      // Return updated expression
+      return node.and ? { and: filtered } : { or: filtered };
+    },
+    []
+  );
+
+  // Remove filter - immediate (recursive)
   const removeFilter = useCallback(
     (propertyId: string) => {
       if (!filter) {
         return;
       }
 
-      const newFilter = filter.filter((node) => {
-        if ("property" in node) {
-          return node.property !== propertyId;
-        }
-        return true;
-      });
+      const newFilter = filter
+        .map((node) => removePropertyFromNode(node, propertyId))
+        .filter((node): node is WhereNode => node !== null);
 
-      void setUrlFilter(newFilter.length > 0 ? newFilter : null);
+      setFilter(newFilter.length > 0 ? newFilter : null);
     },
-    [filter, setUrlFilter]
+    [filter, setFilter, removePropertyFromNode]
   );
 
   // Clear all filters
   const clearFilter = useCallback(() => {
-    void setUrlFilter(null);
-  }, [setUrlFilter]);
+    setFilter(null);
+  }, [setFilter]);
 
   // Reset filter (same as clear)
   const resetFilter = clearFilter;

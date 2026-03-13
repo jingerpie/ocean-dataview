@@ -1,8 +1,7 @@
 "use client";
 
-import type { WhereExpression } from "@sparkyidea/shared/types";
 import { TrashIcon } from "lucide-react";
-import type { PropertyMeta } from "../../../../types";
+import type { PropertyMeta, WhereExpression } from "../../../../types";
 import { Button } from "../../button";
 import { Separator } from "../../separator";
 import { FilterGroup } from "./advanced-filter-group";

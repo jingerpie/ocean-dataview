@@ -16,10 +16,6 @@ updates:
     labels:
       - "area: github actions"
       - "status: ready"
-    groups:
-      composite-actions:
-        patterns:
-          - ".github/actions/*"
 
   # NPM dependencies
   - package-ecosystem: "npm"

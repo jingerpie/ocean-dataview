@@ -5,7 +5,7 @@ import {
   type RelativeDirection,
   type RelativeToTodayValue,
   type RelativeUnit,
-} from "@sparkyidea/shared/utils/get-relative-date-range";
+} from "../../../../../lib/utils/relative-date";
 import { Calendar } from "../../../calendar";
 import { Input } from "../../../input";
 import {
@@ -52,7 +52,7 @@ function RelativeDateDropdowns({
   onChange,
   className,
 }: RelativeDateDropdownsProps) {
-  // Value is [direction, count, unit] - always set by getDefaultValueForCondition
+  // Value is [direction, count, unit]
   const [direction, count, unit] = value ?? ["this", 1, "week"];
 
   // Show count input only for past/next (not "this")
@@ -142,7 +142,7 @@ function RelativeDatePickerContent({
   value,
   onChange,
 }: RelativeDatePickerProps) {
-  // Value is [direction, count, unit] - always set by getDefaultValueForCondition
+  // Value is [direction, count, unit]
   const [direction, count, unit] = value ?? ["this", 1, "week"];
 
   // Calculate date range for calendar display
@@ -188,5 +188,5 @@ function RelativeDatePicker({ value, onChange }: RelativeDatePickerProps) {
 }
 
 export type { RelativeDatePickerProps };
-export type { RelativeToTodayValue } from "@sparkyidea/shared/utils/get-relative-date-range";
+export type { RelativeToTodayValue } from "../../../../../lib/utils/relative-date";
 export { RelativeDatePicker, RelativeDatePickerContent };

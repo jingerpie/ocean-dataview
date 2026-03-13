@@ -26,17 +26,15 @@
     "./utils/parsers/sort": {
       "default": "./src/utils/parsers/sort.ts"
     },
-    "./lib": {
-      "default": "./src/lib/index.ts"
-    },
-    "./lib/*": {
-      "default": "./src/lib/*.ts"
-    },
     "./config": {
       "default": "./src/config/index.ts"
+    },
+    "./search-params": {
+      "default": "./src/utils/search-params.ts"
     }
   },
   "dependencies": {
+    "@sparkyidea/dataview": "workspace:*",
     "@sparkyidea/db": "workspace:*",
     "date-fns": "catalog:",
     "drizzle-orm": "catalog:",

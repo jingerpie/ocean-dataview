@@ -1,11 +1,10 @@
 "use client";
 
-import type { FilterCondition } from "@sparkyidea/shared/types";
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 import { cn } from "../../../../lib/utils";
 import { getFilterConditions } from "../../../../lib/utils/filter";
-import type { PropertyType } from "../../../../types";
+import type { FilterCondition, PropertyType } from "../../../../types";
 import { Button } from "../../button";
 import { Command, CommandGroup, CommandItem, CommandList } from "../../command";
 import { Popover, PopoverContent, PopoverTrigger } from "../../popover";

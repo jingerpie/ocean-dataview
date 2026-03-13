@@ -1,34 +1,25 @@
 "use client";
 
-import type { Limit, SortQuery, WhereNode } from "@sparkyidea/shared/types";
-import {
-  type ColumnConfigInput,
-  parseAsColumnBy,
-} from "@sparkyidea/shared/utils/parsers/column";
-import { parseAsFilter } from "@sparkyidea/shared/utils/parsers/filter";
-import {
-  type GroupConfigInput,
-  parseAsGroupBy,
-} from "@sparkyidea/shared/utils/parsers/group";
-import { parseAsCursors } from "@sparkyidea/shared/utils/parsers/pagination";
-import { parseAsSort } from "@sparkyidea/shared/utils/parsers/sort";
 import {
   useSuspenseInfiniteQuery,
   useSuspenseQuery,
 } from "@tanstack/react-query";
-import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import {
   createContext,
   type ReactNode,
   useCallback,
   useContext,
-  useEffect,
+  useDeferredValue,
   useMemo,
-  useRef,
-  useState,
-  useTransition,
 } from "react";
-import type { ColumnConfig, GroupConfig } from "../../types/group-types";
+import { useExpandedGroups } from "../../hooks/use-expanded-groups";
+import type {
+  ColumnConfigInput,
+  GroupConfigInput,
+  Limit,
+  SortQuery,
+  WhereNode,
+} from "../../types";
 import type {
   InfiniteController,
   PageController,
@@ -41,12 +32,14 @@ import type {
 } from "../../types/pagination-types";
 import type { DataViewProperty } from "../../types/property.type";
 import {
-  DataViewProvider as DataViewProviderCore,
-  type DataViewProviderProps,
+  type CoreProviderProps,
+  DataViewProviderCore,
 } from "./data-view-provider";
+import {
+  useQueryParamsActions,
+  useQueryParamsState,
+} from "./query-params-context";
 import { useToolbarContext } from "./toolbar-context";
-
-const THROTTLE_MS = 50;
 
 // ============================================================================
 // Helpers
@@ -64,35 +57,12 @@ function getGroupByConfig(
     return null;
   }
 
-  // Extract the byXxx config plus sort, excluding hideEmpty
-  let base: GroupConfigInput | null = null;
+  // Extract the core group config plus sort, excluding hideEmpty
+  // With the new canonical structure, we just need to spread the config
+  // and exclude hideEmpty since it's display-only
+  const { hideEmpty: _, ...configWithoutHideEmpty } = group;
 
-  if ("bySelect" in group) {
-    base = { bySelect: group.bySelect };
-  } else if ("byStatus" in group) {
-    base = { byStatus: group.byStatus };
-  } else if ("byCheckbox" in group) {
-    base = { byCheckbox: group.byCheckbox };
-  } else if ("byDate" in group) {
-    base = { byDate: group.byDate };
-  } else if ("byMultiSelect" in group) {
-    base = { byMultiSelect: group.byMultiSelect };
-  } else if ("byText" in group) {
-    base = { byText: group.byText };
-  } else if ("byNumber" in group) {
-    base = { byNumber: group.byNumber };
-  }
-
-  if (!base) {
-    return group;
-  }
-
-  // Include sort if present (affects server-side ordering)
-  if (group.sort) {
-    return { ...base, sort: group.sort };
-  }
-
-  return base;
+  return configWithoutHideEmpty;
 }
 
 // ============================================================================
@@ -268,11 +238,18 @@ function InfiniteGroupKeys({
   hideEmpty,
   search,
 }: InfiniteGroupKeysProps) {
+  // Defer filter/search/hideEmpty to prevent re-suspending on changes
+  // This keeps previous group keys visible while new data loads
+  // Note: groupByConfig is NOT deferred - structural changes show skeleton
+  const deferredFilter = useDeferredValue(filter);
+  const deferredSearch = useDeferredValue(search);
+  const deferredHideEmpty = useDeferredValue(hideEmpty);
+
   const factoryOptions = groupQuery({
-    filter,
+    filter: deferredFilter,
     groupConfig: groupByConfig,
-    hideEmpty,
-    search,
+    hideEmpty: deferredHideEmpty,
+    search: deferredSearch,
   });
 
   // Spread tRPC options directly - tRPC's infiniteQueryOptions returns a complete config
@@ -358,11 +335,18 @@ function SuspendingColumnKeys({
   hideEmpty,
   search,
 }: SuspendingColumnKeysProps) {
+  // Defer filter/search/hideEmpty to prevent re-suspending on changes
+  // This keeps previous column keys visible while new data loads
+  // Note: columnByConfig is NOT deferred - structural changes show skeleton
+  const deferredFilter = useDeferredValue(filter);
+  const deferredSearch = useDeferredValue(search);
+  const deferredHideEmpty = useDeferredValue(hideEmpty);
+
   const factoryOptions = columnQuery({
     columnConfig: columnByConfig,
-    filter,
-    hideEmpty,
-    search,
+    filter: deferredFilter,
+    hideEmpty: deferredHideEmpty,
+    search: deferredSearch,
   });
   const { data: rawColumnData } = useSuspenseQuery({
     queryKey: factoryOptions.queryKey,
@@ -390,10 +374,10 @@ const noopSetCursor = (_groupKey: string, _cursor: CursorValue | null) => {
  * URL defaults configuration.
  */
 interface DefaultsConfig {
-  column?: ColumnConfig | null;
+  column?: ColumnConfigInput | null;
   expanded?: string[];
   filter?: WhereNode[] | null;
-  group?: GroupConfig | null;
+  group?: GroupConfigInput | null;
   limit?: Limit;
   search?: string;
   sort?: SortQuery[];
@@ -408,7 +392,7 @@ interface PageQueryBridgeProps<
   controller: PageController<TQueryOptions>;
   defaults?: DefaultsConfig;
   viewProps: Omit<
-    DataViewProviderProps<TData, TProperties>,
+    CoreProviderProps<TData, TProperties>,
     | "children"
     | "counts"
     | "data"
@@ -428,8 +412,8 @@ interface PageQueryBridgeProps<
 /**
  * PageQueryBridge - Orchestrates page-based query execution and data aggregation.
  *
- * Owns nuqs hooks for URL state management internally, keeping re-renders
- * scoped to this component and its children only.
+ * Consumes validated state from QueryParamsContext (single source of truth).
+ * URL state and validation are managed by QueryParamsProvider (parent).
  *
  * For grouped mode, uses SuspendingGroupKeys to suspend until group keys are available,
  * preventing the "flat view flash" during initial load.
@@ -446,63 +430,28 @@ export function PageQueryBridge<
 }: PageQueryBridgeProps<TData, TProperties, TQueryOptions>) {
   const { dataQuery, groupQuery } = controller;
 
-  // Defaults from provider props
+  // Defaults for expanded groups (not managed by QueryParamsContext)
+  const { expanded: defaultExpanded } = defaults ?? {};
+
+  // ============================================================================
+  // Consume from QueryParamsContext (single source of truth)
+  // ============================================================================
+
+  const queryParamsState = useQueryParamsState();
+  const queryParamsActions = useQueryParamsActions();
+
+  const { column, cursors, filter, group, isPending, limit, search, sort } =
+    queryParamsState;
+
   const {
-    column: defaultColumn = null,
-    expanded: defaultExpanded,
-    filter: defaultFilter = null,
-    group: defaultGroup = null,
-    limit: defaultLimit = 25,
-    search: defaultSearch = "",
-    sort: defaultSort = [],
-  } = defaults ?? {};
-
-  const [isPending, startTransition] = useTransition();
-
-  // ============================================================================
-  // URL State via nuqs
-  // ============================================================================
-
-  const [urlColumn, setUrlColumn] = useQueryState(
-    "column",
-    parseAsColumnBy.withOptions({ throttleMs: THROTTLE_MS })
-  );
-  const [urlCursors, setUrlCursors] = useQueryState(
-    "cursors",
-    parseAsCursors.withOptions({ throttleMs: THROTTLE_MS })
-  );
-  const [urlLimit, setUrlLimit] = useQueryState(
-    "limit",
-    parseAsInteger.withOptions({ throttleMs: THROTTLE_MS })
-  );
-  const [urlFilter, setUrlFilter] = useQueryState(
-    "filter",
-    parseAsFilter.withOptions({ throttleMs: THROTTLE_MS })
-  );
-  const [urlSort, setUrlSort] = useQueryState(
-    "sort",
-    parseAsSort.withOptions({ throttleMs: THROTTLE_MS })
-  );
-  const [urlSearch, setUrlSearch] = useQueryState(
-    "search",
-    parseAsString.withOptions({ throttleMs: THROTTLE_MS })
-  );
-  const [urlGroup, setUrlGroup] = useQueryState(
-    "group",
-    parseAsGroupBy.withOptions({ throttleMs: THROTTLE_MS })
-  );
-
-  // ============================================================================
-  // Current Values (URL ?? defaults)
-  // ============================================================================
-
-  const column = urlColumn ?? defaultColumn;
-  const cursors = urlCursors ?? {};
-  const filter = urlFilter ?? defaultFilter;
-  const sort = urlSort ?? defaultSort;
-  const search = urlSearch ?? defaultSearch;
-  const group = urlGroup ?? defaultGroup;
-  const limit = (urlLimit ?? defaultLimit) as Limit;
+    setColumn,
+    setCursor,
+    setFilter,
+    setGroup,
+    setLimit,
+    setSearch,
+    setSort,
+  } = queryParamsActions;
 
   // ============================================================================
   // Group Mode Detection
@@ -516,94 +465,6 @@ export function PageQueryBridge<
 
   // Extract only structural config (without sort/hideEmpty) for query
   const groupByConfig = useMemo(() => getGroupByConfig(group), [group]);
-
-  // ============================================================================
-  // Setters (defined before use in inner component)
-  // ============================================================================
-
-  const setColumn = useCallback(
-    (newColumn: ColumnConfigInput | null) => {
-      startTransition(() => {
-        setUrlColumn(newColumn);
-      });
-    },
-    [setUrlColumn]
-  );
-
-  const setCursor = useCallback(
-    (groupKey: string, cursor: CursorValue | null) => {
-      startTransition(() => {
-        if (cursor === null) {
-          // Remove cursor for this group
-          setUrlCursors((prev) => {
-            if (!prev) {
-              return null;
-            }
-            const next = { ...prev };
-            delete next[groupKey];
-            return Object.keys(next).length > 0 ? next : null;
-          });
-        } else {
-          setUrlCursors((prev) => ({ ...prev, [groupKey]: cursor }));
-        }
-      });
-    },
-    [setUrlCursors]
-  );
-
-  const setLimit = useCallback(
-    (newLimit: Limit) => {
-      startTransition(() => {
-        setUrlLimit(newLimit);
-        // Clear cursors when limit changes
-        setUrlCursors(null);
-      });
-    },
-    [setUrlLimit, setUrlCursors]
-  );
-
-  const setFilter = useCallback(
-    (newFilter: WhereNode[] | null) => {
-      startTransition(() => {
-        setUrlFilter(newFilter);
-        // Clear cursors when filter changes
-        setUrlCursors(null);
-      });
-    },
-    [setUrlFilter, setUrlCursors]
-  );
-
-  const setSort = useCallback(
-    (newSort: SortQuery[]) => {
-      startTransition(() => {
-        setUrlSort(newSort.length > 0 ? newSort : null);
-        // Clear cursors when sort changes
-        setUrlCursors(null);
-      });
-    },
-    [setUrlSort, setUrlCursors]
-  );
-
-  const setSearch = useCallback(
-    (newSearch: string) => {
-      startTransition(() => {
-        setUrlSearch(newSearch || null);
-        // Clear cursors when search changes
-        setUrlCursors(null);
-      });
-    },
-    [setUrlSearch, setUrlCursors]
-  );
-
-  const setGroup = useCallback(
-    (newGroup: GroupConfigInput | null) => {
-      startTransition(() => {
-        setUrlGroup(newGroup);
-        setUrlCursors(null);
-      });
-    },
-    [setUrlGroup, setUrlCursors]
-  );
 
   // ============================================================================
   // Render Inner Component with Group Data
@@ -723,7 +584,7 @@ interface PageQueryBridgeInnerProps<
   TProperties extends readonly DataViewProperty<TData>[],
 > {
   children: ReactNode;
-  column: ColumnConfig | null;
+  column: ColumnConfigInput | null;
   columnCounts?: GroupCounts;
   cursors: Cursors;
   dataQuery: (params: unknown) => unknown;
@@ -748,7 +609,7 @@ interface PageQueryBridgeInnerProps<
   setSort: (sort: SortQuery[]) => void;
   sort: SortQuery[];
   viewProps: Omit<
-    DataViewProviderProps<TData, TProperties>,
+    CoreProviderProps<TData, TProperties>,
     | "children"
     | "counts"
     | "data"
@@ -806,51 +667,12 @@ function PageQueryBridgeInner<
   // Expanded State
   // ============================================================================
 
-  // Compute initial expanded value
-  const getInitialExpanded = useCallback(() => {
-    if (defaultExpanded && defaultExpanded.length > 0) {
-      return defaultExpanded;
-    }
-    // Flat mode (not grouped) - always expand to show data
-    if (groupKeys.length === 1 && groupKeys[0] === "__ungrouped__") {
-      return ["__ungrouped__"];
-    }
-    // Grouped mode - collapse all by default
-    return [];
-  }, [defaultExpanded, groupKeys]);
-
-  // Local state for expanded groups (not persisted to URL)
-  const [localExpanded, setLocalExpanded] =
-    useState<string[]>(getInitialExpanded);
-
-  // Track groupKeys for detecting changes
-  const prevGroupKeysRef = useRef(groupKeys);
-
-  // Handle groupKeys changes (e.g., switching between flat/grouped mode)
-  useEffect(() => {
-    const prevKeys = prevGroupKeysRef.current;
-    const keysChanged =
-      prevKeys.length !== groupKeys.length ||
-      prevKeys.some((k, i) => k !== groupKeys[i]);
-
-    if (keysChanged) {
-      prevGroupKeysRef.current = groupKeys;
-      setLocalExpanded(getInitialExpanded());
-    }
-  }, [groupKeys, getInitialExpanded]);
-
-  const setExpandedGroups = useCallback((groups: string[]) => {
-    setLocalExpanded(groups);
-  }, []);
-
-  // Reset expanded groups when group config changes
-  const handleSetGroup = useCallback(
-    (newGroup: GroupConfigInput | null) => {
-      setGroup(newGroup);
-      setLocalExpanded([]);
-    },
-    [setGroup]
-  );
+  const { expandedGroups, handleSetGroup, setExpandedGroups } =
+    useExpandedGroups({
+      defaultExpanded,
+      groupKeys,
+      setGroup,
+    });
 
   // ============================================================================
   // Build Runtime State for Context
@@ -859,7 +681,7 @@ function PageQueryBridgeInner<
   const runtimeState = useMemo<QueryRuntimeState>(
     () => ({
       cursors,
-      expandedGroups: localExpanded,
+      expandedGroups,
       filter,
       group,
       groupCounts,
@@ -884,7 +706,7 @@ function PageQueryBridgeInner<
     }),
     [
       cursors,
-      localExpanded,
+      expandedGroups,
       filter,
       group,
       groupCounts,
@@ -935,12 +757,12 @@ function PageQueryBridgeInner<
   return (
     <QueryControllerContext.Provider value={runtimeState}>
       <DataViewProviderCore<TData, TProperties>
-        {...(viewProps as DataViewProviderProps<TData, TProperties>)}
+        {...(viewProps as CoreProviderProps<TData, TProperties>)}
         column={column}
         columnCounts={viewProps.columnCounts}
         counts={mergedCounts}
         data={[]}
-        expandedGroups={localExpanded}
+        expandedGroups={expandedGroups}
         filter={filter}
         group={group}
         groupKeys={groupKeys}
@@ -974,7 +796,7 @@ interface InfiniteQueryBridgeProps<
   controller: InfiniteController<TQueryOptions>;
   defaults?: DefaultsConfig;
   viewProps: Omit<
-    DataViewProviderProps<TData, TProperties>,
+    CoreProviderProps<TData, TProperties>,
     | "children"
     | "counts"
     | "data"
@@ -994,8 +816,8 @@ interface InfiniteQueryBridgeProps<
 /**
  * InfiniteQueryBridge - Orchestrates infinite query execution and data aggregation.
  *
- * Owns nuqs hooks for URL state management internally, keeping re-renders
- * scoped to this component and its children only.
+ * Consumes validated state from QueryParamsContext (single source of truth).
+ * URL state and validation are managed by QueryParamsProvider (parent).
  *
  * For grouped mode, uses SuspendingGroupKeys to suspend until group keys are available,
  * preventing the "flat view flash" during initial load.
@@ -1012,58 +834,21 @@ export function InfiniteQueryBridge<
 }: InfiniteQueryBridgeProps<TData, TProperties, TQueryOptions>) {
   const { columnQuery, groupQuery, dataQuery } = controller;
 
-  // Defaults from provider props
-  const {
-    column: defaultColumn = null,
-    expanded: defaultExpanded,
-    filter: defaultFilter = null,
-    group: defaultGroup = null,
-    limit: defaultLimit = 25,
-    search: defaultSearch = "",
-    sort: defaultSort = [],
-  } = defaults ?? {};
-
-  const [isPending, startTransition] = useTransition();
+  // Defaults for expanded groups (not managed by QueryParamsContext)
+  const { expanded: defaultExpanded } = defaults ?? {};
 
   // ============================================================================
-  // URL State via nuqs
+  // Consume from QueryParamsContext (single source of truth)
   // ============================================================================
 
-  const [urlColumn, setUrlColumn] = useQueryState(
-    "column",
-    parseAsColumnBy.withOptions({ throttleMs: THROTTLE_MS })
-  );
-  const [urlLimit, setUrlLimit] = useQueryState(
-    "limit",
-    parseAsInteger.withOptions({ throttleMs: THROTTLE_MS })
-  );
-  const [urlFilter, setUrlFilter] = useQueryState(
-    "filter",
-    parseAsFilter.withOptions({ throttleMs: THROTTLE_MS })
-  );
-  const [urlSort, setUrlSort] = useQueryState(
-    "sort",
-    parseAsSort.withOptions({ throttleMs: THROTTLE_MS })
-  );
-  const [urlSearch, setUrlSearch] = useQueryState(
-    "search",
-    parseAsString.withOptions({ throttleMs: THROTTLE_MS })
-  );
-  const [urlGroup, setUrlGroup] = useQueryState(
-    "group",
-    parseAsGroupBy.withOptions({ throttleMs: THROTTLE_MS })
-  );
+  const queryParamsState = useQueryParamsState();
+  const queryParamsActions = useQueryParamsActions();
 
-  // ============================================================================
-  // Current Values (URL ?? defaults)
-  // ============================================================================
+  const { column, filter, group, isPending, limit, search, sort } =
+    queryParamsState;
 
-  const column = urlColumn ?? defaultColumn;
-  const filter = urlFilter ?? defaultFilter;
-  const sort = urlSort ?? defaultSort;
-  const search = urlSearch ?? defaultSearch;
-  const group = urlGroup ?? defaultGroup;
-  const limit = (urlLimit ?? defaultLimit) as Limit;
+  const { setColumn, setFilter, setGroup, setLimit, setSearch, setSort } =
+    queryParamsActions;
 
   // ============================================================================
   // Column & Group Mode Detection
@@ -1085,64 +870,6 @@ export function InfiniteQueryBridge<
 
   // Extract only structural config (without sort/hideEmpty) for query
   const groupByConfig = useMemo(() => getGroupByConfig(group), [group]);
-
-  // ============================================================================
-  // Setters (defined before use in inner component)
-  // ============================================================================
-
-  const setColumn = useCallback(
-    (newColumn: ColumnConfigInput | null) => {
-      startTransition(() => {
-        setUrlColumn(newColumn);
-      });
-    },
-    [setUrlColumn]
-  );
-
-  const setLimit = useCallback(
-    (newLimit: Limit) => {
-      startTransition(() => {
-        setUrlLimit(newLimit);
-      });
-    },
-    [setUrlLimit]
-  );
-
-  const setFilter = useCallback(
-    (newFilter: WhereNode[] | null) => {
-      startTransition(() => {
-        setUrlFilter(newFilter);
-      });
-    },
-    [setUrlFilter]
-  );
-
-  const setSort = useCallback(
-    (newSort: SortQuery[]) => {
-      startTransition(() => {
-        setUrlSort(newSort.length > 0 ? newSort : null);
-      });
-    },
-    [setUrlSort]
-  );
-
-  const setSearch = useCallback(
-    (newSearch: string) => {
-      startTransition(() => {
-        setUrlSearch(newSearch || null);
-      });
-    },
-    [setUrlSearch]
-  );
-
-  const setGroup = useCallback(
-    (newGroup: GroupConfigInput | null) => {
-      startTransition(() => {
-        setUrlGroup(newGroup);
-      });
-    },
-    [setUrlGroup]
-  );
 
   // ============================================================================
   // Render Inner Component with Column & Group Data
@@ -1299,7 +1026,7 @@ interface InfiniteQueryBridgeInnerProps<
   TProperties extends readonly DataViewProperty<TData>[],
 > {
   children: ReactNode;
-  column: ColumnConfig | null;
+  column: ColumnConfigInput | null;
   columnCounts?: GroupCounts;
   dataQuery: (params: unknown) => unknown;
   defaultExpanded?: string[];
@@ -1322,7 +1049,7 @@ interface InfiniteQueryBridgeInnerProps<
   setSort: (sort: SortQuery[]) => void;
   sort: SortQuery[];
   viewProps: Omit<
-    DataViewProviderProps<TData, TProperties>,
+    CoreProviderProps<TData, TProperties>,
     | "children"
     | "counts"
     | "data"
@@ -1379,51 +1106,12 @@ function InfiniteQueryBridgeInner<
   // Expanded State
   // ============================================================================
 
-  // Compute initial expanded value
-  const getInitialExpanded = useCallback(() => {
-    if (defaultExpanded && defaultExpanded.length > 0) {
-      return defaultExpanded;
-    }
-    // Flat mode (not grouped) - always expand to show data
-    if (groupKeys.length === 1 && groupKeys[0] === "__ungrouped__") {
-      return ["__ungrouped__"];
-    }
-    // Grouped mode - collapse all by default
-    return [];
-  }, [defaultExpanded, groupKeys]);
-
-  // Local state for expanded groups (not persisted to URL)
-  const [localExpanded, setLocalExpanded] =
-    useState<string[]>(getInitialExpanded);
-
-  // Track groupKeys for detecting changes
-  const prevGroupKeysRef = useRef(groupKeys);
-
-  // Handle groupKeys changes (e.g., switching between flat/grouped mode)
-  useEffect(() => {
-    const prevKeys = prevGroupKeysRef.current;
-    const keysChanged =
-      prevKeys.length !== groupKeys.length ||
-      prevKeys.some((k, i) => k !== groupKeys[i]);
-
-    if (keysChanged) {
-      prevGroupKeysRef.current = groupKeys;
-      setLocalExpanded(getInitialExpanded());
-    }
-  }, [groupKeys, getInitialExpanded]);
-
-  const setExpandedGroups = useCallback((groups: string[]) => {
-    setLocalExpanded(groups);
-  }, []);
-
-  // Reset expanded groups when group config changes
-  const handleSetGroup = useCallback(
-    (newGroup: GroupConfigInput | null) => {
-      setGroup(newGroup);
-      setLocalExpanded([]);
-    },
-    [setGroup]
-  );
+  const { expandedGroups, handleSetGroup, setExpandedGroups } =
+    useExpandedGroups({
+      defaultExpanded,
+      groupKeys,
+      setGroup,
+    });
 
   // ============================================================================
   // Build Runtime State for Context
@@ -1433,7 +1121,7 @@ function InfiniteQueryBridgeInner<
   const runtimeState = useMemo<QueryRuntimeState>(
     () => ({
       cursors: {},
-      expandedGroups: localExpanded,
+      expandedGroups,
       filter,
       group,
       groupCounts,
@@ -1457,7 +1145,7 @@ function InfiniteQueryBridgeInner<
       type: "infinite",
     }),
     [
-      localExpanded,
+      expandedGroups,
       filter,
       group,
       groupCounts,
@@ -1507,12 +1195,12 @@ function InfiniteQueryBridgeInner<
   return (
     <QueryControllerContext.Provider value={runtimeState}>
       <DataViewProviderCore<TData, TProperties>
-        {...(viewProps as DataViewProviderProps<TData, TProperties>)}
+        {...(viewProps as CoreProviderProps<TData, TProperties>)}
         column={column}
         columnCounts={columnCounts}
         counts={mergedCounts}
         data={[]}
-        expandedGroups={localExpanded}
+        expandedGroups={expandedGroups}
         filter={filter}
         group={group}
         groupKeys={groupKeys}

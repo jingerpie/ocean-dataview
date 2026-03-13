@@ -1,8 +1,11 @@
 "use client";
 
-import type { FilterCondition, WhereRule } from "@sparkyidea/shared/types";
 import { applyConditionChange } from "../../../../lib/utils/filter-variant";
-import type { PropertyMeta } from "../../../../types";
+import type {
+  FilterCondition,
+  PropertyMeta,
+  WhereRule,
+} from "../../../../types";
 import { ConditionPicker } from "./condition-picker";
 import { CheckboxValueEditor } from "./properties/checkbox-filter";
 import { DateValueEditor } from "./properties/date-filter";
@@ -40,7 +43,7 @@ function SimpleFilterEditor({
   const label = property.label ?? String(property.id);
 
   const handleConditionChange = (newCondition: FilterCondition) => {
-    onRuleChange(applyConditionChange(rule, newCondition, property.type));
+    onRuleChange(applyConditionChange(rule, newCondition));
   };
 
   const handleValueChange = (value: unknown) => {

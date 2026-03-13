@@ -1,44 +1,19 @@
-import type { WhereNode, WhereRule } from "@sparkyidea/shared/types";
-import type { GroupByConfigInput } from "@sparkyidea/shared/utils/parsers/group";
+import type {
+  GroupByConfig,
+  WhereNode,
+  WhereRule,
+} from "@sparkyidea/shared/types";
 
 // Regex patterns for parsing number range group keys
-const LESS_THAN_REGEX = /^< (\d+)$/;
-const PLUS_REGEX = /^(\d+)\+$/;
-const RANGE_REGEX = /^(\d+)-(\d+)$/;
+// Supports negative numbers and decimals (e.g., "< -10", "-5.5+", "-10-0", "1.5-2.5")
+const LESS_THAN_REGEX = /^< (-?\d+(?:\.\d+)?)$/;
+const PLUS_REGEX = /^(-?\d+(?:\.\d+)?)\+$/;
+// Range regex: handles "min-max" including negative ranges like "-10-0" or "-10--5"
+// Uses lookbehind to distinguish range separator from negative sign
+const RANGE_REGEX = /^(-?\d+(?:\.\d+)?)-(-?\d+(?:\.\d+)?)$/;
 
 // Regex for matching single uppercase letter (A-Z)
 const SINGLE_LETTER_REGEX = /^[A-Z]$/;
-
-/**
- * Extracts the property name from a GroupByConfigInput.
- */
-function getGroupProperty(group: GroupByConfigInput | null): string | null {
-  if (!group) {
-    return null;
-  }
-  if ("bySelect" in group) {
-    return group.bySelect.property;
-  }
-  if ("byStatus" in group) {
-    return group.byStatus.property;
-  }
-  if ("byDate" in group) {
-    return group.byDate.property;
-  }
-  if ("byCheckbox" in group) {
-    return group.byCheckbox.property;
-  }
-  if ("byMultiSelect" in group) {
-    return group.byMultiSelect.property;
-  }
-  if ("byText" in group) {
-    return group.byText.property;
-  }
-  if ("byNumber" in group) {
-    return group.byNumber.property;
-  }
-  return null;
-}
 
 /**
  * Parse a text alphabetical group key into filter rule.
@@ -89,8 +64,13 @@ function parseNumberRangeFilter(property: string, groupKey: string): WhereRule {
     };
   }
 
-  // Fallback: exact number match
-  return { property, condition: "eq", value: groupKey };
+  // Fallback: exact number match (parse as number if valid)
+  const numValue = Number(groupKey);
+  return {
+    property,
+    condition: "eq",
+    value: Number.isNaN(numValue) ? groupKey : numValue,
+  };
 }
 
 /**
@@ -103,7 +83,7 @@ function parseNumberRangeFilter(property: string, groupKey: string): WhereRule {
  * @returns Array of WhereNodes for use with buildWhere
  */
 export function combineGroupFilter(
-  group: GroupByConfigInput | null,
+  group: GroupByConfig | null,
   groupKey: string,
   userFilter: WhereNode[] | null
 ): WhereNode[] {
@@ -112,26 +92,35 @@ export function combineGroupFilter(
     return userFilter ?? [];
   }
 
-  const property = getGroupProperty(group);
+  const property = group.propertyId;
   if (!property) {
     return userFilter ?? [];
   }
 
-  // Build group rule based on group type
+  // Build group rule based on group type using canonical propertyType
   let groupRule: WhereRule;
 
-  if ("byCheckbox" in group) {
-    // Checkbox groups: "true" → true, "false" → false
-    groupRule = { property, condition: "eq", value: groupKey === "true" };
-  } else if ("byNumber" in group) {
-    // Number groups: parse range formats (e.g., "0-100", "< 100", "500+")
-    groupRule = parseNumberRangeFilter(property, groupKey);
-  } else if ("byText" in group && group.byText.showAs === "alphabetical") {
-    // Text alphabetical groups: parse letter or "#" for non-alphabetic
-    groupRule = parseTextAlphabeticalFilter(property, groupKey);
-  } else {
-    // Default: exact match
-    groupRule = { property, condition: "eq", value: groupKey };
+  switch (group.propertyType) {
+    case "checkbox":
+      // Checkbox groups: "true" → true, "false" → false
+      groupRule = { property, condition: "eq", value: groupKey === "true" };
+      break;
+    case "number":
+      // Number groups: parse range formats (e.g., "0-100", "< 100", "500+")
+      groupRule = parseNumberRangeFilter(property, groupKey);
+      break;
+    case "text":
+      // Text alphabetical groups: parse letter or "#" for non-alphabetic
+      if (group.showAs === "alphabetical") {
+        groupRule = parseTextAlphabeticalFilter(property, groupKey);
+      } else {
+        // Exact text match
+        groupRule = { property, condition: "eq", value: groupKey };
+      }
+      break;
+    default:
+      // Default: exact match (select, status, multiSelect, date)
+      groupRule = { property, condition: "eq", value: groupKey };
   }
 
   if (!userFilter || userFilter.length === 0) {

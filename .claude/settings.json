@@ -1,7 +1,4 @@
 {
-  "permissions": {
-    "deny": ["Bash(git commit*)", "Bash(git add*)"]
-  },
   "hooks": {
     "PostToolUse": [
       {

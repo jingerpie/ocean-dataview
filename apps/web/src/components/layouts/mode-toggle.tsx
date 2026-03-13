@@ -8,6 +8,9 @@ export function ModeToggle() {
   const { setTheme, resolvedTheme } = useTheme();
 
   const toggleTheme = useCallback(() => {
+    if (!resolvedTheme) {
+      return;
+    }
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   }, [resolvedTheme, setTheme]);
 

@@ -1,6 +1,5 @@
-import type { FilterCondition } from "@sparkyidea/shared/types";
 import { format, parseISO } from "date-fns";
-import type { PropertyType } from "../types";
+import type { FilterCondition, PropertyType } from "../types";
 
 /**
  * Date range value for isBetween condition: [from, to]

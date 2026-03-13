@@ -1,11 +1,5 @@
 "use client";
 
-import type {
-  WhereExpression,
-  WhereNode,
-  WhereRule,
-} from "@sparkyidea/shared/types";
-import { isWhereRule } from "@sparkyidea/shared/types";
 import { cn } from "../../../../lib/utils";
 import {
   addCondition,
@@ -19,6 +13,12 @@ import {
   wrapInGroup,
 } from "../../../../lib/utils/filter-builder";
 import type { PropertyMeta } from "../../../../types";
+import {
+  isWhereRule,
+  type WhereExpression,
+  type WhereNode,
+  type WhereRule,
+} from "../../../../types";
 import { AddFilterButton } from "./advanced-add-filter-button";
 import { AdvancedFilterActions } from "./advanced-filter-actions";
 import { LogicPicker } from "./advanced-filter-logic-picker";

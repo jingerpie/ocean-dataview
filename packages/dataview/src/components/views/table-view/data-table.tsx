@@ -181,8 +181,10 @@ export function DataTable<TData>({
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {
-                      const propertyType = header.column.columnDef.meta
-                        ?.propertyType as PropertyType | undefined;
+                      const meta = header.column.columnDef.meta as
+                        | { propertyType?: PropertyType }
+                        | undefined;
+                      const propertyType = meta?.propertyType;
                       const headerDef = header.column.columnDef.header;
                       const headerLabel =
                         typeof headerDef === "string" ? headerDef : undefined;
@@ -233,8 +235,10 @@ export function DataTable<TData>({
                     onClick={() => onRowClick?.(row.original)}
                   >
                     {row.getVisibleCells().map((cell) => {
-                      const propertyType = cell.column.columnDef.meta
-                        ?.propertyType as PropertyType | undefined;
+                      const meta = cell.column.columnDef.meta as
+                        | { propertyType?: PropertyType }
+                        | undefined;
+                      const propertyType = meta?.propertyType;
                       const headerDef = cell.column.columnDef.header;
                       const headerLabel =
                         typeof headerDef === "string" ? headerDef : undefined;

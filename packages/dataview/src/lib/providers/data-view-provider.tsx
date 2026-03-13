@@ -1,7 +1,5 @@
 "use client";
 
-import type { SortQuery, WhereNode } from "@sparkyidea/shared/types";
-import { parseAsInteger, useQueryState } from "nuqs";
 import {
   Children,
   isValidElement,
@@ -15,12 +13,16 @@ import { BoardSkeleton } from "../../components/views/board-view/board-skeleton"
 import { GallerySkeleton } from "../../components/views/gallery-view/gallery-skeleton";
 import { ListSkeleton } from "../../components/views/list-view/list-skeleton";
 import { TableSkeleton } from "../../components/views/table-view/table-skeleton";
-import { useGroupParams } from "../../hooks/use-group-params";
-import type { Limit, PropertyType } from "../../types";
+import type {
+  ColumnConfigInput,
+  GroupConfigInput,
+  Limit,
+  PropertyType,
+  SortQuery,
+  WhereNode,
+} from "../../types";
 import {
-  type ColumnConfig,
   type DataViewProperty,
-  type GroupConfig,
   type GroupCounts,
   toPropertyMetaArray,
   type ViewCounts,
@@ -36,6 +38,10 @@ import {
   type PaginationOutput,
 } from "./data-view-context";
 import { InfiniteQueryBridge, PageQueryBridge } from "./query-bridge";
+import {
+  QueryParamsProvider,
+  useQueryParamsState,
+} from "./query-params-context";
 import { ToolbarContextProvider } from "./toolbar-context";
 
 // ============================================================================
@@ -159,13 +165,13 @@ function renderViewSkeleton(
  */
 export interface DefaultsConfig {
   /** Default column config for board (includes view options like showCount) */
-  column?: ColumnConfig | null;
+  column?: ColumnConfigInput | null;
   /** Default expanded groups */
   expanded?: string[];
   /** Default filter */
   filter?: WhereNode[] | null;
   /** Default group config (includes view options like showCount) */
-  group?: GroupConfig | null;
+  group?: GroupConfigInput | null;
   /** Default page size @default 10 */
   limit?: Limit;
   /** Default search */
@@ -182,20 +188,9 @@ export interface DefaultsConfig {
  * Check if controller prop is a PageController.
  */
 function isPageController<TQueryOptions>(
-  // biome-ignore lint/suspicious/noExplicitAny: Generic union type
-  controller: any
+  controller: PageController<TQueryOptions> | InfiniteController<TQueryOptions>
 ): controller is PageController<TQueryOptions> {
-  return controller && controller.type === "page";
-}
-
-/**
- * Check if controller prop is an InfiniteController.
- */
-function isInfiniteController<TQueryOptions>(
-  // biome-ignore lint/suspicious/noExplicitAny: Generic union type
-  controller: any
-): controller is InfiniteController<TQueryOptions> {
-  return controller && controller.type === "infinite";
+  return controller.type === "page";
 }
 
 // ============================================================================
@@ -203,44 +198,10 @@ function isInfiniteController<TQueryOptions>(
 // ============================================================================
 
 /**
- * Props when using direct data (no pagination controller).
+ * Props for DataViewProvider.
+ * Requires a controller for data fetching and URL state management.
  */
-interface DirectDataProps<
-  TData,
-  TProperties extends readonly DataViewProperty<TData>[],
-> {
-  children: ReactNode;
-  className?: string;
-  column?: ColumnConfig | null;
-  columnCounts?: GroupCounts;
-  counts?: ViewCounts;
-  data: TData[];
-  expandedGroups?: string[];
-  filter?: WhereNode[] | null;
-  group?: GroupConfig | null;
-  /** Keys for all groups (from server group counts query) */
-  groupKeys?: string[];
-  /** Whether there are more groups to load */
-  hasNextGroupPage?: boolean;
-  /** Whether currently fetching more groups */
-  isFetchingNextGroupPage?: boolean;
-  limit?: number;
-  onColumnChange?: (column: ColumnConfig | null) => void;
-  onExpandedGroupsChange?: (groups: string[]) => void;
-  /** Callback to load more groups */
-  onLoadMoreGroups?: () => void;
-  pagination?: PaginationOutput<TData>;
-  properties: TProperties;
-  propertyVisibility?: TProperties[number]["id"][];
-  search?: string;
-  sort?: SortQuery[];
-}
-
-/**
- * Props when using a controller.
- * Data, filter, sort, search, expandedGroups are managed by the controller.
- */
-interface ControllerProps<
+export interface DataViewProviderProps<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
   TQueryOptions,
@@ -257,15 +218,6 @@ interface ControllerProps<
   propertyVisibility?: TProperties[number]["id"][];
 }
 
-export type DataViewProviderProps<
-  TData,
-  TProperties extends readonly DataViewProperty<TData>[],
-  // biome-ignore lint/suspicious/noExplicitAny: Controller is generic
-  TQueryOptions = any,
-> =
-  | DirectDataProps<TData, TProperties>
-  | ControllerProps<TData, TProperties, TQueryOptions>;
-
 // ============================================================================
 // Component
 // ============================================================================
@@ -276,125 +228,189 @@ export function DataViewProvider<
     readonly DataViewProperty<TData>[] = readonly DataViewProperty<TData>[],
   // biome-ignore lint/suspicious/noExplicitAny: Controller is generic
   TQueryOptions = any,
->(props: DataViewProviderProps<TData, TProperties, TQueryOptions>) {
-  const { children, className, properties } = props;
-  const controller = "controller" in props ? props.controller : undefined;
+>({
+  children,
+  className,
+  columnCounts,
+  controller,
+  counts,
+  defaults,
+  properties,
+  propertyVisibility,
+}: DataViewProviderProps<TData, TProperties, TQueryOptions>) {
+  // Detect view metadata (type and default limit)
+  const { contentChildren } = splitChildren(children);
+  const viewMetadata = detectViewMetadata(contentChildren);
+  const mergedDefaults = {
+    ...defaults,
+    limit: defaults?.limit ?? viewMetadata.defaultLimit,
+  };
 
-  // Get actual group state from URL (for skeleton selection)
-  const { isGrouped } = useGroupParams();
+  // Wrap with QueryParamsProvider for single source of truth
+  return (
+    <QueryParamsProvider defaults={mergedDefaults} properties={properties}>
+      <DataViewProviderWithQueryParams<TData, TProperties, TQueryOptions>
+        className={className}
+        columnCounts={columnCounts}
+        controller={controller}
+        counts={counts}
+        mergedDefaults={mergedDefaults}
+        properties={properties}
+        propertyVisibility={propertyVisibility}
+        viewMetadata={viewMetadata}
+      >
+        {children}
+      </DataViewProviderWithQueryParams>
+    </QueryParamsProvider>
+  );
+}
 
-  // Get limit from URL (for skeleton row count)
-  const [urlLimit] = useQueryState("limit", parseAsInteger);
+// ============================================================================
+// Inner Component (uses QueryParamsContext)
+// ============================================================================
 
-  // Split children into toolbar (non-suspending) and content (may suspend)
+interface DataViewProviderWithQueryParamsProps<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+  TQueryOptions,
+> {
+  children: ReactNode;
+  className?: string;
+  columnCounts?: GroupCounts;
+  controller: PageController<TQueryOptions> | InfiniteController<TQueryOptions>;
+  counts?: Partial<ViewCounts>;
+  mergedDefaults: DefaultsConfig;
+  properties: TProperties;
+  propertyVisibility?: TProperties[number]["id"][];
+  viewMetadata: { dataViewType: DataViewType; defaultLimit: Limit };
+}
+
+/**
+ * Inner component that reads from QueryParamsContext for skeleton logic.
+ * This component is rendered inside QueryParamsProvider.
+ */
+function DataViewProviderWithQueryParams<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+  TQueryOptions,
+>({
+  children,
+  className,
+  columnCounts,
+  controller,
+  counts,
+  mergedDefaults,
+  properties,
+  propertyVisibility,
+  viewMetadata,
+}: DataViewProviderWithQueryParamsProps<TData, TProperties, TQueryOptions>) {
+  // Read validated state from QueryParamsContext
+  const queryParams = useQueryParamsState();
+  const { group, limit } = queryParams;
+  const isGrouped = group !== null;
+
+  // Split children
   const { toolbarChildren, contentChildren } = splitChildren(children);
 
   // Convert properties to PropertyMeta array for ToolbarContextProvider
   const propertyMetas = toPropertyMetaArray(properties);
 
-  // Route to QueryBridge if controller is provided
+  // Build view props for QueryBridge
+  const viewProps = {
+    columnCounts,
+    counts,
+    properties,
+    propertyVisibility,
+  };
+
+  // Calculate skeleton values from validated state
+  const visibleProperties = properties.filter((p) => !p.hidden);
+  const propertyTypes = visibleProperties.map((p) => p.type);
+
+  // Choose appropriate skeleton based on detected view type and validated group state
+  const fallbackSkeleton = renderViewSkeleton(
+    viewMetadata.dataViewType,
+    propertyTypes,
+    limit,
+    isGrouped
+  );
+
+  // Determine controller type
   const isPage = isPageController(controller);
-  const isInfinite = isInfiniteController(controller);
-
-  if (isPage || isInfinite) {
-    const controllerProps = props as ControllerProps<
-      TData,
-      TProperties,
-      TQueryOptions
-    >;
-    const viewProps = {
-      columnCounts: controllerProps.columnCounts,
-      counts: controllerProps.counts,
-      properties,
-      propertyVisibility: controllerProps.propertyVisibility,
-    };
-
-    // Detect view metadata (type and default limit)
-    const viewMetadata = detectViewMetadata(contentChildren);
-    const mergedDefaults = {
-      ...controllerProps.defaults,
-      limit: controllerProps.defaults?.limit ?? viewMetadata.defaultLimit,
-    };
-
-    // Calculate skeleton values from URL or merged defaults
-    const limit = urlLimit ?? mergedDefaults.limit;
-    const visibleProperties = properties.filter((p) => !p.hidden);
-    const propertyTypes = visibleProperties.map((p) => p.type);
-
-    // Choose appropriate skeleton based on detected view type and URL group state
-    const fallbackSkeleton = renderViewSkeleton(
-      viewMetadata.dataViewType,
-      propertyTypes,
-      limit,
-      isGrouped
-    );
-
-    return (
-      <ToolbarContextProvider
-        column={controllerProps.defaults?.column}
-        group={controllerProps.defaults?.group}
-        properties={propertyMetas}
-      >
-        <div className={cn("flex flex-col gap-2", className)}>
-          {toolbarChildren}
-          {/* Key changes when isGrouped changes, forcing new Suspense boundary with correct fallback */}
-          <Suspense
-            fallback={fallbackSkeleton}
-            key={isGrouped ? "grouped" : "flat"}
-          >
-            {isPage ? (
-              <PageQueryBridge<TData, TProperties, TQueryOptions>
-                controller={
-                  controllerProps.controller as PageController<TQueryOptions>
-                }
-                defaults={mergedDefaults}
-                viewProps={viewProps}
-              >
-                {contentChildren}
-              </PageQueryBridge>
-            ) : (
-              <InfiniteQueryBridge<TData, TProperties, TQueryOptions>
-                controller={
-                  controllerProps.controller as InfiniteController<TQueryOptions>
-                }
-                defaults={mergedDefaults}
-                viewProps={viewProps}
-              >
-                {contentChildren}
-              </InfiniteQueryBridge>
-            )}
-          </Suspense>
-        </div>
-      </ToolbarContextProvider>
-    );
-  }
-
-  // Direct data path (backwards compatible)
-  const directProps = props as DirectDataProps<TData, TProperties>;
 
   return (
-    <ToolbarContextProvider
-      column={directProps.column}
-      group={directProps.group}
-      properties={propertyMetas}
-    >
-      <div className={cn("flex flex-col", className)}>
+    <ToolbarContextProvider properties={propertyMetas}>
+      <div className={cn("flex flex-col gap-2", className)}>
         {toolbarChildren}
-        <DataViewProviderCore<TData, TProperties> {...directProps}>
-          {contentChildren}
-        </DataViewProviderCore>
+        {/* Key changes when isGrouped changes, forcing new Suspense boundary with correct fallback */}
+        <Suspense
+          fallback={fallbackSkeleton}
+          key={isGrouped ? "grouped" : "flat"}
+        >
+          {isPage ? (
+            <PageQueryBridge<TData, TProperties, TQueryOptions>
+              controller={controller as PageController<TQueryOptions>}
+              defaults={mergedDefaults}
+              viewProps={viewProps}
+            >
+              {contentChildren}
+            </PageQueryBridge>
+          ) : (
+            <InfiniteQueryBridge<TData, TProperties, TQueryOptions>
+              controller={controller as InfiniteController<TQueryOptions>}
+              defaults={mergedDefaults}
+              viewProps={viewProps}
+            >
+              {contentChildren}
+            </InfiniteQueryBridge>
+          )}
+        </Suspense>
       </div>
     </ToolbarContextProvider>
   );
 }
 
 // ============================================================================
-// Core Provider (Internal)
+// Core Provider (Internal - used by QueryBridge)
 // ============================================================================
 
 /**
+ * Internal props for DataViewProviderCore.
+ * Used by QueryBridge to pass resolved data to views.
+ */
+export interface CoreProviderProps<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+> {
+  children: ReactNode;
+  column?: ColumnConfigInput | null;
+  columnCounts?: GroupCounts;
+  counts?: ViewCounts;
+  data: TData[];
+  expandedGroups?: string[];
+  filter?: WhereNode[] | null;
+  group?: GroupConfigInput | null;
+  /** Keys for all groups (from server group counts query) */
+  groupKeys?: string[];
+  /** Whether there are more groups to load */
+  hasNextGroupPage?: boolean;
+  /** Whether currently fetching more groups */
+  isFetchingNextGroupPage?: boolean;
+  limit?: number;
+  onColumnChange?: (column: ColumnConfigInput | null) => void;
+  onExpandedGroupsChange?: (groups: string[]) => void;
+  /** Callback to load more groups */
+  onLoadMoreGroups?: () => void;
+  pagination?: PaginationOutput<TData>;
+  properties: TProperties;
+  propertyVisibility?: TProperties[number]["id"][];
+  search?: string;
+  sort?: SortQuery[];
+}
+
+/**
  * DataViewProviderCore - The actual provider implementation.
- * Used directly by QueryBridge and for direct data usage.
+ * Used internally by QueryBridge to provide resolved data to views.
  */
 export function DataViewProviderCore<
   TData = unknown,
@@ -421,7 +437,7 @@ export function DataViewProviderCore<
   propertyVisibility: propertyVisibilityProp,
   search,
   sort,
-}: DirectDataProps<TData, TProperties>) {
+}: CoreProviderProps<TData, TProperties>) {
   // Get all property IDs that CAN be visible (hidden !== true in definition)
   const allVisiblePropertyIds = useMemo(
     () =>

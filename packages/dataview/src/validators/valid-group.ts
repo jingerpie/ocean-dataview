@@ -1,4 +1,9 @@
-import type { DataViewProperty } from "../../types";
+import type { GroupConfigInput } from "../types/group.type";
+import type { DataViewProperty, PropertyMeta } from "../types/property.type";
+
+// ============================================================================
+// ShowAs Validation
+// ============================================================================
 
 /**
  * Validates showAs configuration against property type
@@ -55,6 +60,9 @@ export function validateShowAs(
   return null;
 }
 
+/** Minimal property shape for validation (works with both DataViewProperty and PropertyMeta) */
+type PropertyLike = Pick<PropertyMeta, "enableGroup" | "id" | "type">;
+
 /**
  * Validates group configuration for views
  * @param properties - Array of property definitions
@@ -62,8 +70,8 @@ export function validateShowAs(
  * @param showAs - Optional showAs configuration
  * @returns Error message string if invalid, null if valid
  */
-export function validateGroupConfig<TData>(
-  properties: readonly DataViewProperty<TData>[],
+export function validateGroupConfig(
+  properties: readonly PropertyLike[],
   groupBy: string,
   showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option"
 ): string | null {
@@ -79,4 +87,55 @@ export function validateGroupConfig<TData>(
 
   // If property found, validate showAs compatibility with property type
   return validateShowAs(groupByProperty.type, String(groupBy), showAs);
+}
+
+// ============================================================================
+// Property Extraction
+// ============================================================================
+
+/** Property types that cannot be grouped */
+const NON_GROUPABLE_TYPES = new Set(["formula", "button", "filesMedia"]);
+
+/**
+ * Extract groupable property IDs from properties.
+ * Excludes formula, button, filesMedia types which aren't groupable.
+ * Respects enableGroup: false on individual properties.
+ */
+function getGroupablePropertyIds(
+  properties: readonly PropertyLike[]
+): Set<string> {
+  return new Set(
+    properties
+      .filter(
+        (p) => !NON_GROUPABLE_TYPES.has(p.type) && p.enableGroup !== false
+      )
+      .map((p) => p.id)
+  );
+}
+
+// ============================================================================
+// Pure Validation Function
+// ============================================================================
+
+/**
+ * Validate group config against property definitions.
+ * Returns null if property doesn't exist (so url ?? defaults still works).
+ *
+ * Accepts both DataViewProperty[] and PropertyMeta[] for flexibility.
+ *
+ * @example
+ * ```ts
+ * const group = parseAsGroupBy(url);
+ * const validatedGroup = validateGroup(group, productProperties);
+ * ```
+ */
+export function validateGroup<T>(
+  group: GroupConfigInput | null,
+  properties: readonly DataViewProperty<T>[] | readonly PropertyMeta[]
+): GroupConfigInput | null {
+  if (!group) {
+    return null;
+  }
+  const validPropertyIds = getGroupablePropertyIds(properties);
+  return validPropertyIds.has(group.propertyId) ? group : null;
 }

@@ -7,9 +7,10 @@ import {
   useSortParams,
 } from "../../../hooks";
 import { useToolbarState } from "../../../hooks/use-toolbar-state";
+import { useQueryParamsState } from "../../../lib/providers/query-params-context";
 import { useToolbarContextOptional } from "../../../lib/providers/toolbar-context";
 import { cn } from "../../../lib/utils";
-import type { GroupConfig, PropertyMeta } from "../../../types";
+import type { GroupConfigInput, PropertyMeta } from "../../../types";
 import { Separator } from "../../ui/separator";
 import { SearchInput } from "../../ui/toolbar/search/search-input";
 import { ChipsBar } from "./chips-bar";
@@ -18,44 +19,20 @@ import { SettingsTool } from "./settings-tool";
 import { SortTool } from "./sort-tool";
 
 /**
- * Extract the property ID from a GroupConfig.
+ * Extract the property ID from a GroupConfigInput.
  */
 function getGroupPropertyId(
-  group: GroupConfig | null | undefined
+  group: GroupConfigInput | null | undefined
 ): string | null {
-  if (!group) {
-    return null;
-  }
-  if ("bySelect" in group) {
-    return group.bySelect.property;
-  }
-  if ("byStatus" in group) {
-    return group.byStatus.property;
-  }
-  if ("byDate" in group) {
-    return group.byDate.property;
-  }
-  if ("byCheckbox" in group) {
-    return group.byCheckbox.property;
-  }
-  if ("byMultiSelect" in group) {
-    return group.byMultiSelect.property;
-  }
-  if ("byText" in group) {
-    return group.byText.property;
-  }
-  if ("byNumber" in group) {
-    return group.byNumber.property;
-  }
-  return null;
+  return group?.propertyId ?? null;
 }
 
 /**
  * Extract the property ID from a ColumnConfig.
- * ColumnConfig uses the same structure as GroupConfig.
+ * ColumnConfig uses the same structure as GroupConfigInput.
  */
 function getColumnPropertyId(
-  column: GroupConfig | null | undefined
+  column: GroupConfigInput | null | undefined
 ): string | null {
   return getGroupPropertyId(column);
 }
@@ -117,8 +94,10 @@ function NotionToolbarComponent({
   properties: propProperties,
   ...props
 }: NotionToolbarProps) {
-  // Try to get values from context, fall back to props
+  // Get properties from ToolbarContext
   const ctx = useToolbarContextOptional();
+  // Get query params (group, column) from QueryParamsContext
+  const queryParams = useQueryParamsState();
 
   const properties = propProperties ?? ctx?.properties ?? [];
 
@@ -127,7 +106,7 @@ function NotionToolbarComponent({
     if (groupProperty !== undefined) {
       return groupProperty;
     }
-    const groupPropertyId = getGroupPropertyId(ctx?.group);
+    const groupPropertyId = getGroupPropertyId(queryParams.group);
     if (!groupPropertyId) {
       return undefined;
     }
@@ -140,7 +119,7 @@ function NotionToolbarComponent({
     if (columnProperty !== undefined) {
       return columnProperty;
     }
-    const colPropertyId = getColumnPropertyId(ctx?.column);
+    const colPropertyId = getColumnPropertyId(queryParams.column);
     if (!colPropertyId) {
       return undefined;
     }
@@ -149,7 +128,7 @@ function NotionToolbarComponent({
   })();
 
   // Auto-enable column settings when column config exists (board view)
-  const shouldEnableColumn = enableColumn || ctx?.column != null;
+  const shouldEnableColumn = enableColumn || queryParams.column != null;
 
   // State managed via hooks that read/write URL directly
   const { filter, setFilter: onFilterChange, resetFilter } = useFilterParams();

@@ -17,6 +17,10 @@ import {
   encodeTuple,
 } from "../url-dsl/encoder";
 
+// Re-export type guards for external use (used by dataview validators)
+// biome-ignore lint/performance/noBarrelFile: Intentional re-export for validators
+export { isWhereExpression, isWhereRule } from "../../types/filter.type";
+
 // ============================================================================
 // DSL Format
 // ============================================================================
@@ -48,7 +52,15 @@ function encodeRule(rule: WhereRule): string {
 
   // Handle array values with parentheses wrapper
   if (Array.isArray(value)) {
-    const arrayStr = encodeArrayValue(value as (string | number | boolean)[]);
+    // Filter to only primitive elements
+    const primitives = value.filter(
+      (v): v is string | number | boolean =>
+        typeof v === "string" || typeof v === "number" || typeof v === "boolean"
+    );
+    if (primitives.length === 0) {
+      return baseParts.join(".");
+    }
+    const arrayStr = encodeArrayValue(primitives);
     return `${baseParts.join(".")}.${arrayStr}`;
   }
 
@@ -62,6 +74,10 @@ function encodeRule(rule: WhereRule): string {
   }
 
   // Fallback: serialize to JSON string for complex objects
+  // NOTE: This is asymmetric with decode - complex values remain as JSON strings
+  // when decoded since parsePrimitive does not attempt JSON.parse. This is intentional
+  // as it preserves safety (avoiding arbitrary object injection) at the cost of
+  // round-trip fidelity for non-primitive filter values.
   return encodeTuple([rule.property, rule.condition, JSON.stringify(value)]);
 }
 
@@ -199,71 +215,6 @@ export function filterValidator(value: unknown): WhereNode[] | null {
     return null;
   }
   return decodeFilter(value);
-}
-
-// ============================================================================
-// Column Validation
-// ============================================================================
-
-/**
- * Check if filter contains any invalid column names.
- */
-function filterHasInvalidColumn(
-  nodes: WhereNode[],
-  validKeys: Set<string>
-): boolean {
-  for (const node of nodes) {
-    if (isWhereRule(node)) {
-      if (!validKeys.has(node.property)) {
-        return true;
-      }
-    } else if (isWhereExpression(node)) {
-      const items = node.and ?? node.or ?? [];
-      if (filterHasInvalidColumn(items, validKeys)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-/**
- * Create a filter parser with optional column validation.
- * When validColumns is provided, filters with unknown column names are rejected.
- *
- * @example
- * ```ts
- * // Without validation (accepts any column name)
- * const parser = createFilterParser();
- *
- * // With validation (rejects unknown columns)
- * const productColumns = new Set(['name', 'price', 'category']);
- * const parser = createFilterParser(productColumns);
- * ```
- */
-export function createFilterParser(validColumns?: string[] | Set<string>) {
-  let validKeys: Set<string> | null = null;
-  if (validColumns) {
-    validKeys =
-      validColumns instanceof Set ? validColumns : new Set(validColumns);
-  }
-
-  return createParser({
-    parse: (value: string): WhereNode[] | null => {
-      const filter = filterValidator(value);
-      if (!filter) {
-        return null;
-      }
-
-      // Validate column IDs if validation set is provided
-      if (validKeys && filterHasInvalidColumn(filter, validKeys)) {
-        return null;
-      }
-
-      return filter;
-    },
-    serialize: (value: WhereNode[]) => encodeFilter(value),
-  });
 }
 
 // ============================================================================

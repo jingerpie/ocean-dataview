@@ -1,2 +1,2 @@
 // biome-ignore lint/performance/noBarrelFile: Intentional public API barrel file
-export { type DataTableConfig, dataTableConfig } from "./data-table";
+export { DATA_TABLE_CONFIG, type DataTableConfig } from "./data-table";

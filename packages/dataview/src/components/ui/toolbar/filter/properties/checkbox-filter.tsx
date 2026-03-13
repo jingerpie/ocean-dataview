@@ -1,8 +1,7 @@
 "use client";
 
-import type { WhereRule } from "@sparkyidea/shared/types";
 import { CheckIcon } from "lucide-react";
-import type { PropertyMeta } from "../../../../../types";
+import type { PropertyMeta, WhereRule } from "../../../../../types";
 import { Button } from "../../../button";
 import {
   Select,

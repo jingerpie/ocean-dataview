@@ -1,12 +1,12 @@
 "use client";
 
-import type { GroupByConfigInput } from "@sparkyidea/shared/utils/parsers/group";
 import { CheckIcon } from "lucide-react";
 import { useCallback } from "react";
 import {
   type GroupingMode,
   useGroupingParams,
 } from "../../../../hooks/use-grouping-params";
+import type { GroupByConfig } from "../../../../types";
 import { Command, CommandGroup, CommandItem, CommandList } from "../../command";
 
 // Property types that support "Show As" options
@@ -65,25 +65,34 @@ function GroupShowAsPicker({
       ? SHOW_AS_OPTIONS[type as ShowAsGroupType]
       : null;
 
-  // Get current show-as value
+  // Get current show-as value using canonical propertyType discriminant
   const getCurrentShowAs = () => {
     if (!config) {
       return null;
     }
-    if ("byStatus" in config) {
-      return config.byStatus.showAs;
+    switch (config.propertyType) {
+      case "status":
+        return config.showAs;
+      case "date":
+        return config.showAs;
+      case "text":
+        return config.showAs ?? "exact";
+      case "number":
+        // Number uses step value as the showAs identifier
+        return String(config.numberRange?.step ?? 100);
+      case "select":
+      case "multiSelect":
+      case "checkbox":
+        // These types don't have showAs options
+        return null;
+
+      default: {
+        const exhaustiveCheck: never = config;
+        throw new Error(
+          `Unknown propertyType: ${(exhaustiveCheck as GroupByConfig).propertyType}`
+        );
+      }
     }
-    if ("byDate" in config) {
-      return config.byDate.showAs;
-    }
-    if ("byText" in config) {
-      return config.byText.showAs ?? "exact";
-    }
-    if ("byNumber" in config) {
-      // Number uses step value as the showAs identifier
-      return String(config.byNumber.showAs?.step ?? 100);
-    }
-    return null;
   };
 
   const currentShowAs = getCurrentShowAs();
@@ -94,38 +103,49 @@ function GroupShowAsPicker({
         return;
       }
 
-      let newConfig: GroupByConfigInput;
-      if ("byStatus" in config) {
-        newConfig = {
-          byStatus: {
-            ...config.byStatus,
+      let newConfig: GroupByConfig;
+      switch (config.propertyType) {
+        case "status":
+          newConfig = {
+            ...config,
             showAs: value as "option" | "group",
-          },
-        };
-      } else if ("byDate" in config) {
-        newConfig = {
-          byDate: {
-            ...config.byDate,
+          };
+          break;
+        case "date":
+          newConfig = {
+            ...config,
             showAs: value as "day" | "week" | "month" | "year" | "relative",
-          },
-        };
-      } else if ("byText" in config) {
-        newConfig = {
-          byText: {
-            ...config.byText,
+          };
+          break;
+        case "text":
+          newConfig = {
+            ...config,
             showAs: value as "exact" | "alphabetical",
-          },
-        };
-      } else if ("byNumber" in config) {
-        const step = Number.parseInt(value, 10);
-        newConfig = {
-          byNumber: {
-            ...config.byNumber,
-            showAs: { range: [0, 1000], step },
-          },
-        };
-      } else {
-        return;
+          };
+          break;
+        case "number": {
+          const step = Number.parseInt(value, 10);
+          newConfig = {
+            ...config,
+            numberRange: {
+              range: config.numberRange?.range ?? [0, 1000],
+              step,
+            },
+          };
+          break;
+        }
+        case "select":
+        case "multiSelect":
+        case "checkbox":
+          // These types don't have showAs options
+          return;
+
+        default: {
+          const exhaustiveCheck: never = config;
+          throw new Error(
+            `Unknown propertyType: ${(exhaustiveCheck as GroupByConfig).propertyType}`
+          );
+        }
       }
 
       setConfig(newConfig);

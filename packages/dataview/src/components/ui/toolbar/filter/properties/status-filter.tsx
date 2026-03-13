@@ -1,6 +1,5 @@
 "use client";
 
-import type { WhereRule } from "@sparkyidea/shared/types";
 import { ChevronDownIcon, CircleDashed } from "lucide-react";
 import { extractSelectValues } from "../../../../../lib/utils/filter-variant";
 import type {
@@ -8,6 +7,7 @@ import type {
   PropertyMeta,
   StatusConfig,
   StatusGroup,
+  WhereRule,
 } from "../../../../../types";
 import { Button } from "../../../button";
 import { Checkbox } from "../../../checkbox";

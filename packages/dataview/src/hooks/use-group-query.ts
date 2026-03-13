@@ -1,9 +1,9 @@
 "use client";
 
-import type { Limit } from "@sparkyidea/shared/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useCallback, useDeferredValue, useMemo } from "react";
 import { useQueryControllerContext } from "../lib/providers/query-bridge";
+import type { Limit } from "../types";
 import type { BidirectionalPaginatedResponse } from "../types/pagination-types";
 
 export interface UseGroupQueryOptions {
@@ -14,8 +14,6 @@ export interface UseGroupQueryOptions {
 export interface GroupQueryState {
   /** True when a request is in flight (including background refetch) */
   isFetching: boolean;
-  /** True when showing stale data while new data loads (deferred update pending) */
-  isStale: boolean;
 }
 
 export interface GroupPaginationControls {
@@ -104,14 +102,6 @@ export function useGroupQuery<TData = unknown>(
     }),
   });
 
-  const isStale =
-    deferredCursor !== cursor ||
-    deferredFilter !== filter ||
-    deferredSort !== sort ||
-    deferredSearch !== search ||
-    deferredLimit !== limit ||
-    deferredGroup !== group;
-
   const responseData = query.data as
     | BidirectionalPaginatedResponse<TData>
     | undefined;
@@ -161,7 +151,6 @@ export function useGroupQuery<TData = unknown>(
   return {
     data,
     isFetching: query.isFetching,
-    isStale,
     hasNext,
     hasPrev,
     onNext,

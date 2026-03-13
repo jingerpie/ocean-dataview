@@ -1,4 +1,9 @@
-import { productGroupPaginationParams } from "@/lib/validations";
+import {
+  productPaginationParams,
+  validateProductColumn,
+  validateProductFilter,
+  validateProductSort,
+} from "@/lib/validations";
 import { ProductBoardView } from "@/modules/dataview/product-board-view";
 
 interface ProductBoardDemoProps {
@@ -7,16 +12,21 @@ interface ProductBoardDemoProps {
 
 export function ProductBoardDemo({ params }: ProductBoardDemoProps) {
   const { column, filter, group, limit, search, sort } =
-    productGroupPaginationParams.parse(params);
+    productPaginationParams.parse(params);
+
+  // Validate against product properties
+  const validatedColumn = validateProductColumn(column);
+  const validatedFilter = validateProductFilter(filter);
+  const validatedSort = validateProductSort(sort);
 
   return (
     <ProductBoardView
-      column={column}
-      filter={filter}
+      column={validatedColumn}
+      filter={validatedFilter}
       group={group}
       limit={limit}
-      search={search}
-      sort={sort}
+      search={search ?? ""}
+      sort={validatedSort ?? []}
     />
   );
 }

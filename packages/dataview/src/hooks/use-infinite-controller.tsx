@@ -1,7 +1,7 @@
 "use client";
 
-import type { Limit } from "@sparkyidea/shared/types/pagination.type";
 import { useCallback, useMemo, useRef } from "react";
+import type { Limit } from "../types";
 import type {
   BaseQueryOptions,
   ColumnQueryOptionsFactory,

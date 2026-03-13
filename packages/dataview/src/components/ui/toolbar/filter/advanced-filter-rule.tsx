@@ -1,12 +1,15 @@
 "use client";
 
-import type { FilterCondition, WhereRule } from "@sparkyidea/shared/types";
 import { cn } from "../../../../lib/utils";
 import {
   applyConditionChange,
   createRuleFromProperty,
 } from "../../../../lib/utils/filter-variant";
-import type { PropertyMeta } from "../../../../types";
+import type {
+  FilterCondition,
+  PropertyMeta,
+  WhereRule,
+} from "../../../../types";
 import { AdvancedFilterActions } from "./advanced-filter-actions";
 import { LogicPicker } from "./advanced-filter-logic-picker";
 import { AdvancedFilterPicker } from "./advanced-filter-picker";
@@ -81,7 +84,7 @@ function FilterRule({
 
   // Handle condition change
   const handleConditionChange = (newCondition: FilterCondition) => {
-    onRuleChange(applyConditionChange(rule, newCondition, property?.type));
+    onRuleChange(applyConditionChange(rule, newCondition));
   };
 
   return (

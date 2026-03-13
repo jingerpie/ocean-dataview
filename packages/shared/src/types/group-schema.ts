@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-// Date grouping showAs options
+// =============================================================================
+// Show As Options (Zod schemas)
+// =============================================================================
+
 export const dateShowAsSchema = z.enum([
   "day",
   "week",
@@ -8,152 +11,139 @@ export const dateShowAsSchema = z.enum([
   "year",
   "relative",
 ]);
-export type DateShowAs = z.infer<typeof dateShowAsSchema>;
 
-// Status grouping showAs options
 export const statusShowAsSchema = z.enum(["option", "group"]);
-export type StatusShowAs = z.infer<typeof statusShowAsSchema>;
 
-// Text grouping showAs options
 export const textShowAsSchema = z.enum(["exact", "alphabetical"]);
-export type TextShowAs = z.infer<typeof textShowAsSchema>;
 
-// Number range config
+export const weekStartDaySchema = z.enum(["monday", "sunday"]);
+
+// =============================================================================
+// Number Range
+// =============================================================================
+
 export const numberRangeSchema = z.object({
   range: z.tuple([z.number(), z.number()]),
   step: z.number().positive(),
 });
-export type NumberRange = z.infer<typeof numberRangeSchema>;
 
-// Individual group config schemas
-export const byDateConfigSchema = z.object({
-  property: z.string(),
-  showAs: dateShowAsSchema,
-  startWeekOn: z.enum(["monday", "sunday"]).optional(),
-});
+// =============================================================================
+// Property Type Schema
+// =============================================================================
 
-export const byStatusConfigSchema = z.object({
-  property: z.string(),
-  showAs: statusShowAsSchema.optional().default("option"),
-});
-
-export const bySelectConfigSchema = z.object({
-  property: z.string(),
-});
-
-export const byMultiSelectConfigSchema = z.object({
-  property: z.string(),
-});
-
-export const byCheckboxConfigSchema = z.object({
-  property: z.string(),
-});
-
-export const byTextConfigSchema = z.object({
-  property: z.string(),
-  showAs: textShowAsSchema.optional().default("exact"),
-});
-
-export const byNumberConfigSchema = z.object({
-  property: z.string(),
-  showAs: numberRangeSchema.optional(),
-});
-
-// Discriminated union for group-by config (matching dataview types)
-export const groupByConfigSchema = z.union([
-  z.object({ byDate: byDateConfigSchema }),
-  z.object({ byStatus: byStatusConfigSchema }),
-  z.object({ bySelect: bySelectConfigSchema }),
-  z.object({ byMultiSelect: byMultiSelectConfigSchema }),
-  z.object({ byCheckbox: byCheckboxConfigSchema }),
-  z.object({ byText: byTextConfigSchema }),
-  z.object({ byNumber: byNumberConfigSchema }),
+export const propertyTypeSchema = z.enum([
+  "date",
+  "status",
+  "select",
+  "multiSelect",
+  "checkbox",
+  "text",
+  "number",
 ]);
 
-export type GroupByConfigInput = z.infer<typeof groupByConfigSchema>;
+// =============================================================================
+// Individual Group Config Schemas (propertyType discriminant)
+// =============================================================================
 
-// Sort direction schema
+const dateGroupBySchema = z.object({
+  propertyType: z.literal("date"),
+  propertyId: z.string(),
+  showAs: dateShowAsSchema,
+  startWeekOn: weekStartDaySchema.optional(),
+});
+
+const statusGroupBySchema = z.object({
+  propertyType: z.literal("status"),
+  propertyId: z.string(),
+  showAs: statusShowAsSchema.optional(),
+});
+
+const selectGroupBySchema = z.object({
+  propertyType: z.literal("select"),
+  propertyId: z.string(),
+});
+
+const multiSelectGroupBySchema = z.object({
+  propertyType: z.literal("multiSelect"),
+  propertyId: z.string(),
+});
+
+const checkboxGroupBySchema = z.object({
+  propertyType: z.literal("checkbox"),
+  propertyId: z.string(),
+});
+
+const textGroupBySchema = z.object({
+  propertyType: z.literal("text"),
+  propertyId: z.string(),
+  showAs: textShowAsSchema.optional(),
+});
+
+const numberGroupBySchema = z.object({
+  propertyType: z.literal("number"),
+  propertyId: z.string(),
+  numberRange: numberRangeSchema.optional(),
+});
+
+// =============================================================================
+// Discriminated Union for Group-By Config
+// =============================================================================
+
+export const groupByConfigSchema = z.discriminatedUnion("propertyType", [
+  dateGroupBySchema,
+  statusGroupBySchema,
+  selectGroupBySchema,
+  multiSelectGroupBySchema,
+  checkboxGroupBySchema,
+  textGroupBySchema,
+  numberGroupBySchema,
+]);
+
+// =============================================================================
+// Group Options
+// =============================================================================
+
 export const groupSortSchema = z.enum(["asc", "desc"]);
-export type GroupSort = z.infer<typeof groupSortSchema>;
 
-// Full group config with sort (for server-side sorting)
-export const groupConfigSchema = groupByConfigSchema.and(
-  z.object({
-    sort: groupSortSchema.optional(),
-  })
-);
+export const groupOptionsSchema = z.object({
+  hideEmpty: z.boolean().optional(),
+  showCount: z.boolean().optional(),
+  sort: groupSortSchema.optional(),
+});
 
-export type GroupConfigSchemaInput = z.infer<typeof groupConfigSchema>;
+// =============================================================================
+// Full Group Config (GroupBy + Options)
+// =============================================================================
 
-// Parsed group config (normalized format for processing)
-export interface ParsedGroupConfig {
-  numberRange?: { range: [number, number]; step: number };
-  property: string;
-  propertyType:
-    | "date"
-    | "status"
-    | "select"
-    | "multiSelect"
-    | "checkbox"
-    | "text"
-    | "number";
-  showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option";
-  startWeekOn?: "monday" | "sunday";
-  textShowAs?: "exact" | "alphabetical";
-}
+export const groupConfigInputSchema =
+  groupByConfigSchema.and(groupOptionsSchema);
 
-/**
- * Parse discriminated union config into normalized format
- */
-export function parseGroupByConfig(
-  config: GroupByConfigInput
-): ParsedGroupConfig {
-  if ("byDate" in config) {
-    return {
-      property: config.byDate.property,
-      propertyType: "date",
-      showAs: config.byDate.showAs,
-      startWeekOn: config.byDate.startWeekOn,
-    };
-  }
-  if ("byStatus" in config) {
-    return {
-      property: config.byStatus.property,
-      propertyType: "status",
-      showAs: config.byStatus.showAs,
-    };
-  }
-  if ("bySelect" in config) {
-    return {
-      property: config.bySelect.property,
-      propertyType: "select",
-    };
-  }
-  if ("byMultiSelect" in config) {
-    return {
-      property: config.byMultiSelect.property,
-      propertyType: "multiSelect",
-    };
-  }
-  if ("byCheckbox" in config) {
-    return {
-      property: config.byCheckbox.property,
-      propertyType: "checkbox",
-    };
-  }
-  if ("byText" in config) {
-    return {
-      property: config.byText.property,
-      propertyType: "text",
-      textShowAs: config.byText.showAs ?? "exact",
-    };
-  }
-  if ("byNumber" in config) {
-    return {
-      property: config.byNumber.property,
-      propertyType: "number",
-      numberRange: config.byNumber.showAs,
-    };
-  }
-  throw new Error("Invalid group config: no recognized byXXX key found");
-}
+// =============================================================================
+// Column Config (GroupBy + Options - same as Group for consistency)
+// =============================================================================
+
+export const columnConfigInputSchema = groupConfigInputSchema;
+
+// =============================================================================
+// Type Exports (use canonical types from group-config.ts)
+// =============================================================================
+
+// Re-export canonical types
+export type {
+  GroupablePropertyType,
+  GroupByConfig,
+  GroupConfigInput,
+  ParsedGroupConfig,
+} from "./group-config";
+
+// Zod-inferred types (should match canonical types)
+export type GroupByConfigSchema = z.infer<typeof groupByConfigSchema>;
+export type GroupConfigInputSchema = z.infer<typeof groupConfigInputSchema>;
+export type ColumnConfigInputSchema = z.infer<typeof columnConfigInputSchema>;
+
+// =============================================================================
+// Adapter Function (Re-export)
+// =============================================================================
+
+// biome-ignore lint/performance/noBarrelFile: Re-exporting adapter from canonical module
+export { toParsedGroupConfig } from "./group-config";

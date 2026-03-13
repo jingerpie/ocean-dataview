@@ -3,9 +3,9 @@
 import { createContext, useContext } from "react";
 import type { InfinitePaginationState, PagePaginationState } from "../../hooks";
 import type {
-  ColumnConfig,
+  ColumnConfigInput,
   DataViewProperty,
-  GroupConfig,
+  GroupConfigInput,
   GroupCounts,
   PropertyMeta,
   SortQuery,
@@ -22,14 +22,14 @@ export type PaginationOutput<TData> =
   | InfinitePaginationState<TData>;
 
 // Re-export for convenience
-export type { ColumnConfig, GroupConfig } from "../../types";
+export type { ColumnConfigInput, GroupConfigInput } from "../../types";
 
 export interface DataViewContextValue<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
   // Column state (board-specific - visual columns)
-  column?: ColumnConfig | null;
+  column?: ColumnConfigInput | null;
   columnCounts?: GroupCounts;
 
   // Core data
@@ -46,7 +46,7 @@ export interface DataViewContextValue<
   filter?: WhereNode[] | null;
 
   // View config (previously in view prop)
-  group?: GroupConfig | null;
+  group?: GroupConfigInput | null;
 
   /**
    * Keys for all groups (from server group counts query).
@@ -60,7 +60,7 @@ export interface DataViewContextValue<
   isFetchingNextGroupPage?: boolean;
 
   limit?: number;
-  onColumnChange?: (column: ColumnConfig | null) => void;
+  onColumnChange?: (column: ColumnConfigInput | null) => void;
   onExpandedGroupsChange?: (groups: string[]) => void;
   onLoadMoreGroups?: () => void;
   pagination?: PaginationOutput<TData> | undefined;

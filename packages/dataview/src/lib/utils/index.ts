@@ -1,4 +1,13 @@
 // biome-ignore-all lint/performance/noBarrelFile: Intentional public API barrel file
+
+// Re-export adapter function from types
+export { type ParsedGroupConfig, toParsedGroupConfig } from "../../types";
+// Keep original validation utilities (used by dataview components)
+export {
+  validateGroupConfig,
+  validateShowAs,
+} from "../../validators/valid-group";
+export { validatePropertyKeys } from "../../validators/valid-properties";
 export {
   BADGE_BG_CLASSES,
   BADGE_COLOR_CLASSES,
@@ -18,15 +27,9 @@ export {
 } from "./date-picker-utils";
 export { groupByField } from "./group";
 export { paginateData } from "./paginate";
-export {
-  type ParsedGroupConfig,
-  parseGroupByConfig,
-} from "./parse-group-config";
 export { searchData } from "./search";
 export { sortData } from "./sort";
 export { transformData } from "./transform-data";
-export { validateGroupConfig, validateShowAs } from "./validate-group-config";
-export { validatePropertyKeys } from "./validate-properties";
 
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";

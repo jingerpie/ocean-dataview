@@ -1,5 +1,5 @@
-import type { WhereNode } from "@sparkyidea/shared/types";
 import type { ComponentType, SVGProps } from "react";
+import type { WhereNode } from "./filter.type";
 
 /**
  * Generic icon type that accepts any SVG icon component.
@@ -446,7 +446,7 @@ export type DataViewProperty<T> =
 export type PropertyKeys<T extends readonly DataViewProperty<any>[]> =
   T[number]["id"];
 
-// Re-export filter types from shared package for unified system
+// Re-export filter types for unified system
 export type {
   FilterCondition,
   SearchQuery,
@@ -454,7 +454,7 @@ export type {
   WhereExpression,
   WhereNode,
   WhereRule,
-} from "@sparkyidea/shared/types";
+} from "./filter.type";
 
 /** Property types excluded from search by default */
 const EXCLUDED_SEARCH_TYPES: PropertyType[] = [

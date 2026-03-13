@@ -95,6 +95,17 @@ export interface ViewCounts {
   groupSortValues?: GroupSortValues;
 }
 
+/**
+ * Response from paginated group query.
+ * Includes counts, sortValues, and pagination metadata.
+ */
+export interface PaginatedGroupResponse {
+  counts: GroupCounts;
+  hasNextPage: boolean;
+  nextCursor: string | null;
+  sortValues: GroupSortValues;
+}
+
 // ============================================================================
 // Type Inference Utilities
 // ============================================================================

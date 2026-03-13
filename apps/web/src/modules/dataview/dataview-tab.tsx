@@ -5,8 +5,11 @@ import {
   useGroupParams,
   useSortParams,
 } from "@sparkyidea/dataview/hooks";
-import type { SortQuery, WhereNode } from "@sparkyidea/shared/types";
-import type { GroupConfigInput } from "@sparkyidea/shared/utils/parsers/group";
+import type {
+  GroupConfigInput,
+  SortQuery,
+  WhereNode,
+} from "@sparkyidea/shared/types";
 import { Label } from "@sparkyidea/ui/components/label";
 import {
   Select,
@@ -48,7 +51,7 @@ interface DataViewTabProps {
  * <DataViewTab
  *   options={[
  *     { label: "All", group: null },
- *     { label: "By Category", group: { bySelect: { property: "category" } } },
+ *     { label: "By Category", group: { propertyType: "select", propertyId: "category" } },
  *   ]}
  * />
  *

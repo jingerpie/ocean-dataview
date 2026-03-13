@@ -13,10 +13,10 @@ import { AccordionContent, AccordionItem, AccordionTrigger } from "./accordion";
 function getDateGroupShowAs(
   group: ReturnType<typeof useGroupParams>["group"]
 ): string | null {
-  if (!(group && "byDate" in group)) {
+  if (!group || group.propertyType !== "date") {
     return null;
   }
-  return group.byDate.showAs;
+  return group.showAs;
 }
 
 /**

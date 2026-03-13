@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import {
   type ParsedGroupConfig,
-  parseGroupByConfig,
+  toParsedGroupConfig,
   transformData,
   validatePropertyKeys,
 } from "../lib/utils";
-import type { DataViewProperty, GroupConfig, ViewCounts } from "../types";
+import type { DataViewProperty, GroupConfigInput, ViewCounts } from "../types";
 import type { GroupInfo } from "./index";
 import type { GroupedDataItem } from "./use-group-config";
 import { useGroupConfig } from "./use-group-config";
@@ -17,9 +17,11 @@ import { useGroupParams } from "./use-group-params";
 interface InternalGroupConfig {
   groupBy: string;
   hideEmptyGroups?: boolean;
+  numberRange?: { range: [number, number]; step: number };
   showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option";
   sort?: "propertyAscending" | "propertyDescending";
   startWeekOn?: "monday" | "sunday";
+  textShowAs?: "exact" | "alphabetical";
 }
 
 /**
@@ -38,7 +40,7 @@ export interface UseViewSetupOptions<
   /** Raw data from context */
   data: TData[];
   /** Group configuration from context (new discriminated union format) */
-  group?: GroupConfig | null;
+  group?: GroupConfigInput | null;
   /** Property definitions */
   properties: TProperties;
 }
@@ -91,7 +93,7 @@ export function useViewSetup<
 
   // Parse the discriminated union group config
   const parsedGroup = useMemo(
-    () => (group ? parseGroupByConfig(group) : undefined),
+    () => (group ? toParsedGroupConfig(group) : undefined),
     [group]
   );
 
@@ -131,10 +133,12 @@ export function useViewSetup<
       };
     return {
       groupBy: parsedGroup.property,
-      showAs: parsedGroup.showAs,
-      startWeekOn: parsedGroup.startWeekOn,
-      sort: sortMap[groupSortOrder],
       hideEmptyGroups,
+      numberRange: parsedGroup.numberRange,
+      showAs: parsedGroup.showAs,
+      sort: sortMap[groupSortOrder],
+      startWeekOn: parsedGroup.startWeekOn,
+      textShowAs: parsedGroup.textShowAs,
     };
   }, [parsedGroup, hasGroupedPagination, groupSortOrder, hideEmptyGroups]);
 

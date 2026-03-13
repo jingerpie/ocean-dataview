@@ -1,17 +1,10 @@
-import type { DataViewProperty } from "../../types";
+import type { ComputationType, DataViewProperty } from "../../types";
 import { getUserLocale } from "./locale-helpers";
+
+export type { ComputationType } from "../../types";
 
 /** Regex for matching uppercase A-Z letters */
 const UPPERCASE_LETTER_REGEX = /[A-Z]/;
-
-export type ComputationType =
-  | "count"
-  | "sum"
-  | "average"
-  | "min"
-  | "max"
-  | "median"
-  | "distinct";
 
 export interface GroupedDataWithMeta<TData> {
   groups: Record<string, TData[]>;
