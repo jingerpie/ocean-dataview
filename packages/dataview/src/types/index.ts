@@ -100,9 +100,6 @@ export type {
 // Export property types
 export * from "./property.type";
 
-// TanStack Table type augmentation (for ColumnMeta)
-import "./table.type";
-
 // Pagination result interface
 export interface PaginationResult<T> {
   currentPage: number;
