@@ -9,6 +9,7 @@ import {
 } from "../../../lib/utils/chart-colors";
 import type { DataViewProperty } from "../../../types";
 import type { HorizontalBarChartConfig } from "../../../types/chart.type";
+import { EmptyState } from "../empty-state";
 import { HorizontalBarChartInner } from "./horizontal-bar-chart";
 
 export interface HorizontalBarChartViewProps<
@@ -45,20 +46,8 @@ export function HorizontalBarChartView<
     );
   }
 
-  if (data.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center rounded-lg border bg-muted/30 p-8">
-        <p className="text-muted-foreground">No data to display</p>
-      </div>
-    );
-  }
-
-  if (chartData.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center rounded-lg border bg-muted/30 p-8">
-        <p className="text-muted-foreground">No data matches filters</p>
-      </div>
-    );
+  if (data.length === 0 || chartData.length === 0) {
+    return <EmptyState />;
   }
 
   return (

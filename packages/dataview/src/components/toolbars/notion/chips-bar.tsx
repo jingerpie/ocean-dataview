@@ -9,9 +9,9 @@ import type {
   WhereRule,
 } from "../../../types";
 import { Button } from "../../ui/button";
+import { FilterTrigger } from "../../ui/filter/filter-trigger";
+import { SimpleFilterPicker } from "../../ui/filter/simple-filter-picker";
 import { Separator } from "../../ui/separator";
-import { FilterTrigger } from "../../ui/toolbar/filter/filter-trigger";
-import { SimpleFilterPicker } from "../../ui/toolbar/filter/simple-filter-picker";
 import { AdvancedFilterChip } from "./advanced-filter-chip";
 import { SimpleFilterChip } from "./simple-filter-chip";
 import { SortChip } from "./sort-chip";

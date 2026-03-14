@@ -3,7 +3,8 @@
 import { TABLE_COLUMN_WIDTHS } from "../../../lib/constants/skeleton-widths";
 import { cn } from "../../../lib/utils";
 import type { PropertyType } from "../../../types";
-import { PaginationSkeleton } from "../../ui/pagination-skeleton";
+import type { PaginationMode } from "../../ui/pagination";
+import { PaginationSkeleton } from "../../ui/pagination/pagination-skeleton";
 import { Skeleton } from "../../ui/skeleton";
 import {
   Table,
@@ -13,8 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from "../../ui/table";
-
-type PaginationMode = "page" | "loadMore" | "infiniteScroll";
 
 interface TableSkeletonProps extends React.ComponentProps<"div"> {
   /**

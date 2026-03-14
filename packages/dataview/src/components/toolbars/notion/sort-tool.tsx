@@ -5,8 +5,8 @@ import { useState } from "react";
 import { useSortBuilder, useSortParams } from "../../../hooks";
 import type { PropertyMeta } from "../../../types";
 import { Button } from "../../ui/button";
-import { SortPicker } from "../../ui/toolbar/sort/sort-picker";
-import { SortTrigger } from "../../ui/toolbar/sort/sort-trigger";
+import { SortPicker } from "../../ui/sort/sort-picker";
+import { SortTrigger } from "../../ui/sort/sort-trigger";
 
 interface SortToolProps {
   /** Callback when sorts exist and icon is clicked (toggle row2) */

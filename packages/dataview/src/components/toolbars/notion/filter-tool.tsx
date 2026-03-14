@@ -5,8 +5,8 @@ import { useState } from "react";
 import { useFilterParams, useSimpleFilterChip } from "../../../hooks";
 import type { PropertyMeta } from "../../../types";
 import { Button } from "../../ui/button";
-import { FilterTrigger } from "../../ui/toolbar/filter/filter-trigger";
-import { SimpleFilterPicker } from "../../ui/toolbar/filter/simple-filter-picker";
+import { FilterTrigger } from "../../ui/filter/filter-trigger";
+import { SimpleFilterPicker } from "../../ui/filter/simple-filter-picker";
 
 interface FilterToolProps {
   /** Callback when filters exist and icon is clicked (toggle row2) */

@@ -2,8 +2,8 @@
 
 import { useSortBuilder, useSortParams } from "../../../hooks";
 import type { PropertyMeta } from "../../../types";
-import { SortBulkEditor } from "../../ui/toolbar/sort/sort-bulk-editor";
-import { SortTrigger } from "../../ui/toolbar/sort/sort-trigger";
+import { SortBulkEditor } from "../../ui/sort/sort-bulk-editor";
+import { SortTrigger } from "../../ui/sort/sort-trigger";
 
 interface SortChipProps {
   /** Available properties to sort by */

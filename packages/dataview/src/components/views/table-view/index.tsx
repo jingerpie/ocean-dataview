@@ -33,7 +33,7 @@ import {
 } from "../../ui/bulk-actions";
 import { Checkbox } from "../../ui/checkbox";
 import { GroupSection } from "../../ui/group-section";
-import { type PaginationMode, renderPagination } from "../../ui/paginations";
+import { Pagination, type PaginationMode } from "../../ui/pagination";
 import {
   SuspendingGroupContent,
   SuspendingInfiniteGroupContent,
@@ -522,7 +522,9 @@ function SuspendingPageTableContent<
             headerOffset={headerOffset}
             onRowClick={onRowClick}
             onRowSelectionChange={onRowSelectionChange}
-            paginationNode={renderPagination(pagination, paginationContext)}
+            paginationNode={
+              <Pagination context={paginationContext} mode={pagination} />
+            }
             properties={properties}
             rowSelection={rowSelection}
             showVerticalLines={showVerticalLines}
@@ -586,7 +588,9 @@ function SuspendingInfiniteTableContent<
             headerOffset={headerOffset}
             onRowClick={onRowClick}
             onRowSelectionChange={onRowSelectionChange}
-            paginationNode={renderPagination(pagination, paginationContext)}
+            paginationNode={
+              <Pagination context={paginationContext} mode={pagination} />
+            }
             properties={properties}
             rowSelection={rowSelection}
             showVerticalLines={showVerticalLines}

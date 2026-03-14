@@ -11,8 +11,8 @@ import { useQueryParamsState } from "../../../lib/providers/query-params-context
 import { useToolbarContextOptional } from "../../../lib/providers/toolbar-context";
 import { cn } from "../../../lib/utils";
 import type { GroupConfigInput, PropertyMeta } from "../../../types";
+import { SearchInput } from "../../ui/search/search-input";
 import { Separator } from "../../ui/separator";
-import { SearchInput } from "../../ui/toolbar/search/search-input";
 import { ChipsBar } from "./chips-bar";
 import { FilterTool } from "./filter-tool";
 import { SettingsTool } from "./settings-tool";

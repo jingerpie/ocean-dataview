@@ -9,6 +9,7 @@ import {
   type UseInfiniteGroupQueryResult,
   useInfiniteGroupQuery,
 } from "../../hooks/use-infinite-group-query";
+import { EmptyState } from "../views/empty-state";
 
 // ============================================================================
 // Page Pagination (useGroupQuery)
@@ -35,6 +36,11 @@ export function SuspendingGroupContent<TData>({
   groupKey,
 }: SuspendingGroupContentProps<TData>) {
   const result = useGroupQuery<TData>({ groupKey });
+
+  if (result.data.length === 0) {
+    return <EmptyState />;
+  }
+
   return children(result);
 }
 
@@ -63,5 +69,10 @@ export function SuspendingInfiniteGroupContent<TData>({
   groupKey,
 }: SuspendingInfiniteGroupContentProps<TData>) {
   const result = useInfiniteGroupQuery<TData>({ groupKey });
+
+  if (result.data.length === 0) {
+    return <EmptyState />;
+  }
+
   return children(result);
 }

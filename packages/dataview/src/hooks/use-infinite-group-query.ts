@@ -42,12 +42,38 @@ export interface UseInfiniteGroupQueryResult<TData>
   onLimitChange: (limit: Limit) => void;
 }
 
+/**
+ * Default getNextPageParam for simple cursor-based pagination.
+ * Only works when hasNextPage is boolean and endCursor is string/number.
+ * For board views with per-column pagination (Record<string, boolean>),
+ * the caller MUST provide their own getNextPageParam.
+ */
 const defaultGetNextPageParam = (
   lastPage: BasePaginatedResponse<unknown>
-): string | undefined =>
-  lastPage.hasNextPage && lastPage.endCursor
-    ? String(lastPage.endCursor)
-    : undefined;
+): string | undefined => {
+  // Only handle simple boolean hasNextPage
+  // Record<string, boolean> requires custom getNextPageParam
+  if (typeof lastPage.hasNextPage === "object") {
+    throw new Error(
+      "Board views with per-column pagination require a custom getNextPageParam. " +
+        "Pass getNextPageParam to infiniteQueryOptions that handles Record<string, boolean> hasNextPage."
+    );
+  }
+
+  if (!lastPage.hasNextPage) {
+    return undefined;
+  }
+
+  // Validate endCursor is a simple value, not a Record
+  if (lastPage.endCursor !== null && typeof lastPage.endCursor === "object") {
+    throw new Error(
+      "Board views with per-column cursors require a custom getNextPageParam. " +
+        "Pass getNextPageParam to infiniteQueryOptions that handles Record<string, cursor> endCursor."
+    );
+  }
+
+  return lastPage.endCursor != null ? String(lastPage.endCursor) : undefined;
+};
 
 export function useInfiniteGroupQuery<TData = unknown>(
   options: UseInfiniteGroupQueryOptions
@@ -55,6 +81,15 @@ export function useInfiniteGroupQuery<TData = unknown>(
   const { groupKey } = options;
 
   const state = useQueryControllerContext();
+
+  // Guard: This hook requires an InfiniteController
+  if (state.type !== "infinite") {
+    throw new Error(
+      "useInfiniteGroupQuery requires an InfiniteController (type: 'infinite'). " +
+        `Received controller type: '${state.type}'. ` +
+        "Use useGroupQuery for page-based pagination, or switch to useInfiniteController."
+    );
+  }
 
   const { filter, group, limit, dataQuery, search, setLimit, sort } = state;
 
@@ -76,26 +111,41 @@ export function useInfiniteGroupQuery<TData = unknown>(
     queryKey: readonly unknown[];
   }
 
-  const queryOptions = useMemo(
-    () =>
-      dataQuery({
-        filter: deferredFilter,
-        groupConfig: deferredGroup,
-        groupKey,
-        limit: deferredLimit,
-        search: deferredSearch,
-        sort: deferredSort,
-      }) as InfiniteQueryOptionsShape,
-    [
-      dataQuery,
-      deferredFilter,
-      deferredGroup,
+  const queryOptions = useMemo(() => {
+    const options = dataQuery({
+      filter: deferredFilter,
+      groupConfig: deferredGroup,
       groupKey,
-      deferredLimit,
-      deferredSearch,
-      deferredSort,
-    ]
-  );
+      limit: deferredLimit,
+      search: deferredSearch,
+      sort: deferredSort,
+    }) as InfiniteQueryOptionsShape;
+
+    // Validate required infinite query fields
+    if (!(options.queryKey && Array.isArray(options.queryKey))) {
+      throw new Error(
+        "Invalid infinite query options: missing or invalid queryKey. " +
+          "Ensure you're using infiniteQueryOptions(), not regular queryOptions()."
+      );
+    }
+
+    if (typeof options.queryFn !== "function") {
+      throw new Error(
+        "Invalid infinite query options: missing queryFn. " +
+          "Ensure you're using infiniteQueryOptions(), not regular queryOptions()."
+      );
+    }
+
+    return options;
+  }, [
+    dataQuery,
+    deferredFilter,
+    deferredGroup,
+    groupKey,
+    deferredLimit,
+    deferredSearch,
+    deferredSort,
+  ]);
 
   // Spread tRPC options directly and provide fallbacks
   const query = useSuspenseInfiniteQuery({

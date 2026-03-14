@@ -142,9 +142,45 @@ export interface InfiniteQueryOptionsFactoryParams {
 }
 
 /**
- * Query options factory for infinite pagination.
+ * Expected shape for infinite query options.
+ * This interface describes what useInfiniteGroupQuery validates at runtime.
+ * Use tRPC's infiniteQueryOptions() to generate compatible options.
+ *
+ * @example
+ * // Correct: Use infiniteQueryOptions
+ * dataQuery: (params) => trpc.product.getManyByColumn.infiniteQueryOptions({...})
+ *
+ * // WRONG: Regular queryOptions will fail at runtime
+ * dataQuery: (params) => trpc.product.getManyByColumn.queryOptions({...})
  */
-export type InfiniteQueryOptionsFactory<TQueryOptions> = (
+export interface InfiniteQueryOptionsShape {
+  /**
+   * Function to determine the next page parameter.
+   * Required for board views with per-column pagination.
+   */
+  getNextPageParam?: (lastPage: unknown) => unknown;
+  /** Initial page parameter (typically undefined or null) */
+  initialPageParam?: unknown;
+  /** The query function that fetches data */
+  queryFn?: (context: { pageParam: unknown }) => Promise<unknown>;
+  /** Unique key for the query cache */
+  queryKey: readonly unknown[];
+}
+
+/**
+ * Query options factory for infinite pagination.
+ *
+ * IMPORTANT: Must return options compatible with useSuspenseInfiniteQuery.
+ * Use tRPC's infiniteQueryOptions(), not regular queryOptions().
+ *
+ * For board views with per-column pagination (getManyByColumn),
+ * you MUST provide a custom getNextPageParam that handles
+ * Record<string, cursor> format.
+ *
+ * Note: TQueryOptions is loosely typed to accommodate tRPC's complex return types.
+ * Runtime validation in useInfiniteGroupQuery ensures the options are valid.
+ */
+export type InfiniteQueryOptionsFactory<TQueryOptions = unknown> = (
   params: InfiniteQueryOptionsFactoryParams
 ) => TQueryOptions;
 
@@ -152,12 +188,15 @@ export type InfiniteQueryOptionsFactory<TQueryOptions> = (
  * Config object returned by useInfiniteController.
  *
  * Contains query factories. Defaults are passed to DataViewProvider.
+ *
+ * IMPORTANT: BoardView REQUIRES InfiniteController. Using PageController
+ * with BoardView will throw an error at runtime.
  */
-export interface InfiniteController<TQueryOptions> {
+export interface InfiniteController<TQueryOptions = unknown> {
   /** Factory for fetching column counts (board-specific, enables column mode) */
   readonly columnQuery?: ColumnQueryOptionsFactory;
 
-  /** Factory for fetching data items */
+  /** Factory for fetching data items (must use infiniteQueryOptions) */
   readonly dataQuery: InfiniteQueryOptionsFactory<TQueryOptions>;
 
   /** Factory for fetching group counts (enables grouped mode) */
@@ -169,6 +208,6 @@ export interface InfiniteController<TQueryOptions> {
 /**
  * Union type for any controller.
  */
-export type Controller<TQueryOptions> =
+export type Controller<TQueryOptions = unknown> =
   | PageController<TQueryOptions>
   | InfiniteController<TQueryOptions>;

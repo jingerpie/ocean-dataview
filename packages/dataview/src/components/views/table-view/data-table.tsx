@@ -217,59 +217,48 @@ export function DataTable<TData>({
               </TableHeader>
             )}
             <TableBody>
-              {table.getRowModel().rows.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    className="h-24 text-center text-muted-foreground"
-                    colSpan={columns.length}
-                  >
-                    No data to display
-                  </TableCell>
+              {table.getRowModel().rows.map((row) => (
+                <TableRow
+                  className={cn(onRowClick && "cursor-pointer")}
+                  data-state={row.getIsSelected() && "selected"}
+                  key={row.id}
+                  onClick={() => onRowClick?.(row.original)}
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    const meta = cell.column.columnDef.meta as
+                      | { propertyType?: PropertyType }
+                      | undefined;
+                    const propertyType = meta?.propertyType;
+                    const headerDef = cell.column.columnDef.header;
+                    const headerLabel =
+                      typeof headerDef === "string" ? headerDef : undefined;
+                    const columnWidth = calculateColumnWidth(
+                      propertyType,
+                      headerLabel
+                    );
+                    const isSelectionColumn = cell.column.id === "select";
+                    return (
+                      <TableCell
+                        className={cn(
+                          showVerticalLines && "border-r last:border-r-0",
+                          wrapAllColumns ? "whitespace-normal" : "truncate",
+                          isSelectionColumn && "pr-0"
+                        )}
+                        key={cell.id}
+                        style={{
+                          minWidth: columnWidth,
+                          maxWidth: columnWidth,
+                        }}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
-              ) : (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    className={cn(onRowClick && "cursor-pointer")}
-                    data-state={row.getIsSelected() && "selected"}
-                    key={row.id}
-                    onClick={() => onRowClick?.(row.original)}
-                  >
-                    {row.getVisibleCells().map((cell) => {
-                      const meta = cell.column.columnDef.meta as
-                        | { propertyType?: PropertyType }
-                        | undefined;
-                      const propertyType = meta?.propertyType;
-                      const headerDef = cell.column.columnDef.header;
-                      const headerLabel =
-                        typeof headerDef === "string" ? headerDef : undefined;
-                      const columnWidth = calculateColumnWidth(
-                        propertyType,
-                        headerLabel
-                      );
-                      const isSelectionColumn = cell.column.id === "select";
-                      return (
-                        <TableCell
-                          className={cn(
-                            showVerticalLines && "border-r last:border-r-0",
-                            wrapAllColumns ? "whitespace-normal" : "truncate",
-                            isSelectionColumn && "pr-0"
-                          )}
-                          key={cell.id}
-                          style={{
-                            minWidth: columnWidth,
-                            maxWidth: columnWidth,
-                          }}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))
-              )}
+              ))}
             </TableBody>
           </Table>
         </div>
