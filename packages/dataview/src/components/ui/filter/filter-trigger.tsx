@@ -3,8 +3,8 @@
 import { ChevronDownIcon, ListFilterIcon, PlusIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { Button } from "../../button";
-import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
+import { Button } from "../button";
+import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 
 interface FilterTriggerProps {
   /** Content to show in the popover (Picker, Editor, etc.) */

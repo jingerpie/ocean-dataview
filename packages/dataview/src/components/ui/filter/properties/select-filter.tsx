@@ -2,17 +2,17 @@
 
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
-import { getBadgeClasses } from "../../../../../lib/utils";
-import { extractSelectValues } from "../../../../../lib/utils/filter-variant";
+import { getBadgeClasses } from "../../../../lib/utils";
+import { extractSelectValues } from "../../../../lib/utils/filter-variant";
 import type {
   BadgeColor,
   PropertyMeta,
   SelectConfig,
   SelectOption,
   WhereRule,
-} from "../../../../../types";
-import { Button } from "../../../button";
-import { Checkbox } from "../../../checkbox";
+} from "../../../../types";
+import { Button } from "../../button";
+import { Checkbox } from "../../checkbox";
 import {
   Command,
   CommandChip,
@@ -22,8 +22,8 @@ import {
   CommandGroup,
   CommandItem,
   CommandList,
-} from "../../../command";
-import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
+} from "../../command";
+import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 
 // ============================================================================
 // Types

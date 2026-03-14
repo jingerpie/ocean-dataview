@@ -3,8 +3,8 @@
 import { ChevronDownIcon, PlusIcon, SortAscIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { Button } from "../../button";
-import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
+import { Button } from "../button";
+import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 
 interface SortTriggerProps {
   /** Content to show in the popover (Picker, Editor, or BulkEditor) */

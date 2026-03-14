@@ -2,9 +2,9 @@
 
 import { useGroupParams } from "../../../../hooks";
 import type { PropertyMeta } from "../../../../types";
-import { GroupEditor } from "../../../ui/toolbar/group/group-editor";
-import { GroupPicker } from "../../../ui/toolbar/group/group-picker";
-import { GroupShowAsPicker } from "../../../ui/toolbar/group/group-show-as-picker";
+import { GroupEditor } from "../../../ui/group/group-editor";
+import { GroupPicker } from "../../../ui/group/group-picker";
+import { GroupShowAsPicker } from "../../../ui/group/group-show-as-picker";
 
 type SubSection = "property" | "showAs" | null;
 

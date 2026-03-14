@@ -2,8 +2,8 @@
 
 import { ChevronDownIcon } from "lucide-react";
 import { useMemo, useState } from "react";
-import type { PropertyMeta } from "../../../../types";
-import { Button } from "../../button";
+import type { PropertyMeta } from "../../../types";
+import { Button } from "../button";
 import {
   Command,
   CommandEmpty,
@@ -11,9 +11,9 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../../command";
-import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
-import { PropertyIcon } from "../../property-icon";
+} from "../command";
+import { Popover, PopoverContent, PopoverTrigger } from "../popover";
+import { PropertyIcon } from "../property-icon";
 
 interface AdvancedFilterPickerProps {
   /** Callback when property changes */

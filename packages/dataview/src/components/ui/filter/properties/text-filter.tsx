@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useDebouncedCallback } from "../../../../../hooks/use-debounced-callback";
-import type { PropertyMeta, WhereRule } from "../../../../../types";
-import { Input } from "../../../input";
+import { useDebouncedCallback } from "../../../../hooks/use-debounced-callback";
+import type { PropertyMeta, WhereRule } from "../../../../types";
+import { Input } from "../../input";
 
 const FILTER_INPUT_DEBOUNCE_MS = 300;
 

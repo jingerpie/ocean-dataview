@@ -2,8 +2,8 @@
 
 import { useFilterParams } from "../../../../hooks";
 import type { PropertyMeta } from "../../../../types";
-import { FilterBulkEditor } from "../../../ui/toolbar/filter/filter-bulk-editor";
-import { SimpleFilterPicker } from "../../../ui/toolbar/filter/simple-filter-picker";
+import { FilterBulkEditor } from "../../../ui/filter/filter-bulk-editor";
+import { SimpleFilterPicker } from "../../../ui/filter/simple-filter-picker";
 
 interface SettingsFilterProps {
   /** Callback after all filters deleted */

@@ -5,9 +5,9 @@ import {
   type RelativeDirection,
   type RelativeToTodayValue,
   type RelativeUnit,
-} from "../../../../../lib/utils/relative-date";
-import { Calendar } from "../../../calendar";
-import { Input } from "../../../input";
+} from "../../../../lib/utils/relative-date";
+import { Calendar } from "../../calendar";
+import { Input } from "../../input";
 import {
   Select,
   SelectContent,
@@ -15,7 +15,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../select";
+} from "../../select";
 
 interface RelativeDatePickerProps {
   /** Callback when value changes */
@@ -188,5 +188,5 @@ function RelativeDatePicker({ value, onChange }: RelativeDatePickerProps) {
 }
 
 export type { RelativeDatePickerProps };
-export type { RelativeToTodayValue } from "../../../../../lib/utils/relative-date";
+export type { RelativeToTodayValue } from "../../../../lib/utils/relative-date";
 export { RelativeDatePicker, RelativeDatePickerContent };

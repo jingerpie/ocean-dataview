@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "../../../../lib/utils";
+import { cn } from "../../../lib/utils";
 import {
   Select,
   SelectContent,
@@ -8,7 +8,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../select";
+} from "../select";
 
 const DIRECTION_ITEMS = [
   { label: "Ascending", value: "asc" },

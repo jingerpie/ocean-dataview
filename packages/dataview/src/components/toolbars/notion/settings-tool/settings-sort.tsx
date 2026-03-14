@@ -2,8 +2,8 @@
 
 import { useSortParams } from "../../../../hooks";
 import type { PropertyMeta } from "../../../../types";
-import { SortBulkEditor } from "../../../ui/toolbar/sort/sort-bulk-editor";
-import { SortPicker } from "../../../ui/toolbar/sort/sort-picker";
+import { SortBulkEditor } from "../../../ui/sort/sort-bulk-editor";
+import { SortPicker } from "../../../ui/sort/sort-picker";
 
 interface SettingsSortProps {
   /** Callback after all sorts deleted */

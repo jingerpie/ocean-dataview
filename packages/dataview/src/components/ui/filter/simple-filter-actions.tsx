@@ -2,20 +2,20 @@
 
 import { ListFilterIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
 import { useCallback } from "react";
-import { useAdvanceFilterBuilder, useFilterParams } from "../../../../hooks";
-import { cn } from "../../../../lib/utils";
+import { useAdvanceFilterBuilder, useFilterParams } from "../../../hooks";
+import { cn } from "../../../lib/utils";
 import {
   isWhereRule,
   type WhereExpression,
   type WhereRule,
-} from "../../../../types";
-import { Button } from "../../button";
+} from "../../../types";
+import { Button } from "../button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../../dropdown-menu";
+} from "../dropdown-menu";
 
 interface SimpleFilterActionsProps {
   /** Additional class names */

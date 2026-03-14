@@ -1,8 +1,8 @@
 "use client";
 
 import { CheckIcon } from "lucide-react";
-import type { PropertyMeta, WhereRule } from "../../../../../types";
-import { Button } from "../../../button";
+import type { PropertyMeta, WhereRule } from "../../../../types";
+import { Button } from "../../button";
 import {
   Select,
   SelectContent,
@@ -10,7 +10,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../select";
+} from "../../select";
 
 // ============================================================================
 // Types

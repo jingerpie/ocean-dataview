@@ -5,9 +5,9 @@ import { useSimpleFilterChip } from "../../../hooks";
 import { getFilterPreview } from "../../../lib/filter-preview";
 import type { PropertyMeta, WhereRule } from "../../../types";
 import { Button } from "../../ui/button";
+import { SimpleFilterEditor } from "../../ui/filter/simple-filter-editor";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 import { PropertyIcon } from "../../ui/property-icon";
-import { SimpleFilterEditor } from "../../ui/toolbar/filter/simple-filter-editor";
 
 interface SimpleFilterChipProps {
   /** Callback when rule changes */

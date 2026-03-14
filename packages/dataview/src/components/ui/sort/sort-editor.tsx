@@ -4,10 +4,10 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVerticalIcon, XIcon } from "lucide-react";
 import { useCallback, useState } from "react";
-import { useSortParams } from "../../../../hooks";
-import { cn } from "../../../../lib/utils";
-import type { PropertyMeta, SortQuery } from "../../../../types";
-import { Button } from "../../button";
+import { useSortParams } from "../../../hooks";
+import { cn } from "../../../lib/utils";
+import type { PropertyMeta, SortQuery } from "../../../types";
+import { Button } from "../button";
 import {
   Command,
   CommandEmpty,
@@ -15,9 +15,9 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../../command";
-import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
-import { PropertyIcon } from "../../property-icon";
+} from "../command";
+import { Popover, PopoverContent, PopoverTrigger } from "../popover";
+import { PropertyIcon } from "../property-icon";
 import { DirectionPicker } from "./direction-picker";
 
 interface SortEditorProps {

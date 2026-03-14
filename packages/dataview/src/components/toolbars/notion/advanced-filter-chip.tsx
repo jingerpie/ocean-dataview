@@ -2,8 +2,8 @@
 
 import { useAdvanceFilterBuilder } from "../../../hooks";
 import type { PropertyMeta, WhereExpression, WhereNode } from "../../../types";
-import { AdvancedFilterEditor } from "../../ui/toolbar/filter/advanced-filter-editor";
-import { FilterTrigger } from "../../ui/toolbar/filter/filter-trigger";
+import { AdvancedFilterEditor } from "../../ui/filter/advanced-filter-editor";
+import { FilterTrigger } from "../../ui/filter/filter-trigger";
 
 interface AdvancedFilterChipProps {
   /** The compound filter (AND/OR group) */

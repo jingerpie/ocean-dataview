@@ -2,10 +2,10 @@
 
 import { PlusIcon } from "lucide-react";
 import { useCallback, useMemo } from "react";
-import { useAdvanceFilterBuilder, useFilterParams } from "../../../../hooks";
-import { createRuleFromProperty } from "../../../../lib/utils/filter-variant";
-import type { PropertyMeta } from "../../../../types";
-import { isWhereRule } from "../../../../types";
+import { useAdvanceFilterBuilder, useFilterParams } from "../../../hooks";
+import { createRuleFromProperty } from "../../../lib/utils/filter-variant";
+import type { PropertyMeta } from "../../../types";
+import { isWhereRule } from "../../../types";
 import {
   Command,
   CommandEmpty,
@@ -14,8 +14,8 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "../../command";
-import { PropertyIcon } from "../../property-icon";
+} from "../command";
+import { PropertyIcon } from "../property-icon";
 
 interface SimpleFilterPickerProps {
   /** Additional callback after adding filter */

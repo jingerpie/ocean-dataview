@@ -1,16 +1,16 @@
 "use client";
 
 import { ChevronDownIcon, CircleDashed } from "lucide-react";
-import { extractSelectValues } from "../../../../../lib/utils/filter-variant";
+import { extractSelectValues } from "../../../../lib/utils/filter-variant";
 import type {
   BadgeColor,
   PropertyMeta,
   StatusConfig,
   StatusGroup,
   WhereRule,
-} from "../../../../../types";
-import { Button } from "../../../button";
-import { Checkbox } from "../../../checkbox";
+} from "../../../../types";
+import { Button } from "../../button";
+import { Checkbox } from "../../checkbox";
 import {
   Command,
   CommandChip,
@@ -18,9 +18,9 @@ import {
   CommandGroup,
   CommandItem,
   CommandList,
-} from "../../../command";
-import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
-import { Separator } from "../../../separator";
+} from "../../command";
+import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
+import { Separator } from "../../separator";
 
 // ============================================================================
 // Types

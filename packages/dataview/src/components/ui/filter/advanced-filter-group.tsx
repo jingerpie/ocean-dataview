@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "../../../../lib/utils";
+import { cn } from "../../../lib/utils";
 import {
   addCondition,
   addGroup,
@@ -11,14 +11,14 @@ import {
   removeItem,
   updateCondition,
   wrapInGroup,
-} from "../../../../lib/utils/filter-builder";
-import type { PropertyMeta } from "../../../../types";
+} from "../../../lib/utils/filter-builder";
+import type { PropertyMeta } from "../../../types";
 import {
   isWhereRule,
   type WhereExpression,
   type WhereNode,
   type WhereRule,
-} from "../../../../types";
+} from "../../../types";
 import { AddFilterButton } from "./advanced-add-filter-button";
 import { AdvancedFilterActions } from "./advanced-filter-actions";
 import { LogicPicker } from "./advanced-filter-logic-picker";

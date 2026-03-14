@@ -5,8 +5,8 @@ import { useCallback, useMemo } from "react";
 import {
   type GroupingMode,
   useGroupingParams,
-} from "../../../../hooks/use-grouping-params";
-import type { PropertyMeta } from "../../../../types";
+} from "../../../hooks/use-grouping-params";
+import type { PropertyMeta } from "../../../types";
 import {
   Command,
   CommandEmpty,
@@ -14,8 +14,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../../command";
-import { PropertyIcon } from "../../property-icon";
+} from "../command";
+import { PropertyIcon } from "../property-icon";
 
 interface GroupPickerProps {
   /** Mode: "group" or "column" (default: "group") */

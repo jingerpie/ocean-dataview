@@ -1,9 +1,9 @@
 "use client";
 
 import { TrashIcon } from "lucide-react";
-import type { PropertyMeta, WhereExpression } from "../../../../types";
-import { Button } from "../../button";
-import { Separator } from "../../separator";
+import type { PropertyMeta, WhereExpression } from "../../../types";
+import { Button } from "../button";
+import { Separator } from "../separator";
 import { FilterGroup } from "./advanced-filter-group";
 
 interface AdvancedFilterEditorProps {

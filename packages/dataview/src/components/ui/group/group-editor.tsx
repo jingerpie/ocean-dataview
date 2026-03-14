@@ -5,10 +5,10 @@ import { useState } from "react";
 import {
   type GroupingMode,
   useGroupingParams,
-} from "../../../../hooks/use-grouping-params";
-import type { PropertyMeta } from "../../../../types";
-import { Command, CommandGroup, CommandItem, CommandList } from "../../command";
-import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
+} from "../../../hooks/use-grouping-params";
+import type { PropertyMeta } from "../../../types";
+import { Command, CommandGroup, CommandItem, CommandList } from "../command";
+import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { GroupDirectionPicker } from "./group-direction-picker";
 
 interface GroupEditorProps {

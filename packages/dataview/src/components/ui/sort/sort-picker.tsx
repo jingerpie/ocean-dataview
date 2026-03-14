@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useSortParams } from "../../../../hooks";
-import type { PropertyMeta } from "../../../../types";
+import { useSortParams } from "../../../hooks";
+import type { PropertyMeta } from "../../../types";
 import {
   Command,
   CommandEmpty,
@@ -10,8 +10,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../../command";
-import { PropertyIcon } from "../../property-icon";
+} from "../command";
+import { PropertyIcon } from "../property-icon";
 
 interface SortPickerProps {
   /** Additional callback after adding a sort */

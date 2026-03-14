@@ -5,8 +5,8 @@ import { useCallback } from "react";
 import {
   type GroupingMode,
   useGroupingParams,
-} from "../../../../hooks/use-grouping-params";
-import { Command, CommandGroup, CommandItem, CommandList } from "../../command";
+} from "../../../hooks/use-grouping-params";
+import { Command, CommandGroup, CommandItem, CommandList } from "../command";
 
 type GroupSortOrder = "asc" | "desc";
 
