@@ -338,6 +338,15 @@ function DataViewProviderWithQueryParams<
   // Determine controller type
   const isPage = isPageController(controller);
 
+  // BoardView requires InfiniteController - fail fast with actionable error
+  if (viewMetadata.dataViewType === "board" && isPage) {
+    throw new Error(
+      "BoardView requires an InfiniteController. " +
+        "Use useInfiniteController() instead of usePageController(). " +
+        "Board views only support infinite pagination modes (loadMore, infiniteScroll)."
+    );
+  }
+
   return (
     <ToolbarContextProvider properties={propertyMetas}>
       <div className={cn("flex flex-col gap-2", className)}>

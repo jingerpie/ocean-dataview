@@ -82,6 +82,7 @@ export type {
   InfiniteController,
   InfiniteQueryOptionsFactory,
   InfiniteQueryOptionsFactoryParams,
+  InfiniteQueryOptionsShape,
   PageController,
   PageQueryOptionsFactory,
   PageQueryOptionsFactoryParams,

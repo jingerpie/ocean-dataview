@@ -49,6 +49,15 @@ export function useGroupQuery<TData = unknown>(
 
   const state = useQueryControllerContext();
 
+  // Guard: This hook requires a PageController
+  if (state.type !== "page") {
+    throw new Error(
+      "useGroupQuery requires a PageController (type: 'page'). " +
+        `Received controller type: '${state.type}'. ` +
+        "Use useInfiniteGroupQuery for infinite pagination, or switch to usePageController."
+    );
+  }
+
   const {
     cursors,
     filter,

@@ -10,6 +10,26 @@ import type {
   InfiniteQueryOptionsFactory,
 } from "../types/pagination-controller";
 
+/**
+ * Extended interface for infinite query options.
+ * Ensures compatibility with both tRPC's infiniteQueryOptions and manual configurations.
+ *
+ * Note: This interface is intentionally loose to accommodate tRPC's complex types.
+ * Runtime validation in useInfiniteGroupQuery ensures the options are valid.
+ *
+ * @example
+ * // Correct usage with tRPC
+ * dataQuery: (params) => trpc.product.getManyByColumn.infiniteQueryOptions({
+ *   ...params,
+ *   getNextPageParam: (lastPage) => {
+ *     // Handle per-column cursors for board views
+ *     if (Object.values(lastPage.hasNextPage).some(Boolean)) {
+ *       return lastPage.endCursor;
+ *     }
+ *     return undefined;
+ *   },
+ * })
+ */
 export interface InfiniteQueryOptions extends BaseQueryOptions {
   // biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
   getNextPageParam?: any;

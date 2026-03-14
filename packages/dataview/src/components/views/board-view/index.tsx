@@ -4,7 +4,6 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { Suspense, useCallback, useEffect, useMemo, useRef } from "react";
 import type { GroupedDataItem } from "../../../hooks";
 import { useDisplayProperties, useGroupParams } from "../../../hooks";
-import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import {
@@ -26,16 +25,22 @@ import { Accordion } from "../../ui/accordion";
 import { Badge } from "../../ui/badge";
 import { EmptyState } from "../../ui/empty-state";
 import { GroupSection } from "../../ui/group-section";
-import { Pagination, type PaginationMode } from "../../ui/pagination";
-import {
-  SuspendingGroupContent,
-  SuspendingInfiniteGroupContent,
-} from "../../ui/suspending-group-content";
+import { Pagination } from "../../ui/pagination";
+import { SuspendingInfiniteGroupContent } from "../../ui/suspending-group-content";
 import { DataCard } from "../data-card";
 import { DataCell } from "../data-cell";
 import { BoardColumnHeaders } from "./board-column-headers";
 import { BoardColumns } from "./board-columns";
 import { BoardSkeleton } from "./board-skeleton";
+
+/**
+ * Pagination mode for board views.
+ * Board views only support infinite pagination modes (not page-based prev/next).
+ * - "loadMore": "Load more" button that appends items
+ * - "infiniteScroll": Automatic loading when scrolling near bottom
+ * - undefined: No pagination UI
+ */
+export type BoardPaginationMode = "loadMore" | "infiniteScroll";
 
 export interface BoardViewProps<TData> {
   /**
@@ -79,14 +84,14 @@ export interface BoardViewProps<TData> {
 
   /**
    * Pagination mode for the board.
-   * - "page": Classic prev/next pagination with "Showing X-Y"
-   * - "loadMore": "Load more" button
+   * - "loadMore": "Load more" button that appends items
    * - "infiniteScroll": Auto-load on scroll
    * - undefined: No pagination UI
    *
-   * For boards: renders at bottom of each column
+   * Note: Board views only support infinite pagination modes.
+   * Page-based (prev/next) pagination is not supported for boards.
    */
-  pagination?: PaginationMode;
+  pagination?: BoardPaginationMode;
 
   /**
    * Show property names on cards
@@ -283,10 +288,6 @@ export function BoardView<
   // Get card dimensions based on size
   const { imageHeight, columnWidth } = getBoardCardDimensions(cardSize);
 
-  // Determine if we're using infinite pagination for data
-  const useInfinitePagination =
-    pagination === "loadMore" || pagination === "infiniteScroll";
-
   // Get card content using shared DataCard component
   const getCardContent = (item: TData) => (
     <DataCard
@@ -457,33 +458,18 @@ export function BoardView<
                           />
                         }
                       >
-                        {useInfinitePagination ? (
-                          <SuspendingInfiniteBoardContent<TData, TProperties>
-                            columns={columns}
-                            columnWidth={columnWidth}
-                            getCardContent={getCardContent}
-                            getColumnBgClass={getColumnBgClass}
-                            groupKey={rowGroup.key}
-                            keyExtractor={keyExtractor}
-                            pagination={pagination}
-                            parsedColumn={parsedColumn}
-                            properties={properties}
-                            rounded="all"
-                          />
-                        ) : (
-                          <SuspendingPageBoardContent<TData, TProperties>
-                            columns={columns}
-                            columnWidth={columnWidth}
-                            getCardContent={getCardContent}
-                            getColumnBgClass={getColumnBgClass}
-                            groupKey={rowGroup.key}
-                            keyExtractor={keyExtractor}
-                            pagination={pagination}
-                            parsedColumn={parsedColumn}
-                            properties={properties}
-                            rounded="all"
-                          />
-                        )}
+                        <SuspendingInfiniteBoardContent<TData, TProperties>
+                          columns={columns}
+                          columnWidth={columnWidth}
+                          getCardContent={getCardContent}
+                          getColumnBgClass={getColumnBgClass}
+                          groupKey={rowGroup.key}
+                          keyExtractor={keyExtractor}
+                          pagination={pagination}
+                          parsedColumn={parsedColumn}
+                          properties={properties}
+                          rounded="all"
+                        />
                       </Suspense>
                     ) : null}
                   </GroupSection>
@@ -539,33 +525,18 @@ export function BoardView<
                 offset: 57,
               }}
             />
-            {useInfinitePagination ? (
-              <SuspendingInfiniteBoardContent<TData, TProperties>
-                columns={columns}
-                columnWidth={columnWidth}
-                getCardContent={getCardContent}
-                getColumnBgClass={getColumnBgClass}
-                groupKey="__ungrouped__"
-                keyExtractor={keyExtractor}
-                pagination={pagination}
-                parsedColumn={parsedColumn}
-                properties={properties}
-                rounded="bottom"
-              />
-            ) : (
-              <SuspendingPageBoardContent<TData, TProperties>
-                columns={columns}
-                columnWidth={columnWidth}
-                getCardContent={getCardContent}
-                getColumnBgClass={getColumnBgClass}
-                groupKey="__ungrouped__"
-                keyExtractor={keyExtractor}
-                pagination={pagination}
-                parsedColumn={parsedColumn}
-                properties={properties}
-                rounded="bottom"
-              />
-            )}
+            <SuspendingInfiniteBoardContent<TData, TProperties>
+              columns={columns}
+              columnWidth={columnWidth}
+              getCardContent={getCardContent}
+              getColumnBgClass={getColumnBgClass}
+              groupKey="__ungrouped__"
+              keyExtractor={keyExtractor}
+              pagination={pagination}
+              parsedColumn={parsedColumn}
+              properties={properties}
+              rounded="bottom"
+            />
           </Suspense>
         </div>
       </div>
@@ -581,7 +552,7 @@ BoardView.defaultLimit = 25;
 // Suspending Group Content Components
 // ============================================================================
 
-interface SuspendingGroupBoardContentProps<
+interface SuspendingBoardContentProps<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
@@ -591,7 +562,7 @@ interface SuspendingGroupBoardContentProps<
   getColumnBgClass: (columnName: string) => string;
   groupKey: string;
   keyExtractor: (item: TData, index: number) => string;
-  pagination?: PaginationMode;
+  pagination?: BoardPaginationMode;
   parsedColumn?: {
     property: string;
     showAs?:
@@ -611,7 +582,7 @@ interface SuspendingGroupBoardContentProps<
 }
 
 /**
- * Board content renderer - used by both page and infinite pagination variants.
+ * Board content renderer - renders cards grouped into columns.
  */
 function BoardContentRenderer<
   TData,
@@ -634,12 +605,12 @@ function BoardContentRenderer<
   getCardContent: (item: TData) => React.ReactNode;
   getColumnBgClass: (columnName: string) => string;
   keyExtractor: (item: TData, index: number) => string;
-  parsedColumn?: SuspendingGroupBoardContentProps<
+  parsedColumn?: SuspendingBoardContentProps<
     TData,
     TProperties
   >["parsedColumn"];
   properties: TProperties;
-  renderFooter?: () => React.ReactNode;
+  renderFooter?: (columnKey: string) => React.ReactNode;
   rounded?: "top" | "bottom" | "all";
 }) {
   // Transform data with property definitions
@@ -670,68 +641,7 @@ function BoardContentRenderer<
 }
 
 /**
- * Page pagination variant - uses useGroupQuery for prev/next navigation.
- */
-function SuspendingPageBoardContent<
-  TData,
-  TProperties extends readonly DataViewProperty<TData>[],
->({
-  columns,
-  columnWidth,
-  getCardContent,
-  getColumnBgClass,
-  groupKey,
-  keyExtractor,
-  pagination,
-  parsedColumn,
-  properties,
-  rounded = "all",
-}: SuspendingGroupBoardContentProps<TData, TProperties>) {
-  return (
-    <SuspendingGroupContent<TData> groupKey={groupKey}>
-      {(result: UseGroupQueryResult<TData>) => {
-        // Build pagination context from query result
-        const paginationContext: PaginationContext = {
-          displayEnd: result.displayEnd,
-          displayStart: result.displayStart,
-          hasMoreThanMax: false,
-          hasNext: result.hasNext,
-          hasPrev: result.hasPrev,
-          isFetching: result.isFetching,
-          limit: result.limit,
-          onLimitChange: result.onLimitChange,
-          onNext: result.onNext,
-          onPrev: result.onPrev,
-          totalCount: result.data.length,
-        };
-
-        return (
-          <BoardContentRenderer
-            columns={columns}
-            columnWidth={columnWidth}
-            data={result.data}
-            getCardContent={getCardContent}
-            getColumnBgClass={getColumnBgClass}
-            keyExtractor={keyExtractor}
-            parsedColumn={parsedColumn}
-            properties={properties}
-            renderFooter={
-              pagination
-                ? () => (
-                    <Pagination context={paginationContext} mode={pagination} />
-                  )
-                : undefined
-            }
-            rounded={rounded}
-          />
-        );
-      }}
-    </SuspendingGroupContent>
-  );
-}
-
-/**
- * Infinite pagination variant - uses useInfiniteGroupQuery for load more / infinite scroll.
+ * Suspending board content - uses useInfiniteGroupQuery for load more / infinite scroll.
  */
 function SuspendingInfiniteBoardContent<
   TData,
@@ -747,30 +657,10 @@ function SuspendingInfiniteBoardContent<
   parsedColumn,
   properties,
   rounded = "all",
-}: SuspendingGroupBoardContentProps<TData, TProperties>) {
+}: SuspendingBoardContentProps<TData, TProperties>) {
   return (
     <SuspendingInfiniteGroupContent<TData> groupKey={groupKey}>
       {(result: UseInfiniteGroupQueryResult<TData>) => {
-        // hasNextPage can be boolean or Record<string, boolean>
-        // Convert to simple boolean for PaginationContext
-        const hasNext =
-          typeof result.hasNextPage === "boolean"
-            ? result.hasNextPage
-            : Object.values(result.hasNextPage).some(Boolean);
-
-        // Build pagination context from infinite query result
-        // Map infinite query properties to PaginationContext
-        const paginationContext: PaginationContext = {
-          hasMoreThanMax: false,
-          hasNext,
-          isFetching: result.isFetching,
-          isFetchingNextPage: result.isFetchingNextPage,
-          limit: result.limit,
-          onLimitChange: result.onLimitChange,
-          onNext: result.onLoadMore,
-          totalCount: result.data.length,
-        };
-
         return (
           <BoardContentRenderer
             columns={columns}
@@ -783,9 +673,38 @@ function SuspendingInfiniteBoardContent<
             properties={properties}
             renderFooter={
               pagination
-                ? () => (
-                    <Pagination context={paginationContext} mode={pagination} />
-                  )
+                ? (columnKey: string) => {
+                    // hasNextPage can be boolean or Record<string, boolean>
+                    // Check per-column hasNextPage for board columns
+                    const hasNext =
+                      typeof result.hasNextPage === "boolean"
+                        ? result.hasNextPage
+                        : (result.hasNextPage[columnKey] ?? false);
+
+                    // Don't render pagination if this column has no more data
+                    if (!hasNext) {
+                      return null;
+                    }
+
+                    // Build pagination context for this specific column
+                    const paginationContext: PaginationContext = {
+                      hasMoreThanMax: false,
+                      hasNext,
+                      isFetching: result.isFetching,
+                      isFetchingNextPage: result.isFetchingNextPage,
+                      limit: result.limit,
+                      onLimitChange: result.onLimitChange,
+                      onNext: result.onLoadMore,
+                      totalCount: result.data.length,
+                    };
+
+                    return (
+                      <Pagination
+                        context={paginationContext}
+                        mode={pagination}
+                      />
+                    );
+                  }
                 : undefined
             }
             rounded={rounded}
