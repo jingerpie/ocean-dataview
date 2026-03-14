@@ -9,7 +9,7 @@ import {
 } from "../../../lib/utils/chart-colors";
 import type { DataViewProperty } from "../../../types";
 import type { AreaChartConfig } from "../../../types/chart.type";
-import { EmptyState } from "../../ui/empty-state";
+import { EmptyState } from "../empty-state";
 import { AreaChartInner } from "./area-chart";
 
 export interface AreaChartViewProps<

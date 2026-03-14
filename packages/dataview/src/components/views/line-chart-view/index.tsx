@@ -9,7 +9,7 @@ import {
 } from "../../../lib/utils/chart-colors";
 import type { DataViewProperty } from "../../../types";
 import type { LineChartConfig } from "../../../types/chart.type";
-import { EmptyState } from "../../ui/empty-state";
+import { EmptyState } from "../empty-state";
 import { LineChartInner } from "./line-chart";
 
 export interface LineChartViewProps<

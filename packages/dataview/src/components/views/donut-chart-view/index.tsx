@@ -9,7 +9,7 @@ import {
 } from "../../../lib/utils/chart-colors";
 import type { DataViewProperty } from "../../../types";
 import type { DonutChartConfig } from "../../../types/chart.type";
-import { EmptyState } from "../../ui/empty-state";
+import { EmptyState } from "../empty-state";
 import { DonutChartInner } from "./donut-chart";
 
 export interface DonutChartViewProps<

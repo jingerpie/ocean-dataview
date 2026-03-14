@@ -9,7 +9,7 @@ import {
 } from "../../../lib/utils/chart-colors";
 import type { DataViewProperty } from "../../../types";
 import type { VerticalBarChartConfig } from "../../../types/chart.type";
-import { EmptyState } from "../../ui/empty-state";
+import { EmptyState } from "../empty-state";
 import { VerticalBarChartInner } from "./vertical-bar-chart";
 
 export interface VerticalBarChartViewProps<

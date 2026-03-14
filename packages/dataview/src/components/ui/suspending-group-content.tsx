@@ -9,7 +9,7 @@ import {
   type UseInfiniteGroupQueryResult,
   useInfiniteGroupQuery,
 } from "../../hooks/use-infinite-group-query";
-import { EmptyState } from "./empty-state";
+import { EmptyState } from "../views/empty-state";
 
 // ============================================================================
 // Page Pagination (useGroupQuery)

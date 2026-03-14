@@ -23,12 +23,12 @@ import type {
 } from "../../../types";
 import { Accordion } from "../../ui/accordion";
 import { Badge } from "../../ui/badge";
-import { EmptyState } from "../../ui/empty-state";
 import { GroupSection } from "../../ui/group-section";
 import { Pagination } from "../../ui/pagination";
 import { SuspendingInfiniteGroupContent } from "../../ui/suspending-group-content";
 import { DataCard } from "../data-card";
 import { DataCell } from "../data-cell";
+import { EmptyState } from "../empty-state";
 import { BoardColumnHeaders } from "./board-column-headers";
 import { BoardColumns } from "./board-columns";
 import { BoardSkeleton } from "./board-skeleton";
