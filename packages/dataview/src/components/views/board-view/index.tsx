@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Columns3, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { Suspense, useCallback, useEffect, useMemo, useRef } from "react";
 import type { GroupedDataItem } from "../../../hooks";
 import { useDisplayProperties, useGroupParams } from "../../../hooks";
@@ -505,13 +505,7 @@ export function BoardView<
 
   // FLAT VIEW: Empty state when no columns
   if (!hasColumns) {
-    return (
-      <EmptyState
-        description="There are no items to display"
-        icon={Columns3}
-        title="No items available"
-      />
-    );
+    return <EmptyState />;
   }
 
   // FLAT VIEW: Uses SuspendingGroupContent with __ungrouped__ key
