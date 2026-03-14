@@ -223,17 +223,6 @@ export function DataTable<TData>({
                   data-state={row.getIsSelected() && "selected"}
                   key={row.id}
                   onClick={() => onRowClick?.(row.original)}
-                  onKeyDown={
-                    onRowClick
-                      ? (e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            onRowClick(row.original);
-                          }
-                        }
-                      : undefined
-                  }
-                  tabIndex={onRowClick ? 0 : undefined}
                 >
                   {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta as
