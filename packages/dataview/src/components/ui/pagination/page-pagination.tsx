@@ -1,13 +1,8 @@
 "use client";
 
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import type { PaginationContext } from "../../../types";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from "../pagination";
+import { Button } from "../button";
 import {
   Select,
   SelectContent,
@@ -34,31 +29,33 @@ export function PagePagination({
   displayStart,
   displayEnd,
 }: PagePaginationProps) {
-  // Don't show if no navigation callbacks
   if (!(onNext || onPrev)) {
     return null;
   }
 
   return (
     <div className="sticky bottom-0 z-10 flex items-center justify-between gap-6 border-t bg-background px-2 py-3">
-      {/* Navigation and item range */}
       <div className="flex items-center gap-3">
-        <Pagination className="mx-0 w-auto">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                disabled={!hasPrev || isFetching}
-                onClick={onPrev}
-              />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext
-                disabled={!hasNext || isFetching}
-                onClick={onNext}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+        <nav aria-label="pagination" className="flex w-auto items-center gap-1">
+          <Button
+            aria-label="Go to previous page"
+            disabled={!hasPrev || isFetching}
+            onClick={onPrev}
+            size="icon"
+            variant="outline"
+          >
+            <ChevronLeftIcon className="size-4" />
+          </Button>
+          <Button
+            aria-label="Go to next page"
+            disabled={!hasNext || isFetching}
+            onClick={onNext}
+            size="icon"
+            variant="outline"
+          >
+            <ChevronRightIcon className="size-4" />
+          </Button>
+        </nav>
         {displayStart !== undefined && displayEnd !== undefined && (
           <div className="text-muted-foreground text-sm">
             {displayEnd > 0 ? (
@@ -72,7 +69,6 @@ export function PagePagination({
         )}
       </div>
 
-      {/* Rows per page */}
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground text-sm">Rows per page</span>
         <Select

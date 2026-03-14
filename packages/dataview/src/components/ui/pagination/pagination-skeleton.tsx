@@ -1,6 +1,6 @@
 "use client";
 
-import { Skeleton } from "./skeleton";
+import { Skeleton } from "../skeleton";
 
 type PaginationMode = "page" | "loadMore" | "infiniteScroll";
 

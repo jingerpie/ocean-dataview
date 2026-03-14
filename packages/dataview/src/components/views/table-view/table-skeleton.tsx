@@ -3,7 +3,7 @@
 import { TABLE_COLUMN_WIDTHS } from "../../../lib/constants/skeleton-widths";
 import { cn } from "../../../lib/utils";
 import type { PropertyType } from "../../../types";
-import { PaginationSkeleton } from "../../ui/pagination-skeleton";
+import { PaginationSkeleton } from "../../ui/pagination/pagination-skeleton";
 import { Skeleton } from "../../ui/skeleton";
 import {
   Table,
