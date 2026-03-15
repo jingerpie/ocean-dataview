@@ -36,6 +36,12 @@ lerna-debug.log*
 # Turbo
 .turbo
 
+# Next.js
+.next
+
+# Fumadocs generated
+.source
+
 # Better-T-Stack
 .alchemy
 
