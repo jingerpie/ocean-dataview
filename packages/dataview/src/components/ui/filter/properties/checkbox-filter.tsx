@@ -111,5 +111,5 @@ function CheckboxValueEditor({
   );
 }
 
-export { CheckboxAdvanceFilter, CheckboxValueEditor };
 export type { CheckboxFilterValueProps };
+export { CheckboxAdvanceFilter, CheckboxValueEditor };

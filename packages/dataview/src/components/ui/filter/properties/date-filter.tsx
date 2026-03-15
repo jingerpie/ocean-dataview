@@ -85,5 +85,5 @@ function DateValueEditor({ rule, onValueChange }: DateFilterValueProps) {
   );
 }
 
-export { DateAdvanceFilter, DateValueEditor };
 export type { DateFilterValueProps };
+export { DateAdvanceFilter, DateValueEditor };

@@ -145,7 +145,7 @@ function DataCellComponent<T>({
     default:
       return (
         <span className="text-sm">
-          {displayValue != null ? String(displayValue) : "-"}
+          {displayValue == null ? "-" : String(displayValue)}
         </span>
       );
   }

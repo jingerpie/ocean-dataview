@@ -221,5 +221,5 @@ function ValueInput({ rule, property, onValueChange }: ValueInputProps) {
   }
 }
 
-export { FilterRule, FilterValue };
 export type { FilterRuleProps, FilterValueProps };
+export { FilterRule, FilterValue };

@@ -72,7 +72,7 @@ const defaultGetNextPageParam = (
     );
   }
 
-  return lastPage.endCursor != null ? String(lastPage.endCursor) : undefined;
+  return lastPage.endCursor == null ? undefined : String(lastPage.endCursor);
 };
 
 export function useInfiniteGroupQuery<TData = unknown>(

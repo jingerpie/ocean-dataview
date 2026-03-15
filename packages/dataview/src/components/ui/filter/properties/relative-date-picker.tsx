@@ -187,6 +187,6 @@ function RelativeDatePicker({ value, onChange }: RelativeDatePickerProps) {
   return <RelativeDateDropdowns onChange={onChange} value={value} />;
 }
 
-export type { RelativeDatePickerProps };
 export type { RelativeToTodayValue } from "../../../../lib/utils/relative-date";
+export type { RelativeDatePickerProps };
 export { RelativeDatePicker, RelativeDatePickerContent };

@@ -529,7 +529,7 @@ export function computeData<TData>(
           const lower = sorted[mid - 1] ?? upper;
           result[groupKey] = (lower + upper) / 2;
         } else {
-          result[groupKey] = sorted[mid] !== undefined ? sorted[mid] : 0;
+          result[groupKey] = sorted[mid] === undefined ? 0 : sorted[mid];
         }
         break;
       }

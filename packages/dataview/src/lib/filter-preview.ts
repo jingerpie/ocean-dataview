@@ -195,7 +195,7 @@ function getMultiSelectPreview(
  * Includes ": " prefix
  */
 function getTextPreview(condition: FilterCondition, value: unknown): string {
-  const textValue = value != null ? String(value) : "";
+  const textValue = value == null ? "" : String(value);
 
   switch (condition) {
     case "eq":

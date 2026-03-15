@@ -315,5 +315,5 @@ function StatusValueEditor({
   );
 }
 
-export { StatusAdvanceFilter, StatusValueEditor };
 export type { StatusFilterValueProps };
+export { StatusAdvanceFilter, StatusValueEditor };
