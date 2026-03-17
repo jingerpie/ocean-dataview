@@ -1,7 +1,7 @@
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 
 export const gitConfig = {
-  user: "jingchen",
+  user: "jingerpie",
   repo: "ocean-dataview",
   branch: "main",
 };
