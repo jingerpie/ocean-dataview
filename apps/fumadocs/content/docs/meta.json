@@ -1,5 +1,12 @@
 {
   "title": "Ocean DataView",
   "root": true,
-  "pages": ["index", "properties", "property-definition", "grouping"]
+  "pages": [
+    "---Introduction---",
+    "index",
+    "---Data View---",
+    "...data-view",
+    "---Configurations---",
+    "...configurations"
+  ]
 }
