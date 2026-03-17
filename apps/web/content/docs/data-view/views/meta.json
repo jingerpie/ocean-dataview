@@ -1,0 +1,4 @@
+{
+  "title": "Views",
+  "pages": ["table", "gallery", "list", "board"]
+}

@@ -38,7 +38,7 @@ export interface Input {
 }
 
 /**
- * Validate all data view state against property definitions.
+ * Validate all data view state against property schema.
  * Combines validateFilter, validateSort, validateGroup, validateColumn, validateCursors, and validateLimit.
  *
  * Cursors are validated against the validated group (order matters).

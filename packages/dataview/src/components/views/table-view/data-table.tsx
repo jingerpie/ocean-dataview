@@ -265,7 +265,7 @@ export function DataTable<TData>({
       </div>
 
       {/* Render action bar when rows are selected */}
-      {hasSelectedRows && actionBar && actionBar(table)}
+      {hasSelectedRows && actionBar?.(table)}
     </>
   );
 }

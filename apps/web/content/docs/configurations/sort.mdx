@@ -1,0 +1,50 @@
+---
+title: Sort
+description: Configure default sorting and sort options
+---
+
+## Overview
+
+Sort controls ordering by one or more properties.
+
+## 1. How To Set Default
+
+Set default sort in `DataViewProvider`:
+
+```tsx
+<DataViewProvider
+  controller={controller}
+  defaults={{
+    sort: [{ property: "lastRestocked", direction: "desc" }],
+  }}
+  properties={properties}
+>
+  <NotionToolbar enableSettings />
+  <TableView pagination="page" />
+</DataViewProvider>
+```
+
+## 2. What Are The Options
+
+### Sort Rule Shape
+
+```ts
+interface SortQuery {
+  property: string;
+  direction: "asc" | "desc";
+  customOrder?: string[];
+}
+```
+
+### Direction
+
+| Direction | UI Meaning |
+|-----------|------------|
+| `asc` | Ascending |
+| `desc` | Descending |
+
+### Multi-sort Behavior
+
+1. First rule is primary sort.
+2. Second rule breaks ties.
+3. Additional rules continue tie-breaking.

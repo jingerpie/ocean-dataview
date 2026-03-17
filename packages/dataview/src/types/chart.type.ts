@@ -436,7 +436,7 @@ export interface ChartViewProps<
   data: TData[];
 
   /**
-   * Property definitions
+   * Property schema
    */
   properties: TProperties;
 }

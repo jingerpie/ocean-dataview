@@ -1,0 +1,201 @@
+---
+title: Property Schema
+description: Define your data schema with property types that power filtering, sorting, grouping, and display across all views.
+---
+
+A property schema defines how each field is displayed, filtered, sorted, grouped, and searched.
+
+## Full Example
+
+This example shows all 13 property types in a real-world product schema:
+
+<ComponentSource src="apps/web/src/modules/dataview/product-properties.tsx" title="product-properties.tsx" />
+
+---
+
+## Property Types
+
+| Type | Description | Config Required |
+|------|-------------|-----------------|
+| `text` | Plain text | ❌ No |
+| `number` | Numeric with formatting | Optional |
+| `select` | Single selection badge | Optional |
+| `multiSelect` | Multiple selection badges | Optional |
+| `status` | Grouped status with icons | Optional |
+| `date` | Date/time values | Optional |
+| `checkbox` | Boolean | ❌ No |
+| `url` | Clickable links | Optional |
+| `email` | Email addresses | ❌ No |
+| `phone` | Phone numbers | ❌ No |
+| `filesMedia` | Images and files | ❌ No |
+| `formula` | Computed JSX | `value()` required |
+| `button` | Row action buttons | `value()` required |
+
+---
+
+## Base Property Fields
+
+```tsx
+{
+  id: string;             // Property identifier
+  type: PropertyType;     // One of 13 types
+  label?: string;         // Display label
+  hidden?: boolean;       // Hide in view columns/cards
+  enableFilter?: boolean; // In filter picker (default: true)
+  enableSort?: boolean;   // In sort picker (default: true)
+  enableGroup?: boolean;  // In group picker (default: true)
+  enableSearch?: boolean; // In search (default: type-dependent)
+}
+```
+
+---
+
+## Number Config
+
+```tsx
+{
+  id: "price",
+  type: "number",
+  config: {
+    numberFormat: "dollar", // number | numberWithCommas | percentage | dollar | euro | pound
+    decimalPlaces: 2,
+    showAs: {
+      type: "bar",          // number | bar | ring
+      color: "green",
+      divideBy: 100,
+      showNumber: true,
+    },
+  },
+}
+```
+
+---
+
+## Select / MultiSelect Config
+
+```tsx
+{
+  id: "category",
+  type: "select", // or "multiSelect"
+  config: {
+    optionOrder: "manual", // manual | asc | desc
+    options: [
+      { value: "Electronics", color: "blue" },
+      { value: "Clothing", color: "purple" },
+    ],
+  },
+}
+```
+
+---
+
+## Status Config
+
+```tsx
+{
+  id: "availability",
+  type: "status",
+  config: {
+    groups: [
+      {
+        label: "Available",
+        color: "green",
+        icon: CheckCircle,
+        options: ["In stock", "Ready"],
+      },
+      {
+        label: "Warning",
+        color: "yellow",
+        icon: AlertCircle,
+        options: ["Low stock"],
+      },
+    ],
+  },
+}
+```
+
+---
+
+## Date Config
+
+```tsx
+{
+  id: "createdAt",
+  type: "date",
+  config: {
+    dateFormat: "relative", // full | short | MDY | DMY | YMD | relative | relativeGroup
+    timeFormat: "12hour",   // hidden | 12hour | 24hour
+  },
+}
+```
+
+---
+
+## Formula Property
+
+Use formula to compose JSX from existing properties.
+
+```tsx
+{
+  id: "productCard",
+  type: "formula",
+  sortBy: "productName",
+  value: (property, item) => (
+    <div className="flex items-center gap-4">
+      <FilesMediaProperty value={item.productImage} />
+      <div className="flex flex-col gap-1">
+        {property("productName")}
+        <div className="flex gap-2">
+          {property("price")}
+          {property("category")}
+        </div>
+      </div>
+    </div>
+  ),
+}
+```
+
+---
+
+## Button Property
+
+```tsx
+{
+  id: "actions",
+  type: "button",
+  value: (item) => [
+    {
+      label: "View",
+      icon: Eye,
+      onClick: () => openModal(item.id),
+    },
+    {
+      label: "Edit",
+      icon: Edit,
+      onClick: () => router.push(`/edit/${item.id}`),
+      disabled: !item.canEdit,
+    },
+  ],
+}
+```
+
+---
+
+## Type Safety Notes
+
+```tsx
+import type { DataViewProperty } from "@sparkyidea/dataview/types";
+
+interface Product {
+  id: string;
+  productName: string;
+  price: number;
+}
+
+const properties = [
+  { id: "productName", type: "text" },
+  { id: "price", type: "number", config: { numberFormat: "dollar" } },
+] satisfies DataViewProperty<Product>[];
+```
+
+`DataViewProperty<T>` validates property shape and type-specific config. Property `id` is currently a runtime `string` (not `keyof T`), so unknown IDs are not compile-time errors.

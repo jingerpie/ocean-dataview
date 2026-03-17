@@ -91,7 +91,7 @@ function TextAdvanceFilter({
       onChange={(value) => onValueChange(value)}
       placeholder="Enter value..."
       type={isNumber ? "number" : "text"}
-      value={rule.value != null ? String(rule.value) : ""}
+      value={rule.value == null ? "" : String(rule.value)}
     />
   );
 }
@@ -115,11 +115,11 @@ function TextValueEditor({
         onChange={(e) => onValueChange(e.target.value)}
         placeholder="Enter value..."
         type={isNumber ? "number" : "text"}
-        value={rule.value != null ? String(rule.value) : ""}
+        value={rule.value == null ? "" : String(rule.value)}
       />
     </div>
   );
 }
 
-export { TextAdvanceFilter, TextValueEditor, DebouncedTextInput };
 export type { TextFilterValueProps };
+export { DebouncedTextInput, TextAdvanceFilter, TextValueEditor };

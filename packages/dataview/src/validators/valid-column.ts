@@ -3,7 +3,7 @@ import type { DataViewProperty, PropertyMeta } from "../types/property.type";
 import { validateGroup } from "./valid-group";
 
 /**
- * Validate column config against property definitions.
+ * Validate column config against property schema.
  * Uses the same validation logic as validateGroup.
  *
  * Accepts both DataViewProperty[] and PropertyMeta[] for flexibility.

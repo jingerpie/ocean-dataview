@@ -70,7 +70,7 @@ interface ToolbarContextProviderProps {
   children: React.ReactNode;
   /** Default visibility - if not provided, all non-hidden properties are visible */
   defaultVisibility?: string[];
-  /** Property definitions */
+  /** Property schema */
   properties: readonly PropertyMeta[];
 }
 
@@ -102,7 +102,7 @@ export function ToolbarContextProvider({
     return new Set();
   });
 
-  // Derive visible properties from property definitions + user overrides
+  // Derive visible properties from property schema + user overrides
   const propertyVisibility = useMemo(
     () => visiblePropertyIds.filter((id) => !hiddenByUser.has(id)),
     [visiblePropertyIds, hiddenByUser]

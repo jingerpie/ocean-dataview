@@ -1,0 +1,65 @@
+---
+title: Group By
+description: Configure default group-by and grouping options
+---
+
+## Overview
+
+Group By organizes data into collapsible sections (Table, List, Gallery, Board).
+
+## 1. How To Set Default
+
+Set default group config in `DataViewProvider`:
+
+```tsx
+<DataViewProvider
+  controller={controller}
+  defaults={{
+    group: {
+      propertyType: "status",
+      propertyId: "availability",
+      showAs: "option",
+      sort: "asc",
+      hideEmpty: false,
+      showCount: true,
+    },
+  }}
+  properties={properties}
+>
+  <NotionToolbar enableSettings />
+  <TableView pagination="page" />
+</DataViewProvider>
+```
+
+## 2. What Are The Options
+
+### Groupable Property Types
+
+| Type | Supported |
+|------|-----------|
+| `select` | ✅ Yes |
+| `multiSelect` | ✅ Yes |
+| `status` | ✅ Yes |
+| `date` | ✅ Yes |
+| `text` | ✅ Yes |
+| `number` | ✅ Yes |
+| `checkbox` | ✅ Yes |
+| `formula` / `button` / `filesMedia` | ❌ No |
+
+### Shared Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `sort` | `"asc" \| "desc"` | `"asc"` | Group order |
+| `hideEmpty` | `boolean` | `false` | Hide empty groups |
+| `showCount` | `boolean` | `true` | Show count in group headers |
+
+### Type-specific Options
+
+| Property Type | Option |
+|---------------|--------|
+| `status` | `showAs: "option" or "group"` |
+| `date` | `showAs: "day", "week", "month", "year", or "relative"` |
+| `date` | `startWeekOn: "monday" or "sunday"` (when `showAs = "week"`) |
+| `text` | `showAs: "exact" or "alphabetical"` |
+| `number` | `numberRange: { range: [min, max], step }` |

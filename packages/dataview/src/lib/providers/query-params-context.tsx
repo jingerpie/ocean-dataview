@@ -160,7 +160,7 @@ interface QueryParamsProviderProps {
   children: ReactNode;
   /** Default values when URL params are missing */
   defaults?: QueryParamsDefaults;
-  /** Property definitions for validation */
+  /** Property schema for validation */
   properties: readonly DataViewProperty<unknown>[] | readonly PropertyMeta[];
 }
 

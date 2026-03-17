@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev --port 3001",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
+    "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
     "@sparkyidea/shared": "workspace:*",
@@ -14,6 +16,7 @@
     "@base-ui/react": "catalog:",
     "@sparkyidea/trpc": "workspace:*",
     "@sparkyidea/env": "workspace:*",
+    "@takumi-rs/image-response": "catalog:",
     "@tanstack/react-form": "catalog:",
     "@tanstack/react-query": "catalog:",
     "@trpc/client": "catalog:",
@@ -24,6 +27,9 @@
     "nuqs": "catalog:",
     "clsx": "catalog:",
     "dotenv": "catalog:",
+    "fumadocs-core": "catalog:",
+    "fumadocs-mdx": "catalog:",
+    "fumadocs-ui": "catalog:",
     "lucide-react": "catalog:",
     "next": "catalog:",
     "next-themes": "catalog:",
@@ -40,6 +46,7 @@
     "@sparkyidea/config": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@tanstack/react-query-devtools": "catalog:",
+    "@types/mdx": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",

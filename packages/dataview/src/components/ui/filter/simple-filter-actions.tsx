@@ -64,7 +64,10 @@ export function SimpleFilterActions({
       (node) => !isWhereRule(node) || node.property !== rule.property
     );
 
-    if (advancedIndex !== -1) {
+    if (advancedIndex === -1) {
+      // Create new advanced filter with this rule
+      items.unshift({ and: [rule] });
+    } else {
       // Add to existing advanced filter
       const existing = filter[advancedIndex] as WhereExpression;
       const advancedItems = existing.and ?? existing.or ?? [];
@@ -72,9 +75,6 @@ export function SimpleFilterActions({
         ? { and: [...advancedItems, rule] }
         : { or: [...advancedItems, rule] };
       items[advancedIndex] = newAdvanced;
-    } else {
-      // Create new advanced filter with this rule
-      items.unshift({ and: [rule] });
     }
 
     setFilter(items.length > 0 ? items : null);

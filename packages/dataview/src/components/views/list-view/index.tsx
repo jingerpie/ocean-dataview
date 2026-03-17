@@ -248,7 +248,7 @@ function ListContentRenderer<
   paginationNode: React.ReactNode;
   properties: TProperties;
 }) {
-  // Transform data with property definitions
+  // Transform data with property schema
   const transformedItems = transformData(data, properties) as TData[];
 
   return (

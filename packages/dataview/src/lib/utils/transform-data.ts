@@ -16,7 +16,7 @@ export type TransformedData = Record<string, unknown>;
  * All other fields from raw data are dropped.
  *
  * @param rawData - Array of raw data items from API/database
- * @param properties - Property definitions that define the transformation
+ * @param properties - Property schema that define the transformation
  * @returns Array of transformed data objects containing only property fields
  *
  * @example

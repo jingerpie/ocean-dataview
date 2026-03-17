@@ -1,0 +1,85 @@
+---
+title: Custom Toolbar
+description: Build a custom toolbar with public DataView hooks
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+## Overview
+
+If `NotionToolbar` does not match your UX, you can build a custom toolbar with the public hooks from `@sparkyidea/dataview/hooks` and your own UI components.
+
+## Public Building Blocks
+
+```tsx
+import {
+  useFilterParams,
+  useGroupParams,
+  useSearchParams,
+  useSortParams,
+} from "@sparkyidea/dataview/hooks";
+```
+
+These hooks keep your custom controls synced with URL state through `DataViewProvider`.
+
+## Minimal Custom Toolbar Example
+
+```tsx
+"use client";
+
+import {
+  useFilterParams,
+  useGroupParams,
+  useSearchParams,
+  useSortParams,
+} from "@sparkyidea/dataview/hooks";
+import { Button } from "@sparkyidea/ui/components/button";
+import { Input } from "@sparkyidea/ui/components/input";
+
+export function CustomToolbar() {
+  const { filter, clearFilter } = useFilterParams();
+  const { sort, clearSort } = useSortParams();
+  const { group, clearGroup } = useGroupParams();
+  const { search, setSearch, clearSearch } = useSearchParams();
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-b p-2">
+      <Input
+        className="w-56"
+        placeholder="Search..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
+      <Button size="sm" variant="outline" onClick={clearSearch}>
+        Clear Search
+      </Button>
+
+      <Button size="sm" variant="outline" onClick={clearFilter}>
+        Clear Filter ({filter?.length ?? 0})
+      </Button>
+
+      <Button size="sm" variant="outline" onClick={clearSort}>
+        Clear Sort ({sort.length})
+      </Button>
+
+      <Button size="sm" variant="outline" onClick={clearGroup}>
+        {group ? "Clear Group" : "❌ No Group"}
+      </Button>
+    </div>
+  );
+}
+```
+
+## Example Integration
+
+```tsx
+<DataViewProvider controller={controller} defaults={defaults} properties={properties}>
+  <CustomToolbar />
+  <TableView pagination="page" />
+</DataViewProvider>
+```
+
+<Callout type="info">
+The public package exports hooks, providers, views, properties, and `NotionToolbar`. Fine-grained toolbar UI primitives under `components/ui/*` are internal source modules and are not part of the package export contract.
+</Callout>
