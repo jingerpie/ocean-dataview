@@ -1,0 +1,127 @@
+---
+title: Property Components
+description: Standalone UI components for rendering property values. Use these in custom layouts, formulas, or outside DataView.
+---
+
+import { TextPropertyDemo } from "@/examples/text-property-demo";
+import { NumberPropertyDemo } from "@/examples/number-property-demo";
+import { SelectPropertyDemo } from "@/examples/select-property-demo";
+import { StatusPropertyDemo } from "@/examples/status-property-demo";
+import { CheckboxPropertyDemo } from "@/examples/checkbox-property-demo";
+import { DatePropertyDemo } from "@/examples/date-property-demo";
+
+Property components are standalone UI components that render individual property values. Use them when you need to display a property value outside of a DataView, in custom layouts, or inside formula properties.
+
+```tsx
+import { NumberProperty, SelectProperty } from "@sparkyidea/dataview/properties";
+```
+
+---
+
+## Text
+
+Displays plain text with optional truncation.
+
+<ComponentPreview src="apps/web/src/examples/text-property-demo.tsx">
+  <TextPropertyDemo />
+</ComponentPreview>
+
+---
+
+## Number
+
+Displays numeric values with formatting options.
+
+<ComponentPreview src="apps/web/src/examples/number-property-demo.tsx">
+  <NumberPropertyDemo />
+</ComponentPreview>
+
+**Props:**
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `value` | `number \| null` | The numeric value |
+| `config.numberFormat` | `"number" \| "numberWithCommas" \| "percentage" \| "dollar" \| "euro" \| "pound"` | Format style |
+| `config.decimalPlaces` | `0-10` | Decimal precision |
+| `config.showAs.type` | `"number" \| "bar" \| "ring"` | Visual representation |
+| `config.showAs.color` | `BadgeColor` | Color for bar/ring |
+| `config.showAs.divideBy` | `number` | Max value (default: 100) |
+
+---
+
+## Select
+
+Displays single selection as a colored badge.
+
+<ComponentPreview src="apps/web/src/examples/select-property-demo.tsx">
+  <SelectPropertyDemo />
+</ComponentPreview>
+
+**Props:**
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `value` | `string \| null` | Selected value |
+| `config.options` | `{ value: string, color: BadgeColor }[]` | Available options |
+
+---
+
+## Status
+
+Displays status values with icons and colors grouped by category.
+
+<ComponentPreview src="apps/web/src/examples/status-property-demo.tsx">
+  <StatusPropertyDemo />
+</ComponentPreview>
+
+**Props:**
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `value` | `string \| null` | Status value |
+| `config.groups` | `StatusGroup[]` | Groups with label, color, icon, options |
+
+---
+
+## Checkbox
+
+Displays boolean values as a checkbox.
+
+<ComponentPreview src="apps/web/src/examples/checkbox-property-demo.tsx">
+  <CheckboxPropertyDemo />
+</ComponentPreview>
+
+---
+
+## Date
+
+Displays date/time values with locale-aware formatting.
+
+<ComponentPreview src="apps/web/src/examples/date-property-demo.tsx">
+  <DatePropertyDemo />
+</ComponentPreview>
+
+**Props:**
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `value` | `Date \| string \| null` | Date value |
+| `config.dateFormat` | `"full" \| "short" \| "MDY" \| "DMY" \| "YMD" \| "relative"` | Format style |
+| `config.timeFormat` | `"hidden" \| "12hour" \| "24hour"` | Time display |
+
+---
+
+## Badge Colors
+
+All select-based properties support these colors:
+
+| Color | Use case |
+|-------|----------|
+| `gray` | Default, neutral |
+| `blue` | Information |
+| `purple` | Special, premium |
+| `yellow` | Warning |
+| `red` | Error, danger |
+| `pink` | Accent |
+| `green` | Success |
+| `teal` | Secondary |

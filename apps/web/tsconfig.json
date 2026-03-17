@@ -21,7 +21,9 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@sparkyidea/ui/*": ["../../packages/ui/src/*"]
+      "@sparkyidea/ui/*": ["../../packages/ui/src/*"],
+      "collections/server": ["./.source/server"],
+      "collections/browser": ["./.source/browser"]
     }
   },
   "include": [

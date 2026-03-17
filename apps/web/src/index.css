@@ -6,3 +6,12 @@
 
 /* Import shadcn tailwind utilities (accordion animations, custom variants) */
 @import "shadcn/tailwind.css";
+
+/* Import fumadocs styles for documentation pages */
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+
+/* Fix fumadocs layout offset to account for custom sticky header */
+:root {
+  --fd-banner-height: 57px; /* Matches the site header height (h-14) */
+}

@@ -7,7 +7,7 @@ import { ModeToggle } from "@/components/layouts/mode-toggle";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-60 w-full border-border/40 border-b bg-background">
+    <header className="sticky top-0 z-50 w-full border-border/40 border-b bg-background">
       <div className="container flex h-14 items-center">
         <Button
           className="size-8"
@@ -24,6 +24,7 @@ export function SiteHeader() {
           <Link href="/gallery">Gallery</Link>
           <Link href="/board">Board</Link>
           <Link href="/charts">Charts</Link>
+          <Link href="/docs">Docs</Link>
         </nav>
         <div className="flex flex-1 items-center gap-2 md:justify-end">
           <GitHubLink />
