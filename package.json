@@ -84,7 +84,6 @@
     "check-types": "turbo check-types",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F server dev",
-    "dev:docs": "turbo -F fumadocs dev",
     "db:push": "turbo -F @sparkyidea/db db:push",
     "db:studio": "turbo -F @sparkyidea/db db:studio",
     "db:generate": "turbo -F @sparkyidea/db db:generate",
