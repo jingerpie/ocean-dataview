@@ -7,7 +7,7 @@ export default function Layout({ children }: LayoutProps<"/docs">) {
     <DocsLayout
       sidebar={{
         className:
-          "bg-transparent border-transparent p-2 [&>div:first-child>div:first-child]:hidden",
+          "bg-transparent p-2 [&>div:first-child>div:first-child]:hidden",
         collapsible: false,
       }}
       themeSwitch={{
