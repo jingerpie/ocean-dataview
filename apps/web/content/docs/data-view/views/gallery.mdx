@@ -1,0 +1,121 @@
+---
+title: Gallery View
+description: Responsive grid of cards with media previews
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+![Gallery View Demo](/images/gallery-demo.png)
+
+## Overview
+
+`GalleryView` displays data as cards in a responsive grid layout with optional media previews. Card size determines the number of columns.
+
+## Features
+
+- Grid layout with responsive columns based on card size
+- Media preview support via `cardPreview` prop
+- Property visibility filtering
+- Full grouping support (accordion sections)
+
+## Basic Usage
+
+```tsx
+import { useInfiniteController } from "@sparkyidea/dataview/hooks";
+import { DataViewProvider } from "@sparkyidea/dataview/providers";
+import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
+import { GalleryView } from "@sparkyidea/dataview/views/gallery-view";
+
+const { controller } = useInfiniteController({
+  groupQuery: (params) =>
+    trpc.product.getGroup.infiniteQueryOptions({
+      filter: params.filter,
+      groupBy: params.groupConfig,
+      limit: 25,
+    }),
+  dataQuery: (params) =>
+    trpc.product.getMany.infiniteQueryOptions({
+      filter: params.filter,
+      limit: params.limit,
+      sort: params.sort,
+    }),
+});
+
+<DataViewProvider
+  controller={controller}
+  defaults={{ filter, group, limit, search, sort }}
+  properties={productProperties}
+>
+  <NotionToolbar enableSettings />
+  <GalleryView cardSize="medium" cardPreview="productImage" pagination="loadMore" />
+</DataViewProvider>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `pagination` | `"page" \| "loadMore" \| "infiniteScroll"` | - | Pagination mode |
+| `cardSize` | `"small" \| "medium" \| "large"` | `"medium"` | Card size preset |
+| `cardPreview` | `string` | - | Property ID for card preview image |
+| `fitMedia` | `boolean` | `true` | Fit media to card (cover vs contain) |
+| `onCardClick` | `(item: TData) => void` | - | Card click handler |
+| `showPropertyNames` | `boolean` | `false` | Show property labels on cards |
+| `wrapAllProperties` | `boolean` | `false` | Wrap property text |
+
+## Card Sizes
+
+| Size | Description |
+|------|-------------|
+| `small` | Compact cards, more columns |
+| `medium` | Balanced size (default) |
+| `large` | Larger cards, fewer columns |
+
+**Default Limit:** 50 items
+
+## Media Preview
+
+Display images on cards using a `filesMedia` property ID:
+
+```tsx
+const properties = [
+  {
+    id: "productImage",
+    label: "Image",
+    type: "filesMedia",
+  },
+  // ...other properties
+];
+
+<GalleryView cardPreview="productImage" fitMedia />
+```
+
+## Card Click Handler
+
+```tsx
+<GalleryView
+  cardSize="medium"
+  onCardClick={(item) => router.push(`/products/${item.id}`)}
+/>
+```
+
+## Display Options
+
+```tsx
+<GalleryView
+  cardSize="large"
+  cardPreview="productImage"
+  fitMedia={false}
+  showPropertyNames
+  wrapAllProperties
+  pagination="infiniteScroll"
+/>
+```
+
+## Grouped Galleries
+
+When grouping is enabled (`?group=...`), cards render inside accordion sections. Each group maintains independent pagination state.
+
+<Callout type="info">
+For board-style vertical columns, use [Board View](/docs/data-view/views/board).
+</Callout>

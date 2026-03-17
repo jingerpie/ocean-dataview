@@ -279,16 +279,16 @@ function useCommandAnchor() {
 
 export {
   Command,
+  CommandChip,
+  CommandChips,
+  CommandChipsInput,
   CommandDialog,
-  CommandInput,
-  CommandList,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
-  CommandShortcut,
+  CommandList,
   CommandSeparator,
-  CommandChips,
-  CommandChip,
-  CommandChipsInput,
+  CommandShortcut,
   useCommandAnchor,
 };

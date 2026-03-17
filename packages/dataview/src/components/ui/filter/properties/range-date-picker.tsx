@@ -198,5 +198,5 @@ function RangeDatePicker({ value, onChange }: RangeDatePickerProps) {
   );
 }
 
-export type { RangeDatePickerProps, DateRangeValue };
+export type { DateRangeValue, RangeDatePickerProps };
 export { RangeDatePicker, RangeDatePickerContent };

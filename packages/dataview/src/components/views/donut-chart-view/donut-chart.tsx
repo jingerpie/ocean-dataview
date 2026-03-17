@@ -128,7 +128,7 @@ export function DonutChartInner({
             dataKey="value"
             innerRadius={90}
             isAnimationActive={false}
-            label={dataLabelFormat !== "none" ? renderLabel : false}
+            label={dataLabelFormat === "none" ? false : renderLabel}
             labelLine={dataLabelFormat !== "none"}
             nameKey="name"
             outerRadius={110}

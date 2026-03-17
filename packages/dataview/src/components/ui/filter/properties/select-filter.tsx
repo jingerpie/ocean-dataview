@@ -239,5 +239,5 @@ function SelectValueEditor({
   );
 }
 
-export { SelectAdvanceFilter, SelectValueEditor };
 export type { SelectFilterValueProps };
+export { SelectAdvanceFilter, SelectValueEditor };

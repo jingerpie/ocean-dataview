@@ -22,7 +22,7 @@ export interface Product {
   updatedAt: string | null;
 }
 
-// Property definitions for charts
+// Property schema for charts
 export const categoryProperty = {
   id: "category",
   label: "Category",

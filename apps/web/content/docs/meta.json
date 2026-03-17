@@ -1,0 +1,12 @@
+{
+  "title": "Ocean DataView",
+  "root": true,
+  "pages": [
+    "---Introduction---",
+    "index",
+    "---Data View---",
+    "...data-view",
+    "---Configurations---",
+    "...configurations"
+  ]
+}

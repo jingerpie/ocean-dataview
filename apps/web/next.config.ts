@@ -1,9 +1,13 @@
 import "@sparkyidea/env/web";
+import { createMDX } from "fumadocs-mdx/next";
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
+const withMDX = createMDX();
+
+const config: NextConfig = {
   typedRoutes: true,
   reactCompiler: true,
+  serverExternalPackages: ["@takumi-rs/image-response"],
   images: {
     remotePatterns: [
       {
@@ -20,6 +24,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/docs/:path*.mdx",
+        destination: "/llms.mdx/docs/:path*",
+      },
+    ];
+  },
 };
 
-export default nextConfig;
+export default withMDX(config);

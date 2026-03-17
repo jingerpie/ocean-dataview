@@ -113,7 +113,7 @@ export function encodeCursors(cursors: Cursors): string {
 
   return entries
     .map(([groupKey, cursor]) => {
-      const direction = cursor.after != null ? "after" : "before";
+      const direction = cursor.after == null ? "before" : "after";
       const value = cursor.after ?? cursor.before;
       const start = cursor.start ?? 0;
 

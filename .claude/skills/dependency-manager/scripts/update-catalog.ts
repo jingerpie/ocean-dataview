@@ -79,7 +79,9 @@ async function main() {
         continue;
       }
 
-      if (currentVersion !== latestVersion) {
+      if (currentVersion === latestVersion) {
+        console.log(`  ✓ ${pkg}: ${currentVersion} (up to date)`);
+      } else {
         updates.push({
           name: pkg,
           from: currentVersion,
@@ -87,8 +89,6 @@ async function main() {
         });
         catalog[pkg] = latestVersion;
         console.log(`  ↑ ${pkg}: ${currentVersion} → ${latestVersion}`);
-      } else {
-        console.log(`  ✓ ${pkg}: ${currentVersion} (up to date)`);
       }
     }
   }

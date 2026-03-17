@@ -2,7 +2,7 @@ import type { DataViewProperty } from "../types/property.type";
 
 /**
  * Validates that all property IDs are unique
- * @param properties - Array of DataViewProperty definitions
+ * @param properties - Array of DataViewProperty schema
  * @returns Error message if duplicate IDs found, undefined otherwise
  */
 export function validatePropertyKeys<T>(

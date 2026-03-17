@@ -39,7 +39,7 @@ export interface UseGroupConfigOptions {
 export interface UseGroupConfigResult<TData> {
   /** Computed default value for accordion component */
   accordionDefaultValue: string[] | undefined;
-  /** The property definition being grouped by */
+  /** The property schema being grouped by */
   groupByProperty: DataViewProperty<TData> | undefined;
   /** Grouped data array ready for rendering, or null if no grouping */
   groupedData: GroupedDataItem<TData>[] | null;
@@ -59,7 +59,7 @@ export interface UseGroupConfigResult<TData> {
  * - Computing accordion default value
  *
  * @param data - Data to group
- * @param properties - Property definitions
+ * @param properties - Property schema
  * @param groupConfig - Raw group configuration from props
  * @param options - Additional options (required, autoSelectGroupBy)
  * @returns Grouped data with metadata, validation error, and property def

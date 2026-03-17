@@ -86,7 +86,7 @@ function filterInvalidNodes(
 // ============================================================================
 
 /**
- * Validate filter against property definitions.
+ * Validate filter against property schema.
  * Filters out rules referencing invalid properties.
  * Returns null when all rules are invalid (so url ?? defaults still works).
  *

@@ -54,7 +54,7 @@ interface NotionToolbarProps extends ComponentProps<"div"> {
   enableSort?: boolean;
   /** Current group property name (displayed in settings panel) */
   groupProperty?: string;
-  /** Property definitions for filtering/sorting (optional if using context) */
+  /** Property schema for filtering/sorting (optional if using context) */
   properties?: readonly PropertyMeta[];
 }
 

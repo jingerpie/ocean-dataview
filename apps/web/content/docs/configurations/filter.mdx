@@ -1,0 +1,57 @@
+---
+title: Filter
+description: Configure default filters and available filter options
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+## Overview
+
+Ocean DataView supports two filter modes:
+
+- **Simple filters**: single rules
+- **Advanced filters**: nested AND/OR groups
+
+## 1. How To Set Default
+
+Set a default filter in `DataViewProvider`:
+
+```tsx
+const defaultFilter = predefinedFilter;
+
+<DataViewProvider
+  controller={controller}
+  defaults={{ filter: defaultFilter }}
+  properties={properties}
+>
+  <NotionToolbar enableSettings />
+  <TableView pagination="page" />
+</DataViewProvider>
+```
+
+`predefinedFilter` should match your app's filter node shape (`WhereNode[]`).
+
+## 2. What Are The Options
+
+### Filter Modes
+
+| Mode | Description |
+|------|-------------|
+| Simple | Individual filter rules |
+| Advanced | Nested AND/OR groups |
+
+### Conditions By Property Type (UI Labels)
+
+| Type | Conditions |
+|------|------------|
+| `text` / `url` / `email` / `phone` | Is, Is not, Contains, Does not contain, Starts with, Ends with, Is empty, Is not empty |
+| `number` | Equals, Does not equal, Greater than, Greater than or equal, Less than, Less than or equal, Is empty, Is not empty |
+| `date` | Is, Is before, Is after, Is on or before, Is on or after, Is between, Is relative to today, Is empty, Is not empty |
+| `select` / `status` | Is, Is not, Is empty, Is not empty |
+| `multiSelect` | Contains, Does not contain, Is empty, Is not empty |
+| `checkbox` | Is, Is not |
+| `filesMedia` | Is empty, Is not empty |
+
+<Callout type="info">
+Users manage filter rules from `NotionToolbar` and Settings.
+</Callout>

@@ -1,0 +1,48 @@
+---
+title: Expanded
+description: Configure default expanded groups and expansion behavior
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+## Overview
+
+Expanded controls which grouped sections start open.
+
+## 1. How To Set Default
+
+Set default expanded groups in `DataViewProvider`:
+
+```tsx
+<DataViewProvider
+  controller={controller}
+  defaults={{
+    expanded: ["__ungrouped__"],
+  }}
+  properties={properties}
+>
+  <NotionToolbar enableSettings />
+  <TableView pagination="page" />
+</DataViewProvider>
+```
+
+## 2. What Are The Options
+
+### Expansion Defaults
+
+| Mode | Initial State |
+|------|---------------|
+| Flat (no grouping) | `__ungrouped__` is expanded |
+| Grouped | All groups collapsed by default |
+
+### Behavior Rules
+
+| Rule | Behavior |
+|------|----------|
+| Local state | Expansion is not stored in URL |
+| Group config changes | Expanded state resets to prevent stale keys |
+| Lazy rendering | Group content renders when expanded |
+
+<Callout type="info">
+Use `defaults.expanded` when you need an explicit initial expansion state.
+</Callout>

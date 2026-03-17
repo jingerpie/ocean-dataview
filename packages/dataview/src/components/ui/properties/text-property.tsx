@@ -16,7 +16,7 @@ interface TextPropertyProps {
  * @returns Rendered text or empty value indicator
  */
 export function TextProperty({ value, wrap = false }: TextPropertyProps) {
-  const text = value != null ? String(value) : "";
+  const text = value == null ? "" : String(value);
 
   if (!text) {
     return <span className="text-muted-foreground text-sm">-</span>;

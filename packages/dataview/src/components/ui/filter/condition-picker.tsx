@@ -75,5 +75,5 @@ function ConditionPicker({
   );
 }
 
-export { ConditionPicker };
 export type { ConditionPickerProps };
+export { ConditionPicker };
