@@ -1,0 +1,67 @@
+---
+title: Column By
+description: Configure default board columns and column options
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+<Callout type="warn">
+**Board View Only:** Column By is only for Board view.
+</Callout>
+
+## Overview
+
+Column By defines board columns. It uses the same shape as Group By, but for vertical columns.
+
+## 1. How To Set Default
+
+Set default column config in `DataViewProvider`:
+
+```tsx
+<DataViewProvider
+  controller={controller}
+  defaults={{
+    column: {
+      propertyType: "select",
+      propertyId: "category",
+      sort: "asc",
+      hideEmpty: false,
+      showCount: true,
+    },
+  }}
+  properties={properties}
+>
+  <NotionToolbar enableSettings />
+  <BoardView pagination="loadMore" />
+</DataViewProvider>
+```
+
+## 2. What Are The Options
+
+### Supported Property Types
+
+| Type | Type-specific Option |
+|------|----------------------|
+| `select` | - |
+| `multiSelect` | - |
+| `status` | `showAs: "option" or "group"` |
+| `date` | `showAs: "day", "week", "month", "year", or "relative"` |
+| `text` | `showAs: "exact" or "alphabetical"` |
+| `number` | `numberRange: { range: [min, max], step }` |
+| `checkbox` | - |
+
+### Shared Options
+
+| Option | Type | Default |
+|--------|------|---------|
+| `sort` | `"asc" \| "desc"` | `"asc"` |
+| `hideEmpty` | `boolean` | `false` |
+| `showCount` | `boolean` | `true` |
+
+### Board Display Option
+
+```tsx
+<BoardView colorColumns pagination="loadMore" />
+```
+
+`colorColumns` applies option/status colors to column backgrounds.

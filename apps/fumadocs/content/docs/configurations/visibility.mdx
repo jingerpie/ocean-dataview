@@ -1,0 +1,50 @@
+---
+title: Visibility
+description: Configure default property visibility and visibility options
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+## Overview
+
+Visibility controls which properties are shown in views.
+
+## 1. How To Set Default
+
+### Hide specific properties globally
+
+```tsx
+const properties = [
+  {
+    id: "internalId",
+    label: "Internal ID",
+    type: "text",
+    hidden: true,
+  },
+];
+```
+
+### Set initial visible property list
+
+```tsx
+<DataViewProvider
+  controller={controller}
+  properties={properties}
+  propertyVisibility={["productName", "price", "availability"]}
+>
+  <NotionToolbar enableSettings />
+  <TableView pagination="page" />
+</DataViewProvider>
+```
+
+## 2. What Are The Options
+
+| Option | Location | Description |
+|--------|----------|-------------|
+| `hidden` | Property schema | Never shown in view columns/cards |
+| `propertyVisibility` | `DataViewProvider` prop | Initial visible property IDs |
+| `enableSettings` | `NotionToolbar` prop | Shows settings UI where users can toggle visibility |
+
+<Callout type="info">
+Visibility is local UI state (not URL-based).
+</Callout>

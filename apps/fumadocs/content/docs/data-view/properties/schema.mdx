@@ -3,7 +3,7 @@ title: Property Schema
 description: Define your data schema with property types that power filtering, sorting, grouping, and display across all views.
 ---
 
-A property schema file declares the schema for your DataView. It defines how each field is displayed, filtered, sorted, and grouped.
+A property schema defines how each field is displayed, filtered, sorted, grouped, and searched.
 
 ## Full Example
 
@@ -17,36 +17,34 @@ This example shows all 13 property types in a real-world product schema:
 
 | Type | Description | Config Required |
 |------|-------------|-----------------|
-| `text` | Plain text | No |
+| `text` | Plain text | ❌ No |
 | `number` | Numeric with formatting | Optional |
 | `select` | Single selection badge | Optional |
 | `multiSelect` | Multiple selection badges | Optional |
 | `status` | Grouped status with icons | Optional |
 | `date` | Date/time values | Optional |
-| `checkbox` | Boolean toggle | No |
+| `checkbox` | Boolean | ❌ No |
 | `url` | Clickable links | Optional |
-| `email` | Email addresses | No |
-| `phone` | Phone numbers | No |
-| `filesMedia` | Images and files | No |
+| `email` | Email addresses | ❌ No |
+| `phone` | Phone numbers | ❌ No |
+| `filesMedia` | Images and files | ❌ No |
 | `formula` | Computed JSX | `value()` required |
-| `button` | Action buttons | `value()` required |
+| `button` | Row action buttons | `value()` required |
 
 ---
 
 ## Base Property Fields
 
-Every property supports these fields:
-
 ```tsx
 {
-  id: string;           // Maps to data field (required)
-  type: PropertyType;   // One of 13 types (required)
-  label?: string;       // Display label
-  hidden?: boolean;     // Hide from columns
-  enableFilter?: boolean;   // Show in filter picker (default: true)
-  enableSort?: boolean;     // Show in sort picker (default: true)
-  enableGroup?: boolean;    // Show in group picker (default: true)
-  enableSearch?: boolean;   // Include in search (default: type-dependent)
+  id: string;             // Property identifier
+  type: PropertyType;     // One of 13 types
+  label?: string;         // Display label
+  hidden?: boolean;       // Hide in view columns/cards
+  enableFilter?: boolean; // In filter picker (default: true)
+  enableSort?: boolean;   // In sort picker (default: true)
+  enableGroup?: boolean;  // In group picker (default: true)
+  enableSearch?: boolean; // In search (default: type-dependent)
 }
 ```
 
@@ -59,12 +57,13 @@ Every property supports these fields:
   id: "price",
   type: "number",
   config: {
-    numberFormat: "dollar",  // "number" | "numberWithCommas" | "percentage" | "dollar" | "euro" | "pound"
-    decimalPlaces: 2,        // 0-10
+    numberFormat: "dollar", // number | numberWithCommas | percentage | dollar | euro | pound
+    decimalPlaces: 2,
     showAs: {
-      type: "bar",           // "number" | "bar" | "ring"
+      type: "bar",          // number | bar | ring
       color: "green",
       divideBy: 100,
+      showNumber: true,
     },
   },
 }
@@ -77,9 +76,9 @@ Every property supports these fields:
 ```tsx
 {
   id: "category",
-  type: "select",  // or "multiSelect"
+  type: "select", // or "multiSelect"
   config: {
-    optionOrder: "manual",  // "manual" | "asc" | "desc"
+    optionOrder: "manual", // manual | asc | desc
     options: [
       { value: "Electronics", color: "blue" },
       { value: "Clothing", color: "purple" },
@@ -124,8 +123,8 @@ Every property supports these fields:
   id: "createdAt",
   type: "date",
   config: {
-    dateFormat: "relative",  // "full" | "short" | "MDY" | "DMY" | "YMD" | "relative"
-    timeFormat: "12hour",    // "hidden" | "12hour" | "24hour"
+    dateFormat: "relative", // full | short | MDY | DMY | YMD | relative | relativeGroup
+    timeFormat: "12hour",   // hidden | 12hour | 24hour
   },
 }
 ```
@@ -134,13 +133,13 @@ Every property supports these fields:
 
 ## Formula Property
 
-Compose multiple properties into custom JSX. Use `property(id)` to render other properties with their styling, and `item` for direct data access.
+Use formula to compose JSX from existing properties.
 
 ```tsx
 {
   id: "productCard",
   type: "formula",
-  sortBy: "productName",  // Backing field for sorting
+  sortBy: "productName",
   value: (property, item) => (
     <div className="flex items-center gap-4">
       <FilesMediaProperty value={item.productImage} />
@@ -159,8 +158,6 @@ Compose multiple properties into custom JSX. Use `property(id)` to render other 
 ---
 
 ## Button Property
-
-Define per-row action buttons.
 
 ```tsx
 {
@@ -184,21 +181,21 @@ Define per-row action buttons.
 
 ---
 
-## Type Safety
-
-Use `DataViewProperty<T>` for full type inference:
+## Type Safety Notes
 
 ```tsx
 import type { DataViewProperty } from "@sparkyidea/dataview/types";
 
 interface Product {
   id: string;
-  name: string;
+  productName: string;
   price: number;
 }
 
-const properties: DataViewProperty<Product>[] = [
-  { id: "name", type: "text" },      // ✓ Valid - "name" exists on Product
-  { id: "foo", type: "text" },       // ✗ Error - "foo" not on Product
-];
+const properties = [
+  { id: "productName", type: "text" },
+  { id: "price", type: "number", config: { numberFormat: "dollar" } },
+] satisfies DataViewProperty<Product>[];
 ```
+
+`DataViewProperty<T>` validates property shape and type-specific config. Property `id` is currently a runtime `string` (not `keyof T`), so unknown IDs are not compile-time errors.

@@ -1,0 +1,128 @@
+---
+title: Table View
+description: Spreadsheet-style data display with sortable columns and bulk actions
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+![Table View Demo](/images/table-demo.png)
+
+## Overview
+
+`TableView` displays data in a spreadsheet-style format with sortable columns, row selection, and bulk actions. It auto-generates columns from your property schema.
+
+## Features
+
+- Auto-generates columns from properties
+- Row selection with checkboxes (when `bulkActions` provided)
+- Floating action bar for bulk operations
+- Sticky headers with configurable offset
+- Full grouping support (accordion sections)
+
+## Basic Usage
+
+```tsx
+import { usePageController } from "@sparkyidea/dataview/hooks";
+import { DataViewProvider } from "@sparkyidea/dataview/providers";
+import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
+import { TableView } from "@sparkyidea/dataview/views/table-view";
+
+const { controller } = usePageController({
+  groupQuery: (params) => trpc.product.getGroup.infiniteQueryOptions({
+    filter: params.filter,
+    groupBy: params.groupConfig,
+    limit: 25,
+  }),
+  dataQuery: (params) => trpc.product.getMany.queryOptions({
+    filter: params.filter,
+    limit: params.limit,
+    sort: params.sort,
+  }),
+});
+
+<DataViewProvider
+  controller={controller}
+  defaults={{ filter, group, limit, search, sort }}
+  properties={productProperties}
+>
+  <NotionToolbar enableSettings />
+  <TableView pagination="page" />
+</DataViewProvider>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `pagination` | `"page"` \| `"loadMore"` \| `"infiniteScroll"` | - | Pagination mode |
+| `bulkActions` | `BulkAction<TData>[]` | - | Enables row selection and floating action bar |
+| `onRowClick` | `(row: TData) => void` | - | Row click handler |
+| `showVerticalLines` | `boolean` | `true` | Show vertical lines between columns |
+| `wrapAllColumns` | `boolean` | `true` | Wrap text in all columns |
+
+## Pagination Modes
+
+| Mode | Description |
+|------|-------------|
+| `page` | Classic prev/next pagination with "Showing X-Y of N" |
+| `loadMore` | Button to append more items |
+| `infiniteScroll` | Auto-load when scrolling near bottom |
+
+**Default Limit:** 25 rows
+
+## Bulk Actions
+
+Enable row selection and bulk operations by providing `bulkActions`:
+
+```tsx
+const bulkActions = [
+  {
+    label: "Delete",
+    icon: <TrashIcon />,
+    onClick: (selectedRows) => deleteProducts(selectedRows),
+    isPending: isDeleting,
+  },
+  {
+    label: "Archive",
+    icon: <ArchiveIcon />,
+    onClick: (selectedRows) => archiveProducts(selectedRows),
+  },
+];
+
+<TableView bulkActions={bulkActions} pagination="page" />
+```
+
+When `bulkActions` is provided:
+- A checkbox column is automatically added
+- A floating action bar appears when rows are selected
+- Selected rows are passed to action callbacks
+
+## Row Click Handler
+
+Handle row clicks for navigation or detail views:
+
+```tsx
+<TableView
+  pagination="page"
+  onRowClick={(row) => router.push(`/products/${row.id}`)}
+/>
+```
+
+## Grouped Tables
+
+When grouping is enabled (via `?group=...` URL param), tables render inside accordion sections. Grouping is controlled by URL state and the toolbar's settings panel.
+
+Each group has:
+- Sticky header with group label and count
+- Independent pagination within the group
+- Collapsible accordion behavior
+
+## Display Options
+
+```tsx
+<TableView
+  pagination="page"
+  showVerticalLines={false}  // Hide column dividers
+  wrapAllColumns={false}     // Truncate long text
+/>
+```

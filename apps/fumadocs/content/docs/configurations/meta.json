@@ -1,4 +1,4 @@
 {
   "title": "Configurations",
-  "pages": ["grouping"]
+  "pages": ["group-by", "column-by", "filter", "sort", "expanded", "visibility"]
 }

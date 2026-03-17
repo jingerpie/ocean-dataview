@@ -1,0 +1,97 @@
+---
+title: List View
+description: Simplified list-style rendering with minimal metadata
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+![List View Demo](/images/list-demo.png)
+
+## Overview
+
+`ListView` provides a simplified list-style rendering with minimal visual density. Each item displays as a single row with expandable properties.
+
+## Features
+
+- Single row per item with minimal metadata
+- Clean, readable layout
+- Full grouping support (accordion sections)
+- Lightweight alternative to Table view
+
+## Basic Usage
+
+```tsx
+import { useInfiniteController } from "@sparkyidea/dataview/hooks";
+import { DataViewProvider } from "@sparkyidea/dataview/providers";
+import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
+import { ListView } from "@sparkyidea/dataview/views/list-view";
+
+const { controller } = useInfiniteController({
+  groupQuery: (params) => trpc.product.getGroup.infiniteQueryOptions({
+    filter: params.filter,
+    groupBy: params.groupConfig,
+    limit: 25,
+  }),
+  dataQuery: (params) => trpc.product.getMany.infiniteQueryOptions({
+    filter: params.filter,
+    limit: params.limit,
+    sort: params.sort,
+  }),
+});
+
+<DataViewProvider
+  controller={controller}
+  defaults={{ filter, group, limit, search, sort }}
+  properties={productProperties}
+>
+  <NotionToolbar enableSettings />
+  <ListView pagination="loadMore" />
+</DataViewProvider>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `pagination` | `"page"` \| `"loadMore"` \| `"infiniteScroll"` | - | Pagination mode |
+| `onItemClick` | `(item: TData) => void` | - | Item click handler |
+
+## Pagination Modes
+
+| Mode | Description |
+|------|-------------|
+| `page` | Classic prev/next pagination with "Showing X-Y of N" |
+| `loadMore` | Button to append more items |
+| `infiniteScroll` | Auto-load when scrolling near bottom |
+
+**Default Limit:** 25 items
+
+## Item Click Handler
+
+Handle item clicks for navigation or detail views:
+
+```tsx
+<ListView
+  pagination="page"
+  onItemClick={(item) => router.push(`/tasks/${item.id}`)}
+/>
+```
+
+## Grouped Lists
+
+When grouping is enabled (via `?group=...` URL param), list items render inside accordion sections.
+
+Each group has:
+- Sticky header with group label and count
+- Independent pagination within the group
+- Collapsible accordion behavior
+
+## When to Use List View
+
+List view is ideal for:
+- Simple data with few properties
+- Task lists or todo items
+- Mobile-friendly layouts
+- When Table view feels too heavy
+
+For richer card layouts with images, consider [Gallery View](/docs/data-view/views/gallery).

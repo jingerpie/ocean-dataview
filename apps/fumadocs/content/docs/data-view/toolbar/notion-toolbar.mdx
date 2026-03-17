@@ -1,0 +1,115 @@
+---
+title: Notion Toolbar
+description: Pre-built Notion-style toolbar with filter, sort, search, and settings
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+## Overview
+
+`NotionToolbar` is a pre-built, fully-featured toolbar inspired by Notion's interface. It includes filter, sort, search, and a settings panel out of the box.
+
+```
+Row 1: [children] -------- [Filter] [Sort] [Search] [Settings]
+Row 2: [SortChip] [AdvancedFilterChip] [SimpleFilterChips...] [+ Filter] [Reset]
+```
+
+Row 2 (ChipsBar) appears conditionally when active filters or sorts exist.
+
+## Basic Usage
+
+```tsx
+import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
+
+<DataViewProvider controller={controller} properties={schema} defaults={defaults}>
+  <NotionToolbar enableSettings>
+    {/* Optional: tabs or other left-side content */}
+    <ViewTabs />
+  </NotionToolbar>
+  <TableView pagination="page" />
+</DataViewProvider>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `enableFilter` | `boolean` | `true` | Show filter button |
+| `enableSort` | `boolean` | `true` | Show sort button |
+| `enableSearch` | `boolean` | `true` | Show expandable search input |
+| `enableSettings` | `boolean` | `false` | Show settings popover |
+| `enableColumn` | `boolean` | `false` | Enable column settings (board view) |
+| `children` | `ReactNode` | - | Left-side content (tabs, etc.) |
+
+## Features
+
+### Filter Button
+
+- Opens filter picker when no filters active
+- Toggles Row 2 visibility when filters exist
+- Shows filter count badge
+
+### Sort Button
+
+- Opens sort picker when no sorts active
+- Toggles Row 2 visibility when sorts exist
+- Shows sort count badge
+
+### Search Input
+
+- Expandable search with icon trigger
+- Debounced URL sync via `?search=` param
+- Searches across searchable properties
+
+### Settings Panel
+
+The settings popover provides access to view configurations:
+
+| Section | Description |
+|---------|-------------|
+| **Visibility** | Toggle property visibility |
+| **Filter** | Manage filter rules |
+| **Sort** | Manage sort rules |
+| **Column** | Column configuration (board view only) |
+| **Group** | Group configuration |
+| **Color** | Conditional row/card coloring |
+
+## Chips Bar (Row 2)
+
+When filters or sorts are active, Row 2 displays:
+
+1. **Sort Chip** - Multi-sort with drag-and-drop reordering
+2. **Advanced Filter Chip** - AND/OR expression editor
+3. **Simple Filter Chips** - Individual filter rules with inline editing
+4. **"+ Filter" Button** - Add new filter
+5. **Reset Button** - Clear all filters and sorts
+
+## With View Tabs
+
+```tsx
+import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
+
+const viewOptions = [
+  { value: "table", label: "Table", icon: <TableIcon /> },
+  { value: "gallery", label: "Gallery", icon: <GalleryIcon /> },
+  { value: "board", label: "Board", icon: <BoardIcon /> },
+];
+
+<NotionToolbar enableSettings>
+  <ViewTabs options={viewOptions} value={currentView} onChange={setView} />
+</NotionToolbar>
+```
+
+## Board View Configuration
+
+For board views, enable column settings:
+
+```tsx
+<NotionToolbar enableSettings enableColumn>
+  <ViewTabs />
+</NotionToolbar>
+```
+
+<Callout type="info">
+NotionToolbar reads properties and visibility from `DataViewProvider` context automatically.
+</Callout>
