@@ -74,7 +74,13 @@ export function SimpleFilterActions({
       const newAdvanced: WhereExpression = existing.and
         ? { and: [...advancedItems, rule] }
         : { or: [...advancedItems, rule] };
-      items[advancedIndex] = newAdvanced;
+      // Find the correct index in items (may have shifted due to filtered rule)
+      const advancedIndexInItems = items.findIndex(
+        (node) => !isWhereRule(node)
+      );
+      if (advancedIndexInItems !== -1) {
+        items[advancedIndexInItems] = newAdvanced;
+      }
     }
 
     setFilter(items.length > 0 ? items : null);
