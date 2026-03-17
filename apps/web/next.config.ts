@@ -1,9 +1,10 @@
+import "@sparkyidea/env/web";
 import { createMDX } from "fumadocs-mdx/next";
+import type { NextConfig } from "next";
 
 const withMDX = createMDX();
 
-/** @type {import('next').NextConfig} */
-const config = {
+const config: NextConfig = {
   typedRoutes: true,
   reactCompiler: true,
   serverExternalPackages: ["@takumi-rs/image-response"],
