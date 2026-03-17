@@ -184,7 +184,7 @@ interface GroupSectionProps<TData> {
   };
 
   /**
-   * GroupBy property definition for styling the group header
+   * GroupBy property schema for styling the group header
    */
   groupByPropertyDef?: DataViewProperty<TData>;
 
@@ -294,7 +294,7 @@ export function GroupSection<TData>({
       );
     }
 
-    // Fallback for no property definition
+    // Fallback for no property schema
     return <span className="font-medium text-sm">{group.key}</span>;
   };
 

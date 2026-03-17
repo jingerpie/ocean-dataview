@@ -18,7 +18,7 @@ import { UrlProperty } from "../ui/properties/url-property";
 
 interface DataCellProps<T> {
   /**
-   * All property definitions - required for formula properties
+   * All property schema - required for formula properties
    * to render other properties via `property(id)` renderer
    */
   allProperties?: readonly DataViewProperty<T>[];

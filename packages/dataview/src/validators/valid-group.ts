@@ -65,7 +65,7 @@ type PropertyLike = Pick<PropertyMeta, "enableGroup" | "id" | "type">;
 
 /**
  * Validates group configuration for views
- * @param properties - Array of property definitions
+ * @param properties - Array of property schema
  * @param groupBy - The property ID to group by (references property.id, not data key)
  * @param showAs - Optional showAs configuration
  * @returns Error message string if invalid, null if valid
@@ -118,7 +118,7 @@ function getGroupablePropertyIds(
 // ============================================================================
 
 /**
- * Validate group config against property definitions.
+ * Validate group config against property schema.
  * Returns null if property doesn't exist (so url ?? defaults still works).
  *
  * Accepts both DataViewProperty[] and PropertyMeta[] for flexibility.

@@ -259,7 +259,7 @@ function getGroupKeyAndSortValue<TData>(
  * Returns both groups and sort values for proper ordering
  * @param data - Raw data to group
  * @param propertyId - Property ID (references property.id, not data key)
- * @param properties - Property definitions
+ * @param properties - Property schema
  * @param options - Grouping options (showAs, startWeekOn, textShowAs, numberRange)
  */
 export function groupByProperty<TData>(
@@ -450,7 +450,7 @@ export function computeData<TData>(
 ): Record<string, number> {
   const result: Record<string, number> = {};
 
-  // Find the property definition for value extraction
+  // Find the property schema for value extraction
   const property = properties?.find((p) => p.id === propertyId);
 
   // Helper to extract value from item

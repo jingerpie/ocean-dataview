@@ -31,7 +31,7 @@ function getSortablePropertyIds(
 // ============================================================================
 
 /**
- * Validate sort against property definitions.
+ * Validate sort against property schema.
  * Filters out sort items referencing invalid properties.
  * Returns null when all items are invalid (so url ?? defaults still works).
  *

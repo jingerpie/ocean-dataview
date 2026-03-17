@@ -10,7 +10,7 @@ import type { DataViewProperty } from "../types";
  * - Excluding special IDs (groupBy, preview, etc.)
  * - Maintaining specified order from propertyVisibility
  *
- * @param properties - All property definitions
+ * @param properties - All property schema
  * @param propertyVisibility - Optional list of visible property IDs
  * @param excludeKeys - Property IDs to exclude (groupBy, preview, etc.)
  * @returns Filtered and ordered display properties

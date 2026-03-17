@@ -6,7 +6,7 @@ import { DataCell } from "../data-cell";
 
 export interface ListRowProps<TData> {
   /**
-   * All property definitions - required for formula properties
+   * All property schema - required for formula properties
    */
   allProperties?: readonly DataViewProperty<TData>[];
 
@@ -20,7 +20,7 @@ export interface ListRowProps<TData> {
   data: TData[];
 
   /**
-   * Property definitions for display (excluding groupBy)
+   * Property schema for display (excluding groupBy)
    */
   displayProperties: DataViewProperty<TData>[];
 

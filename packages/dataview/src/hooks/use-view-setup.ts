@@ -41,7 +41,7 @@ export interface UseViewSetupOptions<
   data: TData[];
   /** Group configuration from context (new discriminated union format) */
   group?: GroupConfigInput | null;
-  /** Property definitions */
+  /** Property schema */
   properties: TProperties;
 }
 

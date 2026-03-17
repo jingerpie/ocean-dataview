@@ -9,7 +9,7 @@ import { DataCell } from "./data-cell";
 
 export interface DataCardProps<TData> {
   /**
-   * All property definitions - required for formula properties
+   * All property schema - required for formula properties
    */
   allProperties?: readonly DataViewProperty<TData>[];
 
@@ -24,7 +24,7 @@ export interface DataCardProps<TData> {
   className?: string;
 
   /**
-   * Property definitions for display
+   * Property schema for display
    */
   displayProperties: DataViewProperty<TData>[];
 
