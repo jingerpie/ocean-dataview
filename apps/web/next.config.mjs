@@ -1,4 +1,3 @@
-import "@sparkyidea/env/web";
 import { createMDX } from "fumadocs-mdx/next";
 
 const withMDX = createMDX();
