@@ -1,0 +1,5 @@
+{
+  "title": "Ocean DataView",
+  "root": true,
+  "pages": ["index", "properties", "property-definition", "grouping"]
+}

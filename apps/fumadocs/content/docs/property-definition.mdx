@@ -1,0 +1,204 @@
+---
+title: Property Definition
+description: Define your data schema with property types that power filtering, sorting, grouping, and display across all views.
+---
+
+A property definition file declares the schema for your DataView. It defines how each field is displayed, filtered, sorted, and grouped.
+
+## Full Example
+
+This example shows all 13 property types in a real-world product schema:
+
+<ComponentSource src="apps/web/src/modules/dataview/product-properties.tsx" title="product-properties.tsx" />
+
+---
+
+## Property Types
+
+| Type | Description | Config Required |
+|------|-------------|-----------------|
+| `text` | Plain text | No |
+| `number` | Numeric with formatting | Optional |
+| `select` | Single selection badge | Optional |
+| `multiSelect` | Multiple selection badges | Optional |
+| `status` | Grouped status with icons | Optional |
+| `date` | Date/time values | Optional |
+| `checkbox` | Boolean toggle | No |
+| `url` | Clickable links | Optional |
+| `email` | Email addresses | No |
+| `phone` | Phone numbers | No |
+| `filesMedia` | Images and files | No |
+| `formula` | Computed JSX | `value()` required |
+| `button` | Action buttons | `value()` required |
+
+---
+
+## Base Property Fields
+
+Every property supports these fields:
+
+```tsx
+{
+  id: string;           // Maps to data field (required)
+  type: PropertyType;   // One of 13 types (required)
+  label?: string;       // Display label
+  hidden?: boolean;     // Hide from columns
+  enableFilter?: boolean;   // Show in filter picker (default: true)
+  enableSort?: boolean;     // Show in sort picker (default: true)
+  enableGroup?: boolean;    // Show in group picker (default: true)
+  enableSearch?: boolean;   // Include in search (default: type-dependent)
+}
+```
+
+---
+
+## Number Config
+
+```tsx
+{
+  id: "price",
+  type: "number",
+  config: {
+    numberFormat: "dollar",  // "number" | "numberWithCommas" | "percentage" | "dollar" | "euro" | "pound"
+    decimalPlaces: 2,        // 0-10
+    showAs: {
+      type: "bar",           // "number" | "bar" | "ring"
+      color: "green",
+      divideBy: 100,
+    },
+  },
+}
+```
+
+---
+
+## Select / MultiSelect Config
+
+```tsx
+{
+  id: "category",
+  type: "select",  // or "multiSelect"
+  config: {
+    optionOrder: "manual",  // "manual" | "asc" | "desc"
+    options: [
+      { value: "Electronics", color: "blue" },
+      { value: "Clothing", color: "purple" },
+    ],
+  },
+}
+```
+
+---
+
+## Status Config
+
+```tsx
+{
+  id: "availability",
+  type: "status",
+  config: {
+    groups: [
+      {
+        label: "Available",
+        color: "green",
+        icon: CheckCircle,
+        options: ["In stock", "Ready"],
+      },
+      {
+        label: "Warning",
+        color: "yellow",
+        icon: AlertCircle,
+        options: ["Low stock"],
+      },
+    ],
+  },
+}
+```
+
+---
+
+## Date Config
+
+```tsx
+{
+  id: "createdAt",
+  type: "date",
+  config: {
+    dateFormat: "relative",  // "full" | "short" | "MDY" | "DMY" | "YMD" | "relative"
+    timeFormat: "12hour",    // "hidden" | "12hour" | "24hour"
+  },
+}
+```
+
+---
+
+## Formula Property
+
+Compose multiple properties into custom JSX. Use `property(id)` to render other properties with their styling, and `item` for direct data access.
+
+```tsx
+{
+  id: "productCard",
+  type: "formula",
+  sortBy: "productName",  // Backing field for sorting
+  value: (property, item) => (
+    <div className="flex items-center gap-4">
+      <FilesMediaProperty value={item.productImage} />
+      <div className="flex flex-col gap-1">
+        {property("productName")}
+        <div className="flex gap-2">
+          {property("price")}
+          {property("category")}
+        </div>
+      </div>
+    </div>
+  ),
+}
+```
+
+---
+
+## Button Property
+
+Define per-row action buttons.
+
+```tsx
+{
+  id: "actions",
+  type: "button",
+  value: (item) => [
+    {
+      label: "View",
+      icon: Eye,
+      onClick: () => openModal(item.id),
+    },
+    {
+      label: "Edit",
+      icon: Edit,
+      onClick: () => router.push(`/edit/${item.id}`),
+      disabled: !item.canEdit,
+    },
+  ],
+}
+```
+
+---
+
+## Type Safety
+
+Use `DataViewProperty<T>` for full type inference:
+
+```tsx
+import type { DataViewProperty } from "@sparkyidea/dataview/types";
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+}
+
+const properties: DataViewProperty<Product>[] = [
+  { id: "name", type: "text" },      // ✓ Valid - "name" exists on Product
+  { id: "foo", type: "text" },       // ✗ Error - "foo" not on Product
+];
+```
