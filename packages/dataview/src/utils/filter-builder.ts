@@ -4,7 +4,7 @@ import {
   type WhereExpression,
   type WhereNode,
   type WhereRule,
-} from "../../types";
+} from "../types/filter.type";
 
 // ============================================================================
 // Basic Helpers

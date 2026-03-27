@@ -35,7 +35,7 @@ const { controller } = useInfiniteController({
       filter: params.filter,
       groupBy: params.columnConfig,
       hideEmpty: params.hideEmpty,
-      search: buildSearchFilter(params.search, searchableFields),
+      search: params.search,
     }),
 
   groupQuery: (params) =>
@@ -43,7 +43,7 @@ const { controller } = useInfiniteController({
       filter: params.filter,
       groupBy: params.groupConfig,
       hideEmpty: params.hideEmpty,
-      search: buildSearchFilter(params.search, searchableFields),
+      search: params.search,
       sort: params.groupConfig.sort,
       limit: 25,
     }),
@@ -55,7 +55,7 @@ const { controller } = useInfiniteController({
         filter: params.filter,
         limit: params.limit,
         sort: params.sort,
-        search: buildSearchFilter(params.search, searchableFields),
+        search: params.search,
       },
       {
         getNextPageParam: (lastPage) => {

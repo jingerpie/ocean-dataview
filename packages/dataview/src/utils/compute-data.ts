@@ -1,7 +1,8 @@
-import type { ComputationType, DataViewProperty } from "../../types";
+import type { ComputationType } from "../types/computation.type";
+import type { DataViewProperty } from "../types/property.type";
 import { getUserLocale } from "./locale-helpers";
 
-export type { ComputationType } from "../../types";
+export type { ComputationType } from "../types/computation.type";
 
 /** Regex for matching uppercase A-Z letters */
 const UPPERCASE_LETTER_REGEX = /[A-Z]/;

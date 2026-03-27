@@ -1,17 +1,15 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { InfinitePaginationState, PagePaginationState } from "../../hooks";
+import type { InfinitePaginationState } from "../../hooks/use-infinite-controller";
+import type { PagePaginationState } from "../../hooks/use-page-controller";
+import type { SortQuery, WhereNode } from "../../types/filter.type";
 import type {
   ColumnConfigInput,
-  DataViewProperty,
   GroupConfigInput,
-  GroupCounts,
-  PropertyMeta,
-  SortQuery,
-  ViewCounts,
-  WhereNode,
-} from "../../types";
+} from "../../types/group.type";
+import type { GroupCounts, ViewCounts } from "../../types/pagination-types";
+import type { DataViewProperty, PropertyMeta } from "../../types/property.type";
 
 /**
  * Union type for pagination - supports page and infinite pagination.
@@ -22,7 +20,10 @@ export type PaginationOutput<TData> =
   | InfinitePaginationState<TData>;
 
 // Re-export for convenience
-export type { ColumnConfigInput, GroupConfigInput } from "../../types";
+export type {
+  ColumnConfigInput,
+  GroupConfigInput,
+} from "../../types/group.type";
 
 export interface DataViewContextValue<
   TData,

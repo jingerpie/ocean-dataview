@@ -1,14 +1,14 @@
 "use client";
 
 import { ChevronDownIcon, CircleDashed } from "lucide-react";
-import { extractSelectValues } from "../../../../lib/utils/filter-variant";
+import type { WhereRule } from "../../../../types/filter.type";
 import type {
   BadgeColor,
   PropertyMeta,
   StatusConfig,
   StatusGroup,
-  WhereRule,
-} from "../../../../types";
+} from "../../../../types/property.type";
+import { extractSelectValues } from "../../../../utils/filter-variant";
 import { Button } from "../../button";
 import { Checkbox } from "../../checkbox";
 import {

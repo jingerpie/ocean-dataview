@@ -4,9 +4,10 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVerticalIcon, XIcon } from "lucide-react";
 import { useCallback, useState } from "react";
-import { useSortParams } from "../../../hooks";
+import { useSortParams } from "../../../hooks/use-sort-params";
 import { cn } from "../../../lib/utils";
-import type { PropertyMeta, SortQuery } from "../../../types";
+import type { SortQuery } from "../../../types/filter.type";
+import type { PropertyMeta } from "../../../types/property.type";
 import { Button } from "../button";
 import {
   Command,

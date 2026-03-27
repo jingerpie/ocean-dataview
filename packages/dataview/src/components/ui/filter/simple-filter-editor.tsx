@@ -1,7 +1,8 @@
 "use client";
 
-import { applyConditionChange } from "../../../lib/utils/filter-variant";
-import type { FilterCondition, PropertyMeta, WhereRule } from "../../../types";
+import type { FilterCondition, WhereRule } from "../../../types/filter.type";
+import type { PropertyMeta } from "../../../types/property.type";
+import { applyConditionChange } from "../../../utils/filter-variant";
 import { ConditionPicker } from "./condition-picker";
 import { CheckboxValueEditor } from "./properties/checkbox-filter";
 import { DateValueEditor } from "./properties/date-filter";

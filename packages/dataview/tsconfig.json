@@ -1,10 +1,6 @@
 {
   "extends": "@sparkyidea/config/tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@sparkyidea/dataview/*": ["./src/*"]
-    },
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,

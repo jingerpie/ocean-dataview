@@ -1,6 +1,7 @@
 "use client";
 
-import type { PropertyMeta, WhereRule } from "../../../../types";
+import type { WhereRule } from "../../../../types/filter.type";
+import type { PropertyMeta } from "../../../../types/property.type";
 import type { DateRangeValue } from "./range-date-picker";
 import { RangeDatePicker, RangeDatePickerContent } from "./range-date-picker";
 import type { RelativeToTodayValue } from "./relative-date-picker";

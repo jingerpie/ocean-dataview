@@ -13,13 +13,12 @@ import {
   useMemo,
 } from "react";
 import { useExpandedGroups } from "../../hooks/use-expanded-groups";
+import type { SortQuery, WhereNode } from "../../types/filter.type";
 import type {
   ColumnConfigInput,
   GroupConfigInput,
-  Limit,
-  SortQuery,
-  WhereNode,
-} from "../../types";
+} from "../../types/group.type";
+import type { Limit } from "../../types/pagination";
 import type {
   InfiniteController,
   PageController,

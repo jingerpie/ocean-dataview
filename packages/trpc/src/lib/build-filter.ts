@@ -3,8 +3,8 @@ import {
   isWhereExpression,
   type WhereNode,
   type WhereRule,
-} from "@sparkyidea/shared/types";
-import { getRelativeDateRange } from "@sparkyidea/shared/utils/get-relative-date-range";
+} from "@sparkyidea/dataview/types";
+import { getRelativeDateRange } from "@sparkyidea/dataview/utils";
 import { addDays, parseISO, startOfDay } from "date-fns";
 import {
   type AnyColumn,

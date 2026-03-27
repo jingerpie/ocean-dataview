@@ -1,7 +1,7 @@
 "use client";
 
-import { useColumnParams } from "../../../../hooks";
-import type { PropertyMeta } from "../../../../types";
+import { useColumnParams } from "../../../../hooks/use-column-params";
+import type { PropertyMeta } from "../../../../types/property.type";
 import { GroupEditor } from "../../../ui/group/group-editor";
 import { GroupPicker } from "../../../ui/group/group-picker";
 import { GroupShowAsPicker } from "../../../ui/group/group-show-as-picker";

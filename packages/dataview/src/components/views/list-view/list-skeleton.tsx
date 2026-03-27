@@ -1,13 +1,10 @@
 "use client";
 
-import {
-  ROW_PATTERNS,
-  ROW_SKELETON_WIDTHS,
-} from "../../../lib/constants/skeleton-widths";
 import { cn } from "../../../lib/utils";
-import type { PropertyType } from "../../../types";
+import type { PropertyType } from "../../../types/filter.type";
 import { PaginationSkeleton } from "../../ui/pagination/pagination-skeleton";
 import { Skeleton } from "../../ui/skeleton";
+import { ROW_PATTERNS, ROW_SKELETON_WIDTHS } from "../skeleton-widths";
 
 type PaginationMode = "page" | "loadMore" | "infiniteScroll";
 

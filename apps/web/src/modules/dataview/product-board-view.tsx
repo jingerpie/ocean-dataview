@@ -3,16 +3,14 @@
 import { useInfiniteController } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
-import { getSearchableProperties } from "@sparkyidea/dataview/types";
-import { BoardView } from "@sparkyidea/dataview/views/board-view";
 import type {
   ColumnConfigInput,
   GroupConfigInput,
   Limit,
   WhereNode,
-} from "@sparkyidea/shared/types";
+} from "@sparkyidea/dataview/types";
+import { BoardView } from "@sparkyidea/dataview/views/board-view";
 import { combineGroupFilter } from "@/utils/group-filter";
-import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
 import { DataViewTab } from "./dataview-tab";
 import { productProperties } from "./product-properties";
@@ -44,7 +42,6 @@ export function ProductBoardView({
   sort,
 }: ProductBoardViewProps) {
   const trpc = useTRPC();
-  const searchableFields = getSearchableProperties(productProperties);
 
   // Default column config for boards (always need columns)
   const defaultColumnConfig = {
@@ -59,7 +56,7 @@ export function ProductBoardView({
         filter: params.filter,
         groupBy: params.columnConfig,
         hideEmpty: params.hideEmpty,
-        search: buildSearchFilter(params.search, searchableFields),
+        search: params.search,
       }),
 
     groupQuery: (params) =>
@@ -68,7 +65,7 @@ export function ProductBoardView({
           filter: params.filter,
           groupBy: params.groupConfig,
           hideEmpty: params.hideEmpty,
-          search: buildSearchFilter(params.search, searchableFields),
+          search: params.search,
           sort: params.groupConfig.sort,
           limit: 25,
         },
@@ -89,7 +86,7 @@ export function ProductBoardView({
                 )
               : params.filter,
           sort: params.sort ?? [],
-          search: buildSearchFilter(params.search, searchableFields),
+          search: params.search,
         },
         {
           getNextPageParam: (lastPage) => {

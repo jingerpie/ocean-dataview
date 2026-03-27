@@ -1,9 +1,10 @@
 "use client";
 
 import { ChevronDownIcon } from "lucide-react";
-import { useSimpleFilterChip } from "../../../hooks";
+import { useSimpleFilterChip } from "../../../hooks/use-simple-filter-chip";
 import { getFilterPreview } from "../../../lib/filter-preview";
-import type { PropertyMeta, WhereRule } from "../../../types";
+import type { WhereRule } from "../../../types/filter.type";
+import type { PropertyMeta } from "../../../types/property.type";
 import { Button } from "../../ui/button";
 import { SimpleFilterEditor } from "../../ui/filter/simple-filter-editor";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";

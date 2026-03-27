@@ -1,8 +1,5 @@
-import {
-  DATA_TABLE_CONFIG,
-  type FilterCondition,
-  type PropertyType,
-} from "../../types";
+import { DATA_TABLE_CONFIG } from "../types/config";
+import type { FilterCondition, PropertyType } from "../types/filter.type";
 
 /**
  * Gets available filter conditions for a property type.

@@ -1,14 +1,11 @@
 "use client";
 
 import { AlertCircle } from "lucide-react";
-import { useChartTransform } from "../../../hooks";
+import { useChartTransform } from "../../../hooks/use-chart-transform";
 import { useChartViewContext } from "../../../lib/providers/chart-view-context";
-import {
-  getChartColors,
-  getChartHeight,
-} from "../../../lib/utils/chart-colors";
-import type { DataViewProperty } from "../../../types";
 import type { VerticalBarChartConfig } from "../../../types/chart.type";
+import type { DataViewProperty } from "../../../types/property.type";
+import { getChartColors, getChartHeight } from "../../../utils/chart-colors";
 import { EmptyState } from "../empty-state";
 import { VerticalBarChartInner } from "./vertical-bar-chart";
 

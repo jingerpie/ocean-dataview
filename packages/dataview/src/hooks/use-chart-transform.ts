@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
+import type { ChartType, DateGroupingType } from "../types/chart.type";
+import type { ComputationType } from "../types/computation.type";
+import type { DataViewProperty } from "../types/property.type";
 import {
   type ChartDataPoint,
   computeData,
@@ -8,12 +11,9 @@ import {
   getGroup,
   groupByProperty,
   transformToChartData,
-} from "../lib/utils/compute-data";
-import { transformData } from "../lib/utils/transform-data";
-import { validateChartConfig } from "../lib/utils/validate-chart-config";
-import type { ComputationType } from "../types";
-import type { ChartType, DateGroupingType } from "../types/chart.type";
-import type { DataViewProperty } from "../types/property.type";
+} from "../utils/compute-data";
+import { transformData } from "../utils/transform-data";
+import { validateChartConfig } from "../utils/validate-chart-config";
 
 // Helper: Check if showAs value is a date/status grouping type
 function isDateGroupingType(

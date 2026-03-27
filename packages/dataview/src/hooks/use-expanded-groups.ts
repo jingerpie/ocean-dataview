@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { GroupConfigInput } from "../types";
+import type { GroupConfigInput } from "../types/group.type";
 
 interface UseExpandedGroupsOptions {
   /** Default expanded groups (initial state) */

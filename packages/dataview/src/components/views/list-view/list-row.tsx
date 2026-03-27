@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "../../../lib/utils";
-import type { DataViewProperty } from "../../../types";
+import type { DataViewProperty } from "../../../types/property.type";
 import { DataCell } from "../data-cell";
 
 export interface ListRowProps<TData> {

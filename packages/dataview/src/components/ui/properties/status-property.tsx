@@ -1,8 +1,8 @@
 "use client";
 
 import { CircleDashed } from "lucide-react";
-import { getBadgeVariant } from "../../../lib/utils/get-badge-variant";
 import type { StatusConfig } from "../../../types/property.type";
+import { getBadgeVariant } from "../../../utils/get-badge-variant";
 import { Badge } from "../badge";
 
 interface StatusPropertyProps {

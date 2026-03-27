@@ -167,6 +167,37 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 
 const ChartTooltip = Tooltip;
 
+function ChartTooltipIndicator({
+  color,
+  indicator,
+  nestLabel,
+}: {
+  color: string | undefined;
+  indicator: string | undefined;
+  nestLabel: boolean | undefined;
+}) {
+  return (
+    <div
+      className={cn(
+        "shrink-0 rounded-[2px] border-(--color-border) bg-(--color-bg)",
+        {
+          "h-2.5 w-2.5": indicator === "dot",
+          "w-1": indicator === "line",
+          "w-0 border-[1.5px] border-dashed bg-transparent":
+            indicator === "dashed",
+          "my-0.5": nestLabel && indicator === "dashed",
+        }
+      )}
+      style={
+        {
+          "--color-bg": color,
+          "--color-border": color,
+        } as CSSProperties
+      }
+    />
+  );
+}
+
 function ChartTooltipContent({
   active,
   payload,
@@ -263,7 +294,7 @@ function ChartTooltipContent({
                   "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
                   indicator === "dot" && "items-center"
                 )}
-                key={item.dataKey}
+                key={typeof item.dataKey === "function" ? index : item.dataKey}
               >
                 {formatter && item?.value !== undefined && item.name ? (
                   formatter(item.value, item.name, item, index, item.payload)
@@ -273,23 +304,10 @@ function ChartTooltipContent({
                       <itemConfig.icon />
                     ) : (
                       !hideIndicator && (
-                        <div
-                          className={cn(
-                            "shrink-0 rounded-[2px] border-(--color-border) bg-(--color-bg)",
-                            {
-                              "h-2.5 w-2.5": indicator === "dot",
-                              "w-1": indicator === "line",
-                              "w-0 border-[1.5px] border-dashed bg-transparent":
-                                indicator === "dashed",
-                              "my-0.5": nestLabel && indicator === "dashed",
-                            }
-                          )}
-                          style={
-                            {
-                              "--color-bg": indicatorColor,
-                              "--color-border": indicatorColor,
-                            } as CSSProperties
-                          }
+                        <ChartTooltipIndicator
+                          color={indicatorColor}
+                          indicator={indicator}
+                          nestLabel={nestLabel}
                         />
                       )
                     )}
@@ -432,11 +450,19 @@ function ChartLegendContent({
               )}
               key={uniqueKey}
               onBlur={(e) =>
-                onMouseOut?.(item, index, e as unknown as React.MouseEvent)
+                onMouseOut?.(
+                  item,
+                  index,
+                  e as unknown as React.MouseEvent<HTMLElement>
+                )
               }
               onClick={(e) => onClick?.(item, index, e)}
               onFocus={(e) =>
-                onMouseOver?.(item, index, e as unknown as React.MouseEvent)
+                onMouseOver?.(
+                  item,
+                  index,
+                  e as unknown as React.MouseEvent<HTMLElement>
+                )
               }
               onMouseOut={(e) => onMouseOut?.(item, index, e)}
               onMouseOver={(e) => onMouseOver?.(item, index, e)}

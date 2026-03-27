@@ -10,8 +10,8 @@ import {
 // biome-ignore lint/performance/noNamespaceImport: Dynamic locale lookup requires all locales
 import * as locales from "date-fns/locale";
 import { useMemo } from "react";
-import { getUserLocale } from "../../../lib/utils/locale-helpers";
 import type { DateConfig } from "../../../types/property.type";
+import { getUserLocale } from "../../../utils/locale-helpers";
 
 /**
  * Get the date-fns locale object for a given locale string

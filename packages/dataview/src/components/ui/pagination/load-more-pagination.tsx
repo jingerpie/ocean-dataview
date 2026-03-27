@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDown, Loader2 } from "lucide-react";
-import type { PaginationContext } from "../../../types";
+import type { PaginationContext } from "../../../types/pagination";
 import { Button } from "../button";
 
 type LoadMorePaginationProps = Partial<PaginationContext>;

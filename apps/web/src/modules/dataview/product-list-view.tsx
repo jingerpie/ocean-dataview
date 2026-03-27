@@ -3,15 +3,13 @@
 import { useInfiniteController } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
-import { getSearchableProperties } from "@sparkyidea/dataview/types";
-import { ListView } from "@sparkyidea/dataview/views/list-view";
 import type {
   GroupConfigInput,
   Limit,
   WhereNode,
-} from "@sparkyidea/shared/types";
+} from "@sparkyidea/dataview/types";
+import { ListView } from "@sparkyidea/dataview/views/list-view";
 import { combineGroupFilter } from "@/utils/group-filter";
-import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
 import { DataViewTab } from "./dataview-tab";
 import { productProperties } from "./product-properties";
@@ -39,7 +37,6 @@ export function ProductListView({
   sort,
 }: ProductListViewProps) {
   const trpc = useTRPC();
-  const searchableFields = getSearchableProperties(productProperties);
 
   const { controller } = useInfiniteController({
     groupQuery: (params) =>
@@ -48,7 +45,7 @@ export function ProductListView({
           filter: params.filter,
           groupBy: params.groupConfig,
           hideEmpty: params.hideEmpty,
-          search: buildSearchFilter(params.search, searchableFields),
+          search: params.search,
           sort: params.groupConfig.sort,
           limit: 25,
         },
@@ -66,7 +63,7 @@ export function ProductListView({
                   params.filter
                 )
               : params.filter,
-          search: buildSearchFilter(params.search, searchableFields),
+          search: params.search,
           sort: params.sort ?? [],
           limit: params.limit,
         },

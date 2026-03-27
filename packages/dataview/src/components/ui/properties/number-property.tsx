@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import { cn, getBadgeForegroundVar } from "../../../lib/utils";
-import { getUserLocale } from "../../../lib/utils/locale-helpers";
+import { cn } from "../../../lib/utils";
 import type { NumberConfig } from "../../../types/property.type";
+import { getBadgeForegroundVar } from "../../../utils/badge-colors";
+import { getUserLocale } from "../../../utils/locale-helpers";
 
 interface NumberPropertyProps {
   config?: NumberConfig;

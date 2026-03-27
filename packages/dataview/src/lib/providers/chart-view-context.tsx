@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { DataViewProperty } from "../../types";
+import type { DataViewProperty } from "../../types/property.type";
 
 export interface ChartViewContextValue<
   TData,

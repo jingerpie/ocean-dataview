@@ -2,8 +2,9 @@
 
 import { ChevronDownIcon, CopyPlusIcon, PlusIcon } from "lucide-react";
 import { cn } from "../../../lib/utils";
-import { createRuleFromProperty } from "../../../lib/utils/filter-variant";
-import type { PropertyMeta, WhereRule } from "../../../types";
+import type { WhereRule } from "../../../types/filter.type";
+import type { PropertyMeta } from "../../../types/property.type";
+import { createRuleFromProperty } from "../../../utils/filter-variant";
 import { Button } from "../button";
 import {
   DropdownMenu,

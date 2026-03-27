@@ -1,12 +1,12 @@
 "use client";
 
-import { CARD_SKELETON_WIDTHS } from "../../../lib/constants/skeleton-widths";
 import { cn } from "../../../lib/utils";
-import { getBoardCardDimensions } from "../../../lib/utils/get-card-sizes";
-import type { PropertyType } from "../../../types";
+import type { PropertyType } from "../../../types/filter.type";
+import { getBoardCardDimensions } from "../../../utils/get-card-sizes";
 import { Card, CardContent } from "../../ui/card";
 import { PaginationSkeleton } from "../../ui/pagination/pagination-skeleton";
 import { Skeleton } from "../../ui/skeleton";
+import { CARD_SKELETON_WIDTHS } from "../skeleton-widths";
 
 type PaginationMode = "page" | "loadMore" | "infiniteScroll";
 

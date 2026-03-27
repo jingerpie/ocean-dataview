@@ -4,7 +4,6 @@
  * @returns Locale string (e.g., "zh-CN", "en-US", "de-DE")
  */
 export function getUserLocale(): string {
-  // In browser environment, check HTML lang attribute first
   if (typeof document !== "undefined") {
     const htmlLang = document.documentElement.lang;
     if (htmlLang) {
@@ -12,11 +11,5 @@ export function getUserLocale(): string {
     }
   }
 
-  // Fallback to browser locale
-  // if (typeof navigator !== "undefined") {
-  // 	return navigator.language;
-  // }
-
-  // Final fallback for SSR or other environments
   return "en-US";
 }

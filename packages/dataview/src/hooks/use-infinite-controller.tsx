@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef } from "react";
-import type { Limit } from "../types";
+import type { Limit } from "../types/pagination";
 import type {
   BaseQueryOptions,
   ColumnQueryOptionsFactory,

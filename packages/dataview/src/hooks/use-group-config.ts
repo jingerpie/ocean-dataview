@@ -1,6 +1,7 @@
 import { useMemo } from "react";
-import { getGroup, groupByProperty, validateGroupConfig } from "../lib/utils";
 import type { DataViewProperty } from "../types/property.type";
+import { getGroup, groupByProperty } from "../utils/compute-data";
+import { validateGroupConfig } from "../validators/valid-group";
 
 export interface GroupConfig {
   defaultExpanded?: string[];

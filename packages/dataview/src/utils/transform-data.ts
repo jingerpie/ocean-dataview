@@ -1,4 +1,4 @@
-import type { DataViewProperty } from "../../types/property.type";
+import type { DataViewProperty } from "../types/property.type";
 
 /**
  * Type for transformed data - only contains property-defined fields

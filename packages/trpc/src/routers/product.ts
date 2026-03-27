@@ -1,34 +1,62 @@
-import { db } from "@sparkyidea/db";
-import { product } from "@sparkyidea/db/schema/product";
 import {
+  cursorValueSchema,
   getCursorParams,
   groupByConfigSchema,
-  productSearchParamsSchema,
-  searchQuerySchema,
   toParsedGroupConfig,
   whereNodeSchema,
-} from "@sparkyidea/shared/types";
+} from "@sparkyidea/dataview/types";
+import { db } from "@sparkyidea/db";
+import { product } from "@sparkyidea/db/schema/product";
 import { and, count } from "drizzle-orm";
 import { z } from "zod";
 import { publicProcedure, router } from "../index";
-import { buildWhere } from "../lib/filter-columns";
+import { buildWhere } from "../lib/build-filter";
 import {
   buildGroupBy,
   buildGroupCursor,
   buildGroupWhere,
-} from "../lib/group-columns";
-import { buildCursor } from "../lib/sort-columns";
+} from "../lib/build-group";
+import { buildSearchFilter } from "../lib/build-search";
+import { buildCursor } from "../lib/build-sort";
+
+/** Product fields that support text search (iLike) */
+const PRODUCT_SEARCH_FIELDS = [
+  "productName",
+  "category",
+  "availability",
+  "supplierEmail",
+  "supplierPhone",
+];
 
 export const productRouter = router({
   getMany: publicProcedure
-    .input(productSearchParamsSchema)
+    .input(
+      z.object({
+        cursor: z.union([cursorValueSchema, z.string()]).optional(),
+        limit: z.number().int().min(1).max(100).optional().default(25),
+        search: z.string().default(""),
+        filter: z.array(whereNodeSchema).nullish(),
+        sort: z
+          .array(
+            z.object({
+              property: z.string(),
+              direction: z.enum(["asc", "desc"]),
+            })
+          )
+          .optional()
+          .default([]),
+      })
+    )
     .query(async ({ input }) => {
       const { cursor, limit, filter, sort, search } = input;
       const { after, before } = getCursorParams(cursor);
 
       // Build filter/search WHERE
-      // search is SearchQuery ({ or: [...] }), wrap in array for buildWhere
-      const searchWhere = buildWhere(product, search ? [search] : null);
+      const searchQuery = buildSearchFilter(search, PRODUCT_SEARCH_FIELDS);
+      const searchWhere = buildWhere(
+        product,
+        searchQuery ? [searchQuery] : null
+      );
       const filterWhere = buildWhere(product, filter);
 
       // Determine pagination direction
@@ -104,8 +132,8 @@ export const productRouter = router({
         groupBy: groupByConfigSchema,
         // Whether to hide groups with 0 items (default: false, add :hideEmpty flag to URL to enable)
         hideEmpty: z.boolean().default(false),
-        // Search filter (same as getMany)
-        search: searchQuerySchema.nullish(),
+        // Search string (same as getMany)
+        search: z.string().default(""),
         // Sort direction for groups (default: asc)
         sort: z.enum(["asc", "desc"]).optional(),
         // Pagination params
@@ -145,7 +173,11 @@ export const productRouter = router({
 
       // Build filter/search conditions
       const filterCondition = buildWhere(product, filter ?? undefined);
-      const searchCondition = buildWhere(product, search ? [search] : null);
+      const searchQuery = buildSearchFilter(search, PRODUCT_SEARCH_FIELDS);
+      const searchCondition = buildWhere(
+        product,
+        searchQuery ? [searchQuery] : null
+      );
       const whereCondition = and(filterCondition, searchCondition);
 
       // Get paginated distinct values (source of all possible groups)
@@ -249,7 +281,7 @@ export const productRouter = router({
             })
           )
           .default([]),
-        search: searchQuerySchema.nullish(),
+        search: z.string().default(""),
         // Column keys to fetch - required for knowing which columns to load
         columnKeys: z.array(z.string()).optional(),
       })
@@ -270,7 +302,11 @@ export const productRouter = router({
       const parsed = toParsedGroupConfig(columnBy);
 
       // Build common WHERE clauses
-      const searchWhere = buildWhere(product, search ? [search] : null);
+      const searchQuery = buildSearchFilter(search, PRODUCT_SEARCH_FIELDS);
+      const searchWhere = buildWhere(
+        product,
+        searchQuery ? [searchQuery] : null
+      );
       const filterWhere = buildWhere(product, filter);
 
       // Prepare sort with tiebreaker

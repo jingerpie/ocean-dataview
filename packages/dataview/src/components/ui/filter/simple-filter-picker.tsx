@@ -2,10 +2,11 @@
 
 import { PlusIcon } from "lucide-react";
 import { useCallback, useMemo } from "react";
-import { useAdvanceFilterBuilder, useFilterParams } from "../../../hooks";
-import { createRuleFromProperty } from "../../../lib/utils/filter-variant";
-import type { PropertyMeta } from "../../../types";
-import { isWhereRule } from "../../../types";
+import { useAdvanceFilterBuilder } from "../../../hooks/use-advance-filter-builder";
+import { useFilterParams } from "../../../hooks/use-filter-params";
+import { isWhereRule } from "../../../types/filter.type";
+import type { PropertyMeta } from "../../../types/property.type";
+import { createRuleFromProperty } from "../../../utils/filter-variant";
 import {
   Command,
   CommandEmpty,

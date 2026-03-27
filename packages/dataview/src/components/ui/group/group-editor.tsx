@@ -6,7 +6,7 @@ import {
   type GroupingMode,
   useGroupingParams,
 } from "../../../hooks/use-grouping-params";
-import type { PropertyMeta } from "../../../types";
+import type { PropertyMeta } from "../../../types/property.type";
 import { Command, CommandGroup, CommandItem, CommandList } from "../command";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { GroupDirectionPicker } from "./group-direction-picker";

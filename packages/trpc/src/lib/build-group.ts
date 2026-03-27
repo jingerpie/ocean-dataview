@@ -1,6 +1,6 @@
-import type { ParsedGroupConfig } from "@sparkyidea/shared/types";
+import type { ParsedGroupConfig } from "@sparkyidea/dataview/types";
 import { asc, desc, gt, lt, type SQL, sql, type Table } from "drizzle-orm";
-import { getColumn } from "./filter-columns";
+import { getColumn } from "./build-filter";
 
 // Regex for parsing number range groups (e.g., "100-200")
 const NUMBER_RANGE_REGEX = /^(\d+)-(\d+)$/;

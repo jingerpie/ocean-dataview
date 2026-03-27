@@ -2,8 +2,9 @@
 
 import { ListFilterIcon } from "lucide-react";
 import { useState } from "react";
-import { useFilterParams, useSimpleFilterChip } from "../../../hooks";
-import type { PropertyMeta } from "../../../types";
+import { useFilterParams } from "../../../hooks/use-filter-params";
+import { useSimpleFilterChip } from "../../../hooks/use-simple-filter-chip";
+import type { PropertyMeta } from "../../../types/property.type";
 import { Button } from "../../ui/button";
 import { FilterTrigger } from "../../ui/filter/filter-trigger";
 import { SimpleFilterPicker } from "../../ui/filter/simple-filter-picker";

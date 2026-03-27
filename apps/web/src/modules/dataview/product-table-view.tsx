@@ -3,15 +3,13 @@
 import { usePageController } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
-import { getSearchableProperties } from "@sparkyidea/dataview/types";
-import { TableView } from "@sparkyidea/dataview/views/table-view";
 import type {
   GroupConfigInput,
   Limit,
   WhereNode,
-} from "@sparkyidea/shared/types";
+} from "@sparkyidea/dataview/types";
+import { TableView } from "@sparkyidea/dataview/views/table-view";
 import { combineGroupFilter } from "@/utils/group-filter";
-import { buildSearchFilter } from "@/utils/search";
 import { useTRPC } from "@/utils/trpc/client";
 import { bulkActions } from "./bulk-actions";
 import { DataViewTab } from "./dataview-tab";
@@ -40,7 +38,6 @@ export function ProductTableView({
   sort,
 }: ProductTableViewProps) {
   const trpc = useTRPC();
-  const searchableFields = getSearchableProperties(productProperties);
 
   const { controller } = usePageController({
     groupQuery: (params) =>
@@ -49,7 +46,7 @@ export function ProductTableView({
           filter: params.filter,
           groupBy: params.groupConfig,
           hideEmpty: params.hideEmpty,
-          search: buildSearchFilter(params.search, searchableFields),
+          search: params.search,
           sort: params.groupConfig.sort,
           limit: 25,
         },
@@ -68,7 +65,7 @@ export function ProductTableView({
               )
             : params.filter,
         limit: params.limit,
-        search: buildSearchFilter(params.search, searchableFields),
+        search: params.search,
         sort: params.sort ?? [],
       }),
   });

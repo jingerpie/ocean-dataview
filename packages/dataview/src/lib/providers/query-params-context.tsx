@@ -1,3 +1,4 @@
+// biome-ignore-all lint/complexity/noVoid: void used to discard nuqs setter promises in startTransition
 "use client";
 
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
@@ -14,13 +15,12 @@ import { parseAsFilter } from "../../parsers/filter";
 import { parseAsGroupBy } from "../../parsers/group";
 import { parseAsCursors } from "../../parsers/pagination";
 import { parseAsSort } from "../../parsers/sort";
+import type { SortQuery, WhereNode } from "../../types/filter.type";
 import type {
   ColumnConfigInput,
   GroupConfigInput,
-  Limit,
-  SortQuery,
-  WhereNode,
-} from "../../types";
+} from "../../types/group.type";
+import type { Limit } from "../../types/pagination";
 import type { Cursors, CursorValue } from "../../types/pagination-types";
 import type { DataViewProperty, PropertyMeta } from "../../types/property.type";
 import { validate } from "../../validators";

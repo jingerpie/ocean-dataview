@@ -9,7 +9,7 @@ import type {
   GroupConfigInput,
   SortQuery,
   WhereNode,
-} from "@sparkyidea/shared/types";
+} from "@sparkyidea/dataview/types";
 import { Label } from "@sparkyidea/ui/components/label";
 import {
   Select,

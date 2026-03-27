@@ -11,9 +11,9 @@
   },
   "scripts": {},
   "dependencies": {
+    "@sparkyidea/dataview": "workspace:*",
     "@sparkyidea/db": "workspace:*",
     "@sparkyidea/env": "workspace:*",
-    "@sparkyidea/shared": "workspace:*",
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
     "date-fns": "catalog:",

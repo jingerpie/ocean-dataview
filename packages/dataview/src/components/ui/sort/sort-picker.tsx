@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useSortParams } from "../../../hooks";
-import type { PropertyMeta } from "../../../types";
+import { useSortParams } from "../../../hooks/use-sort-params";
+import type { PropertyMeta } from "../../../types/property.type";
 import {
   Command,
   CommandEmpty,

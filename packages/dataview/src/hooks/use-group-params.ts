@@ -5,7 +5,7 @@ import {
   useQueryParamsActions,
   useQueryParamsState,
 } from "../lib/providers/query-params-context";
-import type { GroupByConfig, GroupConfigInput } from "../types";
+import type { GroupByConfig, GroupConfigInput } from "../types/group.type";
 
 /**
  * Hook for managing group configuration via URL.

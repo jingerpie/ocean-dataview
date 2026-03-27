@@ -1,7 +1,8 @@
 "use client";
 
 import { CheckIcon } from "lucide-react";
-import type { PropertyMeta, WhereRule } from "../../../../types";
+import type { WhereRule } from "../../../../types/filter.type";
+import type { PropertyMeta } from "../../../../types/property.type";
 import { Button } from "../../button";
 import {
   Select,

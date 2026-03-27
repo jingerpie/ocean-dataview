@@ -8,9 +8,9 @@ import {
   type PieLabelRenderProps,
   PieChart as RechartsPieChart,
 } from "recharts";
-import { useInteractiveLegend } from "../../../hooks";
-import type { ChartDataPoint } from "../../../lib/utils/compute-data";
+import { useInteractiveLegend } from "../../../hooks/use-interactive-legend";
 import type { DataLabelFormatType } from "../../../types/chart.type";
+import type { ChartDataPoint } from "../../../utils/compute-data";
 import {
   ChartContainer,
   ChartTooltip,

@@ -6,7 +6,7 @@ import {
   type GroupingMode,
   useGroupingParams,
 } from "../../../hooks/use-grouping-params";
-import type { PropertyMeta } from "../../../types";
+import type { PropertyMeta } from "../../../types/property.type";
 import {
   Command,
   CommandEmpty,

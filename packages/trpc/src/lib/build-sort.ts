@@ -1,6 +1,6 @@
-import type { SortQuery } from "@sparkyidea/shared/types";
+import type { SortQuery } from "@sparkyidea/dataview/types";
 import { type SQL, sql, type Table } from "drizzle-orm";
-import { getColumn } from "./filter-columns";
+import { getColumn } from "./build-filter";
 
 /**
  * Converts sort array to Drizzle orderBy.

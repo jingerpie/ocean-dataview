@@ -6,7 +6,7 @@ import {
   type GroupingMode,
   useGroupingParams,
 } from "../../../hooks/use-grouping-params";
-import type { GroupByConfig } from "../../../types";
+import type { GroupByConfig } from "../../../types/group.type";
 import { Command, CommandGroup, CommandItem, CommandList } from "../command";
 
 // Property types that support "Show As" options

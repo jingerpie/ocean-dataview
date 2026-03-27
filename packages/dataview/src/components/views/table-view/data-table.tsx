@@ -10,14 +10,8 @@ import {
 } from "@tanstack/react-table";
 import type * as React from "react";
 import { useRef } from "react";
-import {
-  TABLE_COLUMN_WIDTHS,
-  TABLE_HEADER_CHAR_WIDTH,
-  TABLE_HEADER_MAX_WIDTH,
-  TABLE_HEADER_PADDING,
-} from "../../../lib/constants/skeleton-widths";
 import { cn } from "../../../lib/utils";
-import type { PropertyType } from "../../../types";
+import type { PropertyType } from "../../../types/filter.type";
 import {
   Table,
   TableBody,
@@ -26,6 +20,12 @@ import {
   TableHeader,
   TableRow,
 } from "../../ui/table";
+import {
+  TABLE_COLUMN_WIDTHS,
+  TABLE_HEADER_CHAR_WIDTH,
+  TABLE_HEADER_MAX_WIDTH,
+  TABLE_HEADER_PADDING,
+} from "../skeleton-widths";
 import { DataTableStickyHeader } from "./data-table-sticky-header";
 
 /**

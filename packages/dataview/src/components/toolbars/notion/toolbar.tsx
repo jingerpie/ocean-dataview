@@ -1,16 +1,15 @@
 "use client";
 
 import type { ComponentProps, ReactNode } from "react";
-import {
-  useFilterParams,
-  useSearchParams,
-  useSortParams,
-} from "../../../hooks";
+import { useFilterParams } from "../../../hooks/use-filter-params";
+import { useSearchParams } from "../../../hooks/use-search-params";
+import { useSortParams } from "../../../hooks/use-sort-params";
 import { useToolbarState } from "../../../hooks/use-toolbar-state";
 import { useQueryParamsState } from "../../../lib/providers/query-params-context";
 import { useToolbarContextOptional } from "../../../lib/providers/toolbar-context";
 import { cn } from "../../../lib/utils";
-import type { GroupConfigInput, PropertyMeta } from "../../../types";
+import type { GroupConfigInput } from "../../../types/group.type";
+import type { PropertyMeta } from "../../../types/property.type";
 import { SearchInput } from "../../ui/search/search-input";
 import { Separator } from "../../ui/separator";
 import { ChipsBar } from "./chips-bar";

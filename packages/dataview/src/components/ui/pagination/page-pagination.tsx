@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import type { PaginationContext } from "../../../types";
+import type { PaginationContext } from "../../../types/pagination";
 import { Button } from "../button";
 import {
   Select,

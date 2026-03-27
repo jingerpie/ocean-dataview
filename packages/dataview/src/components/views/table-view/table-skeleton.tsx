@@ -1,8 +1,7 @@
 "use client";
 
-import { TABLE_COLUMN_WIDTHS } from "../../../lib/constants/skeleton-widths";
 import { cn } from "../../../lib/utils";
-import type { PropertyType } from "../../../types";
+import type { PropertyType } from "../../../types/filter.type";
 import type { PaginationMode } from "../../ui/pagination";
 import { PaginationSkeleton } from "../../ui/pagination/pagination-skeleton";
 import { Skeleton } from "../../ui/skeleton";
@@ -14,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../ui/table";
+import { TABLE_COLUMN_WIDTHS } from "../skeleton-widths";
 
 interface TableSkeletonProps extends React.ComponentProps<"div"> {
   /**

@@ -12,7 +12,8 @@ import {
   Settings2,
 } from "lucide-react";
 import { useState } from "react";
-import { useFilterParams, useSortParams } from "../../../../hooks";
+import { useFilterParams } from "../../../../hooks/use-filter-params";
+import { useSortParams } from "../../../../hooks/use-sort-params";
 import { useToolbarContext } from "../../../../lib/providers/toolbar-context";
 import { Button } from "../../../ui/button";
 import {

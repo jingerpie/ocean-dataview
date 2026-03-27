@@ -1,4 +1,4 @@
-import type { BadgeColor } from "../../types/property.type";
+import type { BadgeColor } from "../types/property.type";
 
 export const BADGE_COLOR_CLASSES: Record<BadgeColor, string> = {
   gray: "bg-badge-gray-subtle text-badge-gray-subtle-foreground",
