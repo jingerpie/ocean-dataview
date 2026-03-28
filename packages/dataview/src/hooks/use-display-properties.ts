@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { DataViewProperty } from "../types";
+import type { DataViewProperty } from "../types/property.type";
 
 /**
  * Hook to compute display properties excluding groupBy and other special properties

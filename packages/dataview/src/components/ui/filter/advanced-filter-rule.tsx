@@ -1,11 +1,12 @@
 "use client";
 
 import { cn } from "../../../lib/utils";
+import type { FilterCondition, WhereRule } from "../../../types/filter.type";
+import type { PropertyMeta } from "../../../types/property.type";
 import {
   applyConditionChange,
   createRuleFromProperty,
-} from "../../../lib/utils/filter-variant";
-import type { FilterCondition, PropertyMeta, WhereRule } from "../../../types";
+} from "../../../utils/filter-variant";
 import { AdvancedFilterActions } from "./advanced-filter-actions";
 import { LogicPicker } from "./advanced-filter-logic-picker";
 import { AdvancedFilterPicker } from "./advanced-filter-picker";

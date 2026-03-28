@@ -3,7 +3,7 @@
 import { ImageIcon } from "lucide-react";
 import Image from "next/image";
 import { cn } from "../../lib/utils";
-import type { DataViewProperty } from "../../types";
+import type { DataViewProperty } from "../../types/property.type";
 import { Card, CardContent } from "../ui/card";
 import { DataCell } from "./data-cell";
 

@@ -7,7 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { PropertyMeta } from "../../types";
+import type { PropertyMeta } from "../../types/property.type";
 
 // ============================================================================
 // Types

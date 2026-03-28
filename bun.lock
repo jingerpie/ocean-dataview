@@ -42,7 +42,6 @@
         "@base-ui/react": "catalog:",
         "@sparkyidea/dataview": "workspace:*",
         "@sparkyidea/env": "workspace:*",
-        "@sparkyidea/shared": "workspace:*",
         "@sparkyidea/trpc": "workspace:*",
         "@sparkyidea/ui": "workspace:*",
         "@takumi-rs/image-response": "catalog:",
@@ -158,38 +157,19 @@
       "dependencies": {
         "@t3-oss/env-core": "catalog:",
         "@t3-oss/env-nextjs": "catalog:",
-        "dotenv": "catalog:",
         "zod": "catalog:",
       },
       "devDependencies": {
         "@sparkyidea/config": "workspace:*",
-        "typescript": "catalog:",
-      },
-    },
-    "packages/shared": {
-      "name": "@sparkyidea/shared",
-      "dependencies": {
-        "@sparkyidea/dataview": "workspace:*",
-        "@sparkyidea/db": "workspace:*",
-        "date-fns": "catalog:",
-        "drizzle-orm": "catalog:",
-        "nuqs": "catalog:",
-        "zod": "catalog:",
-      },
-      "devDependencies": {
-        "@sparkyidea/config": "workspace:*",
-        "@types/react": "catalog:",
-      },
-      "peerDependencies": {
         "typescript": "catalog:",
       },
     },
     "packages/trpc": {
       "name": "@sparkyidea/trpc",
       "dependencies": {
+        "@sparkyidea/dataview": "workspace:*",
         "@sparkyidea/db": "workspace:*",
         "@sparkyidea/env": "workspace:*",
-        "@sparkyidea/shared": "workspace:*",
         "@trpc/client": "catalog:",
         "@trpc/server": "catalog:",
         "date-fns": "catalog:",
@@ -774,8 +754,6 @@
     "@sparkyidea/db": ["@sparkyidea/db@workspace:packages/db"],
 
     "@sparkyidea/env": ["@sparkyidea/env@workspace:packages/env"],
-
-    "@sparkyidea/shared": ["@sparkyidea/shared@workspace:packages/shared"],
 
     "@sparkyidea/trpc": ["@sparkyidea/trpc@workspace:packages/trpc"],
 

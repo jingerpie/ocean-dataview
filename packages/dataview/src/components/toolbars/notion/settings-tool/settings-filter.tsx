@@ -1,7 +1,7 @@
 "use client";
 
-import { useFilterParams } from "../../../../hooks";
-import type { PropertyMeta } from "../../../../types";
+import { useFilterParams } from "../../../../hooks/use-filter-params";
+import type { PropertyMeta } from "../../../../types/property.type";
 import { FilterBulkEditor } from "../../../ui/filter/filter-bulk-editor";
 import { SimpleFilterPicker } from "../../../ui/filter/simple-filter-picker";
 

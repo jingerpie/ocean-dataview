@@ -14,23 +14,24 @@ import { GallerySkeleton } from "../../components/views/gallery-view/gallery-ske
 import { ListSkeleton } from "../../components/views/list-view/list-skeleton";
 import { TableSkeleton } from "../../components/views/table-view/table-skeleton";
 import type {
-  ColumnConfigInput,
-  GroupConfigInput,
-  Limit,
   PropertyType,
   SortQuery,
   WhereNode,
-} from "../../types";
-import {
-  type DataViewProperty,
-  type GroupCounts,
-  toPropertyMetaArray,
-  type ViewCounts,
-} from "../../types";
+} from "../../types/filter.type";
+import type {
+  ColumnConfigInput,
+  GroupConfigInput,
+} from "../../types/group.type";
+import type { Limit } from "../../types/pagination";
 import type {
   InfiniteController,
   PageController,
 } from "../../types/pagination-controller";
+import type { GroupCounts, ViewCounts } from "../../types/pagination-types";
+import {
+  type DataViewProperty,
+  toPropertyMetaArray,
+} from "../../types/property.type";
 import { cn } from "../utils";
 import {
   DataViewContext,

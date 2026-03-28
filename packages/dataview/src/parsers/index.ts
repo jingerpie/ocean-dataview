@@ -3,4 +3,5 @@ export * from "./column";
 export * from "./filter";
 export * from "./group";
 export * from "./pagination";
+export * from "./search-params-cache";
 export * from "./sort";

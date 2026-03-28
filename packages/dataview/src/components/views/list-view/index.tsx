@@ -2,13 +2,15 @@
 
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Suspense, useCallback, useEffect, useRef } from "react";
-import type { GroupedDataItem } from "../../../hooks";
-import { useDisplayProperties, useViewSetup } from "../../../hooks";
+import { useDisplayProperties } from "../../../hooks/use-display-properties";
+import type { GroupedDataItem } from "../../../hooks/use-group-config";
 import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
+import { useViewSetup } from "../../../hooks/use-view-setup";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import { transformData } from "../../../lib/utils";
-import type { DataViewProperty, PaginationContext } from "../../../types";
+import type { PaginationContext } from "../../../types/pagination";
+import type { DataViewProperty } from "../../../types/property.type";
+import { transformData } from "../../../utils/transform-data";
 import { Accordion } from "../../ui/accordion";
 import { GroupSection } from "../../ui/group-section";
 import { Pagination, type PaginationMode } from "../../ui/pagination";

@@ -2,8 +2,9 @@
 
 import { SortAscIcon } from "lucide-react";
 import { useState } from "react";
-import { useSortBuilder, useSortParams } from "../../../hooks";
-import type { PropertyMeta } from "../../../types";
+import { useSortBuilder } from "../../../hooks/use-sort-builder";
+import { useSortParams } from "../../../hooks/use-sort-params";
+import type { PropertyMeta } from "../../../types/property.type";
 import { Button } from "../../ui/button";
 import { SortPicker } from "../../ui/sort/sort-picker";
 import { SortTrigger } from "../../ui/sort/sort-trigger";

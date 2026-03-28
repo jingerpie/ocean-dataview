@@ -2,7 +2,7 @@ import type {
   GroupByConfig,
   WhereNode,
   WhereRule,
-} from "@sparkyidea/shared/types";
+} from "@sparkyidea/dataview/types";
 
 // Regex patterns for parsing number range group keys
 // Supports negative numbers and decimals (e.g., "< -10", "-5.5+", "-10-0", "1.5-2.5")

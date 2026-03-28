@@ -2,15 +2,15 @@
 
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
-import { getBadgeClasses } from "../../../../lib/utils";
-import { extractSelectValues } from "../../../../lib/utils/filter-variant";
+import type { WhereRule } from "../../../../types/filter.type";
 import type {
   BadgeColor,
   PropertyMeta,
   SelectConfig,
   SelectOption,
-  WhereRule,
-} from "../../../../types";
+} from "../../../../types/property.type";
+import { getBadgeClasses } from "../../../../utils/badge-colors";
+import { extractSelectValues } from "../../../../utils/filter-variant";
 import { Button } from "../../button";
 import { Checkbox } from "../../checkbox";
 import {

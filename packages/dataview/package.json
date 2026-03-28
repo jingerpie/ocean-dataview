@@ -2,9 +2,8 @@
   "name": "@sparkyidea/dataview",
   "type": "module",
   "exports": {
-    "./globals.css": "./src/styles/globals.css",
+    "./styles.css": "./src/styles.css",
     "./postcss.config": "./postcss.config.mjs",
-    "./utils": "./src/lib/utils/index.ts",
     "./validators": "./src/validators/index.ts",
     "./parsers": "./src/parsers/index.ts",
     "./providers": "./src/lib/providers/index.ts",
@@ -12,9 +11,12 @@
     "./toolbars/notion": "./src/components/toolbars/notion/toolbar.tsx",
     "./properties": "./src/components/ui/properties/index.ts",
     "./hooks": "./src/hooks/index.ts",
-    "./types": "./src/types/index.ts"
+    "./types": "./src/types/index.ts",
+    "./utils": "./src/utils/index.ts"
   },
-  "scripts": {},
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
   "dependencies": {
     "@base-ui/react": "catalog:",
     "@dnd-kit/core": "catalog:",

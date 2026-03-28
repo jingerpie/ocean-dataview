@@ -10,7 +10,6 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
-    "@sparkyidea/shared": "workspace:*",
     "@sparkyidea/dataview": "workspace:*",
     "@sparkyidea/ui": "workspace:*",
     "@base-ui/react": "catalog:",

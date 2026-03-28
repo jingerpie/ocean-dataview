@@ -2,7 +2,7 @@
 
 import { ChevronDownIcon } from "lucide-react";
 import { useMemo, useState } from "react";
-import type { PropertyMeta } from "../../../types";
+import type { PropertyMeta } from "../../../types/property.type";
 import { Button } from "../button";
 import {
   Command,

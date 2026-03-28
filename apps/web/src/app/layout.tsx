@@ -1,9 +1,9 @@
-import { cn } from "@sparkyidea/dataview/utils";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import ClientProviders from "@/components/client-providers";
 import { SiteHeader } from "@/components/layouts/site-header";
 import ServerProviders from "@/components/server-providers";
+import { cn } from "@/lib/utils";
 
 import "../index.css";
 

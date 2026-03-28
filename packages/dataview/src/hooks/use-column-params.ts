@@ -5,7 +5,7 @@ import {
   useQueryParamsActions,
   useQueryParamsState,
 } from "../lib/providers/query-params-context";
-import type { ColumnConfigInput, GroupByConfig } from "../types";
+import type { ColumnConfigInput, GroupByConfig } from "../types/group.type";
 
 /**
  * Hook for managing column configuration via URL (board-specific).

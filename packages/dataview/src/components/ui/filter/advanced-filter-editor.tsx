@@ -1,7 +1,8 @@
 "use client";
 
 import { TrashIcon } from "lucide-react";
-import type { PropertyMeta, WhereExpression } from "../../../types";
+import type { WhereExpression } from "../../../types/filter.type";
+import type { PropertyMeta } from "../../../types/property.type";
 import { Button } from "../button";
 import { Separator } from "../separator";
 import { FilterGroup } from "./advanced-filter-group";

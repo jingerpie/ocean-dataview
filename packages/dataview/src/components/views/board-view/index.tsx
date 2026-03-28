@@ -2,25 +2,26 @@
 
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Suspense, useCallback, useEffect, useMemo, useRef } from "react";
-import type { GroupedDataItem } from "../../../hooks";
-import { useDisplayProperties, useGroupParams } from "../../../hooks";
+import { useDisplayProperties } from "../../../hooks/use-display-properties";
+import type { GroupedDataItem } from "../../../hooks/use-group-config";
+import { useGroupParams } from "../../../hooks/use-group-params";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import {
-  getBadgeBgTransparentClass,
-  groupByProperty as groupDataByProperty,
-  toParsedGroupConfig,
-  transformData,
-  validatePropertyKeys,
-} from "../../../lib/utils";
-import { getBoardCardDimensions } from "../../../lib/utils/get-card-sizes";
+import { toParsedGroupConfig } from "../../../types/group.type";
+import type { PaginationContext } from "../../../types/pagination";
+import type {
+  GroupCountInfo,
+  GroupCounts,
+} from "../../../types/pagination-types";
 import type {
   BadgeColor,
   DataViewProperty,
-  GroupCountInfo,
-  GroupCounts,
-  PaginationContext,
-} from "../../../types";
+} from "../../../types/property.type";
+import { getBadgeBgTransparentClass } from "../../../utils/badge-colors";
+import { groupByProperty as groupDataByProperty } from "../../../utils/compute-data";
+import { getBoardCardDimensions } from "../../../utils/get-card-sizes";
+import { transformData } from "../../../utils/transform-data";
+import { validatePropertyKeys } from "../../../validators/valid-properties";
 import { Accordion } from "../../ui/accordion";
 import { Badge } from "../../ui/badge";
 import { GroupSection } from "../../ui/group-section";

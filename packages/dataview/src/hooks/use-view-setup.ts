@@ -1,13 +1,16 @@
 import { useMemo } from "react";
-import {
-  type ParsedGroupConfig,
-  toParsedGroupConfig,
-  transformData,
-  validatePropertyKeys,
-} from "../lib/utils";
-import type { DataViewProperty, GroupConfigInput, ViewCounts } from "../types";
-import type { GroupInfo } from "./index";
+import type { GroupConfigInput, ParsedGroupConfig } from "../types/group.type";
+import { toParsedGroupConfig } from "../types/group.type";
+import type { ViewCounts } from "../types/pagination-types";
+import type { DataViewProperty } from "../types/property.type";
+import { transformData } from "../utils/transform-data";
+import { validatePropertyKeys } from "../validators/valid-properties";
 import type { GroupedDataItem } from "./use-group-config";
+import type { InfiniteGroupInfo } from "./use-infinite-controller";
+import type { PageGroupInfo } from "./use-page-controller";
+
+type GroupInfo<TData> = PageGroupInfo<TData> | InfiniteGroupInfo<TData>;
+
 import { useGroupConfig } from "./use-group-config";
 import { useGroupParams } from "./use-group-params";
 

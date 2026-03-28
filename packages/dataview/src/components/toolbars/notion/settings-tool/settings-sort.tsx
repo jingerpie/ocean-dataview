@@ -1,7 +1,7 @@
 "use client";
 
-import { useSortParams } from "../../../../hooks";
-import type { PropertyMeta } from "../../../../types";
+import { useSortParams } from "../../../../hooks/use-sort-params";
+import type { PropertyMeta } from "../../../../types/property.type";
 import { SortBulkEditor } from "../../../ui/sort/sort-bulk-editor";
 import { SortPicker } from "../../../ui/sort/sort-picker";
 

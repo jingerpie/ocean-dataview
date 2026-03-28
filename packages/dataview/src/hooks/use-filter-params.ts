@@ -5,7 +5,7 @@ import {
   useQueryParamsActions,
   useQueryParamsState,
 } from "../lib/providers/query-params-context";
-import type { WhereNode } from "../types";
+import type { WhereNode } from "../types/filter.type";
 
 /**
  * Hook for managing filter state via URL.

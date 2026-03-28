@@ -1,6 +1,6 @@
 "use client";
 
-import type { PaginationContext } from "../../../types";
+import type { PaginationContext } from "../../../types/pagination";
 import { InfiniteScrollPagination } from "./infinite-scroll-pagination";
 import { LoadMorePagination } from "./load-more-pagination";
 import { PagePagination } from "./page-pagination";

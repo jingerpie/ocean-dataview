@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useMemo, useRef } from "react";
-import type { GroupConfigInput, Limit, WhereNode } from "../types";
+import type { WhereNode } from "../types/filter.type";
+import type { GroupConfigInput } from "../types/group.type";
+import type { Limit } from "../types/pagination";
 import type {
   BaseQueryOptions,
   InfiniteGroupQueryOptions,

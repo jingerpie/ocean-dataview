@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useMemo } from "react";
-import type { DataViewProperty } from "../../types";
+import type { DataViewProperty } from "../../types/property.type";
 import { cn } from "../utils";
 import {
   ChartViewContext,

@@ -2,7 +2,7 @@
 @import "@sparkyidea/ui/globals.css";
 
 /* Import dataview styles (adds @source for dataview components) */
-@import "@sparkyidea/dataview/globals.css";
+@import "@sparkyidea/dataview/styles.css";
 
 /* Import shadcn tailwind utilities (accordion animations, custom variants) */
 @import "shadcn/tailwind.css";

@@ -1,8 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { analyzeFilter } from "../lib/utils/filter-builder";
-import type { WhereExpression, WhereNode, WhereRule } from "../types";
+import type {
+  WhereExpression,
+  WhereNode,
+  WhereRule,
+} from "../types/filter.type";
+import { analyzeFilter } from "../utils/filter-builder";
 
 export interface UseToolbarStateOptions {
   filter: WhereNode[] | null;

@@ -1,11 +1,5 @@
 /**
- * GroupBy types for dataview package.
- *
- * NOTE: These types are intentionally duplicated from @sparkyidea/shared
- * to keep the dataview package isolated and self-contained. When updating
- * group config types in shared, keep these definitions in sync.
- *
- * @see packages/shared/src/types/group-config.ts
+ * GroupBy types for dataview package (source of truth).
  */
 
 import { z } from "zod";

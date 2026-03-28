@@ -9,10 +9,10 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useInteractiveLegend } from "../../../hooks";
-import type { ChartColorScheme } from "../../../lib/utils/chart-colors";
-import type { ChartDataPoint } from "../../../lib/utils/compute-data";
+import { useInteractiveLegend } from "../../../hooks/use-interactive-legend";
 import type { AxisNameType, GridLineType } from "../../../types/chart.type";
+import type { ChartColorScheme } from "../../../utils/chart-colors";
+import type { ChartDataPoint } from "../../../utils/compute-data";
 import {
   ChartContainer,
   ChartTooltip,

@@ -1,6 +1,6 @@
 "use client";
 
-import type { GroupByConfig, GroupConfigInput } from "../types";
+import type { GroupByConfig, GroupConfigInput } from "../types/group.type";
 import { useColumnParams } from "./use-column-params";
 import { useGroupParams } from "./use-group-params";
 

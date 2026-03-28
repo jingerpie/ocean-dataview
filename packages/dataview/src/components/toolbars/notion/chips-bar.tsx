@@ -1,13 +1,13 @@
 "use client";
 
-import { useSortParams } from "../../../hooks";
+import { useSortParams } from "../../../hooks/use-sort-params";
 import { cn } from "../../../lib/utils";
 import type {
-  PropertyMeta,
   WhereExpression,
   WhereNode,
   WhereRule,
-} from "../../../types";
+} from "../../../types/filter.type";
+import type { PropertyMeta } from "../../../types/property.type";
 import { Button } from "../../ui/button";
 import { FilterTrigger } from "../../ui/filter/filter-trigger";
 import { SimpleFilterPicker } from "../../ui/filter/simple-filter-picker";

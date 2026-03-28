@@ -1,9 +1,9 @@
-import { cn } from "@sparkyidea/dataview/utils";
 import { highlight } from "fumadocs-core/highlight";
 import { transformerIcon } from "fumadocs-core/mdx-plugins/rehype-code.core";
 import { CodeBlock, Pre } from "fumadocs-ui/components/codeblock";
 import type { ReactNode } from "react";
 import { getLanguageFromPath, readFileFromRoot } from "@/lib/docs/read-file";
+import { cn } from "@/lib/utils";
 
 interface ComponentPreviewProps {
   children: ReactNode;

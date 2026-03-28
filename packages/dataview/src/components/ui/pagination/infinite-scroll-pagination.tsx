@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { useIntersectionObserver } from "../../../hooks/use-intersection-observer";
-import type { PaginationContext } from "../../../types";
+import type { PaginationContext } from "../../../types/pagination";
 
 type InfiniteScrollPaginationProps = Partial<PaginationContext>;
 

@@ -2,6 +2,13 @@
 
 import { cn } from "../../../lib/utils";
 import {
+  isWhereRule,
+  type WhereExpression,
+  type WhereNode,
+  type WhereRule,
+} from "../../../types/filter.type";
+import type { PropertyMeta } from "../../../types/property.type";
+import {
   addCondition,
   addGroup,
   changeLogic,
@@ -11,14 +18,7 @@ import {
   removeItem,
   updateCondition,
   wrapInGroup,
-} from "../../../lib/utils/filter-builder";
-import type { PropertyMeta } from "../../../types";
-import {
-  isWhereRule,
-  type WhereExpression,
-  type WhereNode,
-  type WhereRule,
-} from "../../../types";
+} from "../../../utils/filter-builder";
 import { AddFilterButton } from "./advanced-add-filter-button";
 import { AdvancedFilterActions } from "./advanced-filter-actions";
 import { LogicPicker } from "./advanced-filter-logic-picker";
