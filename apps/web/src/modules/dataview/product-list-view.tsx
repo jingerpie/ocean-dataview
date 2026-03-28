@@ -12,7 +12,7 @@ import { ListView } from "@sparkyidea/dataview/views/list-view";
 import { combineGroupFilter } from "@/utils/group-filter";
 import { useTRPC } from "@/utils/trpc/client";
 import { DataViewTab } from "./dataview-tab";
-import { productProperties } from "./product-properties";
+import { productListProperties } from "./product-list-properties";
 import { productTabOptions } from "./product-tab-options";
 
 interface ProductListViewProps {
@@ -87,7 +87,7 @@ export function ProductListView({
         search,
         sort: sort ?? [],
       }}
-      properties={productProperties}
+      properties={productListProperties}
     >
       <NotionToolbar enableSettings>
         <DataViewTab options={productTabOptions} />
