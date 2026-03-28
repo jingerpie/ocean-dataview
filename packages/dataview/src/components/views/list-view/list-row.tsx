@@ -3,6 +3,7 @@
 import { cn } from "../../../lib/utils";
 import type { DataViewProperty } from "../../../types/property.type";
 import { DataCell } from "../data-cell";
+import { ROW_SKELETON_WIDTHS } from "../skeleton-widths";
 
 export interface ListRowProps<TData> {
   /**
@@ -42,8 +43,8 @@ export function ListRow<TData>({
   className,
 }: ListRowProps<TData>) {
   return (
-    <div className={cn("overflow-x-auto", className)}>
-      <div className="flex w-max min-w-full flex-col">
+    <div className={cn("overflow-hidden", className)}>
+      <div className="flex w-full flex-col">
         {data.map((item, index) => {
           // Generate a unique key by combining property values or fallback to index
           const firstProperty = displayProperties[0];
@@ -71,10 +72,17 @@ export function ListRow<TData>({
                 return (
                   <div
                     className={cn(
-                      "flex shrink-0 items-center",
-                      isFirst && "font-medium"
+                      "flex items-center",
+                      isFirst
+                        ? "min-w-0 flex-1 overflow-hidden font-medium"
+                        : "shrink-0"
                     )}
                     key={String(property.id)}
+                    style={
+                      isFirst
+                        ? { minWidth: ROW_SKELETON_WIDTHS[property.type] }
+                        : undefined
+                    }
                   >
                     <DataCell
                       allProperties={allProperties}

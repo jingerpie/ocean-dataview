@@ -33,7 +33,7 @@ export function ListSkeleton({
   return (
     <div className={cn("flex w-full flex-col gap-2.5", className)} {...props}>
       <div className="overflow-clip">
-        <div className="flex w-max min-w-full flex-col">
+        <div className="flex w-full flex-col">
           {Array.from({ length: rowCount }).map((_, rowIndex) => {
             // Use row pattern for visual variety
             const patternOffset =
@@ -50,9 +50,13 @@ export function ListSkeleton({
                     (colIndex + patternOffset) % propertyTypes.length;
                   const offsetType = propertyTypes[offsetIndex] ?? type;
 
+                  const isFirst = colIndex === 0;
                   return (
                     <Skeleton
-                      className="h-6 shrink-0"
+                      className={cn(
+                        "h-6",
+                        isFirst ? "min-w-0 flex-1" : "shrink-0"
+                      )}
                       key={colIndex}
                       style={{ minWidth: ROW_SKELETON_WIDTHS[offsetType] }}
                     />

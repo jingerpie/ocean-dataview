@@ -52,7 +52,7 @@ export const ROW_SKELETON_WIDTHS: Record<PropertyType, string> = {
   email: "180px",
   url: "180px",
   text: "150px",
-  formula: "100px",
+  formula: "200px",
 };
 
 /**
