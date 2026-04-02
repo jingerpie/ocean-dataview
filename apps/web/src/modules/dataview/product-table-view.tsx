@@ -92,7 +92,7 @@ export function ProductTableView({
         bulkActions={bulkActions}
         pagination="page"
         showVerticalLines={false}
-        wrapAllColumns={false}
+        wrapAllProperties={false}
       />
     </DataViewProvider>
   );

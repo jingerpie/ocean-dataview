@@ -70,16 +70,24 @@ export interface TableViewProps<TData> {
   pagination?: PaginationMode;
 
   /**
+   * Default for showing property names in column headers.
+   * Per-property `showName` overrides this.
+   * @default true
+   */
+  showPropertyNames?: boolean;
+
+  /**
    * Show vertical lines between columns
    * @default true
    */
   showVerticalLines?: boolean;
 
   /**
-   * Wrap text in all columns
+   * Default for wrapping text in cells.
+   * Per-property `wrap` overrides this.
    * @default true
    */
-  wrapAllColumns?: boolean;
+  wrapAllProperties?: boolean;
 }
 
 /**
@@ -95,8 +103,9 @@ export function TableView<
   bulkActions,
   onRowClick,
   pagination,
+  showPropertyNames = true,
   showVerticalLines = true,
-  wrapAllColumns = true,
+  wrapAllProperties = true,
 }: TableViewProps<TData>) {
   // Get data and properties from context
   const {
@@ -148,22 +157,30 @@ export function TableView<
   // Generate columns from properties
   const columns = useMemo<ColumnDef<TData>[]>(() => {
     const propertyColumns: ColumnDef<TData>[] = displayProperties.map(
-      (property) => ({
-        id: String(property.id),
-        accessorKey: String(property.id),
-        header: property.name ?? String(property.id),
-        cell: ({ getValue, row }) => (
-          <DataCell
-            allProperties={properties}
-            item={row.original}
-            property={property}
-            value={getValue()}
-          />
-        ),
-        meta: {
-          propertyType: property.type,
-        },
-      })
+      (property) => {
+        const resolvedShowName = property.showName ?? showPropertyNames;
+        const resolvedWrap = property.wrap ?? wrapAllProperties;
+
+        return {
+          id: String(property.id),
+          accessorKey: String(property.id),
+          header: resolvedShowName
+            ? (property.name ?? String(property.id))
+            : "",
+          cell: ({ getValue, row }) => (
+            <DataCell
+              allProperties={properties}
+              item={row.original}
+              property={property}
+              value={getValue()}
+            />
+          ),
+          meta: {
+            propertyType: property.type,
+            wrap: resolvedWrap,
+          },
+        };
+      }
     );
 
     const allColumns: ColumnDef<TData>[] = [];
@@ -297,7 +314,7 @@ export function TableView<
                         properties={properties}
                         rowSelection={rowSelection}
                         showVerticalLines={showVerticalLines}
-                        wrapAllColumns={wrapAllColumns}
+                        wrapAllProperties={wrapAllProperties}
                       />
                     ) : (
                       <SuspendingPageTableContent<TData, TProperties>
@@ -312,7 +329,7 @@ export function TableView<
                         properties={properties}
                         rowSelection={rowSelection}
                         showVerticalLines={showVerticalLines}
-                        wrapAllColumns={wrapAllColumns}
+                        wrapAllProperties={wrapAllProperties}
                       />
                     )}
                   </Suspense>
@@ -363,7 +380,7 @@ export function TableView<
           properties={properties}
           rowSelection={rowSelection}
           showVerticalLines={showVerticalLines}
-          wrapAllColumns={wrapAllColumns}
+          wrapAllProperties={wrapAllProperties}
         />
       ) : (
         <SuspendingPageTableContent<TData, TProperties>
@@ -384,7 +401,7 @@ export function TableView<
           properties={properties}
           rowSelection={rowSelection}
           showVerticalLines={showVerticalLines}
-          wrapAllColumns={wrapAllColumns}
+          wrapAllProperties={wrapAllProperties}
         />
       )}
     </Suspense>
@@ -415,7 +432,7 @@ interface SuspendingGroupTableContentProps<
   properties: TProperties;
   rowSelection: RowSelectionState;
   showVerticalLines: boolean;
-  wrapAllColumns: boolean;
+  wrapAllProperties: boolean;
 }
 
 /**
@@ -436,7 +453,7 @@ function TableContentRenderer<
   properties,
   rowSelection,
   showVerticalLines,
-  wrapAllColumns,
+  wrapAllProperties,
 }: {
   actionBar?: (table: TanStackTable<TData>) => React.ReactNode;
   columns: ColumnDef<TData>[];
@@ -449,7 +466,7 @@ function TableContentRenderer<
   properties: TProperties;
   rowSelection: RowSelectionState;
   showVerticalLines: boolean;
-  wrapAllColumns: boolean;
+  wrapAllProperties: boolean;
 }) {
   // Transform data with property schema
   const transformedItems = transformData(data, properties) as TData[];
@@ -467,7 +484,7 @@ function TableContentRenderer<
         onRowSelectionChange={onRowSelectionChange}
         rowSelection={rowSelection}
         showVerticalLines={showVerticalLines}
-        wrapAllColumns={wrapAllColumns}
+        wrapAllProperties={wrapAllProperties}
       />
       {paginationNode}
     </>
@@ -492,7 +509,7 @@ function SuspendingPageTableContent<
   properties,
   rowSelection,
   showVerticalLines,
-  wrapAllColumns,
+  wrapAllProperties,
 }: SuspendingGroupTableContentProps<TData, TProperties>) {
   return (
     <SuspendingGroupContent<TData> groupKey={groupItem.key}>
@@ -527,7 +544,7 @@ function SuspendingPageTableContent<
             properties={properties}
             rowSelection={rowSelection}
             showVerticalLines={showVerticalLines}
-            wrapAllColumns={wrapAllColumns}
+            wrapAllProperties={wrapAllProperties}
           />
         );
       }}
@@ -553,7 +570,7 @@ function SuspendingInfiniteTableContent<
   properties,
   rowSelection,
   showVerticalLines,
-  wrapAllColumns,
+  wrapAllProperties,
 }: SuspendingGroupTableContentProps<TData, TProperties>) {
   return (
     <SuspendingInfiniteGroupContent<TData> groupKey={groupItem.key}>
@@ -593,7 +610,7 @@ function SuspendingInfiniteTableContent<
             properties={properties}
             rowSelection={rowSelection}
             showVerticalLines={showVerticalLines}
-            wrapAllColumns={wrapAllColumns}
+            wrapAllProperties={wrapAllProperties}
           />
         );
       }}

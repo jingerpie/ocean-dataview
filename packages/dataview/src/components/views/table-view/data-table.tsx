@@ -109,7 +109,7 @@ interface DataTableProps<TData> {
    * Layout configuration
    */
   showVerticalLines?: boolean;
-  wrapAllColumns?: boolean;
+  wrapAllProperties?: boolean;
 }
 
 /**
@@ -121,7 +121,7 @@ export function DataTable<TData>({
   data,
   columns,
   showVerticalLines = true,
-  wrapAllColumns = true,
+  wrapAllProperties = true,
   onRowClick,
   enableRowSelection = false,
   rowSelection = {},
@@ -226,9 +226,10 @@ export function DataTable<TData>({
                 >
                   {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta as
-                      | { propertyType?: PropertyType }
+                      | { propertyType?: PropertyType; wrap?: boolean }
                       | undefined;
                     const propertyType = meta?.propertyType;
+                    const cellWrap = meta?.wrap ?? wrapAllProperties;
                     const headerDef = cell.column.columnDef.header;
                     const headerLabel =
                       typeof headerDef === "string" ? headerDef : undefined;
@@ -241,7 +242,7 @@ export function DataTable<TData>({
                       <TableCell
                         className={cn(
                           showVerticalLines && "border-r last:border-r-0",
-                          wrapAllColumns ? "whitespace-normal" : "truncate",
+                          cellWrap ? "whitespace-normal" : "truncate",
                           isSelectionColumn && "pr-0"
                         )}
                         key={cell.id}
