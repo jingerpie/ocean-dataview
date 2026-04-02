@@ -67,9 +67,9 @@ function handleDateGrouping(
   }
 }
 
-// New StatusConfig type: { groups: Array<{ label: string; color: string; options: string[] }> }
+// New StatusConfig type: { groups: Array<{ name: string; color: string; options: string[] }> }
 interface StatusConfigNew {
-  groups?: Array<{ label: string; color: string; options: string[] }>;
+  groups?: Array<{ name: string; color: string; options: string[] }>;
 }
 
 /**
@@ -88,7 +88,7 @@ function handleStatusGroupGrouping(
       const group = config.groups[groupIndex];
       if (group?.options.includes(statusValue)) {
         return {
-          groupKey: group.label,
+          groupKey: group.name,
           sortValue: groupIndex,
         };
       }
@@ -270,7 +270,7 @@ export function groupByProperty<TData>(
   options?: GroupingOptions
 ): GroupedDataWithMeta<TData> {
   const property = properties.find((p) => p.id === propertyId);
-  const propertyName = property?.label || propertyId;
+  const propertyName = property?.name || propertyId;
   const emptyGroupLabel = `No ${propertyName}`;
   const groups: Record<string, TData[]> = {};
   const sortValues: Record<string, string | number> = {};

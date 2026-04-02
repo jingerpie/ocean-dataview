@@ -122,7 +122,7 @@ function SortEditor({
           <PopoverTrigger render={<Button variant="outline" />}>
             {property && <PropertyIcon type={property.type} />}
             <span className="truncate">
-              {property?.label ?? property?.id ?? sort.property}
+              {property?.name ?? property?.id ?? sort.property}
             </span>
           </PopoverTrigger>
           <PopoverContent align="start" className="w-48 p-0">
@@ -139,10 +139,10 @@ function SortEditor({
                         handleUpdate({ property: String(prop.id) });
                         setOpen(false);
                       }}
-                      value={String(prop.label ?? prop.id)}
+                      value={String(prop.name ?? prop.id)}
                     >
                       <PropertyIcon type={prop.type} />
-                      <span className="truncate">{prop.label ?? prop.id}</span>
+                      <span className="truncate">{prop.name ?? prop.id}</span>
                     </CommandItem>
                   ))}
                 </CommandGroup>

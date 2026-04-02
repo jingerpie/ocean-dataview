@@ -151,7 +151,7 @@ export function TableView<
       (property) => ({
         id: String(property.id),
         accessorKey: String(property.id),
-        header: property.label ?? String(property.id),
+        header: property.name ?? String(property.id),
         cell: ({ getValue, row }) => (
           <DataCell
             allProperties={properties}

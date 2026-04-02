@@ -107,13 +107,13 @@ function FilterBulkEditor({ properties, onDeleteAll }: FilterBulkEditorProps) {
                       onSelect={() =>
                         setEditingPropertyId(isOpen ? null : rule.property)
                       }
-                      value={String(property.label ?? property.id)}
+                      value={String(property.name ?? property.id)}
                     />
                   }
                 >
                   <PropertyIcon type={property.type} />
                   <span className="flex-1 truncate">
-                    {property.label ?? String(property.id)}
+                    {property.name ?? String(property.id)}
                   </span>
                   <ChevronDownIcon className="size-4 text-muted-foreground" />
                 </PopoverTrigger>

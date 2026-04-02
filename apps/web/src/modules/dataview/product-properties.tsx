@@ -13,12 +13,12 @@ export type Product = ProductWithVariants;
 export const productProperties = [
   {
     id: "productName",
-    label: "Text",
+    name: "Text",
     type: "text",
   },
   {
     id: "price",
-    label: "Number",
+    name: "Number",
     type: "number",
     config: {
       numberFormat: "dollar",
@@ -27,7 +27,7 @@ export const productProperties = [
   },
   {
     id: "stockLevel",
-    label: "Number (Bar)",
+    name: "Number (Bar)",
     type: "number",
     config: {
       showAs: {
@@ -39,7 +39,7 @@ export const productProperties = [
   },
   {
     id: "rating",
-    label: "Number (Ring)",
+    name: "Number (Ring)",
     type: "number",
     config: {
       showAs: {
@@ -51,7 +51,7 @@ export const productProperties = [
   },
   {
     id: "category",
-    label: "Select",
+    name: "Select",
     type: "select",
     config: {
       options: [
@@ -70,7 +70,7 @@ export const productProperties = [
   },
   {
     id: "tags",
-    label: "Multi Select",
+    name: "Multi Select",
     type: "multiSelect",
     config: {
       options: [
@@ -85,24 +85,24 @@ export const productProperties = [
   },
   {
     id: "availability",
-    label: "Status",
+    name: "Status",
     type: "status",
     config: {
       groups: [
         {
-          label: "Available",
+          name: "Available",
           color: "green",
           options: ["In stock"],
           icon: CheckCircle2,
         },
         {
-          label: "Warning",
+          name: "Warning",
           color: "yellow",
           options: ["Low stock"],
           icon: AlertCircle,
         },
         {
-          label: "Unavailable",
+          name: "Unavailable",
           color: "red",
           options: ["Out of stock"],
           icon: XCircle,
@@ -112,38 +112,38 @@ export const productProperties = [
   },
   {
     id: "lastRestocked",
-    label: "Date",
+    name: "Date",
     type: "date",
   },
   {
     id: "featured",
-    label: "Checkbox",
+    name: "Checkbox",
     type: "checkbox",
   },
   {
     id: "productImage",
-    label: "Files & Media",
+    name: "Files & Media",
     type: "filesMedia",
   },
   {
     id: "productLink",
-    label: "URL",
+    name: "URL",
     type: "url",
     enableGroup: false,
   },
   {
     id: "supplierPhone",
-    label: "Phone",
+    name: "Phone",
     type: "phone",
   },
   {
     id: "supplierEmail",
-    label: "Email",
+    name: "Email",
     type: "email",
   },
   {
     id: "_totalWorth",
-    label: "Formula",
+    name: "Formula",
     type: "formula",
     value: (property, item) => (
       <div className="flex items-center gap-4">
@@ -161,7 +161,7 @@ export const productProperties = [
   },
   {
     id: "actions",
-    label: "Actions",
+    name: "Actions",
     type: "button",
     value: (item) => [
       {

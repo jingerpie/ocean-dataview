@@ -119,6 +119,8 @@ export function DataCard<TData>({
         {displayProperties.map((property, propIndex) => {
           const value = (item as Record<string, unknown>)[property.id];
           const isFirst = propIndex === 0;
+          const resolvedShowName = property.showName ?? showPropertyNames;
+          const resolvedWrap = property.wrap ?? wrapAllProperties;
 
           return (
             <div
@@ -133,9 +135,9 @@ export function DataCard<TData>({
               )}
               key={String(property.id)}
             >
-              {showPropertyNames && (
+              {resolvedShowName && (
                 <span className="text-muted-foreground text-xs">
-                  {property.label ?? String(property.id)}
+                  {property.name ?? String(property.id)}
                 </span>
               )}
               <DataCell
@@ -143,7 +145,7 @@ export function DataCard<TData>({
                 item={item}
                 property={property}
                 value={value}
-                wrap={wrapAllProperties}
+                wrap={resolvedWrap}
               />
             </div>
           );

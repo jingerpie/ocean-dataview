@@ -72,8 +72,23 @@ export interface BaseProperty<_T> {
    * Must correspond to a field in the data object (except for formula type).
    */
   id: string;
-  label?: string;
+  /** Display name shown in UI (column headers, filter pickers, etc.) */
+  name?: string;
+  /**
+   * Per-property override for `showPropertyNames`.
+   * - `true`: Always show this property's name
+   * - `false`: Always hide this property's name
+   * - `undefined`: Use the global `showPropertyNames` setting
+   */
+  showName?: boolean;
   type: PropertyType;
+  /**
+   * Per-property override for `wrapAllProperties`.
+   * - `true`: Always wrap this property's value
+   * - `false`: Never wrap this property's value
+   * - `undefined`: Use the global `wrapAllProperties` setting
+   */
+  wrap?: boolean;
 }
 
 // Type-specific configurations
@@ -133,7 +148,7 @@ export interface StatusGroup {
   color: BadgeColor;
   /** Optional icon component to display. Defaults to CircleDashed. */
   icon?: IconComponent;
-  label: string;
+  name: string;
   options: string[];
 }
 
@@ -201,7 +216,7 @@ export type PropertyConfig =
  * Covariant property metadata type - safe to pass to any component.
  *
  * This type excludes the `value` function which causes TypeScript contravariance issues.
- * Use PropertyMeta when components only need property metadata (id, type, label, config)
+ * Use PropertyMeta when components only need property metadata (id, type, name, config)
  * but don't need to call the value function.
  *
  * @example
@@ -230,10 +245,14 @@ export interface PropertyMeta {
   hidden?: boolean;
   /** Unique identifier for this property */
   id: string;
-  /** Display label */
-  label?: string;
+  /** Display name shown in UI */
+  name?: string;
+  /** Per-property override for showPropertyNames */
+  showName?: boolean;
   /** Property type for rendering */
   type: PropertyType;
+  /** Per-property override for wrapAllProperties */
+  wrap?: boolean;
 }
 
 /**
@@ -338,7 +357,7 @@ export type PropertyRenderFunction = (id: string) => any;
  * {
  *   id: "productSummary",
  *   type: "formula",
- *   label: "Product",
+ *   name: "Product",
  *   sortBy: "name",
  *   value: (property, item) => (
  *     <div className="flex flex-col gap-1">
@@ -397,7 +416,7 @@ export type FormulaPropertyType<T> = BaseProperty<T> & {
  * {
  *   id: "actions",
  *   type: "button",
- *   label: "Actions",
+ *   name: "Actions",
  *   value: (item) => [
  *     { label: "View", icon: Eye, onClick: () => viewItem(item) },
  *     { label: "Edit", icon: Edit, onClick: () => editItem(item) },

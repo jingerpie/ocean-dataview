@@ -38,7 +38,7 @@ interface SimpleFilterPickerProps {
  * - Searchable Command-based list
  * - Excludes formula/button properties (can't filter)
  * - Excludes already-used simple filter properties (computed internally)
- * - Sorted alphabetically by label
+ * - Sorted alphabetically by name
  */
 function SimpleFilterPicker({
   properties,
@@ -67,7 +67,7 @@ function SimpleFilterPicker({
     );
 
     return [...filtered].sort((a, b) =>
-      (a.label ?? String(a.id)).localeCompare(b.label ?? String(b.id))
+      (a.name ?? String(a.id)).localeCompare(b.name ?? String(b.id))
     );
   }, [properties, usedPropertyIds]);
 
@@ -108,11 +108,11 @@ function SimpleFilterPicker({
             <CommandItem
               key={String(property.id)}
               onSelect={() => handleAddFilter(property)}
-              value={String(property.label ?? property.id)}
+              value={String(property.name ?? property.id)}
             >
               <PropertyIcon type={property.type} />
               <span className="truncate">
-                {property.label ?? String(property.id)}
+                {property.name ?? String(property.id)}
               </span>
             </CommandItem>
           ))}

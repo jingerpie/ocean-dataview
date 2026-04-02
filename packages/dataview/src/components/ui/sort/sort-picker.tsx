@@ -30,7 +30,7 @@ interface SortPickerProps {
  * - Searchable Command-based list
  * - Excludes formula/button properties (can't sort)
  * - Excludes already-used properties
- * - Sorted alphabetically by label
+ * - Sorted alphabetically by name
  */
 function SortPicker({ properties, onAddSort }: SortPickerProps) {
   const { sort: sorts, addSort } = useSortParams();
@@ -49,7 +49,7 @@ function SortPicker({ properties, onAddSort }: SortPickerProps) {
     );
 
     return [...filtered].sort((a, b) =>
-      (a.label ?? String(a.id)).localeCompare(b.label ?? String(b.id))
+      (a.name ?? String(a.id)).localeCompare(b.name ?? String(b.id))
     );
   }, [properties, usedPropertyIds]);
 
@@ -71,11 +71,11 @@ function SortPicker({ properties, onAddSort }: SortPickerProps) {
             <CommandItem
               key={String(property.id)}
               onSelect={() => handleSelect(property)}
-              value={String(property.label ?? property.id)}
+              value={String(property.name ?? property.id)}
             >
               <PropertyIcon type={property.type} />
               <span className="truncate">
-                {property.label ?? String(property.id)}
+                {property.name ?? String(property.id)}
               </span>
             </CommandItem>
           ))}

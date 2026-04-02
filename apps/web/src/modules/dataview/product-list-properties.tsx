@@ -13,7 +13,7 @@ export type Product = ProductWithVariants;
 export const productListProperties = [
   {
     id: "_formula",
-    label: "Formula",
+    name: "Formula",
     type: "formula",
     value: (property, item) => (
       <div className="flex items-center gap-4">
@@ -24,19 +24,19 @@ export const productListProperties = [
   },
   {
     id: "productName",
-    label: "Text",
+    name: "Text",
     type: "text",
     hidden: true,
   },
   {
     id: "productImage",
-    label: "Files & Media",
+    name: "Files & Media",
     type: "filesMedia",
     hidden: true,
   },
   {
     id: "category",
-    label: "Select",
+    name: "Select",
     type: "select",
     config: {
       options: [
@@ -55,7 +55,7 @@ export const productListProperties = [
   },
   {
     id: "tags",
-    label: "Multi Select",
+    name: "Multi Select",
     type: "multiSelect",
     config: {
       options: [
@@ -70,12 +70,12 @@ export const productListProperties = [
   },
   {
     id: "supplierPhone",
-    label: "Phone",
+    name: "Phone",
     type: "phone",
   },
   {
     id: "actions",
-    label: "Actions",
+    name: "Actions",
     type: "button",
     value: (item) => [
       {
