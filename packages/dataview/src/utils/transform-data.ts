@@ -37,14 +37,14 @@ export function transformData<TData>(
     const transformed: TransformedData = {};
 
     for (const property of properties) {
-      if (property.type === "formula" || property.type === "button") {
-        // Formula/button properties are rendered with full context
-        transformed[property.id] = null;
-      } else {
-        // Read from item[key], write to transformed[key]
+      if (property.key) {
+        // Data-backed: read from item[key], write to transformed[key]
         transformed[property.key] = (item as Record<string, unknown>)[
           property.key
         ];
+      } else {
+        // No data key (formula/button): set null, rendered with full context
+        transformed[property.id] = null;
       }
     }
 

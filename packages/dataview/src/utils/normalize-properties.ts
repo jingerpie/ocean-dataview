@@ -1,29 +1,26 @@
-import type {
-  DataViewProperty,
-  DataViewPropertyInput,
-} from "../types/property.type";
+import type { DataViewProperty } from "../types/property.type";
 
 /**
- * Normalize properties by resolving `id` from `key` when not provided.
+ * Normalize properties by resolving `id` through the priority chain.
  *
- * For data-backed types: `id` defaults to `key` if omitted.
- * For formula/button types: `id` is already required.
+ * Resolution priority (matches TanStack Table pattern):
+ * 1. Explicit `id`
+ * 2. `key` (data field accessor)
+ * 3. `name` (display name)
+ * 4. Array index fallback
  *
  * Also validates that resolved IDs are unique.
  *
  * @throws Error if duplicate IDs are found after resolution
  */
 export function normalizeProperties<T>(
-  properties: readonly DataViewPropertyInput<T>[]
+  properties: readonly DataViewProperty<T>[]
 ): DataViewProperty<T>[] {
   const seen = new Set<string>();
 
-  return properties.map((property) => {
-    // Resolve id: formula/button always have id, others default to key
+  return properties.map((property, index) => {
     const resolvedId =
-      property.type === "formula" || property.type === "button"
-        ? property.id
-        : (property.id ?? property.key);
+      property.id ?? property.key ?? property.name ?? String(index);
 
     if (seen.has(resolvedId)) {
       throw new Error(
@@ -32,7 +29,6 @@ export function normalizeProperties<T>(
     }
     seen.add(resolvedId);
 
-    // Return with resolved id
-    return { ...property, id: resolvedId } as DataViewProperty<T>;
+    return { ...property, id: resolvedId };
   });
 }

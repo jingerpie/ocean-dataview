@@ -70,14 +70,15 @@ export interface BaseProperty<_T> {
   /**
    * Unique identity for this property.
    * Used for React keys, filter/sort/group refs, URL params, visibility toggles.
-   * After normalization, always present (defaults to `key` if not provided in input).
+   * Resolved via priority chain: id → key → name → index.
+   * Always present after normalization.
    */
   id: string;
   /**
    * Data field accessor. Maps to `item[key]`.
-   * Must correspond to a field in the data object.
+   * Required for data-backed types to read values from items.
    */
-  key: string;
+  key?: string;
   /** Display name shown in UI (column headers, filter pickers, etc.) */
   name?: string;
   /**
@@ -379,12 +380,8 @@ export type PropertyRenderFunction = (id: string) => any;
  * }
  * ```
  */
-export type FormulaPropertyType<T> = Omit<BaseProperty<T>, "id" | "key"> & {
+export type FormulaPropertyType<T> = BaseProperty<T> & {
   type: "formula";
-  /** Required — no key to derive from. */
-  id: string;
-  /** Formula properties have no data field. */
-  key?: never;
   config?: never;
   /**
    * Formula value function.
@@ -424,12 +421,8 @@ export type FormulaPropertyType<T> = Omit<BaseProperty<T>, "id" | "key"> & {
  * }
  * ```
  */
-export type ButtonPropertyType<T> = Omit<BaseProperty<T>, "id" | "key"> & {
+export type ButtonPropertyType<T> = BaseProperty<T> & {
   type: "button";
-  /** Required — no key to derive from. */
-  id: string;
-  /** Button properties have no data field. */
-  key?: never;
   config?: never;
   /**
    * Button value function.
@@ -457,28 +450,6 @@ export type DataViewProperty<T> =
   | UrlPropertyType<T>
   | EmailPropertyType<T>
   | PhonePropertyType<T>
-  | FormulaPropertyType<T>
-  | ButtonPropertyType<T>;
-
-/**
- * Input type for defining properties — allows omitting `id` for data-backed types.
- * When `id` is omitted, it defaults to `key` during normalization.
- * Formula/button types always require `id` (no key to derive from).
- *
- * Use this when defining property arrays: `DataViewPropertyInput<YourType>[]`
- */
-export type DataViewPropertyInput<T> =
-  | (Omit<TextPropertyType<T>, "id"> & { id?: string })
-  | (Omit<NumberPropertyType<T>, "id"> & { id?: string })
-  | (Omit<SelectPropertyType<T>, "id"> & { id?: string })
-  | (Omit<MultiSelectPropertyType<T>, "id"> & { id?: string })
-  | (Omit<StatusPropertyType<T>, "id"> & { id?: string })
-  | (Omit<DatePropertyType<T>, "id"> & { id?: string })
-  | (Omit<FilesMediaPropertyType<T>, "id"> & { id?: string })
-  | (Omit<CheckboxPropertyType<T>, "id"> & { id?: string })
-  | (Omit<UrlPropertyType<T>, "id"> & { id?: string })
-  | (Omit<EmailPropertyType<T>, "id"> & { id?: string })
-  | (Omit<PhonePropertyType<T>, "id"> & { id?: string })
   | FormulaPropertyType<T>
   | ButtonPropertyType<T>;
 
@@ -539,13 +510,8 @@ export function getSearchableProperties<T>(
       // Default: include unless type is in excluded list
       return !EXCLUDED_SEARCH_TYPES.includes(p.type);
     })
-    .map((p) => {
-      // Formula/button have no data key — return id (they're excluded by default anyway)
-      if (p.type === "formula" || p.type === "button") {
-        return p.id;
-      }
-      return p.key;
-    });
+    .map((p) => p.key ?? p.id)
+    .filter((key): key is string => key !== undefined);
 }
 
 // Sort configuration (simple client-side sorting)

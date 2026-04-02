@@ -30,4 +30,4 @@ export {
   type Limit,
 } from "./pagination";
 // Property types used by apps/web
-export type { DataViewProperty, DataViewPropertyInput } from "./property.type";
+export type { DataViewProperty } from "./property.type";

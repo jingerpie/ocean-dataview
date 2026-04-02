@@ -48,12 +48,9 @@ export function ListRow<TData>({
         {data.map((item, index) => {
           // Generate a unique key by combining property values or fallback to index
           const firstProperty = displayProperties[0];
-          const firstValue =
-            firstProperty &&
-            firstProperty.type !== "formula" &&
-            firstProperty.type !== "button"
-              ? (item as Record<string, unknown>)[firstProperty.key]
-              : undefined;
+          const firstValue = firstProperty?.key
+            ? (item as Record<string, unknown>)[firstProperty.key]
+            : undefined;
           const uniqueKey = firstValue
             ? `row-${String(firstValue)}-${index}`
             : `row-${index}`;
@@ -72,10 +69,9 @@ export function ListRow<TData>({
               {...(onItemClick && { type: "button" as const })}
             >
               {displayProperties.map((property, propIndex) => {
-                const value =
-                  property.type === "formula" || property.type === "button"
-                    ? undefined
-                    : (item as Record<string, unknown>)[property.key];
+                const value = property.key
+                  ? (item as Record<string, unknown>)[property.key]
+                  : undefined;
                 const isFirst = propIndex === 0;
 
                 return (

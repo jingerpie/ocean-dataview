@@ -275,11 +275,8 @@ export function groupByProperty<TData>(
   const groups: Record<string, TData[]> = {};
   const sortValues: Record<string, string | number> = {};
 
-  // Resolve data key: use property.key for data-backed types, skip for formula/button
-  const dataKey =
-    property && property.type !== "formula" && property.type !== "button"
-      ? property.key
-      : undefined;
+  // Resolve data key from property schema
+  const dataKey = property?.key;
 
   for (const item of data) {
     // Extract value from item using the data key
@@ -454,10 +451,7 @@ export function computeData<TData>(
   const property = properties?.find((p) => p.id === propertyId);
 
   // Resolve data key from property schema
-  const dataKey =
-    property && property.type !== "formula" && property.type !== "button"
-      ? property.key
-      : undefined;
+  const dataKey = property?.key;
 
   // Helper to extract value from item
   const extractValue = (item: TData): unknown => {
