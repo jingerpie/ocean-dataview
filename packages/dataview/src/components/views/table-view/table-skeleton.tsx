@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "../../../lib/utils";
-import type { PropertyType } from "../../../types/property.type";
+import type { PropertyType } from "../../../types/filter.type";
 import type { PaginationMode } from "../../ui/pagination";
 import { PaginationSkeleton } from "../../ui/pagination/pagination-skeleton";
 import { Skeleton } from "../../ui/skeleton";

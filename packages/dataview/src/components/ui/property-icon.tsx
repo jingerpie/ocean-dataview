@@ -2,7 +2,7 @@
 
 import { getPropertyIcon } from "../../lib/property-icons";
 import { cn } from "../../lib/utils";
-import type { PropertyType } from "../../types/property.type";
+import type { PropertyType } from "../../types/filter.type";
 
 interface PropertyIconProps {
   /** Additional class names */

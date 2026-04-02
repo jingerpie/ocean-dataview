@@ -1,4 +1,4 @@
-import type { PropertyType } from "../../types/property.type";
+import type { PropertyType } from "../../types/filter.type";
 
 /**
  * Fixed column widths for table columns based on property type (in pixels)

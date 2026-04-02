@@ -4,7 +4,7 @@ import {
   splitRespectingParens,
 } from "../lib/url-dsl/decoder";
 import { encodeTuple } from "../lib/url-dsl/encoder";
-import type { SortQuery } from "../types/sort.type";
+import type { SortQuery } from "../types/filter.type";
 
 // ============================================================================
 // DSL Format

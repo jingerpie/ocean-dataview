@@ -13,7 +13,11 @@ import { BoardSkeleton } from "../../components/views/board-view/board-skeleton"
 import { GallerySkeleton } from "../../components/views/gallery-view/gallery-skeleton";
 import { ListSkeleton } from "../../components/views/list-view/list-skeleton";
 import { TableSkeleton } from "../../components/views/table-view/table-skeleton";
-import type { WhereNode } from "../../types/filter.type";
+import type {
+  PropertyType,
+  SortQuery,
+  WhereNode,
+} from "../../types/filter.type";
 import type {
   ColumnConfigInput,
   GroupConfigInput,
@@ -24,12 +28,10 @@ import type {
   PageController,
 } from "../../types/pagination-controller";
 import type { GroupCounts, ViewCounts } from "../../types/pagination-types";
-import type { PropertyType } from "../../types/property.type";
 import {
   type DataViewProperty,
   toPropertyMetaArray,
 } from "../../types/property.type";
-import type { SortQuery } from "../../types/sort.type";
 import { cn } from "../utils";
 import {
   DataViewContext,

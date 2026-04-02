@@ -1,8 +1,7 @@
-import type { WhereNode } from "../types/filter.type";
+import type { SortQuery, WhereNode } from "../types/filter.type";
 import type { ColumnConfigInput, GroupConfigInput } from "../types/group.type";
 import type { Cursors, Limit } from "../types/pagination";
 import type { DataViewProperty, PropertyMeta } from "../types/property.type";
-import type { SortQuery } from "../types/sort.type";
 import { validateColumn } from "./valid-column";
 import { validateCursors } from "./valid-cursors";
 import { validateFilter } from "./valid-filter";
@@ -43,7 +42,7 @@ export interface Input {
 
 /**
  * Validate all data view state against property schema.
- * Combines validateFilter, validateSort, validateGroup, validateColumn, validateCursors, validateSearch, and validateLimit.
+ * Combines validateFilter, validateSort, validateSearch, validateGroup, validateColumn, validateCursors, and validateLimit.
  *
  * Cursors are validated against the validated group (order matters).
  *

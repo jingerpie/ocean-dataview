@@ -1,5 +1,5 @@
+import type { SearchQuery } from "../types/filter.type";
 import type { DataViewProperty, PropertyMeta } from "../types/property.type";
-import type { ValidatedSearch } from "../types/search.type";
 
 /** Property types excluded from search by default */
 const NON_SEARCHABLE_TYPES = new Set([
@@ -46,7 +46,7 @@ function getSearchablePropertyIds(
 export function validateSearch<T>(
   search: string | null,
   properties: readonly DataViewProperty<T>[] | readonly PropertyMeta[]
-): ValidatedSearch | null {
+): SearchQuery | null {
   if (!search) {
     return null;
   }

@@ -1,11 +1,49 @@
+import type { FC, SVGProps } from "react";
 import { z } from "zod";
 import type { DataTableConfig } from "./config";
+
+// ============================================================================
+// UI Types
+// ============================================================================
+
+export interface Option {
+  count?: number;
+  icon?: FC<SVGProps<SVGSVGElement>>;
+  label: string;
+  value: string;
+}
 
 // ============================================================================
 // Condition Types (from config)
 // ============================================================================
 
 export type FilterCondition = DataTableConfig["conditionalOperators"][number];
+
+// ============================================================================
+// Sort
+// ============================================================================
+
+/**
+ * Sort configuration for a property.
+ *
+ * Property is typed as `string` for runtime flexibility.
+ * Use `satisfies` for type-safe property name validation at definition time.
+ *
+ * @example
+ * // Type-safe definition with satisfies
+ * const defaultSort = [
+ *   { property: "name", direction: "asc" }
+ * ] satisfies SortQuery[];
+ *
+ * // Or with explicit keyof constraint
+ * const sort: { property: keyof Product; direction: "asc" | "desc" } = { property: "name", direction: "asc" };
+ */
+export interface SortQuery {
+  /** Custom sort order for status/select properties - pre-computed by client */
+  customOrder?: string[];
+  direction: "asc" | "desc";
+  property: string;
+}
 
 // ============================================================================
 // Where Types - SQL-inspired naming
@@ -32,6 +70,13 @@ export interface WhereExpression {
  * Any node in the WHERE tree
  */
 export type WhereNode = WhereRule | WhereExpression;
+
+/**
+ * Search parameter - always OR at root, flat (no nesting)
+ */
+export interface SearchWhereClause {
+  or: WhereRule[];
+}
 
 // ============================================================================
 // Zod Schemas
@@ -93,6 +138,23 @@ export const whereNodeSchema: z.ZodType<WhereNode> = z.union([
   whereExpressionSchema,
 ]);
 
+/**
+ * Schema for SearchWhereClause - always { or: WhereRule[] }
+ */
+export const searchWhereClauseSchema: z.ZodType<SearchWhereClause> = z.object({
+  or: z.array(whereRuleSchema),
+});
+
+/**
+ * Validated search output from `validateSearch()`.
+ * Contains the trimmed search string and the searchable field IDs
+ * derived from properties with `enableSearch`.
+ */
+export interface SearchQuery {
+  search: string;
+  searchFields: string[];
+}
+
 // ============================================================================
 // Type Guards
 // ============================================================================
@@ -104,3 +166,25 @@ export function isWhereExpression(node: WhereNode): node is WhereExpression {
 export function isWhereRule(node: WhereNode): node is WhereRule {
   return "property" in node && "condition" in node;
 }
+
+// ============================================================================
+// Property Type
+// ============================================================================
+
+/**
+ * Property types supported by the filter system.
+ */
+export type PropertyType =
+  | "text"
+  | "number"
+  | "select"
+  | "multiSelect"
+  | "status"
+  | "date"
+  | "checkbox"
+  | "url"
+  | "email"
+  | "phone"
+  | "filesMedia"
+  | "formula"
+  | "button";

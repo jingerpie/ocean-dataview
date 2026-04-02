@@ -15,7 +15,11 @@ import { parseAsFilter } from "../../parsers/filter";
 import { parseAsGroupBy } from "../../parsers/group";
 import { parseAsCursors } from "../../parsers/pagination";
 import { parseAsSort } from "../../parsers/sort";
-import type { WhereNode } from "../../types/filter.type";
+import type {
+  SearchQuery,
+  SortQuery,
+  WhereNode,
+} from "../../types/filter.type";
 import type {
   ColumnConfigInput,
   GroupConfigInput,
@@ -23,8 +27,6 @@ import type {
 import type { Limit } from "../../types/pagination";
 import type { Cursors, CursorValue } from "../../types/pagination-types";
 import type { DataViewProperty, PropertyMeta } from "../../types/property.type";
-import type { ValidatedSearch } from "../../types/search.type";
-import type { SortQuery } from "../../types/sort.type";
 import { validate } from "../../validators";
 
 const THROTTLE_MS = 50;
@@ -50,12 +52,10 @@ export interface QueryParamsState {
   isPending: boolean;
   /** Page size limit */
   limit: Limit;
-  /** Search query (raw string for toolbar UI) */
-  search: string;
+  /** Validated search */
+  search: SearchQuery | null;
   /** Validated sort */
   sort: SortQuery[];
-  /** Validated search (for data queries) */
-  validatedSearch: ValidatedSearch | null;
 }
 
 /**
@@ -241,45 +241,27 @@ export function QueryParamsProvider({
   const rawFilter = (urlFilter ?? defaultFilter) as WhereNode[] | null;
   const rawGroup = (urlGroup ?? defaultGroup) as GroupConfigInput | null;
   const rawSort = (urlSort ?? defaultSort) as SortQuery[];
-  const search = urlSearch ?? defaultSearch;
+  const rawSearch = urlSearch ?? defaultSearch;
 
   // ============================================================================
   // Validate and build state
   // ============================================================================
 
   const state = useMemo<QueryParamsState>(() => {
-    const {
-      column,
-      cursors,
-      filter,
-      group,
-      limit,
-      search: validatedSearch,
-      sort,
-    } = validate(
+    const { column, cursors, filter, group, limit, search, sort } = validate(
       {
         column: rawColumn,
         cursors: urlCursors,
         filter: rawFilter,
         group: rawGroup,
         limit: urlLimit,
-        search,
+        search: rawSearch,
         sort: rawSort,
       },
       properties,
       defaultLimit
     );
-    return {
-      column,
-      cursors,
-      filter,
-      group,
-      isPending,
-      limit,
-      search,
-      sort,
-      validatedSearch,
-    };
+    return { column, cursors, filter, group, isPending, limit, search, sort };
   }, [
     rawColumn,
     urlCursors,
@@ -290,7 +272,7 @@ export function QueryParamsProvider({
     properties,
     defaultLimit,
     isPending,
-    search,
+    rawSearch,
   ]);
 
   // ============================================================================

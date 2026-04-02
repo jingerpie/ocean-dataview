@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "../../../lib/utils";
-import type { PropertyType } from "../../../types/property.type";
+import type { PropertyType } from "../../../types/filter.type";
 import { getGalleryCardDimensions } from "../../../utils/get-card-sizes";
 import { Card, CardContent } from "../../ui/card";
 import { PaginationSkeleton } from "../../ui/pagination/pagination-skeleton";
