@@ -1,5 +1,6 @@
 import { format, parseISO } from "date-fns";
-import type { FilterCondition, PropertyType } from "../types/filter.type";
+import type { FilterCondition } from "../types/filter.type";
+import type { PropertyType } from "../types/property.type";
 
 /**
  * Date range value for isBetween condition: [from, to]

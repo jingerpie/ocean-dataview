@@ -1,8 +1,5 @@
-import type {
-  FilterCondition,
-  PropertyType,
-  WhereRule,
-} from "../types/filter.type";
+import type { FilterCondition, WhereRule } from "../types/filter.type";
+import type { PropertyType } from "../types/property.type";
 import { getDefaultFilterCondition } from "./filter";
 
 // ============================================================================

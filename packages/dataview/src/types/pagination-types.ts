@@ -94,33 +94,3 @@ export interface ViewCounts {
   group: GroupCounts;
   groupSortValues?: GroupSortValues;
 }
-
-/**
- * Response from paginated group query.
- * Includes counts, sortValues, and pagination metadata.
- */
-export interface PaginatedGroupResponse {
-  counts: GroupCounts;
-  hasNextPage: boolean;
-  nextCursor: string | null;
-  sortValues: GroupSortValues;
-}
-
-// ============================================================================
-// Type Inference Utilities
-// ============================================================================
-
-/**
- * Infer item type from query options' queryFn return type.
- * Extracts TData from { items: TData[], ... } response shape.
- *
- * Works with both TRPC's queryOptions and infiniteQueryOptions return types.
- */
-export type InferItemsFromQueryOptions<T> = T extends {
-  // biome-ignore lint/suspicious/noExplicitAny: TRPC returns complex types
-  queryFn?: (...args: any[]) => Promise<infer R> | infer R;
-}
-  ? R extends { items: (infer U)[] }
-    ? U
-    : never
-  : never;

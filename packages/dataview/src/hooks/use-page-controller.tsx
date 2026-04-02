@@ -1,12 +1,11 @@
 "use client";
 
 import { useCallback, useMemo, useRef } from "react";
-import type { WhereNode } from "../types/filter.type";
-import type { GroupConfigInput } from "../types/group.type";
 import type { Limit } from "../types/pagination";
 import type {
   BaseQueryOptions,
-  InfiniteGroupQueryOptions,
+  ColumnQueryOptionsFactory,
+  GroupQueryOptionsFactory,
   PageController,
   PageQueryOptionsFactory,
 } from "../types/pagination-controller";
@@ -41,21 +40,11 @@ export interface UsePageControllerOptions<
   TQueryOptions extends BaseQueryOptions = BaseQueryOptions,
 > {
   /** Factory for fetching column counts (board-specific) */
-  columnQuery?: (params: {
-    columnConfig: GroupConfigInput;
-    filter: WhereNode[] | null;
-    hideEmpty: boolean;
-    search: string;
-  }) => BaseQueryOptions;
+  columnQuery?: ColumnQueryOptionsFactory;
   /** Factory for fetching data items */
   dataQuery: PageQueryOptionsFactory<TQueryOptions>;
   /** Factory for fetching group counts with pagination (accordion rows) */
-  groupQuery?: (params: {
-    filter: WhereNode[] | null;
-    groupConfig: GroupConfigInput;
-    hideEmpty: boolean;
-    search: string;
-  }) => InfiniteGroupQueryOptions;
+  groupQuery?: GroupQueryOptionsFactory;
 }
 
 export interface UsePageControllerResult<TQueryOptions> {
@@ -80,13 +69,7 @@ export function usePageController<
   const columnQueryRef = useRef(columnQuery);
   columnQueryRef.current = columnQuery;
   const stableColumnQuery = useMemo<
-    | ((params: {
-        columnConfig: GroupConfigInput;
-        filter: WhereNode[] | null;
-        hideEmpty: boolean;
-        search: string;
-      }) => BaseQueryOptions)
-    | undefined
+    ColumnQueryOptionsFactory | undefined
   >(() => {
     if (!columnQuery) {
       return undefined;
@@ -103,15 +86,7 @@ export function usePageController<
   // Stable group factory (accordion rows) with pagination support
   const groupQueryRef = useRef(groupQuery);
   groupQueryRef.current = groupQuery;
-  const stableGroupQuery = useMemo<
-    | ((params: {
-        filter: WhereNode[] | null;
-        groupConfig: GroupConfigInput;
-        hideEmpty: boolean;
-        search: string;
-      }) => InfiniteGroupQueryOptions)
-    | undefined
-  >(() => {
+  const stableGroupQuery = useMemo<GroupQueryOptionsFactory | undefined>(() => {
     if (!groupQuery) {
       return undefined;
     }

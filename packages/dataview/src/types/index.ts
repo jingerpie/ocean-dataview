@@ -2,18 +2,15 @@
 
 // Action types used by apps/app
 export type { BulkAction } from "./action.type";
-// Filter types used by packages/trpc and apps/web
+// Filter types
 export {
   type FilterCondition,
   isWhereExpression,
-  type SearchQuery,
-  type SortQuery,
-  searchQuerySchema,
   type WhereNode,
   type WhereRule,
   whereNodeSchema,
 } from "./filter.type";
-// Group types used by packages/trpc and apps/web
+// Group types
 export {
   type ColumnConfigInput,
   type GroupByConfig,
@@ -22,11 +19,19 @@ export {
   type ParsedGroupConfig,
   toParsedGroupConfig,
 } from "./group.type";
-// Pagination types used by packages/trpc and apps/web
+// Pagination types
 export {
   cursorValueSchema,
   getCursorParams,
   type Limit,
 } from "./pagination";
-// Property types used by apps/web
+// Property types
 export type { DataViewProperty } from "./property.type";
+// Search types
+export {
+  type SearchQuery,
+  searchQuerySchema,
+  type ValidatedSearch,
+} from "./search.type";
+// Sort types
+export type { SortQuery } from "./sort.type";

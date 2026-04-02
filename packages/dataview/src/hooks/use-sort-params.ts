@@ -5,7 +5,7 @@ import {
   useQueryParamsActions,
   useQueryParamsState,
 } from "../lib/providers/query-params-context";
-import type { SortQuery } from "../types/filter.type";
+import type { SortQuery } from "../types/sort.type";
 
 /**
  * Hook for managing sort state via URL.

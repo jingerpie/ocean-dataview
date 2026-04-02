@@ -5,10 +5,12 @@
  * They contain query factories - actual URL state is managed by QueryBridge.
  */
 
-import type { SortQuery, WhereNode } from "./filter.type";
+import type { WhereNode } from "./filter.type";
 import type { GroupConfigInput } from "./group.type";
 import type { Limit } from "./pagination";
 import type { CursorValue } from "./pagination-types";
+import type { ValidatedSearch } from "./search.type";
+import type { SortQuery } from "./sort.type";
 
 // ============================================================================
 // Base Query Options (minimal interface for useQuery compatibility)
@@ -47,7 +49,7 @@ export interface GroupQueryOptionsFactoryParams {
   groupConfig: GroupConfigInput;
   /** Whether to hide groups with 0 items (defaults to false) */
   hideEmpty: boolean;
-  search: string;
+  search: ValidatedSearch | null;
 }
 
 /**
@@ -68,7 +70,7 @@ export interface ColumnQueryOptionsFactoryParams {
   filter: WhereNode[] | null;
   /** Whether to hide columns with 0 items (defaults to false) */
   hideEmpty: boolean;
-  search: string;
+  search: ValidatedSearch | null;
 }
 
 /**
@@ -94,7 +96,7 @@ export interface PageQueryOptionsFactoryParams {
   /** The group key for this query ("__ungrouped__" for flat mode) */
   groupKey: string;
   limit: Limit;
-  search: string;
+  search: ValidatedSearch | null;
   sort: SortQuery[];
 }
 
@@ -137,7 +139,7 @@ export interface InfiniteQueryOptionsFactoryParams {
   /** The group key for this query ("__ungrouped__" for flat mode) */
   groupKey: string;
   limit: Limit;
-  search: string;
+  search: ValidatedSearch | null;
   sort: SortQuery[];
 }
 

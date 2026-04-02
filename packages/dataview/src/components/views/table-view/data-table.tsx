@@ -11,7 +11,7 @@ import {
 import type * as React from "react";
 import { useRef } from "react";
 import { cn } from "../../../lib/utils";
-import type { PropertyType } from "../../../types/filter.type";
+import type { PropertyType } from "../../../types/property.type";
 import {
   Table,
   TableBody,

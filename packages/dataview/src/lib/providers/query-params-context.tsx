@@ -15,7 +15,7 @@ import { parseAsFilter } from "../../parsers/filter";
 import { parseAsGroupBy } from "../../parsers/group";
 import { parseAsCursors } from "../../parsers/pagination";
 import { parseAsSort } from "../../parsers/sort";
-import type { SortQuery, WhereNode } from "../../types/filter.type";
+import type { WhereNode } from "../../types/filter.type";
 import type {
   ColumnConfigInput,
   GroupConfigInput,
@@ -23,6 +23,8 @@ import type {
 import type { Limit } from "../../types/pagination";
 import type { Cursors, CursorValue } from "../../types/pagination-types";
 import type { DataViewProperty, PropertyMeta } from "../../types/property.type";
+import type { ValidatedSearch } from "../../types/search.type";
+import type { SortQuery } from "../../types/sort.type";
 import { validate } from "../../validators";
 
 const THROTTLE_MS = 50;
@@ -48,10 +50,12 @@ export interface QueryParamsState {
   isPending: boolean;
   /** Page size limit */
   limit: Limit;
-  /** Search query */
+  /** Search query (raw string for toolbar UI) */
   search: string;
   /** Validated sort */
   sort: SortQuery[];
+  /** Validated search (for data queries) */
+  validatedSearch: ValidatedSearch | null;
 }
 
 /**
@@ -244,19 +248,38 @@ export function QueryParamsProvider({
   // ============================================================================
 
   const state = useMemo<QueryParamsState>(() => {
-    const { column, cursors, filter, group, limit, sort } = validate(
+    const {
+      column,
+      cursors,
+      filter,
+      group,
+      limit,
+      search: validatedSearch,
+      sort,
+    } = validate(
       {
         column: rawColumn,
         cursors: urlCursors,
         filter: rawFilter,
         group: rawGroup,
         limit: urlLimit,
+        search,
         sort: rawSort,
       },
       properties,
       defaultLimit
     );
-    return { column, cursors, filter, group, isPending, limit, search, sort };
+    return {
+      column,
+      cursors,
+      filter,
+      group,
+      isPending,
+      limit,
+      search,
+      sort,
+      validatedSearch,
+    };
   }, [
     rawColumn,
     urlCursors,

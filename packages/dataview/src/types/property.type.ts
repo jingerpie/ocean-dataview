@@ -1,5 +1,4 @@
 import type { ComponentType, SVGProps } from "react";
-import type { WhereNode } from "./filter.type";
 
 /**
  * Generic icon type that accepts any SVG icon component.
@@ -445,72 +444,3 @@ export type DataViewProperty<T> =
 // biome-ignore lint/suspicious/noExplicitAny: Generic type parameter for property array extraction
 export type PropertyKeys<T extends readonly DataViewProperty<any>[]> =
   T[number]["id"];
-
-// Re-export filter types for unified system
-export type {
-  FilterCondition,
-  SearchQuery,
-  SortQuery,
-  WhereExpression,
-  WhereNode,
-  WhereRule,
-} from "./filter.type";
-
-/** Property types excluded from search by default */
-const EXCLUDED_SEARCH_TYPES: PropertyType[] = [
-  "filesMedia",
-  "checkbox",
-  "formula",
-  "button",
-];
-
-/**
- * Extract property IDs that should be included in search queries.
- *
- * Default behavior by type:
- * - Included: text, url, email, phone, number, select, multiSelect, status, date
- * - Excluded: filesMedia, checkbox, formula
- *
- * Override with `enableSearch: true/false` on individual properties.
- *
- * @example
- * const searchableFields = getSearchableProperties(productProperties);
- * // Returns: ["name", "tag", "type", ...] (all non-excluded types)
- */
-export function getSearchableProperties<T>(
-  properties: DataViewProperty<T>[]
-): string[] {
-  return properties
-    .filter((p) => {
-      // Explicit false → exclude
-      if (p.enableSearch === false) {
-        return false;
-      }
-      // Explicit true → include
-      if (p.enableSearch === true) {
-        return true;
-      }
-      // Default: include unless type is in excluded list
-      return !EXCLUDED_SEARCH_TYPES.includes(p.type);
-    })
-    .map((p) => p.id);
-}
-
-// Sort configuration (simple client-side sorting)
-export interface SortConfig<T> {
-  direction: "asc" | "desc";
-  propertyKey: keyof T;
-}
-
-// View configuration
-export interface ViewConfig<
-  T,
-  TProperties extends readonly DataViewProperty<T>[] = DataViewProperty<T>[],
-> {
-  filter?: WhereNode | null;
-  groupBy?: keyof T;
-  properties: TProperties;
-  propertyVisibility?: PropertyKeys<TProperties>[];
-  searchQuery?: string;
-  sort?: SortConfig<T>;
-}

@@ -13,7 +13,7 @@ import {
   useMemo,
 } from "react";
 import { useExpandedGroups } from "../../hooks/use-expanded-groups";
-import type { SortQuery, WhereNode } from "../../types/filter.type";
+import type { WhereNode } from "../../types/filter.type";
 import type {
   ColumnConfigInput,
   GroupConfigInput,
@@ -30,6 +30,8 @@ import type {
   ViewCounts,
 } from "../../types/pagination-types";
 import type { DataViewProperty } from "../../types/property.type";
+import type { ValidatedSearch } from "../../types/search.type";
+import type { SortQuery } from "../../types/sort.type";
 import {
   type CoreProviderProps,
   DataViewProviderCore,
@@ -151,7 +153,7 @@ export interface QueryRuntimeState {
   isPending: boolean;
   limit: Limit;
   onLoadMoreGroups: () => void;
-  search: string;
+  search: ValidatedSearch | null;
 
   // Setters
   setCursor: (groupKey: string, cursor: CursorValue | null) => void;
@@ -216,11 +218,11 @@ interface InfiniteGroupKeysProps {
     filter: WhereNode[] | null;
     groupConfig: GroupConfigInput;
     hideEmpty: boolean;
-    search: string;
+    search: ValidatedSearch | null;
     // biome-ignore lint/suspicious/noExplicitAny: Must accept tRPC's infiniteQueryOptions return type
   }) => any;
   hideEmpty: boolean;
-  search: string;
+  search: ValidatedSearch | null;
 }
 
 /**
@@ -312,14 +314,14 @@ interface SuspendingColumnKeysProps {
     columnConfig: GroupConfigInput;
     filter: WhereNode[] | null;
     hideEmpty: boolean;
-    search: string;
+    search: ValidatedSearch | null;
   }) => {
     queryFn?: unknown;
     queryKey: readonly unknown[];
   };
   filter: WhereNode[] | null;
   hideEmpty: boolean;
-  search: string;
+  search: ValidatedSearch | null;
 }
 
 /**
@@ -439,8 +441,17 @@ export function PageQueryBridge<
   const queryParamsState = useQueryParamsState();
   const queryParamsActions = useQueryParamsActions();
 
-  const { column, cursors, filter, group, isPending, limit, search, sort } =
-    queryParamsState;
+  const {
+    column,
+    cursors,
+    filter,
+    group,
+    isPending,
+    limit,
+    search,
+    sort,
+    validatedSearch,
+  } = queryParamsState;
 
   const {
     setColumn,
@@ -516,6 +527,7 @@ export function PageQueryBridge<
         setSearch={setSearch}
         setSort={setSort}
         sort={sort}
+        validatedSearch={validatedSearch}
         viewProps={viewProps}
       >
         {children}
@@ -540,6 +552,7 @@ export function PageQueryBridge<
       setSearch,
       setSort,
       sort,
+      validatedSearch,
       viewProps,
     ]
   );
@@ -567,7 +580,7 @@ export function PageQueryBridge<
       groupByConfig={groupByConfig}
       groupQuery={groupQuery}
       hideEmpty={group?.hideEmpty ?? false}
-      search={search}
+      search={validatedSearch}
     >
       {renderInner}
     </InfiniteGroupKeys>
@@ -607,6 +620,7 @@ interface PageQueryBridgeInnerProps<
   setSearch: (search: string) => void;
   setSort: (sort: SortQuery[]) => void;
   sort: SortQuery[];
+  validatedSearch: ValidatedSearch | null;
   viewProps: Omit<
     CoreProviderProps<TData, TProperties>,
     | "children"
@@ -657,6 +671,7 @@ function PageQueryBridgeInner<
   setSearch,
   setSort,
   sort,
+  validatedSearch,
   viewProps,
 }: PageQueryBridgeInnerProps<TData, TProperties>) {
   // Get property visibility from toolbar context
@@ -692,7 +707,7 @@ function PageQueryBridgeInner<
       limit,
       onLoadMoreGroups,
       dataQuery: dataQuery as (params: unknown) => unknown,
-      search,
+      search: validatedSearch,
       setCursor,
       setExpandedGroups,
       setFilter,
@@ -717,7 +732,7 @@ function PageQueryBridgeInner<
       limit,
       onLoadMoreGroups,
       dataQuery,
-      search,
+      validatedSearch,
       setCursor,
       setExpandedGroups,
       setFilter,
@@ -843,8 +858,16 @@ export function InfiniteQueryBridge<
   const queryParamsState = useQueryParamsState();
   const queryParamsActions = useQueryParamsActions();
 
-  const { column, filter, group, isPending, limit, search, sort } =
-    queryParamsState;
+  const {
+    column,
+    filter,
+    group,
+    isPending,
+    limit,
+    search,
+    sort,
+    validatedSearch,
+  } = queryParamsState;
 
   const { setColumn, setFilter, setGroup, setLimit, setSearch, setSort } =
     queryParamsActions;
@@ -921,6 +944,7 @@ export function InfiniteQueryBridge<
         setSearch={setSearch}
         setSort={setSort}
         sort={sort}
+        validatedSearch={validatedSearch}
         viewProps={viewProps}
       >
         {children}
@@ -943,6 +967,7 @@ export function InfiniteQueryBridge<
       setSearch,
       setSort,
       sort,
+      validatedSearch,
       viewProps,
     ]
   );
@@ -962,7 +987,7 @@ export function InfiniteQueryBridge<
           groupByConfig={groupByConfig}
           groupQuery={groupQuery}
           hideEmpty={group?.hideEmpty ?? false}
-          search={search}
+          search={validatedSearch}
         >
           {({
             groupCounts,
@@ -1005,7 +1030,7 @@ export function InfiniteQueryBridge<
         columnQuery={columnQuery}
         filter={filter}
         hideEmpty={column?.hideEmpty ?? false}
-        search={search}
+        search={validatedSearch}
       >
         {({ columnCounts }) => wrapWithGroupSuspense(columnCounts)}
       </SuspendingColumnKeys>
@@ -1047,6 +1072,7 @@ interface InfiniteQueryBridgeInnerProps<
   setSearch: (search: string) => void;
   setSort: (sort: SortQuery[]) => void;
   sort: SortQuery[];
+  validatedSearch: ValidatedSearch | null;
   viewProps: Omit<
     CoreProviderProps<TData, TProperties>,
     | "children"
@@ -1096,6 +1122,7 @@ function InfiniteQueryBridgeInner<
   setSearch,
   setSort,
   sort,
+  validatedSearch,
   viewProps,
 }: InfiniteQueryBridgeInnerProps<TData, TProperties>) {
   // Get property visibility from toolbar context
@@ -1132,7 +1159,7 @@ function InfiniteQueryBridgeInner<
       limit,
       onLoadMoreGroups,
       dataQuery: dataQuery as (params: unknown) => unknown,
-      search,
+      search: validatedSearch,
       setCursor: noopSetCursor,
       setExpandedGroups,
       setFilter,
@@ -1156,7 +1183,7 @@ function InfiniteQueryBridgeInner<
       limit,
       onLoadMoreGroups,
       dataQuery,
-      search,
+      validatedSearch,
       setExpandedGroups,
       setFilter,
       handleSetGroup,

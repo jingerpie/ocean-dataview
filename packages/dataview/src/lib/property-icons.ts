@@ -14,7 +14,7 @@ import {
   MousePointerClickIcon,
   PhoneIcon,
 } from "lucide-react";
-import type { PropertyType } from "../types/filter.type";
+import type { PropertyType } from "../types/property.type";
 
 /**
  * Mapping of property types to their corresponding Lucide icons.

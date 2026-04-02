@@ -1,5 +1,5 @@
-import type { SortQuery } from "../types/filter.type";
 import type { DataViewProperty, PropertyMeta } from "../types/property.type";
+import type { SortQuery } from "../types/sort.type";
 
 // ============================================================================
 // Property Extraction

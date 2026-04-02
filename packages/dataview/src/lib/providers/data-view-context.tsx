@@ -3,13 +3,14 @@
 import { createContext, useContext } from "react";
 import type { InfinitePaginationState } from "../../hooks/use-infinite-controller";
 import type { PagePaginationState } from "../../hooks/use-page-controller";
-import type { SortQuery, WhereNode } from "../../types/filter.type";
+import type { WhereNode } from "../../types/filter.type";
 import type {
   ColumnConfigInput,
   GroupConfigInput,
 } from "../../types/group.type";
 import type { GroupCounts, ViewCounts } from "../../types/pagination-types";
 import type { DataViewProperty, PropertyMeta } from "../../types/property.type";
+import type { SortQuery } from "../../types/sort.type";
 
 /**
  * Union type for pagination - supports page and infinite pagination.
