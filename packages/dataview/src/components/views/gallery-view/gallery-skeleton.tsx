@@ -44,14 +44,19 @@ export function GallerySkeleton({
   className,
   ...props
 }: GallerySkeletonProps) {
-  const { imageHeight, cols } = getGalleryCardDimensions(cardSize);
+  const { imageHeight, minWidth } = getGalleryCardDimensions(cardSize);
 
   return (
     <div
       className={cn("flex w-full flex-col gap-2.5 overflow-clip", className)}
       {...props}
     >
-      <div className={cn("grid gap-4", cols)}>
+      <div
+        className="grid gap-4"
+        style={{
+          gridTemplateColumns: `repeat(auto-fill, minmax(${minWidth}px, 1fr))`,
+        }}
+      >
         {Array.from({ length: cardCount }).map((_, i) => (
           <Card className="gap-0 overflow-hidden py-0" key={i}>
             {withImage && (

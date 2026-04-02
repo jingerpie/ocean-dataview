@@ -8,7 +8,6 @@ import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useViewSetup } from "../../../hooks/use-view-setup";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import { cn } from "../../../lib/utils";
 import type { PaginationContext } from "../../../types/pagination";
 import type { DataViewProperty } from "../../../types/property.type";
 import { getGalleryCardDimensions } from "../../../utils/get-card-sizes";
@@ -126,7 +125,7 @@ export function GalleryView<
     propertyVisibility
   );
 
-  const { imageHeight, cols } = getGalleryCardDimensions(cardSize);
+  const { imageHeight, minWidth } = getGalleryCardDimensions(cardSize);
 
   // Determine if we're using infinite pagination for data
   const useInfinitePagination =
@@ -181,11 +180,11 @@ export function GalleryView<
                     {useInfinitePagination ? (
                       <SuspendingInfiniteGalleryContent<TData, TProperties>
                         cardPreview={cardPreview}
-                        cols={cols}
                         displayProperties={displayProperties}
                         fitMedia={fitMedia}
                         groupItem={groupItem}
                         imageHeight={imageHeight}
+                        minWidth={minWidth}
                         onCardClick={onCardClick}
                         pagination={pagination}
                         properties={properties}
@@ -195,11 +194,11 @@ export function GalleryView<
                     ) : (
                       <SuspendingPageGalleryContent<TData, TProperties>
                         cardPreview={cardPreview}
-                        cols={cols}
                         displayProperties={displayProperties}
                         fitMedia={fitMedia}
                         groupItem={groupItem}
                         imageHeight={imageHeight}
+                        minWidth={minWidth}
                         onCardClick={onCardClick}
                         pagination={pagination}
                         properties={properties}
@@ -240,7 +239,6 @@ export function GalleryView<
       {useInfinitePagination ? (
         <SuspendingInfiniteGalleryContent<TData, TProperties>
           cardPreview={cardPreview}
-          cols={cols}
           displayProperties={displayProperties}
           fitMedia={fitMedia}
           groupItem={{
@@ -251,6 +249,7 @@ export function GalleryView<
             sortValue: "",
           }}
           imageHeight={imageHeight}
+          minWidth={minWidth}
           onCardClick={onCardClick}
           pagination={pagination}
           properties={properties}
@@ -260,7 +259,6 @@ export function GalleryView<
       ) : (
         <SuspendingPageGalleryContent<TData, TProperties>
           cardPreview={cardPreview}
-          cols={cols}
           displayProperties={displayProperties}
           fitMedia={fitMedia}
           groupItem={{
@@ -271,6 +269,7 @@ export function GalleryView<
             sortValue: "",
           }}
           imageHeight={imageHeight}
+          minWidth={minWidth}
           onCardClick={onCardClick}
           pagination={pagination}
           properties={properties}
@@ -295,11 +294,11 @@ interface SuspendingGroupGalleryContentProps<
   TProperties extends readonly DataViewProperty<TData>[],
 > {
   cardPreview?: string;
-  cols: string;
   displayProperties: TProperties[number][];
   fitMedia: boolean;
   groupItem: GroupedDataItem<TData>;
   imageHeight: number;
+  minWidth: number;
   onCardClick?: (item: TData) => void;
   pagination?: PaginationMode;
   properties: TProperties;
@@ -315,11 +314,11 @@ function GalleryContentRenderer<
   TProperties extends readonly DataViewProperty<TData>[],
 >({
   cardPreview,
-  cols,
   data,
   displayProperties,
   fitMedia,
   imageHeight,
+  minWidth,
   onCardClick,
   paginationNode,
   properties,
@@ -327,11 +326,11 @@ function GalleryContentRenderer<
   wrapAllProperties,
 }: {
   cardPreview?: string;
-  cols: string;
   data: TData[];
   displayProperties: TProperties[number][];
   fitMedia: boolean;
   imageHeight: number;
+  minWidth: number;
   onCardClick?: (item: TData) => void;
   paginationNode: React.ReactNode;
   properties: TProperties;
@@ -343,7 +342,12 @@ function GalleryContentRenderer<
 
   return (
     <>
-      <div className={cn("grid gap-4", cols)}>
+      <div
+        className="grid gap-4"
+        style={{
+          gridTemplateColumns: `repeat(auto-fill, minmax(${minWidth}px, 1fr))`,
+        }}
+      >
         {transformedItems.map((item, index) => {
           const firstProperty = displayProperties[0];
           const uniqueKey = firstProperty
@@ -379,11 +383,11 @@ function SuspendingPageGalleryContent<
   TProperties extends readonly DataViewProperty<TData>[],
 >({
   cardPreview,
-  cols,
   displayProperties,
   fitMedia,
   groupItem,
   imageHeight,
+  minWidth,
   onCardClick,
   pagination,
   properties,
@@ -411,11 +415,11 @@ function SuspendingPageGalleryContent<
         return (
           <GalleryContentRenderer
             cardPreview={cardPreview}
-            cols={cols}
             data={result.data}
             displayProperties={displayProperties}
             fitMedia={fitMedia}
             imageHeight={imageHeight}
+            minWidth={minWidth}
             onCardClick={onCardClick}
             paginationNode={
               <Pagination context={paginationContext} mode={pagination} />
@@ -438,11 +442,11 @@ function SuspendingInfiniteGalleryContent<
   TProperties extends readonly DataViewProperty<TData>[],
 >({
   cardPreview,
-  cols,
   displayProperties,
   fitMedia,
   groupItem,
   imageHeight,
+  minWidth,
   onCardClick,
   pagination,
   properties,
@@ -475,11 +479,11 @@ function SuspendingInfiniteGalleryContent<
         return (
           <GalleryContentRenderer
             cardPreview={cardPreview}
-            cols={cols}
             data={result.data}
             displayProperties={displayProperties}
             fitMedia={fitMedia}
             imageHeight={imageHeight}
+            minWidth={minWidth}
             onCardClick={onCardClick}
             paginationNode={
               <Pagination context={paginationContext} mode={pagination} />

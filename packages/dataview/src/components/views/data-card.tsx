@@ -104,6 +104,7 @@ export function DataCard<TData>({
               )}
               fill
               loading="lazy"
+              sizes="(min-width: 1280px) 20vw, (min-width: 768px) 33vw, 100vw"
               src={imageUrl}
             />
           ) : (
@@ -127,7 +128,7 @@ export function DataCard<TData>({
           return (
             <div
               className={cn(
-                "flex flex-col items-start",
+                "flex w-full min-w-0 flex-col items-start",
                 isFirst && "font-medium",
                 (property.type === "select" ||
                   property.type === "multiSelect" ||
