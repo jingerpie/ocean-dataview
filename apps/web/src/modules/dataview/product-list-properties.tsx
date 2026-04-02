@@ -23,19 +23,19 @@ export const productListProperties = [
     ),
   },
   {
-    id: "productName",
+    key: "productName",
     name: "Text",
     type: "text",
     hidden: true,
   },
   {
-    id: "productImage",
+    key: "productImage",
     name: "Files & Media",
     type: "filesMedia",
     hidden: true,
   },
   {
-    id: "category",
+    key: "category",
     name: "Select",
     type: "select",
     config: {
@@ -54,7 +54,7 @@ export const productListProperties = [
     },
   },
   {
-    id: "tags",
+    key: "tags",
     name: "Multi Select",
     type: "multiSelect",
     config: {
@@ -69,7 +69,7 @@ export const productListProperties = [
     },
   },
   {
-    id: "supplierPhone",
+    key: "supplierPhone",
     name: "Phone",
     type: "phone",
   },

@@ -12,12 +12,12 @@ export type Product = ProductWithVariants;
 
 export const productProperties = [
   {
-    id: "productName",
+    key: "productName",
     name: "Text",
     type: "text",
   },
   {
-    id: "price",
+    key: "price",
     name: "Number",
     type: "number",
     config: {
@@ -26,7 +26,7 @@ export const productProperties = [
     },
   },
   {
-    id: "stockLevel",
+    key: "stockLevel",
     name: "Number (Bar)",
     type: "number",
     config: {
@@ -38,7 +38,7 @@ export const productProperties = [
     },
   },
   {
-    id: "rating",
+    key: "rating",
     name: "Number (Ring)",
     type: "number",
     config: {
@@ -50,7 +50,7 @@ export const productProperties = [
     },
   },
   {
-    id: "category",
+    key: "category",
     name: "Select",
     type: "select",
     config: {
@@ -69,7 +69,7 @@ export const productProperties = [
     },
   },
   {
-    id: "tags",
+    key: "tags",
     name: "Multi Select",
     type: "multiSelect",
     config: {
@@ -84,7 +84,7 @@ export const productProperties = [
     },
   },
   {
-    id: "availability",
+    key: "availability",
     name: "Status",
     type: "status",
     config: {
@@ -111,33 +111,33 @@ export const productProperties = [
     },
   },
   {
-    id: "lastRestocked",
+    key: "lastRestocked",
     name: "Date",
     type: "date",
   },
   {
-    id: "featured",
+    key: "featured",
     name: "Checkbox",
     type: "checkbox",
   },
   {
-    id: "productImage",
+    key: "productImage",
     name: "Files & Media",
     type: "filesMedia",
   },
   {
-    id: "productLink",
+    key: "productLink",
     name: "URL",
     type: "url",
     enableGroup: false,
   },
   {
-    id: "supplierPhone",
+    key: "supplierPhone",
     name: "Phone",
     type: "phone",
   },
   {
-    id: "supplierEmail",
+    key: "supplierEmail",
     name: "Email",
     type: "email",
   },

@@ -117,7 +117,10 @@ export function DataCard<TData>({
       {/* Card Content */}
       <CardContent className="flex flex-col gap-2 p-3">
         {displayProperties.map((property, propIndex) => {
-          const value = (item as Record<string, unknown>)[property.id];
+          const value =
+            property.type === "formula" || property.type === "button"
+              ? undefined
+              : (item as Record<string, unknown>)[property.key];
           const isFirst = propIndex === 0;
           const resolvedShowName = property.showName ?? showPropertyNames;
           const resolvedWrap = property.wrap ?? wrapAllProperties;

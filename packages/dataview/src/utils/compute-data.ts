@@ -259,8 +259,8 @@ function getGroupKeyAndSortValue<TData>(
  * Handles date, select, status, and other property types
  * Returns both groups and sort values for proper ordering
  * @param data - Raw data to group
- * @param propertyId - Property ID (references property.id, not data key)
- * @param properties - Property schema
+ * @param propertyId - Property ID (resolved id, used to look up property schema)
+ * @param properties - Property schema (should be normalized)
  * @param options - Grouping options (showAs, startWeekOn, textShowAs, numberRange)
  */
 export function groupByProperty<TData>(
@@ -275,16 +275,15 @@ export function groupByProperty<TData>(
   const groups: Record<string, TData[]> = {};
   const sortValues: Record<string, string | number> = {};
 
+  // Resolve data key: use property.key for data-backed types, skip for formula/button
+  const dataKey =
+    property && property.type !== "formula" && property.type !== "button"
+      ? property.key
+      : undefined;
+
   for (const item of data) {
-    // Extract value from item
-    let value: unknown;
-    if (property?.type === "formula") {
-      // Formula properties can't be grouped - skip value extraction
-      value = null;
-    } else {
-      // Read from item[propertyId]
-      value = (item as Record<string, unknown>)[propertyId];
-    }
+    // Extract value from item using the data key
+    const value = dataKey ? (item as Record<string, unknown>)[dataKey] : null;
 
     const { groupKey, sortValue } = getGroupKeyAndSortValue(
       value,
@@ -440,7 +439,7 @@ function formatWeekRange(
 
 /**
  * Compute grouped data with various computation functions
- * @param propertyId - Property ID to compute on (references property.id, not data key)
+ * @param propertyId - Property ID to compute on (resolved id, used to look up property schema)
  */
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex switch for different computation types
 export function computeData<TData>(
@@ -454,19 +453,20 @@ export function computeData<TData>(
   // Find the property schema for value extraction
   const property = properties?.find((p) => p.id === propertyId);
 
+  // Resolve data key from property schema
+  const dataKey =
+    property && property.type !== "formula" && property.type !== "button"
+      ? property.key
+      : undefined;
+
   // Helper to extract value from item
   const extractValue = (item: TData): unknown => {
-    if (!propertyId) {
+    if (!dataKey) {
       return undefined;
     }
 
-    if (property?.type === "formula") {
-      // Formula properties can't be used for group counts
-      return null;
-    }
-
-    // Read from item[propertyId]
-    return (item as Record<string, unknown>)[propertyId];
+    // Read from item[key]
+    return (item as Record<string, unknown>)[dataKey];
   };
 
   for (const [groupKey, items] of Object.entries(groupedData)) {
@@ -655,8 +655,8 @@ export function transformToChartData(
 /**
  * Compute grouped data with secondary grouping (for stacked/grouped charts)
  * Returns data in format: { xAxisGroup: { secondaryGroup: value, ... }, ... }
- * @param secondaryPropertyId - Property ID for secondary grouping (references property.id, not data key)
- * @param computePropertyId - Property ID to compute on (references property.id, not data key)
+ * @param secondaryPropertyId - Property ID for secondary grouping (resolved id)
+ * @param computePropertyId - Property ID to compute on (resolved id)
  */
 export function computeGroupedData<TData>(
   xAxisGroupedData: Record<string, TData[]>,

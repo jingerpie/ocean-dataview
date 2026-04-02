@@ -24,8 +24,9 @@ export interface Product {
 
 // Property schema for charts
 export const categoryProperty = {
+  key: "category",
   id: "category",
-  label: "Category",
+  name: "Category",
   type: "select",
   config: {
     options: [
@@ -44,8 +45,9 @@ export const categoryProperty = {
 } as const satisfies DataViewProperty<Product>;
 
 export const availabilityProperty = {
+  key: "availability",
   id: "availability",
-  label: "Availability",
+  name: "Availability",
   type: "select",
   config: {
     options: [
@@ -57,13 +59,15 @@ export const availabilityProperty = {
 } as const satisfies DataViewProperty<Product>;
 
 export const priceProperty = {
+  key: "price",
   id: "price",
-  label: "Price",
+  name: "Price",
   type: "number",
 } as const satisfies DataViewProperty<Product>;
 
 export const createdAtProperty = {
+  key: "createdAt",
   id: "createdAt",
-  label: "Created At",
+  name: "Created At",
   type: "date",
 } as const satisfies DataViewProperty<Product>;
