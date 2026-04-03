@@ -100,7 +100,7 @@ export function DataCard<TData>({
               alt="Preview"
               className={cn(
                 "transition-opacity",
-                fitMedia ? "object-cover" : "object-contain"
+                fitMedia ? "object-contain" : "object-cover"
               )}
               fill
               loading="lazy"

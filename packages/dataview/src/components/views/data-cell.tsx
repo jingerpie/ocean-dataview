@@ -45,7 +45,7 @@ function DataCellComponent<T>({
   value,
   property,
   item,
-  wrap = false,
+  wrap,
   allProperties,
   configOverride,
   renderedProperties = new Set(),
@@ -75,7 +75,12 @@ function DataCellComponent<T>({
     }
 
     case "text":
-      return <TextProperty value={displayValue as string | null} wrap={wrap} />;
+      return (
+        <TextProperty
+          value={displayValue as string | null}
+          wrap={wrap ?? property.wrap ?? false}
+        />
+      );
 
     case "number":
       return (
