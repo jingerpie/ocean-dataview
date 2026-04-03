@@ -53,6 +53,7 @@ function SimpleFilterChip({
     variant === "detailed"
       ? getFilterPreview({
           condition: rule.condition,
+          config: property.config,
           propertyType: property.type,
           value: rule.value,
         })

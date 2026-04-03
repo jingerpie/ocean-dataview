@@ -118,6 +118,9 @@ export interface NumberConfig {
     | "dollar"
     | "euro"
     | "pound";
+  /** Divide stored value by this for display, multiply filter input by this for query.
+   *  Example: cents stored as integers → scale: 100 to display as dollars. */
+  scale?: number;
   showAs?: {
     type?: "number" | "bar" | "ring"; // default: "number"
     color?: BadgeColor; // default: "green" (only used for bar/ring)
@@ -128,6 +131,8 @@ export interface NumberConfig {
 
 export interface SelectOption {
   color?: BadgeColor;
+  /** Display label. Falls back to `value` when omitted. */
+  name?: string;
   value: string;
 }
 

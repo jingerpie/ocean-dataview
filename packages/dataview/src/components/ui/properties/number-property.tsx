@@ -23,6 +23,7 @@ export function NumberProperty({
   config: {
     decimalPlaces = 0,
     numberFormat = "number",
+    scale,
     showAs: {
       type: showAsType = "number",
       color = "green",
@@ -32,7 +33,9 @@ export function NumberProperty({
   } = {},
 }: NumberPropertyProps) {
   // Parse numeric value - must be called unconditionally
-  const numValue = typeof value === "number" ? value : Number(value);
+  const rawValue = typeof value === "number" ? value : Number(value);
+  // Apply scale (e.g. cents → dollars when scale=100)
+  const numValue = scale ? rawValue / scale : rawValue;
 
   // Get user locale once to avoid repeated lookups - must be called unconditionally
   const userLocale = getUserLocale();

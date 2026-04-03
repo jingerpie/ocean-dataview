@@ -31,5 +31,5 @@ export function SelectProperty({ value, config }: SelectPropertyProps) {
 
   const variant = getBadgeVariant(option.color);
 
-  return <Badge variant={variant}>{option.value}</Badge>;
+  return <Badge variant={variant}>{option.name ?? option.value}</Badge>;
 }
