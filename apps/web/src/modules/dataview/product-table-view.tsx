@@ -8,8 +8,8 @@ import type {
   Limit,
   WhereNode,
 } from "@sparkyidea/dataview/types";
+import { combineGroupFilter } from "@sparkyidea/dataview/utils";
 import { TableView } from "@sparkyidea/dataview/views/table-view";
-import { combineGroupFilter } from "@/utils/group-filter";
 import { useTRPC } from "@/utils/trpc/client";
 import { bulkActions } from "./bulk-actions";
 import { DataViewTab } from "./dataview-tab";
@@ -92,6 +92,7 @@ export function ProductTableView({
         bulkActions={bulkActions}
         pagination="page"
         showVerticalLines={false}
+        stickyHeader={{ enabled: true, offset: 57 }}
         wrapAllProperties={false}
       />
     </DataViewProvider>

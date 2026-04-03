@@ -8,8 +8,8 @@ import type {
   Limit,
   WhereNode,
 } from "@sparkyidea/dataview/types";
+import { combineGroupFilter } from "@sparkyidea/dataview/utils";
 import { GalleryView } from "@sparkyidea/dataview/views/gallery-view";
-import { combineGroupFilter } from "@/utils/group-filter";
 import { useTRPC } from "@/utils/trpc/client";
 import { DataViewTab } from "./dataview-tab";
 import { productProperties } from "./product-properties";

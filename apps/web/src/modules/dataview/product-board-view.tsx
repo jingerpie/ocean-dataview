@@ -9,8 +9,8 @@ import type {
   Limit,
   WhereNode,
 } from "@sparkyidea/dataview/types";
+import { combineGroupFilter } from "@sparkyidea/dataview/utils";
 import { BoardView } from "@sparkyidea/dataview/views/board-view";
-import { combineGroupFilter } from "@/utils/group-filter";
 import { useTRPC } from "@/utils/trpc/client";
 import { DataViewTab } from "./dataview-tab";
 import { productProperties } from "./product-properties";
@@ -133,6 +133,7 @@ export function ProductBoardView({
         colorColumns
         fitMedia
         pagination="loadMore"
+        stickyHeader={{ enabled: true, offset: 57 }}
       />
     </DataViewProvider>
   );
