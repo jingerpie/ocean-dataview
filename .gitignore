@@ -54,3 +54,4 @@ coverage
 .cache
 tmp
 temp
+.gstack/
