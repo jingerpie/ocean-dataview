@@ -54,7 +54,6 @@ function GroupPicker({
         p.type !== "formula" &&
         p.type !== "button" &&
         p.type !== "filesMedia" &&
-        p.hidden !== true &&
         p.enableGroup !== false
     );
 
