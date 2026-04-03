@@ -9,6 +9,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { useDebouncedCallback } from "../../hooks/use-debounced-callback";
+import { useScrollParent } from "../../hooks/use-scroll-parent";
 import { cn } from "../../lib/utils";
 
 const RESIZE_DEBOUNCE_MS = 150;
@@ -92,6 +93,8 @@ export function StickyGroupLabel({
     setMounted(true);
   }, []);
 
+  const getScrollParent = useScrollParent();
+
   useEffect(() => {
     const headerElement = headerRef.current;
     const containerElement = containerRef.current;
@@ -109,13 +112,21 @@ export function StickyGroupLabel({
 
     resizeObserver.observe(containerElement);
 
-    window.addEventListener("scroll", handleScrollLogic, { passive: true });
+    const scrollParent = getScrollParent(containerElement);
+    scrollParent.addEventListener("scroll", handleScrollLogic, {
+      passive: true,
+    });
 
     return () => {
       resizeObserver.disconnect();
-      window.removeEventListener("scroll", handleScrollLogic);
+      scrollParent.removeEventListener("scroll", handleScrollLogic);
     };
-  }, [containerRef, handleScrollLogic, debouncedResizeHandler]);
+  }, [
+    containerRef,
+    handleScrollLogic,
+    debouncedResizeHandler,
+    getScrollParent,
+  ]);
 
   // Render the original header in place - sticky left for horizontal scroll
   const originalHeader = (

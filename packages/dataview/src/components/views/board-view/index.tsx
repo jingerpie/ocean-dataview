@@ -101,6 +101,12 @@ export interface BoardViewProps<TData> {
   showPropertyNames?: boolean;
 
   /**
+   * Sticky header configuration.
+   * @default { enabled: false }
+   */
+  stickyHeader?: { enabled: boolean; offset?: number };
+
+  /**
    * Wrap all properties text
    * @default false
    */
@@ -126,8 +132,11 @@ export function BoardView<
   onCardClick,
   pagination,
   showPropertyNames = false,
+  stickyHeader: stickyHeaderProp,
   wrapAllProperties = false,
 }: BoardViewProps<TData>) {
+  const stickyEnabled = stickyHeaderProp?.enabled ?? false;
+  const stickyOffset = stickyHeaderProp?.offset ?? 0;
   // Get data and properties from context
   // Board terminology: column = board columns, group = accordion rows
   const {
@@ -421,8 +430,8 @@ export function BoardView<
               getColumnBgClass={getColumnBgClass}
               groups={columns}
               stickyHeader={{
-                enabled: true,
-                offset: 57,
+                enabled: stickyEnabled,
+                offset: stickyOffset,
               }}
             />
 
@@ -443,8 +452,8 @@ export function BoardView<
                     key={rowGroup.key}
                     showAggregation={groupConfig?.showCount ?? true}
                     stickyHeader={{
-                      enabled: true,
-                      offset: 93, // 57 (site header + border) + 36 (column headers)
+                      enabled: stickyEnabled,
+                      offset: stickyOffset + 36, // stickyOffset + column headers height
                     }}
                   >
                     {isExpanded ? (
@@ -522,8 +531,8 @@ export function BoardView<
               groups={columns}
               rounded="top"
               stickyHeader={{
-                enabled: true,
-                offset: 57,
+                enabled: stickyEnabled,
+                offset: stickyOffset,
               }}
             />
             <SuspendingInfiniteBoardContent<TData, TProperties>

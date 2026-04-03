@@ -83,6 +83,12 @@ export interface TableViewProps<TData> {
   showVerticalLines?: boolean;
 
   /**
+   * Sticky header configuration.
+   * @default { enabled: false }
+   */
+  stickyHeader?: { enabled: boolean; offset?: number };
+
+  /**
    * Default for wrapping text in cells.
    * Per-property `wrap` overrides this.
    * @default true
@@ -105,8 +111,12 @@ export function TableView<
   pagination,
   showPropertyNames = true,
   showVerticalLines = true,
+  stickyHeader: stickyHeaderProp,
   wrapAllProperties = true,
 }: TableViewProps<TData>) {
+  const stickyEnabled = stickyHeaderProp?.enabled ?? false;
+  const stickyOffset = stickyHeaderProp?.offset ?? 0;
+
   // Get data and properties from context
   const {
     data,
@@ -289,7 +299,7 @@ export function TableView<
                 groupByPropertyDef={groupByProperty}
                 key={groupItem.key}
                 showAggregation={group.showCount ?? true}
-                stickyHeader={{ enabled: true, offset: 57 }}
+                stickyHeader={{ enabled: stickyEnabled, offset: stickyOffset }}
               >
                 {isExpanded ? (
                   <Suspense
@@ -307,13 +317,14 @@ export function TableView<
                         columns={columns}
                         enableRowSelection={enableRowSelection}
                         groupItem={groupItem}
-                        headerOffset={101}
+                        headerOffset={stickyOffset + 44}
                         onRowClick={onRowClick}
                         onRowSelectionChange={setRowSelection}
                         pagination={pagination}
                         properties={properties}
                         rowSelection={rowSelection}
                         showVerticalLines={showVerticalLines}
+                        stickyEnabled={stickyEnabled}
                         wrapAllProperties={wrapAllProperties}
                       />
                     ) : (
@@ -322,13 +333,14 @@ export function TableView<
                         columns={columns}
                         enableRowSelection={enableRowSelection}
                         groupItem={groupItem}
-                        headerOffset={101}
+                        headerOffset={stickyOffset + 44}
                         onRowClick={onRowClick}
                         onRowSelectionChange={setRowSelection}
                         pagination={pagination}
                         properties={properties}
                         rowSelection={rowSelection}
                         showVerticalLines={showVerticalLines}
+                        stickyEnabled={stickyEnabled}
                         wrapAllProperties={wrapAllProperties}
                       />
                     )}
@@ -373,13 +385,14 @@ export function TableView<
             displayCount: "0",
             sortValue: "",
           }}
-          headerOffset={57}
+          headerOffset={stickyOffset}
           onRowClick={onRowClick}
           onRowSelectionChange={setRowSelection}
           pagination={pagination}
           properties={properties}
           rowSelection={rowSelection}
           showVerticalLines={showVerticalLines}
+          stickyEnabled={stickyEnabled}
           wrapAllProperties={wrapAllProperties}
         />
       ) : (
@@ -394,13 +407,14 @@ export function TableView<
             displayCount: "0",
             sortValue: "",
           }}
-          headerOffset={57}
+          headerOffset={stickyOffset}
           onRowClick={onRowClick}
           onRowSelectionChange={setRowSelection}
           pagination={pagination}
           properties={properties}
           rowSelection={rowSelection}
           showVerticalLines={showVerticalLines}
+          stickyEnabled={stickyEnabled}
           wrapAllProperties={wrapAllProperties}
         />
       )}
@@ -424,7 +438,7 @@ interface SuspendingGroupTableContentProps<
   columns: ColumnDef<TData>[];
   enableRowSelection: boolean;
   groupItem: GroupedDataItem<TData>;
-  /** Offset for sticky header (57 for flat, 101 for grouped with GroupSection above) */
+  /** Offset for sticky header */
   headerOffset: number;
   onRowClick?: (row: TData) => void;
   onRowSelectionChange: (state: RowSelectionState) => void;
@@ -432,6 +446,7 @@ interface SuspendingGroupTableContentProps<
   properties: TProperties;
   rowSelection: RowSelectionState;
   showVerticalLines: boolean;
+  stickyEnabled: boolean;
   wrapAllProperties: boolean;
 }
 
@@ -453,6 +468,7 @@ function TableContentRenderer<
   properties,
   rowSelection,
   showVerticalLines,
+  stickyEnabled,
   wrapAllProperties,
 }: {
   actionBar?: (table: TanStackTable<TData>) => React.ReactNode;
@@ -466,6 +482,7 @@ function TableContentRenderer<
   properties: TProperties;
   rowSelection: RowSelectionState;
   showVerticalLines: boolean;
+  stickyEnabled: boolean;
   wrapAllProperties: boolean;
 }) {
   // Transform data with property schema
@@ -478,7 +495,7 @@ function TableContentRenderer<
         columns={columns}
         data={transformedItems}
         enableRowSelection={enableRowSelection}
-        header={{ enabled: true, sticky: true }}
+        header={{ enabled: true, sticky: stickyEnabled }}
         offset={headerOffset}
         onRowClick={onRowClick}
         onRowSelectionChange={onRowSelectionChange}
@@ -509,6 +526,7 @@ function SuspendingPageTableContent<
   properties,
   rowSelection,
   showVerticalLines,
+  stickyEnabled,
   wrapAllProperties,
 }: SuspendingGroupTableContentProps<TData, TProperties>) {
   return (
@@ -544,6 +562,7 @@ function SuspendingPageTableContent<
             properties={properties}
             rowSelection={rowSelection}
             showVerticalLines={showVerticalLines}
+            stickyEnabled={stickyEnabled}
             wrapAllProperties={wrapAllProperties}
           />
         );
@@ -570,6 +589,7 @@ function SuspendingInfiniteTableContent<
   properties,
   rowSelection,
   showVerticalLines,
+  stickyEnabled,
   wrapAllProperties,
 }: SuspendingGroupTableContentProps<TData, TProperties>) {
   return (
@@ -610,6 +630,7 @@ function SuspendingInfiniteTableContent<
             properties={properties}
             rowSelection={rowSelection}
             showVerticalLines={showVerticalLines}
+            stickyEnabled={stickyEnabled}
             wrapAllProperties={wrapAllProperties}
           />
         );

@@ -4,6 +4,7 @@ import { flexRender, type Table as TanstackTable } from "@tanstack/react-table";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useDebouncedCallback } from "../../../hooks/use-debounced-callback";
+import { useScrollParent } from "../../../hooks/use-scroll-parent";
 import { Table, TableHead, TableHeader, TableRow } from "../../ui/table";
 
 const RESIZE_DEBOUNCE_MS = 150;
@@ -32,6 +33,8 @@ export function DataTableStickyHeader<TData>({
 
   // Shared scroll state for instant synchronization
   const scrollStateRef = useRef({ scrollLeft: 0, isUpdating: false });
+
+  const getScrollParent = useScrollParent();
 
   // Scroll handler logic (reads from refs)
   const handleScrollLogic = useCallback(() => {
@@ -139,14 +142,17 @@ export function DataTableStickyHeader<TData>({
       updateScrollPosition(target.scrollLeft);
     };
 
-    window.addEventListener("scroll", handleScrollLogic, { passive: true });
+    const scrollParent = getScrollParent(containerElement);
+    scrollParent.addEventListener("scroll", handleScrollLogic, {
+      passive: true,
+    });
     containerElement.addEventListener("scroll", handleTableScroll, {
       passive: true,
     });
 
     return () => {
       resizeObserver.disconnect();
-      window.removeEventListener("scroll", handleScrollLogic);
+      scrollParent.removeEventListener("scroll", handleScrollLogic);
       containerElement.removeEventListener("scroll", handleTableScroll);
     };
   }, [
@@ -156,6 +162,7 @@ export function DataTableStickyHeader<TData>({
     handleResizeLogic,
     handleScrollLogic,
     debouncedResizeHandler,
+    getScrollParent,
   ]);
 
   // Effect for sticky header scroll synchronization
