@@ -22,7 +22,7 @@ import {
 
 export const productRouter = router({
   getMany: publicProcedure.input(getManyInput).query(async ({ input }) => {
-    const { cursor, limit, filter, sort, search, group } = input;
+    const { cursor, limit, filter, sort, search, groupBy } = input;
     const { after, before } = getCursorParams(cursor);
 
     // Build filter/search WHERE
@@ -34,8 +34,8 @@ export const productRouter = router({
     const filterWhere = buildWhere(product, filter);
 
     // Build group WHERE (for grouped views that pass group config)
-    const groupWhere = group
-      ? (buildGroupWhere(product, group.groupBy, group.groupKey) ?? undefined)
+    const groupWhere = groupBy
+      ? (buildGroupWhere(product, groupBy.type, groupBy.key) ?? undefined)
       : undefined;
 
     // Determine pagination direction
@@ -244,7 +244,7 @@ export const productRouter = router({
         sort,
         search,
         columnKeys: requestedColumnKeys,
-        group,
+        groupBy,
       } = input;
 
       // Parse the GroupByConfig for column
@@ -262,8 +262,8 @@ export const productRouter = router({
       const filterWhere = buildWhere(product, filter);
 
       // Build row-level group WHERE (for board views with row grouping)
-      const rowGroupWhere = group
-        ? (buildGroupWhere(product, group.groupBy, group.groupKey) ?? undefined)
+      const rowGroupWhere = groupBy
+        ? (buildGroupWhere(product, groupBy.type, groupBy.key) ?? undefined)
         : undefined;
 
       // Prepare sort with tiebreaker

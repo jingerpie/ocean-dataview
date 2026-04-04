@@ -40,27 +40,11 @@ export function ProductTableView({
 
   const { controller } = usePageController({
     groupQuery: (params) =>
-      trpc.product.getGroup.infiniteQueryOptions(
-        {
-          filter: params.filter,
-          groupBy: params.groupConfig,
-          hideEmpty: params.hideEmpty,
-          search: params.search,
-          sort: params.groupConfig.sort,
-          limit: 25,
-        },
-        { getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined }
-      ),
-
-    dataQuery: (params) =>
-      trpc.product.getMany.queryOptions({
-        ...(params.cursor ? { cursor: params.cursor } : {}),
-        filter: params.filter,
-        group: params.group ?? undefined,
-        limit: params.limit,
-        search: params.search,
-        sort: params.sort ?? [],
+      trpc.product.getGroup.infiniteQueryOptions(params, {
+        getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
       }),
+
+    dataQuery: (params) => trpc.product.getMany.queryOptions(params),
   });
 
   // Add view options to group config

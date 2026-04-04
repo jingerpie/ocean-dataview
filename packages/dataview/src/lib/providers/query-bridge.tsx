@@ -218,9 +218,10 @@ interface InfiniteGroupKeysProps {
   // Accept any function that returns infinite query options (tRPC or manual)
   groupQuery: (params: {
     filter: WhereNode[] | null;
-    groupConfig: GroupConfigInput;
+    groupBy: GroupConfigInput;
     hideEmpty: boolean;
     search: SearchQuery | null;
+    sort?: "asc" | "desc";
     // biome-ignore lint/suspicious/noExplicitAny: Must accept tRPC's infiniteQueryOptions return type
   }) => any;
   hideEmpty: boolean;
@@ -250,9 +251,10 @@ function InfiniteGroupKeys({
 
   const factoryOptions = groupQuery({
     filter: deferredFilter,
-    groupConfig: groupByConfig,
+    groupBy: groupByConfig,
     hideEmpty: deferredHideEmpty,
     search: deferredSearch,
+    sort: groupByConfig.sort,
   });
 
   // Spread tRPC options directly - tRPC's infiniteQueryOptions returns a complete config
@@ -313,8 +315,8 @@ interface SuspendingColumnKeysProps {
   }) => ReactNode;
   columnByConfig: GroupConfigInput;
   columnQuery: (params: {
-    columnConfig: GroupConfigInput;
     filter: WhereNode[] | null;
+    groupBy: GroupConfigInput;
     hideEmpty: boolean;
     search: SearchQuery | null;
   }) => {
@@ -346,8 +348,8 @@ function SuspendingColumnKeys({
   const deferredHideEmpty = useDeferredValue(hideEmpty);
 
   const factoryOptions = columnQuery({
-    columnConfig: columnByConfig,
     filter: deferredFilter,
+    groupBy: columnByConfig,
     hideEmpty: deferredHideEmpty,
     search: deferredSearch,
   });

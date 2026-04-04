@@ -26,19 +26,19 @@ const sortSchema = z
 /** Filter input: WhereNode array */
 const filterSchema = z.array(whereNodeSchema).nullish();
 
-/** Group filter: groupBy config + groupKey to filter items within a specific group */
-const groupSchema = z
+/** Group filter: config + key to filter items within a specific group */
+const groupBySchema = z
   .object({
-    groupBy: groupByConfigSchema,
-    groupKey: z.string(),
+    type: groupByConfigSchema,
+    key: z.string(),
   })
-  .optional();
+  .nullish();
 
 /** Shared query fields for getMany-style procedures */
 export const getManyInput = z.object({
   cursor: z.union([cursorValueSchema, z.string()]).optional(),
   filter: filterSchema,
-  group: groupSchema,
+  groupBy: groupBySchema,
   limit: z.number().int().min(1).max(100).default(25),
   search: searchSchema,
   sort: sortSchema,
@@ -50,7 +50,7 @@ export const getManyByColumnInput = z.object({
   columnKeys: z.array(z.string()).optional(),
   cursor: z.record(z.string(), z.string().nullable()).default({}),
   filter: filterSchema,
-  group: groupSchema,
+  groupBy: groupBySchema,
   limit: z.number().int().min(1).max(100).default(10),
   search: searchSchema,
   sort: sortSchema,

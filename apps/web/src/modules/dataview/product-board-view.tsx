@@ -50,37 +50,16 @@ export function ProductBoardView({
   const effectiveColumnConfig = column ?? defaultColumnConfig;
 
   const { controller } = useInfiniteController({
-    columnQuery: (params) =>
-      trpc.product.getGroup.queryOptions({
-        filter: params.filter,
-        groupBy: params.columnConfig,
-        hideEmpty: params.hideEmpty,
-        search: params.search,
-      }),
+    columnQuery: (params) => trpc.product.getGroup.queryOptions(params),
 
     groupQuery: (params) =>
-      trpc.product.getGroup.infiniteQueryOptions(
-        {
-          filter: params.filter,
-          groupBy: params.groupConfig,
-          hideEmpty: params.hideEmpty,
-          search: params.search,
-          sort: params.groupConfig.sort,
-          limit: 25,
-        },
-        { getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined }
-      ),
+      trpc.product.getGroup.infiniteQueryOptions(params, {
+        getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      }),
 
     dataQuery: (params) =>
       trpc.product.getManyByColumn.infiniteQueryOptions(
-        {
-          columnBy: effectiveColumnConfig,
-          limit: params.limit,
-          filter: params.filter,
-          group: params.group ?? undefined,
-          sort: params.sort ?? [],
-          search: params.search,
-        },
+        { ...params, columnBy: effectiveColumnConfig },
         {
           getNextPageParam: (lastPage) => {
             const hasAnyMore = Object.values(lastPage.hasNextPage).some(

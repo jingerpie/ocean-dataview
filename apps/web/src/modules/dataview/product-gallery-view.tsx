@@ -39,32 +39,15 @@ export function ProductGalleryView({
 
   const { controller } = useInfiniteController({
     groupQuery: (params) =>
-      trpc.product.getGroup.infiniteQueryOptions(
-        {
-          filter: params.filter,
-          groupBy: params.groupConfig,
-          hideEmpty: params.hideEmpty,
-          search: params.search,
-          sort: params.groupConfig.sort,
-          limit: 25,
-        },
-        { getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined }
-      ),
+      trpc.product.getGroup.infiniteQueryOptions(params, {
+        getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      }),
 
     dataQuery: (params) =>
-      trpc.product.getMany.infiniteQueryOptions(
-        {
-          filter: params.filter,
-          group: params.group ?? undefined,
-          search: params.search,
-          sort: params.sort ?? [],
-          limit: params.limit,
-        },
-        {
-          getNextPageParam: (lastPage) =>
-            lastPage.hasNextPage ? lastPage.endCursor : undefined,
-        }
-      ),
+      trpc.product.getMany.infiniteQueryOptions(params, {
+        getNextPageParam: (lastPage) =>
+          lastPage.hasNextPage ? lastPage.endCursor : undefined,
+      }),
   });
 
   // Add view options to group config

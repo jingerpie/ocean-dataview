@@ -42,8 +42,8 @@ export interface UsePageControllerOptions<
 > {
   /** Factory for fetching column counts (board-specific) */
   columnQuery?: (params: {
-    columnConfig: GroupConfigInput;
     filter: WhereNode[] | null;
+    groupBy: GroupConfigInput;
     hideEmpty: boolean;
     search: SearchQuery | null;
   }) => BaseQueryOptions;
@@ -52,9 +52,10 @@ export interface UsePageControllerOptions<
   /** Factory for fetching group counts with pagination (accordion rows) */
   groupQuery?: (params: {
     filter: WhereNode[] | null;
-    groupConfig: GroupConfigInput;
+    groupBy: GroupConfigInput;
     hideEmpty: boolean;
     search: SearchQuery | null;
+    sort?: "asc" | "desc";
   }) => InfiniteGroupQueryOptions;
 }
 
@@ -81,8 +82,8 @@ export function usePageController<
   columnQueryRef.current = columnQuery;
   const stableColumnQuery = useMemo<
     | ((params: {
-        columnConfig: GroupConfigInput;
         filter: WhereNode[] | null;
+        groupBy: GroupConfigInput;
         hideEmpty: boolean;
         search: SearchQuery | null;
       }) => BaseQueryOptions)
@@ -106,9 +107,10 @@ export function usePageController<
   const stableGroupQuery = useMemo<
     | ((params: {
         filter: WhereNode[] | null;
-        groupConfig: GroupConfigInput;
+        groupBy: GroupConfigInput;
         hideEmpty: boolean;
         search: SearchQuery | null;
+        sort?: "asc" | "desc";
       }) => InfiniteGroupQueryOptions)
     | undefined
   >(() => {

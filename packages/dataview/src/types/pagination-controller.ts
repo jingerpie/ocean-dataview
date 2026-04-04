@@ -44,10 +44,12 @@ export interface InfiniteGroupQueryOptions {
  */
 export interface GroupQueryOptionsFactoryParams {
   filter: WhereNode[] | null;
-  groupConfig: GroupConfigInput;
+  /** The group configuration */
+  groupBy: GroupConfigInput;
   /** Whether to hide groups with 0 items (defaults to false) */
   hideEmpty: boolean;
   search: SearchQuery | null;
+  sort?: "asc" | "desc";
 }
 
 /**
@@ -64,8 +66,9 @@ export type GroupQueryOptionsFactory = (
  * Mirrors group query params for consistency.
  */
 export interface ColumnQueryOptionsFactoryParams {
-  columnConfig: GroupConfigInput;
   filter: WhereNode[] | null;
+  /** The column configuration */
+  groupBy: GroupConfigInput;
   /** Whether to hide columns with 0 items (defaults to false) */
   hideEmpty: boolean;
   search: SearchQuery | null;
@@ -84,12 +87,12 @@ export type ColumnQueryOptionsFactory = (
 // ============================================================================
 
 /**
- * Group filter: groupBy config + groupKey to filter items within a specific group.
+ * Group filter: config + key to filter items within a specific group.
  * Null in flat mode (no grouping).
  */
 export interface GroupFilter {
-  groupBy: GroupConfigInput;
-  groupKey: string;
+  key: string;
+  type: GroupConfigInput;
 }
 
 /**
@@ -99,7 +102,7 @@ export interface PageQueryOptionsFactoryParams {
   cursor?: CursorValue;
   filter: WhereNode[] | null;
   /** Group filter (null for flat mode) */
-  group: GroupFilter | null;
+  groupBy: GroupFilter | null;
   limit: Limit;
   search: SearchQuery | null;
   sort: SortQuery[];
@@ -140,7 +143,7 @@ export interface PageController<TQueryOptions> {
 export interface InfiniteQueryOptionsFactoryParams {
   filter: WhereNode[] | null;
   /** Group filter (null for flat mode) */
-  group: GroupFilter | null;
+  groupBy: GroupFilter | null;
   limit: Limit;
   search: SearchQuery | null;
   sort: SortQuery[];
