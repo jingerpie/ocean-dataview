@@ -1,8 +1,4 @@
-import {
-  type GroupByConfig,
-  type ParsedGroupConfig,
-  toParsedGroupConfig,
-} from "@sparkyidea/dataview/types";
+import type { ParsedGroupConfig } from "@sparkyidea/dataview/types";
 import { asc, desc, gt, lt, type SQL, sql, type Table } from "drizzle-orm";
 import { getColumn } from "./build-filter";
 
@@ -214,7 +210,7 @@ function buildNumberRangeOrder(
 }
 
 /**
- * Converts GroupByConfig to SQL GROUP BY expression.
+ * Converts ParsedGroupConfig to SQL GROUP BY expression.
  * Returns both the groupKey expression and orderBy expression.
  */
 export function buildGroupBy<T extends Table>(
@@ -339,10 +335,11 @@ export function buildGroupBy<T extends Table>(
       };
 
     // select and any other types use simple grouping
+    // Cast to ::text for orderBy so enum columns don't fail COALESCE with ''
     default:
       return {
         groupKey: sql`COALESCE(${column}::text, 'No ' || '${sql.raw(parsed.property)}')`,
-        orderBy: sql`COALESCE(${column}, '')`,
+        orderBy: sql`COALESCE(${column}::text, '')`,
       };
   }
 }
@@ -369,7 +366,7 @@ function buildDateGroupWhere(
     case "year":
       return sql`TO_CHAR(${column}, 'YYYY') = ${groupKey}`;
     default:
-      return sql`${column} = ${groupKey}`;
+      return sql`${column}::text = ${groupKey}`;
   }
 }
 
@@ -426,19 +423,14 @@ function buildNumberRangeWhere(
 
 /**
  * Build SQL WHERE expression to filter items belonging to a specific group.
- * Accepts either GroupByConfig (canonical) or ParsedGroupConfig (internal).
  * Used when fetching items for a particular group key.
  */
 export function buildGroupWhere<T extends Table>(
   table: T,
-  groupByConfig: GroupByConfig | ParsedGroupConfig,
+  parsed: ParsedGroupConfig,
   groupKey: string,
   propertyConfig?: PropertyConfig
 ): SQL | null {
-  const parsed: ParsedGroupConfig =
-    "propertyId" in groupByConfig
-      ? toParsedGroupConfig(groupByConfig as GroupByConfig)
-      : groupByConfig;
   const column = getColumn(table, parsed.property as keyof T);
   if (!column) {
     return null;
@@ -505,6 +497,6 @@ export function buildGroupWhere<T extends Table>(
       return sql`${groupKey} = ANY(${column})`;
 
     default:
-      return sql`${column} = ${groupKey}`;
+      return sql`${column}::text = ${groupKey}`;
   }
 }
