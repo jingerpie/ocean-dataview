@@ -12,8 +12,8 @@ import { TableView } from "@sparkyidea/dataview/views/table-view";
 import { useTRPC } from "@/utils/trpc/client";
 import { bulkActions } from "./bulk-actions";
 import { DataViewTab } from "./dataview-tab";
-import { productProperties } from "./product-properties";
 import { productTabOptions } from "./product-tab-options";
+import { productTableProperties } from "./product-table-properties";
 
 interface ProductTableViewProps {
   filter: WhereNode[] | null;
@@ -60,7 +60,7 @@ export function ProductTableView({
         search,
         sort: sort ?? [],
       }}
-      properties={productProperties}
+      properties={productTableProperties}
     >
       <NotionToolbar enableSettings>
         <DataViewTab options={productTabOptions} />

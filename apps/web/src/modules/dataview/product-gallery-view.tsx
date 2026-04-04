@@ -69,10 +69,12 @@ export function ProductGalleryView({
         <DataViewTab options={productTabOptions} />
       </NotionToolbar>
       <GalleryView
+        cardLayout="compact"
         cardPreview="productImage"
         cardSize="medium"
         fitMedia
         pagination="loadMore"
+        showPropertyNames={true}
         stickyHeader={{ enabled: true, offset: 57 }}
       />
     </DataViewProvider>
