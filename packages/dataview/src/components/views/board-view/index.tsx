@@ -54,6 +54,14 @@ export type BoardPaginationMode = "loadMore" | "infiniteScroll";
 
 export interface BoardViewProps<TData> {
   /**
+   * Card layout mode
+   * - "list": Properties stack vertically, one per line
+   * - "compact": Properties flow in a wrapping row
+   * @default "list"
+   */
+  cardLayout?: "list" | "compact";
+
+  /**
    * Property ID for card preview image (references property.id, not data key)
    */
   cardPreview?: string;
@@ -131,6 +139,7 @@ export function BoardView<
   TProperties extends
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
+  cardLayout = "list",
   cardPreview,
   cardSize = "medium",
   colorColumns = false,
@@ -300,6 +309,7 @@ export function BoardView<
   const getCardContent = (item: TData) => (
     <DataCard
       allProperties={properties}
+      cardLayout={cardLayout}
       cardPreview={cardPreview}
       displayProperties={displayProperties}
       fitMedia={fitMedia}
@@ -423,10 +433,12 @@ export function BoardView<
     if (!hasRowGroups) {
       return (
         <BoardSkeleton
+          cardLayout={cardLayout}
           cardSize={cardSize}
           cardsPerColumn={limit ?? BoardView.defaultLimit}
           columnCount={columns.length || 3}
           pagination={pagination}
+          propertySizes={displayProperties.map((p) => p.size)}
           propertyTypes={displayProperties.map((p) => p.type)}
           withImage={Boolean(cardPreview)}
         />
@@ -491,9 +503,11 @@ export function BoardView<
                   <Suspense
                     fallback={
                       <BoardSkeleton
+                        cardLayout={cardLayout}
                         cardSize={cardSize}
                         cardsPerColumn={limit ?? BoardView.defaultLimit}
                         columnCount={columns.length}
+                        propertySizes={displayProperties.map((p) => p.size)}
                         propertyTypes={displayProperties.map((p) => p.type)}
                         withImage={Boolean(cardPreview)}
                       />
@@ -549,10 +563,12 @@ export function BoardView<
       <Suspense
         fallback={
           <BoardSkeleton
+            cardLayout={cardLayout}
             cardSize={cardSize}
             cardsPerColumn={limit ?? BoardView.defaultLimit}
             columnCount={columns.length}
             pagination={pagination}
+            propertySizes={displayProperties.map((p) => p.size)}
             propertyTypes={displayProperties.map((p) => p.type)}
             withImage={Boolean(cardPreview)}
           />

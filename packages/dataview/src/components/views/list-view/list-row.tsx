@@ -74,6 +74,15 @@ export function ListRow<TData>({
                   : undefined;
                 const isFirst = propIndex === 0;
 
+                let itemStyle:
+                  | { minWidth?: string; width?: number }
+                  | undefined;
+                if (isFirst) {
+                  itemStyle = { minWidth: ROW_SKELETON_WIDTHS[property.type] };
+                } else if (property.size) {
+                  itemStyle = { width: property.size };
+                }
+
                 return (
                   <div
                     className={cn(
@@ -83,11 +92,7 @@ export function ListRow<TData>({
                         : "shrink-0"
                     )}
                     key={String(property.id)}
-                    style={
-                      isFirst
-                        ? { minWidth: ROW_SKELETON_WIDTHS[property.type] }
-                        : undefined
-                    }
+                    style={itemStyle}
                   >
                     <DataCell
                       allProperties={allProperties}

@@ -88,6 +88,14 @@ export interface BaseProperty<_T> {
    * - `undefined`: Use the global `showPropertyNames` setting
    */
   showName?: boolean;
+  /**
+   * Display size/width for this property (in pixels).
+   * - Table: used as column width (maps to TanStack ColumnDef sizing)
+   * - List: used as flex-basis for non-first properties
+   * - Card (Board/Gallery): used as width hint in compact layout
+   * Falls back to default behavior when omitted.
+   */
+  size?: number;
   type: PropertyType;
   /**
    * Per-property override for `wrapAllProperties`.
@@ -263,6 +271,8 @@ export interface PropertyMeta {
   name?: string;
   /** Per-property override for showPropertyNames */
   showName?: boolean;
+  /** Display size/width in pixels */
+  size?: number;
   /** Property type for rendering */
   type: PropertyType;
   /** Per-property override for wrapAllProperties */

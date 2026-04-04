@@ -21,6 +21,11 @@ interface TableSkeletonProps extends React.ComponentProps<"div"> {
    */
   pagination?: PaginationMode;
   /**
+   * Property sizes (in pixels) - per-property size override.
+   * Falls back to TABLE_COLUMN_WIDTHS[type] when undefined.
+   */
+  propertySizes?: (number | undefined)[];
+  /**
    * Property types for each column - determines realistic widths
    */
   propertyTypes: PropertyType[];
@@ -37,6 +42,7 @@ interface TableSkeletonProps extends React.ComponentProps<"div"> {
 
 export function TableSkeleton({
   pagination,
+  propertySizes,
   propertyTypes,
   rowCount,
   withBulkActions = false,
@@ -55,17 +61,20 @@ export function TableSkeleton({
                   <Skeleton className="size-4 rounded" />
                 </TableHead>
               )}
-              {propertyTypes.map((type, j) => (
-                <TableHead
-                  key={j}
-                  style={{
-                    minWidth: TABLE_COLUMN_WIDTHS[type],
-                    maxWidth: TABLE_COLUMN_WIDTHS[type],
-                  }}
-                >
-                  <Skeleton className="h-6 w-full" />
-                </TableHead>
-              ))}
+              {propertyTypes.map((type, j) => {
+                const width = propertySizes?.[j] ?? TABLE_COLUMN_WIDTHS[type];
+                return (
+                  <TableHead
+                    key={j}
+                    style={{
+                      minWidth: width,
+                      maxWidth: width,
+                    }}
+                  >
+                    <Skeleton className="h-6 w-full" />
+                  </TableHead>
+                );
+              })}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -77,17 +86,20 @@ export function TableSkeleton({
                     <Skeleton className="size-4 rounded" />
                   </TableCell>
                 )}
-                {propertyTypes.map((type, j) => (
-                  <TableCell
-                    key={j}
-                    style={{
-                      minWidth: TABLE_COLUMN_WIDTHS[type],
-                      maxWidth: TABLE_COLUMN_WIDTHS[type],
-                    }}
-                  >
-                    <Skeleton className="h-6 w-full" />
-                  </TableCell>
-                ))}
+                {propertyTypes.map((type, j) => {
+                  const width = propertySizes?.[j] ?? TABLE_COLUMN_WIDTHS[type];
+                  return (
+                    <TableCell
+                      key={j}
+                      style={{
+                        minWidth: width,
+                        maxWidth: width,
+                      }}
+                    >
+                      <Skeleton className="h-6 w-full" />
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             ))}
           </TableBody>

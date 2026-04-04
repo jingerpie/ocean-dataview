@@ -141,6 +141,7 @@ export function ListView<
                   <Suspense
                     fallback={
                       <ListSkeleton
+                        propertySizes={displayProperties.map((p) => p.size)}
                         propertyTypes={displayProperties.map((p) => p.type)}
                         rowCount={limit ?? ListView.defaultLimit}
                       />
@@ -186,6 +187,7 @@ export function ListView<
       fallback={
         <ListSkeleton
           pagination={pagination}
+          propertySizes={displayProperties.map((p) => p.size)}
           propertyTypes={displayProperties.map((p) => p.type)}
           rowCount={limit ?? ListView.defaultLimit}
         />

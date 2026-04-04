@@ -12,7 +12,6 @@ import type * as React from "react";
 import { useEffect, useRef } from "react";
 import { useScrollSync } from "../../../hooks/use-scroll-sync";
 import { cn } from "../../../lib/utils";
-import type { PropertyType } from "../../../types/filter.type";
 import {
   Table,
   TableBody,
@@ -21,32 +20,17 @@ import {
   TableHeader,
   TableRow,
 } from "../../ui/table";
-import {
-  TABLE_COLUMN_WIDTHS,
-  TABLE_HEADER_CHAR_WIDTH,
-  TABLE_HEADER_MAX_WIDTH,
-  TABLE_HEADER_PADDING,
-} from "../skeleton-widths";
 import { DataTableStickyHeader } from "./data-table-sticky-header";
 
 /**
- * Calculate column width based on property type and header label
- * Returns max(propertyWidth, headerLabelWidth), capped at TABLE_HEADER_MAX_WIDTH
+ * Calculate column width from explicit property.size.
+ * Returns undefined when no size is set — columns auto-size (default behavior).
+ * Skeleton presets (TABLE_COLUMN_WIDTHS) are only used by TableSkeleton, not here.
  */
 function calculateColumnWidth(
-  propertyType: PropertyType | undefined,
-  headerLabel: string | undefined
+  propertySize: number | undefined
 ): number | undefined {
-  if (!propertyType) {
-    return undefined;
-  }
-
-  const propertyWidth = TABLE_COLUMN_WIDTHS[propertyType];
-  const headerWidth = headerLabel
-    ? headerLabel.length * TABLE_HEADER_CHAR_WIDTH + TABLE_HEADER_PADDING
-    : 0;
-
-  return Math.min(Math.max(propertyWidth, headerWidth), TABLE_HEADER_MAX_WIDTH);
+  return propertySize;
 }
 
 interface HeaderConfig {
@@ -199,20 +183,12 @@ export function DataTable<TData>({
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
                 const meta = header.column.columnDef.meta as
-                  | { propertyType?: PropertyType }
+                  | { propertySize?: number }
                   | undefined;
-                const propertyType = meta?.propertyType;
-                const headerDef = header.column.columnDef.header;
-                const headerLabel =
-                  typeof headerDef === "string" ? headerDef : undefined;
-                const columnWidth = calculateColumnWidth(
-                  propertyType,
-                  headerLabel
-                );
-                const isSelectionColumn = header.id === "select";
+                const columnWidth = calculateColumnWidth(meta?.propertySize);
                 return (
                   <TableHead
-                    className={cn(isSelectionColumn && "pr-0")}
+                    className="truncate"
                     colSpan={header.colSpan}
                     key={header.id}
                     style={{
@@ -243,24 +219,15 @@ export function DataTable<TData>({
           >
             {row.getVisibleCells().map((cell) => {
               const meta = cell.column.columnDef.meta as
-                | { propertyType?: PropertyType; wrap?: boolean }
+                | { propertySize?: number; wrap?: boolean }
                 | undefined;
-              const propertyType = meta?.propertyType;
               const cellWrap = meta?.wrap ?? wrapAllProperties;
-              const headerDef = cell.column.columnDef.header;
-              const headerLabel =
-                typeof headerDef === "string" ? headerDef : undefined;
-              const columnWidth = calculateColumnWidth(
-                propertyType,
-                headerLabel
-              );
-              const isSelectionColumn = cell.column.id === "select";
+              const columnWidth = calculateColumnWidth(meta?.propertySize);
               return (
                 <TableCell
                   className={cn(
                     showVerticalLines && "border-r last:border-r-0",
-                    cellWrap ? "whitespace-normal" : "truncate",
-                    isSelectionColumn && "pr-0"
+                    cellWrap ? "whitespace-normal" : "truncate"
                   )}
                   key={cell.id}
                   style={{

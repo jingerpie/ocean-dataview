@@ -189,6 +189,7 @@ export function TableView<
           ),
           meta: {
             propertyType: property.type,
+            propertySize: property.size,
             wrap: resolvedWrap,
           },
         };
@@ -307,6 +308,7 @@ export function TableView<
                   <Suspense
                     fallback={
                       <TableSkeleton
+                        propertySizes={displayProperties.map((p) => p.size)}
                         propertyTypes={displayProperties.map((p) => p.type)}
                         rowCount={limit ?? TableView.defaultLimit}
                         withBulkActions={enableRowSelection}
@@ -376,6 +378,7 @@ export function TableView<
       fallback={
         <TableSkeleton
           pagination={pagination}
+          propertySizes={displayProperties.map((p) => p.size)}
           propertyTypes={displayProperties.map((p) => p.type)}
           rowCount={limit ?? TableView.defaultLimit}
           withBulkActions={enableRowSelection}

@@ -24,6 +24,14 @@ import { GallerySkeleton } from "./gallery-skeleton";
 
 export interface GalleryViewProps<TData> {
   /**
+   * Card layout mode
+   * - "list": Properties stack vertically, one per line
+   * - "compact": Properties flow in a wrapping row
+   * @default "list"
+   */
+  cardLayout?: "list" | "compact";
+
+  /**
    * Property ID for card preview image (references property.id, not data key)
    */
   cardPreview?: string;
@@ -85,6 +93,7 @@ export function GalleryView<
   TProperties extends
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
+  cardLayout = "list",
   cardPreview,
   cardSize = "medium",
   fitMedia = true,
@@ -180,7 +189,9 @@ export function GalleryView<
                     fallback={
                       <GallerySkeleton
                         cardCount={limit ?? GalleryView.defaultLimit}
+                        cardLayout={cardLayout}
                         cardSize={cardSize}
+                        propertySizes={displayProperties.map((p) => p.size)}
                         propertyTypes={displayProperties.map((p) => p.type)}
                         withImage={Boolean(cardPreview)}
                       />
@@ -188,6 +199,7 @@ export function GalleryView<
                   >
                     {useInfinitePagination ? (
                       <SuspendingInfiniteGalleryContent<TData, TProperties>
+                        cardLayout={cardLayout}
                         cardPreview={cardPreview}
                         displayProperties={displayProperties}
                         fitMedia={fitMedia}
@@ -202,6 +214,7 @@ export function GalleryView<
                       />
                     ) : (
                       <SuspendingPageGalleryContent<TData, TProperties>
+                        cardLayout={cardLayout}
                         cardPreview={cardPreview}
                         displayProperties={displayProperties}
                         fitMedia={fitMedia}
@@ -238,8 +251,10 @@ export function GalleryView<
       fallback={
         <GallerySkeleton
           cardCount={limit ?? GalleryView.defaultLimit}
+          cardLayout={cardLayout}
           cardSize={cardSize}
           pagination={pagination}
+          propertySizes={displayProperties.map((p) => p.size)}
           propertyTypes={displayProperties.map((p) => p.type)}
           withImage={Boolean(cardPreview)}
         />
@@ -247,6 +262,7 @@ export function GalleryView<
     >
       {useInfinitePagination ? (
         <SuspendingInfiniteGalleryContent<TData, TProperties>
+          cardLayout={cardLayout}
           cardPreview={cardPreview}
           displayProperties={displayProperties}
           fitMedia={fitMedia}
@@ -267,6 +283,7 @@ export function GalleryView<
         />
       ) : (
         <SuspendingPageGalleryContent<TData, TProperties>
+          cardLayout={cardLayout}
           cardPreview={cardPreview}
           displayProperties={displayProperties}
           fitMedia={fitMedia}
@@ -302,6 +319,7 @@ interface SuspendingGroupGalleryContentProps<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
+  cardLayout: "list" | "compact";
   cardPreview?: string;
   displayProperties: TProperties[number][];
   fitMedia: boolean;
@@ -322,6 +340,7 @@ function GalleryContentRenderer<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 >({
+  cardLayout,
   cardPreview,
   data,
   displayProperties,
@@ -334,6 +353,7 @@ function GalleryContentRenderer<
   showPropertyNames,
   wrapAllProperties,
 }: {
+  cardLayout: "list" | "compact";
   cardPreview?: string;
   data: TData[];
   displayProperties: TProperties[number][];
@@ -366,6 +386,7 @@ function GalleryContentRenderer<
           return (
             <DataCard
               allProperties={properties}
+              cardLayout={cardLayout}
               cardPreview={cardPreview}
               displayProperties={displayProperties}
               fitMedia={fitMedia}
@@ -391,6 +412,7 @@ function SuspendingPageGalleryContent<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 >({
+  cardLayout,
   cardPreview,
   displayProperties,
   fitMedia,
@@ -423,6 +445,7 @@ function SuspendingPageGalleryContent<
 
         return (
           <GalleryContentRenderer
+            cardLayout={cardLayout}
             cardPreview={cardPreview}
             data={result.data}
             displayProperties={displayProperties}
@@ -450,6 +473,7 @@ function SuspendingInfiniteGalleryContent<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 >({
+  cardLayout,
   cardPreview,
   displayProperties,
   fitMedia,
@@ -487,6 +511,7 @@ function SuspendingInfiniteGalleryContent<
 
         return (
           <GalleryContentRenderer
+            cardLayout={cardLayout}
             cardPreview={cardPreview}
             data={result.data}
             displayProperties={displayProperties}

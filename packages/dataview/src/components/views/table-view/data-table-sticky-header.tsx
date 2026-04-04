@@ -156,6 +156,7 @@ export function DataTableStickyHeader<TData>({
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header, headerIndex) => (
                     <TableHead
+                      className="truncate"
                       colSpan={header.colSpan}
                       key={header.id}
                       style={{

@@ -14,6 +14,11 @@ interface ListSkeletonProps extends React.ComponentProps<"div"> {
    */
   pagination?: PaginationMode;
   /**
+   * Property sizes (in pixels) - per-property size override.
+   * Falls back to ROW_SKELETON_WIDTHS[type] when undefined.
+   */
+  propertySizes?: (number | undefined)[];
+  /**
    * Property types for each column - determines realistic widths
    */
   propertyTypes: PropertyType[];
@@ -25,6 +30,7 @@ interface ListSkeletonProps extends React.ComponentProps<"div"> {
 
 export function ListSkeleton({
   pagination,
+  propertySizes,
   propertyTypes,
   rowCount,
   className,
@@ -58,7 +64,11 @@ export function ListSkeleton({
                         isFirst ? "min-w-0 flex-1" : "shrink-0"
                       )}
                       key={colIndex}
-                      style={{ minWidth: ROW_SKELETON_WIDTHS[offsetType] }}
+                      style={{
+                        minWidth: propertySizes?.[colIndex]
+                          ? `${propertySizes[colIndex]}px`
+                          : ROW_SKELETON_WIDTHS[offsetType],
+                      }}
                     />
                   );
                 })}

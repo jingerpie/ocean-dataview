@@ -7,11 +7,21 @@ import type { DataViewProperty } from "../../types/property.type";
 import { Card, CardContent } from "../ui/card";
 import { DataCell } from "./data-cell";
 
+export type CardLayout = "list" | "compact";
+
 export interface DataCardProps<TData> {
   /**
    * All property schema - required for formula properties
    */
   allProperties?: readonly DataViewProperty<TData>[];
+
+  /**
+   * Card layout mode
+   * - "list": Properties stack vertically, one per line (flex-col)
+   * - "compact": Properties flow in a wrapping row (flex-wrap)
+   * @default "list"
+   */
+  cardLayout?: CardLayout;
 
   /**
    * Card preview property ID (references property.id, not data key)
@@ -67,6 +77,7 @@ export function DataCard<TData>({
   item,
   displayProperties,
   allProperties,
+  cardLayout = "list",
   cardPreview,
   imageHeight,
   fitMedia = true,
@@ -75,6 +86,7 @@ export function DataCard<TData>({
   onCardClick,
   className,
 }: DataCardProps<TData>) {
+  const isCompact = cardLayout === "compact";
   // Handle cardPreview - resolve through property.key for correct data access
   const previewProperty = cardPreview
     ? (allProperties ?? displayProperties).find((p) => p.id === cardPreview)
@@ -120,7 +132,12 @@ export function DataCard<TData>({
       )}
 
       {/* Card Content */}
-      <CardContent className="flex flex-col gap-2 p-3">
+      <CardContent
+        className={cn(
+          "flex gap-2 p-3",
+          isCompact ? "flex-wrap items-start" : "flex-col"
+        )}
+      >
         {displayProperties.map((property, propIndex) => {
           const value = property.key
             ? (item as Record<string, unknown>)[property.key]
@@ -132,7 +149,10 @@ export function DataCard<TData>({
           return (
             <div
               className={cn(
-                "flex w-full min-w-0 flex-col items-start",
+                "flex min-w-0 flex-col items-start",
+                isCompact
+                  ? cn("shrink-0", isFirst && "w-full basis-full")
+                  : "w-full",
                 isFirst && "font-medium",
                 (property.type === "select" ||
                   property.type === "multiSelect" ||
@@ -141,6 +161,11 @@ export function DataCard<TData>({
                   "gap-1"
               )}
               key={String(property.id)}
+              style={
+                isCompact && !isFirst && property.size
+                  ? { width: property.size }
+                  : undefined
+              }
             >
               {resolvedShowName && (
                 <span className="text-muted-foreground text-xs">
