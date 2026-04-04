@@ -454,7 +454,7 @@ def build_item(
         "kind": kind,
         "title": title_override or extract_title(body),
         "severity": severity_override if severity_override is not None else extract_severity(body),
-        "actionable": actionable if actionable is not None else kind == "review_thread_comment",
+        "actionable": actionable if actionable is not None else kind in ("review_thread_comment", "review_comment"),
         "path": path,
         "line": line,
         "original_line": original_line,
@@ -664,19 +664,34 @@ def build_prompt_ready_payload(
         if item["source"] == "chatgpt-codex-connector"
         and item["kind"] == "review_comment"
     ]
+    coderabbit_comments = [
+        {
+            "finding_id": item["finding_id"],
+            "path": item["path"],
+            "line": item["line"],
+            "title": item["title"],
+            "body": item["body"],
+            "severity": item["severity"],
+            "url": item["url"],
+        }
+        for item in items
+        if item["source"] == "coderabbitai"
+        and item["kind"] == "review_comment"
+        and item["actionable"]
+    ]
+    coderabbit_prompt_items = [
+        item
+        for item in items
+        if item["source"] == "coderabbitai"
+        and item["kind"] == "coderabbit_prompt_item"
+    ]
     return {
         "pull_request": pull_request,
         "coderabbit": {
             "review_url": coderabbit_review_url,
             "prompt": coderabbit_prompt,
-            "item_count": len(
-                [
-                    item
-                    for item in items
-                    if item["source"] == "coderabbitai"
-                    and item["kind"] == "coderabbit_prompt_item"
-                ]
-            ),
+            "item_count": len(coderabbit_prompt_items),
+            "comments": coderabbit_comments,
         },
         "codex": {
             "finding_count": len(codex_findings),
@@ -760,6 +775,7 @@ def render_summary(
             + ("available" if prompt_ready_payload["coderabbit"]["prompt"] else "not found")
         ),
         f"- CodeRabbit prompt items: `{prompt_ready_payload['coderabbit']['item_count']}`",
+        f"- CodeRabbit inline comments: `{len(prompt_ready_payload['coderabbit'].get('comments', []))}`",
         f"- Codex findings: `{prompt_ready_payload['codex']['finding_count']}`",
         "",
         "## Codex Snapshot",
@@ -873,8 +889,27 @@ def render_prompt_ready_file(prompt_ready_payload: dict[str, Any]) -> str:
         lines.append("```text")
         lines.append(coderabbit_prompt)
         lines.append("```")
-    else:
-        lines.append("No consolidated CodeRabbit prompt was extracted.")
+
+    coderabbit_comments = prompt_ready_payload["coderabbit"].get("comments", [])
+    if coderabbit_comments:
+        lines.extend(["", f"### Inline Comments ({len(coderabbit_comments)})", ""])
+        for comment in coderabbit_comments:
+            location = comment["path"] or "pull-request"
+            if comment["line"]:
+                location = f"{location}:{comment['line']}"
+            severity = f" ({comment['severity']})" if comment.get("severity") else ""
+            lines.append(f"#### {comment['finding_id']}. `{location}`{severity}")
+            lines.append("")
+            lines.append(f"**{comment['title']}**")
+            lines.append("")
+            lines.append(comment["body"])
+            lines.append("")
+            if comment.get("url"):
+                lines.append(f"Source: {comment['url']}")
+                lines.append("")
+
+    if not coderabbit_prompt and not coderabbit_comments:
+        lines.append("No CodeRabbit findings were extracted.")
 
     lines.extend(["", "## Codex", ""])
 
