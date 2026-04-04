@@ -92,7 +92,10 @@ export function ProductListView({
       <NotionToolbar enableSettings>
         <DataViewTab options={productTabOptions} />
       </NotionToolbar>
-      <ListView pagination="loadMore" />
+      <ListView
+        pagination="loadMore"
+        stickyHeader={{ enabled: true, offset: 57 }}
+      />
     </DataViewProvider>
   );
 }

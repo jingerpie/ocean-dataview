@@ -97,6 +97,7 @@ export function ProductGalleryView({
         cardSize="medium"
         fitMedia
         pagination="loadMore"
+        stickyHeader={{ enabled: true, offset: 57 }}
       />
     </DataViewProvider>
   );
