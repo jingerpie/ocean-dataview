@@ -32,11 +32,11 @@ Fetches paginated items with filtering, sorting, and search.
 ```typescript
 trpc.product.getMany.queryOptions({
   filter: WhereNode[],
+  group: { groupBy: GroupByConfig, groupKey: string },  // Server-side group filtering
   sort: SortQuery[],
   search: SearchQuery,
   limit: number,
-  cursor: string,        // Page pagination
-  cursors: Record<string, string>,  // Group pagination
+  cursor: string,
 })
 ```
 
@@ -50,6 +50,7 @@ Fetches items grouped by column with per-column pagination. Returns all columns 
 trpc.product.getManyByColumn.infiniteQueryOptions({
   columnBy: GroupByConfig,  // Column grouping config
   filter: WhereNode[],
+  group: { groupBy: GroupByConfig, groupKey: string },  // Row-level group filtering
   sort: SortQuery[],
   search: SearchQuery,
   limit: number,
@@ -208,9 +209,11 @@ const { pagination } = useInfinitePagination({
     trpc.product.getGroup.queryOptions({ groupBy: groupConfig }),
 
   // Fetches items per accordion section
+  // params.group is { groupBy, groupKey } | null (null for flat mode)
   queryOptionsFactory: (params) =>
     trpc.product.getMany.infiniteQueryOptions({
-      filter: combineGroupFilter(params.groupConfig, params.groupKey, params.filter),
+      filter: params.filter,
+      group: params.group ?? undefined,
       sort: params.sort,
       limit: params.limit,
     }),

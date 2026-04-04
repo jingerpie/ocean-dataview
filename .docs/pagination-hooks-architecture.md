@@ -235,7 +235,7 @@ For grouped views, data is fetched per-group:
 │  ┌─────────────────────────────────────────────────────────┐ │
 │  │  for each expandedGroup:                                 │ │
 │  │    trpc.product.getMany({                                │ │
-│  │      filter: combineGroupFilter(groupConfig, groupKey),  │ │
+│  │      group: { groupBy: groupConfig, groupKey },          │ │
 │  │      ...                                                 │ │
 │  │    })                                                    │ │
 │  └─────────────────────────────────────────────────────────┘ │
@@ -272,7 +272,7 @@ Board follows the same N-query pattern but uses `getManyByColumn`:
 │  │  for each expandedRow:                                   │ │
 │  │    trpc.product.getManyByColumn({                        │ │
 │  │      columnBy: columnConfig,                             │ │
-│  │      filter: combineGroupFilter(rowConfig, rowKey),      │ │
+│  │      group: { groupBy: rowConfig, groupKey: rowKey },    │ │
 │  │      ...                                                 │ │
 │  │    })                                                    │ │
 │  └─────────────────────────────────────────────────────────┘ │
