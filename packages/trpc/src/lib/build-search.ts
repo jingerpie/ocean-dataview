@@ -1,7 +1,7 @@
-import type { SearchQuery, WhereRule } from "@sparkyidea/dataview/types";
+import type { SearchWhereClause, WhereRule } from "@sparkyidea/dataview/types";
 
 /**
- * Builds a SearchQuery from a search string and searchable fields.
+ * Builds a SearchWhereClause from a search string and searchable fields.
  *
  * Creates `iLike` rules for each searchable field wrapped in OR.
  * Returns null if search is empty or no fields provided.
@@ -9,7 +9,7 @@ import type { SearchQuery, WhereRule } from "@sparkyidea/dataview/types";
 export function buildSearchFilter(
   search: string,
   searchFields: string[]
-): SearchQuery | null {
+): SearchWhereClause | null {
   const trimmed = search.trim();
 
   if (!trimmed || searchFields.length === 0) {

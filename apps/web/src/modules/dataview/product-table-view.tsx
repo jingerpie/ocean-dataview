@@ -9,12 +9,11 @@ import type {
   WhereNode,
 } from "@sparkyidea/dataview/types";
 import { TableView } from "@sparkyidea/dataview/views/table-view";
-import { combineGroupFilter } from "@/utils/group-filter";
 import { useTRPC } from "@/utils/trpc/client";
 import { bulkActions } from "./bulk-actions";
 import { DataViewTab } from "./dataview-tab";
-import { productProperties } from "./product-properties";
 import { productTabOptions } from "./product-tab-options";
+import { productTableProperties } from "./product-table-properties";
 
 interface ProductTableViewProps {
   filter: WhereNode[] | null;
@@ -41,33 +40,11 @@ export function ProductTableView({
 
   const { controller } = usePageController({
     groupQuery: (params) =>
-      trpc.product.getGroup.infiniteQueryOptions(
-        {
-          filter: params.filter,
-          groupBy: params.groupConfig,
-          hideEmpty: params.hideEmpty,
-          search: params.search,
-          sort: params.groupConfig.sort,
-          limit: 25,
-        },
-        { getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined }
-      ),
-
-    dataQuery: (params) =>
-      trpc.product.getMany.queryOptions({
-        ...(params.cursor ? { cursor: params.cursor } : {}),
-        filter:
-          params.groupConfig && params.groupKey
-            ? combineGroupFilter(
-                params.groupConfig,
-                params.groupKey,
-                params.filter
-              )
-            : params.filter,
-        limit: params.limit,
-        search: params.search,
-        sort: params.sort ?? [],
+      trpc.product.getGroup.infiniteQueryOptions(params, {
+        getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
       }),
+
+    dataQuery: (params) => trpc.product.getMany.queryOptions(params),
   });
 
   // Add view options to group config
@@ -83,7 +60,7 @@ export function ProductTableView({
         search,
         sort: sort ?? [],
       }}
-      properties={productProperties}
+      properties={productTableProperties}
     >
       <NotionToolbar enableSettings>
         <DataViewTab options={productTabOptions} />
@@ -92,7 +69,8 @@ export function ProductTableView({
         bulkActions={bulkActions}
         pagination="page"
         showVerticalLines={false}
-        wrapAllColumns={false}
+        stickyHeader={{ enabled: true, offset: 57 }}
+        wrapAllProperties={false}
       />
     </DataViewProvider>
   );

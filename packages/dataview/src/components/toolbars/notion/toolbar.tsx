@@ -100,7 +100,7 @@ function NotionToolbarComponent({
 
   const properties = propProperties ?? ctx?.properties ?? [];
 
-  // Derive group property label from context if not provided
+  // Derive group property name from context if not provided
   const derivedGroupProperty = (() => {
     if (groupProperty !== undefined) {
       return groupProperty;
@@ -110,10 +110,10 @@ function NotionToolbarComponent({
       return undefined;
     }
     const meta = properties.find((p) => p.id === groupPropertyId);
-    return meta?.label ?? groupPropertyId;
+    return meta?.name ?? groupPropertyId;
   })();
 
-  // Derive column property label from context if not provided
+  // Derive column property name from context if not provided
   const derivedColumnProperty = (() => {
     if (columnProperty !== undefined) {
       return columnProperty;
@@ -123,7 +123,7 @@ function NotionToolbarComponent({
       return undefined;
     }
     const meta = properties.find((p) => p.id === colPropertyId);
-    return meta?.label ?? colPropertyId;
+    return meta?.name ?? colPropertyId;
   })();
 
   // Auto-enable column settings when column config exists (board view)

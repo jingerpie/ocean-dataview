@@ -43,7 +43,7 @@ function AdvancedFilterPicker({
     );
 
     return [...filtered].sort((a, b) =>
-      (a.label ?? String(a.id)).localeCompare(b.label ?? String(b.id))
+      (a.name ?? String(a.id)).localeCompare(b.name ?? String(b.id))
     );
   }, [properties]);
 
@@ -58,7 +58,7 @@ function AdvancedFilterPicker({
         {value ? (
           <>
             <PropertyIcon type={value.type} />
-            <span>{value.label ?? String(value.id)}</span>
+            <span>{value.name ?? String(value.id)}</span>
           </>
         ) : (
           "Select property..."
@@ -75,11 +75,11 @@ function AdvancedFilterPicker({
                 <CommandItem
                   key={String(property.id)}
                   onSelect={() => handleSelect(property)}
-                  value={property.label ?? String(property.id)}
+                  value={property.name ?? String(property.id)}
                 >
                   <PropertyIcon type={property.type} />
                   <span className="truncate">
-                    {property.label ?? String(property.id)}
+                    {property.name ?? String(property.id)}
                   </span>
                 </CommandItem>
               ))}

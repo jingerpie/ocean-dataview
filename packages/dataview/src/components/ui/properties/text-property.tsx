@@ -23,7 +23,10 @@ export function TextProperty({ value, wrap = false }: TextPropertyProps) {
   }
 
   return (
-    <span className={wrap ? "text-sm" : "truncate text-sm"} title={text}>
+    <span
+      className={wrap ? "text-sm" : "block w-full truncate text-sm"}
+      title={text}
+    >
       {text}
     </span>
   );

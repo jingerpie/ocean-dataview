@@ -37,7 +37,7 @@ interface GroupPickerProps {
  * - "None" option to clear grouping
  * - Only shows groupable property types
  * - Shows checkmark for currently selected property
- * - Sorted alphabetically by label
+ * - Sorted alphabetically by name
  */
 function GroupPicker({
   mode = "group",
@@ -54,12 +54,11 @@ function GroupPicker({
         p.type !== "formula" &&
         p.type !== "button" &&
         p.type !== "filesMedia" &&
-        p.hidden !== true &&
         p.enableGroup !== false
     );
 
     return [...filtered].sort((a, b) =>
-      (a.label ?? String(a.id)).localeCompare(b.label ?? String(b.id))
+      (a.name ?? String(a.id)).localeCompare(b.name ?? String(b.id))
     );
   }, [properties]);
 
@@ -135,11 +134,11 @@ function GroupPicker({
               <CommandItem
                 key={String(prop.id)}
                 onSelect={() => handleSelect(prop)}
-                value={String(prop.label ?? prop.id)}
+                value={String(prop.name ?? prop.id)}
               >
                 <PropertyIcon type={prop.type} />
                 <span className="flex-1 truncate">
-                  {prop.label ?? String(prop.id)}
+                  {prop.name ?? String(prop.id)}
                 </span>
                 {isSelected && <CheckIcon className="size-4" />}
               </CommandItem>

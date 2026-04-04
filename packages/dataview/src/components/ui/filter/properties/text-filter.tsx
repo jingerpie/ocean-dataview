@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useDebouncedCallback } from "../../../../hooks/use-debounced-callback";
 import type { WhereRule } from "../../../../types/filter.type";
-import type { PropertyMeta } from "../../../../types/property.type";
+import type {
+  NumberConfig,
+  PropertyMeta,
+} from "../../../../types/property.type";
 import { Input } from "../../input";
 
 const FILTER_INPUT_DEBOUNCE_MS = 300;
@@ -75,6 +78,49 @@ function DebouncedTextInput({
 }
 
 // ============================================================================
+// Scale helpers for cents → dollars (or other unit conversions)
+// ============================================================================
+
+function getScale(property: PropertyMeta): number {
+  if (property.type !== "number") {
+    return 1;
+  }
+  return (property.config as NumberConfig | undefined)?.scale ?? 1;
+}
+
+/** Convert stored value to display value (e.g. 1299 → "12.99" when scale=100) */
+function toDisplayValue(value: unknown, scale: number): string {
+  if (value == null) {
+    return "";
+  }
+  if (scale !== 1) {
+    return String(Number(value) / scale);
+  }
+  return String(value);
+}
+
+/** Convert user input to stored value (e.g. "12.99" → 1299 when scale=100) */
+function toStoredValue(
+  input: string,
+  scale: number,
+  onValueChange: (value: unknown) => void
+) {
+  if (input === "") {
+    onValueChange(undefined);
+    return;
+  }
+  const num = Number(input);
+  if (Number.isNaN(num)) {
+    return;
+  }
+  if (scale === 1) {
+    onValueChange(num);
+  } else {
+    onValueChange(Math.round(num * scale));
+  }
+}
+
+// ============================================================================
 // TextAdvanceFilter - Row mode (inline DebouncedTextInput)
 // ============================================================================
 
@@ -84,15 +130,17 @@ function TextAdvanceFilter({
   onValueChange,
 }: TextFilterValueProps) {
   const isNumber = property.type === "number";
+  const scale = getScale(property);
+  const displayValue = toDisplayValue(rule.value, scale);
 
   return (
     <DebouncedTextInput
       className="h-8"
       inputMode={isNumber ? "numeric" : undefined}
-      onChange={(value) => onValueChange(value)}
+      onChange={(value) => toStoredValue(value, scale, onValueChange)}
       placeholder="Enter value..."
       type={isNumber ? "number" : "text"}
-      value={rule.value == null ? "" : String(rule.value)}
+      value={displayValue}
     />
   );
 }
@@ -107,16 +155,18 @@ function TextValueEditor({
   onValueChange,
 }: TextFilterValueProps) {
   const isNumber = property.type === "number";
+  const scale = getScale(property);
+  const displayValue = toDisplayValue(rule.value, scale);
 
   return (
     <div className="p-1">
       <Input
         className="h-8"
         inputMode={isNumber ? "numeric" : undefined}
-        onChange={(e) => onValueChange(e.target.value)}
+        onChange={(e) => toStoredValue(e.target.value, scale, onValueChange)}
         placeholder="Enter value..."
         type={isNumber ? "number" : "text"}
-        value={rule.value == null ? "" : String(rule.value)}
+        value={displayValue}
       />
     </div>
   );

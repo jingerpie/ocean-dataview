@@ -6,25 +6,25 @@ import { CheckCircle, CircleDashed, Clock, XCircle } from "lucide-react";
 const config = {
   groups: [
     {
-      label: "Not Started",
+      name: "Not Started",
       color: "gray" as const,
       icon: CircleDashed,
       options: ["backlog", "todo"],
     },
     {
-      label: "In Progress",
+      name: "In Progress",
       color: "blue" as const,
       icon: Clock,
       options: ["in_progress", "in_review"],
     },
     {
-      label: "Complete",
+      name: "Complete",
       color: "green" as const,
       icon: CheckCircle,
       options: ["done"],
     },
     {
-      label: "Cancelled",
+      name: "Cancelled",
       color: "red" as const,
       icon: XCircle,
       options: ["cancelled"],

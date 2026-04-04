@@ -87,8 +87,8 @@ function GroupEditor({
     ? properties.find((p) => p.id === property)
     : null;
 
-  // Get display label for current group
-  const groupLabel = selectedProperty?.label ?? property ?? "None";
+  // Get display name for current group
+  const groupName = selectedProperty?.name ?? property ?? "None";
 
   // Get show-as options based on group type
   const showAsOptions =
@@ -131,7 +131,7 @@ function GroupEditor({
           {/* Group by property */}
           <CommandItem onSelect={onGroupByClick} value="group-by">
             <span className="flex-1">{label}</span>
-            <span className="text-muted-foreground text-sm">{groupLabel}</span>
+            <span className="text-muted-foreground text-sm">{groupName}</span>
             <ChevronRightIcon className="size-4 text-muted-foreground" />
           </CommandItem>
 

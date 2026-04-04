@@ -74,7 +74,7 @@ export type WhereNode = WhereRule | WhereExpression;
 /**
  * Search parameter - always OR at root, flat (no nesting)
  */
-export interface SearchQuery {
+export interface SearchWhereClause {
   or: WhereRule[];
 }
 
@@ -139,11 +139,21 @@ export const whereNodeSchema: z.ZodType<WhereNode> = z.union([
 ]);
 
 /**
- * Schema for SearchQuery - always { or: WhereRule[] }
+ * Schema for SearchWhereClause - always { or: WhereRule[] }
  */
-export const searchQuerySchema: z.ZodType<SearchQuery> = z.object({
+export const searchWhereClauseSchema: z.ZodType<SearchWhereClause> = z.object({
   or: z.array(whereRuleSchema),
 });
+
+/**
+ * Validated search output from `validateSearch()`.
+ * Contains the trimmed search string and the searchable field IDs
+ * derived from properties with `enableSearch`.
+ */
+export interface SearchQuery {
+  search: string;
+  searchFields: string[];
+}
 
 // ============================================================================
 // Type Guards

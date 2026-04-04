@@ -114,8 +114,10 @@ export function useInfiniteGroupQuery<TData = unknown>(
   const queryOptions = useMemo(() => {
     const options = dataQuery({
       filter: deferredFilter,
-      groupConfig: deferredGroup,
-      groupKey,
+      groupBy:
+        deferredGroup && groupKey !== "__ungrouped__"
+          ? { type: deferredGroup, key: groupKey }
+          : null,
       limit: deferredLimit,
       search: deferredSearch,
       sort: deferredSort,

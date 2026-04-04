@@ -32,6 +32,7 @@ import {
   type DataViewProperty,
   toPropertyMetaArray,
 } from "../../types/property.type";
+import { normalizeProperties } from "../../utils/normalize-properties";
 import { cn } from "../utils";
 import {
   DataViewContext,
@@ -239,6 +240,12 @@ export function DataViewProvider<
   properties,
   propertyVisibility,
 }: DataViewProviderProps<TData, TProperties, TQueryOptions>) {
+  // Normalize properties: resolve id from key, validate uniqueness
+  const normalizedProperties = useMemo(
+    () => normalizeProperties(properties) as unknown as TProperties,
+    [properties]
+  );
+
   // Detect view metadata (type and default limit)
   const { contentChildren } = splitChildren(children);
   const viewMetadata = detectViewMetadata(contentChildren);
@@ -249,14 +256,17 @@ export function DataViewProvider<
 
   // Wrap with QueryParamsProvider for single source of truth
   return (
-    <QueryParamsProvider defaults={mergedDefaults} properties={properties}>
+    <QueryParamsProvider
+      defaults={mergedDefaults}
+      properties={normalizedProperties}
+    >
       <DataViewProviderWithQueryParams<TData, TProperties, TQueryOptions>
         className={className}
         columnCounts={columnCounts}
         controller={controller}
         counts={counts}
         mergedDefaults={mergedDefaults}
-        properties={properties}
+        properties={normalizedProperties}
         propertyVisibility={propertyVisibility}
         viewMetadata={viewMetadata}
       >

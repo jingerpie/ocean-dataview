@@ -1,14 +1,7 @@
-import {
-  cursorValueSchema,
-  getCursorParams,
-  groupByConfigSchema,
-  toParsedGroupConfig,
-  whereNodeSchema,
-} from "@sparkyidea/dataview/types";
+import { getCursorParams } from "@sparkyidea/dataview/types";
 import { db } from "@sparkyidea/db";
 import { product } from "@sparkyidea/db/schema/product";
 import { and, count } from "drizzle-orm";
-import { z } from "zod";
 import { publicProcedure, router } from "../index";
 import { buildWhere } from "../lib/build-filter";
 import {
@@ -18,106 +11,89 @@ import {
 } from "../lib/build-group";
 import { buildSearchFilter } from "../lib/build-search";
 import { buildCursor } from "../lib/build-sort";
-
-/** Product fields that support text search (iLike) */
-const PRODUCT_SEARCH_FIELDS = [
-  "productName",
-  "category",
-  "availability",
-  "supplierEmail",
-  "supplierPhone",
-];
+import {
+  getGroupInput,
+  getManyByColumnInput,
+  getManyInput,
+} from "../lib/schemas";
 
 export const productRouter = router({
-  getMany: publicProcedure
-    .input(
-      z.object({
-        cursor: z.union([cursorValueSchema, z.string()]).optional(),
-        limit: z.number().int().min(1).max(100).optional().default(25),
-        search: z.string().default(""),
-        filter: z.array(whereNodeSchema).nullish(),
-        sort: z
-          .array(
-            z.object({
-              property: z.string(),
-              direction: z.enum(["asc", "desc"]),
-            })
-          )
-          .optional()
-          .default([]),
-      })
-    )
-    .query(async ({ input }) => {
-      const { cursor, limit, filter, sort, search } = input;
-      const { after, before } = getCursorParams(cursor);
+  getMany: publicProcedure.input(getManyInput).query(async ({ input }) => {
+    const { cursor, limit, filter, sort, search, groupBy } = input;
+    const { after, before } = getCursorParams(cursor);
 
-      // Build filter/search WHERE
-      const searchQuery = buildSearchFilter(search, PRODUCT_SEARCH_FIELDS);
-      const searchWhere = buildWhere(
-        product,
-        searchQuery ? [searchQuery] : null
-      );
-      const filterWhere = buildWhere(product, filter);
+    // Build filter/search WHERE
+    const searchQuery = buildSearchFilter(
+      search?.search ?? "",
+      search?.searchFields ?? []
+    );
+    const searchWhere = buildWhere(product, searchQuery ? [searchQuery] : null);
+    const filterWhere = buildWhere(product, filter);
 
-      // Determine pagination direction
-      const isBackward = !!before;
-      const cursorId = before || after;
+    // Build group WHERE (for grouped views that pass group config)
+    const groupWhere = groupBy
+      ? (buildGroupWhere(product, groupBy.type, groupBy.key) ?? undefined)
+      : undefined;
 
-      // Prepare sort with tiebreaker (matches primary sort direction for consistent cursor pagination)
-      const primaryDirection = sort?.[0]?.direction ?? "desc";
-      const sortWithTiebreaker: typeof sort =
-        sort && sort.length > 0
-          ? [
-              ...sort,
-              {
-                property: "id",
-                direction: primaryDirection,
-              },
-            ]
-          : [
-              { property: "createdAt", direction: "desc" },
-              { property: "id", direction: "desc" },
-            ];
+    // Determine pagination direction
+    const isBackward = !!before;
+    const cursorId = before || after;
 
-      // Build orderBy + cursor WHERE
-      const { orderBy, cursorWhere } = buildCursor(product, {
-        sort: sortWithTiebreaker,
-        cursor: cursorId,
-        direction: isBackward ? "backward" : "forward",
-      });
+    // Prepare sort with tiebreaker (matches primary sort direction for consistent cursor pagination)
+    const primaryDirection = sort?.[0]?.direction ?? "desc";
+    const sortWithTiebreaker: typeof sort =
+      sort && sort.length > 0
+        ? [
+            ...sort,
+            {
+              property: "id",
+              direction: primaryDirection,
+            },
+          ]
+        : [
+            { property: "createdAt", direction: "desc" },
+            { property: "id", direction: "desc" },
+          ];
 
-      const where = and(filterWhere, searchWhere, cursorWhere);
+    // Build orderBy + cursor WHERE
+    const { orderBy, cursorWhere } = buildCursor(product, {
+      sort: sortWithTiebreaker,
+      cursor: cursorId,
+      direction: isBackward ? "backward" : "forward",
+    });
 
-      const data = await db.query.product.findMany({
-        where,
-        orderBy,
-        limit: limit + 1,
-      });
+    const where = and(filterWhere, searchWhere, cursorWhere, groupWhere);
 
-      // Check if there are more items in this direction
-      const hasMoreInDirection = data.length > limit;
-      let items = hasMoreInDirection ? data.slice(0, -1) : data;
+    const data = await db.query.product.findMany({
+      where,
+      orderBy,
+      limit: limit + 1,
+    });
 
-      // For backward navigation, reverse results to maintain consistent order (newest first)
-      if (isBackward) {
-        items = items.reverse();
-      }
+    // Check if there are more items in this direction
+    const hasMoreInDirection = data.length > limit;
+    let items = hasMoreInDirection ? data.slice(0, -1) : data;
 
-      const firstItem = items[0];
-      const lastItem = items.at(-1);
+    // For backward navigation, reverse results to maintain consistent order (newest first)
+    if (isBackward) {
+      items = items.reverse();
+    }
 
-      // Cursors are just IDs converted to strings
-      const startCursor = firstItem ? String(firstItem.id) : null;
-      const endCursor = lastItem ? String(lastItem.id) : null;
+    const firstItem = items[0];
+    const lastItem = items.at(-1);
 
-      return {
-        items,
-        startCursor, // First item's ID (for previous page)
-        endCursor, // Last item's ID (for next page)
-        hasNextPage: isBackward ? true : hasMoreInDirection,
-        hasPreviousPage: isBackward ? hasMoreInDirection : !!after,
-      };
-    }),
+    // Cursors are just IDs converted to strings
+    const startCursor = firstItem ? String(firstItem.id) : null;
+    const endCursor = lastItem ? String(lastItem.id) : null;
+
+    return {
+      items,
+      startCursor, // First item's ID (for previous page)
+      endCursor, // Last item's ID (for next page)
+      hasNextPage: isBackward ? true : hasMoreInDirection,
+      hasPreviousPage: isBackward ? hasMoreInDirection : !!after,
+    };
+  }),
 
   /**
    * Get group counts with full GroupByConfig support.
@@ -126,21 +102,7 @@ export const productRouter = router({
    * Supports sort direction (asc/desc) for group ordering.
    */
   getGroup: publicProcedure
-    .input(
-      z.object({
-        filter: z.array(whereNodeSchema).nullish(),
-        groupBy: groupByConfigSchema,
-        // Whether to hide groups with 0 items (default: false, add :hideEmpty flag to URL to enable)
-        hideEmpty: z.boolean().default(false),
-        // Search string (same as getMany)
-        search: z.string().default(""),
-        // Sort direction for groups (default: asc)
-        sort: z.enum(["asc", "desc"]).optional(),
-        // Pagination params
-        limit: z.number().int().min(1).max(100).default(25),
-        cursor: z.string().nullable().optional(), // Group sortValue to start after
-      })
-    )
+    .input(getGroupInput)
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: cursor + hideEmpty conditionals
     .query(async ({ input }) => {
       const {
@@ -152,9 +114,7 @@ export const productRouter = router({
         limit,
         cursor,
       } = input;
-      const parsed = toParsedGroupConfig(groupBy);
-
-      const groupByResult = buildGroupBy(product, parsed);
+      const groupByResult = buildGroupBy(product, groupBy);
       if (!groupByResult) {
         return {
           counts: {},
@@ -173,7 +133,10 @@ export const productRouter = router({
 
       // Build filter/search conditions
       const filterCondition = buildWhere(product, filter ?? undefined);
-      const searchQuery = buildSearchFilter(search, PRODUCT_SEARCH_FIELDS);
+      const searchQuery = buildSearchFilter(
+        search?.search ?? "",
+        search?.searchFields ?? []
+      );
       const searchCondition = buildWhere(
         product,
         searchQuery ? [searchQuery] : null
@@ -218,7 +181,7 @@ export const productRouter = router({
         const key =
           row.groupKey instanceof Date
             ? row.groupKey.toISOString()
-            : String(row.groupKey ?? `No ${parsed.property}`);
+            : String(row.groupKey ?? `No ${groupBy.propertyId}`);
         countsMap.set(key, Number(row.count));
       }
 
@@ -230,7 +193,7 @@ export const productRouter = router({
         const key =
           row.groupKey instanceof Date
             ? row.groupKey.toISOString()
-            : String(row.groupKey ?? `No ${parsed.property}`);
+            : String(row.groupKey ?? `No ${groupBy.propertyId}`);
         const rawCount = countsMap.get(key) ?? 0;
 
         // Skip empty groups when hideEmpty is true
@@ -265,27 +228,7 @@ export const productRouter = router({
    * Column counts handled separately by getGroup procedure.
    */
   getManyByColumn: publicProcedure
-    .input(
-      z.object({
-        columnBy: groupByConfigSchema,
-        limit: z.number().int().min(1).max(100).default(10),
-        // Per-column cursor map for board pagination (tRPC requires field name "cursor")
-        // Record<columnKey, cursorString | null>
-        cursor: z.record(z.string(), z.string().nullable()).default({}),
-        filter: z.array(whereNodeSchema).nullish(),
-        sort: z
-          .array(
-            z.object({
-              property: z.string(),
-              direction: z.enum(["asc", "desc"]),
-            })
-          )
-          .default([]),
-        search: z.string().default(""),
-        // Column keys to fetch - required for knowing which columns to load
-        columnKeys: z.array(z.string()).optional(),
-      })
-    )
+    .input(getManyByColumnInput)
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Loop with cursor handling requires conditionals
     .query(async ({ input }) => {
       const {
@@ -296,18 +239,24 @@ export const productRouter = router({
         sort,
         search,
         columnKeys: requestedColumnKeys,
+        groupBy,
       } = input;
 
-      // Parse the GroupByConfig for column
-      const parsed = toParsedGroupConfig(columnBy);
-
       // Build common WHERE clauses
-      const searchQuery = buildSearchFilter(search, PRODUCT_SEARCH_FIELDS);
+      const searchQuery = buildSearchFilter(
+        search?.search ?? "",
+        search?.searchFields ?? []
+      );
       const searchWhere = buildWhere(
         product,
         searchQuery ? [searchQuery] : null
       );
       const filterWhere = buildWhere(product, filter);
+
+      // Build row-level group WHERE (for board views with row grouping)
+      const rowGroupWhere = groupBy
+        ? (buildGroupWhere(product, groupBy.type, groupBy.key) ?? undefined)
+        : undefined;
 
       // Prepare sort with tiebreaker
       const primaryDirection = sort?.[0]?.direction ?? "desc";
@@ -327,7 +276,7 @@ export const productRouter = router({
         columnKeysToFetch = requestedColumnKeys;
       } else {
         // Get distinct columns using buildGroupBy for transformed keys
-        const groupByResult = buildGroupBy(product, parsed);
+        const groupByResult = buildGroupBy(product, columnBy);
 
         if (!groupByResult) {
           return {
@@ -344,11 +293,11 @@ export const productRouter = router({
         const columnsResult = await db
           .selectDistinct({ columnKey: columnKeyExpr, sortValue: orderBy })
           .from(product)
-          .where(and(filterWhere, searchWhere))
+          .where(and(filterWhere, searchWhere, rowGroupWhere))
           .orderBy(orderBy);
 
         columnKeysToFetch = columnsResult.map((r) =>
-          String(r.columnKey ?? `No ${parsed.property}`)
+          String(r.columnKey ?? `No ${columnBy.propertyId}`)
         );
       }
 
@@ -373,7 +322,7 @@ export const productRouter = router({
         }
 
         // Build column WHERE using buildGroupWhere
-        const columnWhere = buildGroupWhere(product, parsed, columnKey);
+        const columnWhere = buildGroupWhere(product, columnBy, columnKey);
 
         if (!columnWhere) {
           continue;
@@ -388,7 +337,13 @@ export const productRouter = router({
 
         // Fetch with limit + 1 to check hasMore
         const data = await db.query.product.findMany({
-          where: and(filterWhere, searchWhere, cursorWhere, columnWhere),
+          where: and(
+            filterWhere,
+            searchWhere,
+            cursorWhere,
+            columnWhere,
+            rowGroupWhere
+          ),
           orderBy,
           limit: limit + 1,
         });

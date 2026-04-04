@@ -29,7 +29,7 @@ interface SimpleFilterChipProps {
 /**
  * Simple filter chip for the chips bar.
  *
- * Renders a chip trigger with property icon/label/preview,
+ * Renders a chip trigger with property icon/name/preview,
  * opening a popover with SimpleFilterEditor.
  */
 function SimpleFilterChip({
@@ -47,12 +47,13 @@ function SimpleFilterChip({
 
   const close = () => setOpen(null);
 
-  const label = property.label ?? String(property.id);
+  const displayName = property.name ?? String(property.id);
 
   const preview =
     variant === "detailed"
       ? getFilterPreview({
           condition: rule.condition,
+          config: property.config,
           propertyType: property.type,
           value: rule.value,
         })
@@ -68,7 +69,7 @@ function SimpleFilterChip({
       >
         <PropertyIcon type={property.type} />
         <span className="truncate">
-          {label}
+          {displayName}
           {variant === "detailed" && preview}
         </span>
         <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />

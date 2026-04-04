@@ -1,5 +1,6 @@
 import { format, parseISO } from "date-fns";
 import type { FilterCondition, PropertyType } from "../types/filter.type";
+import type { NumberConfig, PropertyConfig } from "../types/property.type";
 
 /**
  * Date range value for isBetween condition: [from, to]
@@ -17,6 +18,7 @@ type RelativeToTodayValue = [
 
 interface GetFilterPreviewOptions {
   condition: FilterCondition;
+  config?: PropertyConfig;
   propertyType: PropertyType;
   value: unknown;
 }
@@ -86,12 +88,16 @@ function getBooleanPreview(value: unknown): string {
  * Get preview for number variant
  * Uses operators as separator (space + operator), no colon
  */
-function getNumberPreview(condition: FilterCondition, value: unknown): string {
+function getNumberPreview(
+  condition: FilterCondition,
+  value: unknown,
+  scale?: number
+): string {
   // Only show preview if value is set (not null, undefined, or empty string)
   if (value == null || value === "") {
     return "";
   }
-  const numValue = String(value);
+  const numValue = scale ? String(Number(value) / scale) : String(value);
   switch (condition) {
     case "eq":
       return ` = ${numValue}`;
@@ -221,6 +227,7 @@ function getTextPreview(condition: FilterCondition, value: unknown): string {
  */
 export function getFilterPreview({
   condition,
+  config,
   value,
   propertyType,
 }: GetFilterPreviewOptions): string {
@@ -236,8 +243,10 @@ export function getFilterPreview({
     case "checkbox":
       return getBooleanPreview(value);
 
-    case "number":
-      return getNumberPreview(condition, value);
+    case "number": {
+      const scale = (config as NumberConfig | undefined)?.scale;
+      return getNumberPreview(condition, value, scale);
+    }
 
     case "date":
       return getDatePreview(condition, value);

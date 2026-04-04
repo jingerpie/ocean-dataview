@@ -68,7 +68,7 @@ function flattenStatusOptions(
     group.options.map((value) => ({
       value,
       color: group.color,
-      group: group.label,
+      group: group.name,
       icon: group.icon,
     }))
   );
@@ -125,13 +125,13 @@ function StatusBody({
             const Icon = group.icon ?? CircleDashed;
 
             return (
-              <div key={group.label}>
+              <div key={group.name}>
                 {/* Group header */}
                 <CommandItem
                   onSelect={() =>
                     onToggleGroup(group.options, groupCheckState !== true)
                   }
-                  value={`group-${group.label}`}
+                  value={`group-${group.name}`}
                 >
                   <Checkbox
                     checked={groupCheckState === true}
@@ -140,7 +140,7 @@ function StatusBody({
                   />
                   <Icon className={`size-4 ${textClass}`} />
                   <span className="font-semibold text-muted-foreground">
-                    {group.label}
+                    {group.name}
                   </span>
                 </CommandItem>
 

@@ -10,20 +10,20 @@ export type TransformedData = Record<string, unknown>;
  * This reduces memory footprint and improves React render performance.
  *
  * For each property:
- * - Formula properties: Set to null (rendered in DataCell with full context)
- * - Other properties: Auto-maps item[property.id] to transformed[property.id]
+ * - Formula/button properties: Set to null (rendered with full context)
+ * - Other properties: Auto-maps item[property.key] to transformed[property.key]
  *
  * All other fields from raw data are dropped.
  *
  * @param rawData - Array of raw data items from API/database
- * @param properties - Property schema that define the transformation
+ * @param properties - Property schema that define the transformation (should be normalized)
  * @returns Array of transformed data objects containing only property fields
  *
  * @example
  * const rawData = [{ id: 123, name: "Item", price: 100, internal: "hidden" }];
  * const properties = [
- *   { id: "id", type: "text" },    // Auto-maps to item.id
- *   { id: "name", type: "text" },  // Auto-maps to item.name
+ *   { key: "id", type: "text" },    // Auto-maps to item.id
+ *   { key: "name", type: "text" },  // Auto-maps to item.name
  * ];
  * const transformed = transformData(rawData, properties);
  * // Result: [{ id: 123, name: "Item" }]
@@ -37,18 +37,17 @@ export function transformData<TData>(
     const transformed: TransformedData = {};
 
     for (const property of properties) {
-      if (property.type === "formula") {
-        // Formula properties are rendered in PropertyDisplay with full context
-        transformed[property.id] = null;
-      } else {
-        // Auto-map property.id to field name
-        transformed[property.id] = (item as Record<string, unknown>)[
-          property.id
+      if (property.key) {
+        // Data-backed: read from item[key], write to transformed[key]
+        transformed[property.key] = (item as Record<string, unknown>)[
+          property.key
         ];
+      } else {
+        // No data key (formula/button): set null, rendered with full context
+        transformed[property.id] = null;
       }
     }
 
-    // Clean: Only property.id fields remain, all others dropped
     return transformed;
   });
 }

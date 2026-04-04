@@ -48,8 +48,11 @@ export function ListRow<TData>({
         {data.map((item, index) => {
           // Generate a unique key by combining property values or fallback to index
           const firstProperty = displayProperties[0];
-          const uniqueKey = firstProperty
-            ? `row-${String((item as Record<string, unknown>)[firstProperty.id])}-${index}`
+          const firstValue = firstProperty?.key
+            ? (item as Record<string, unknown>)[firstProperty.key]
+            : undefined;
+          const uniqueKey = firstValue
+            ? `row-${String(firstValue)}-${index}`
             : `row-${index}`;
 
           const RowElement = onItemClick ? "button" : "div";
@@ -66,8 +69,19 @@ export function ListRow<TData>({
               {...(onItemClick && { type: "button" as const })}
             >
               {displayProperties.map((property, propIndex) => {
-                const value = (item as Record<string, unknown>)[property.id];
+                const value = property.key
+                  ? (item as Record<string, unknown>)[property.key]
+                  : undefined;
                 const isFirst = propIndex === 0;
+
+                let itemStyle:
+                  | { minWidth?: string; width?: number }
+                  | undefined;
+                if (isFirst) {
+                  itemStyle = { minWidth: ROW_SKELETON_WIDTHS[property.type] };
+                } else if (property.size) {
+                  itemStyle = { width: property.size };
+                }
 
                 return (
                   <div
@@ -78,11 +92,7 @@ export function ListRow<TData>({
                         : "shrink-0"
                     )}
                     key={String(property.id)}
-                    style={
-                      isFirst
-                        ? { minWidth: ROW_SKELETON_WIDTHS[property.type] }
-                        : undefined
-                    }
+                    style={itemStyle}
                   >
                     <DataCell
                       allProperties={allProperties}

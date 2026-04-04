@@ -67,9 +67,9 @@ function handleDateGrouping(
   }
 }
 
-// New StatusConfig type: { groups: Array<{ label: string; color: string; options: string[] }> }
+// New StatusConfig type: { groups: Array<{ name: string; color: string; options: string[] }> }
 interface StatusConfigNew {
-  groups?: Array<{ label: string; color: string; options: string[] }>;
+  groups?: Array<{ name: string; color: string; options: string[] }>;
 }
 
 /**
@@ -88,7 +88,7 @@ function handleStatusGroupGrouping(
       const group = config.groups[groupIndex];
       if (group?.options.includes(statusValue)) {
         return {
-          groupKey: group.label,
+          groupKey: group.name,
           sortValue: groupIndex,
         };
       }
@@ -188,9 +188,17 @@ function handleNumberRangeGrouping(
 
 export interface GroupingOptions {
   numberRange?: { range: [number, number]; step: number };
-  showAs?: "day" | "week" | "month" | "year" | "relative" | "option" | "group";
+  showAs?:
+    | "day"
+    | "week"
+    | "month"
+    | "year"
+    | "relative"
+    | "option"
+    | "group"
+    | "exact"
+    | "alphabetical";
   startWeekOn?: "monday" | "sunday";
-  textShowAs?: "exact" | "alphabetical";
 }
 
 /**
@@ -202,7 +210,7 @@ function getGroupKeyAndSortValue<TData>(
   options: GroupingOptions,
   emptyGroupLabel: string
 ): GroupResult {
-  const { showAs, startWeekOn, textShowAs, numberRange } = options;
+  const { showAs, startWeekOn, numberRange } = options;
 
   // Handle date grouping
   if (
@@ -210,7 +218,9 @@ function getGroupKeyAndSortValue<TData>(
     value &&
     showAs &&
     showAs !== "group" &&
-    showAs !== "option"
+    showAs !== "option" &&
+    showAs !== "exact" &&
+    showAs !== "alphabetical"
   ) {
     return handleDateGrouping(value, showAs, startWeekOn);
   }
@@ -228,7 +238,7 @@ function getGroupKeyAndSortValue<TData>(
   }
 
   // Handle text alphabetical grouping
-  if (property?.type === "text" && textShowAs === "alphabetical" && value) {
+  if (property?.type === "text" && showAs === "alphabetical" && value) {
     return handleTextAlphabeticalGrouping(value);
   }
 
@@ -259,9 +269,9 @@ function getGroupKeyAndSortValue<TData>(
  * Handles date, select, status, and other property types
  * Returns both groups and sort values for proper ordering
  * @param data - Raw data to group
- * @param propertyId - Property ID (references property.id, not data key)
- * @param properties - Property schema
- * @param options - Grouping options (showAs, startWeekOn, textShowAs, numberRange)
+ * @param propertyId - Property ID (resolved id, used to look up property schema)
+ * @param properties - Property schema (should be normalized)
+ * @param options - Grouping options (showAs, startWeekOn, numberRange)
  */
 export function groupByProperty<TData>(
   data: TData[],
@@ -270,21 +280,25 @@ export function groupByProperty<TData>(
   options?: GroupingOptions
 ): GroupedDataWithMeta<TData> {
   const property = properties.find((p) => p.id === propertyId);
-  const propertyName = property?.label || propertyId;
+  const propertyName = property?.name || propertyId;
   const emptyGroupLabel = `No ${propertyName}`;
   const groups: Record<string, TData[]> = {};
   const sortValues: Record<string, string | number> = {};
 
+  // Resolve data key from property schema
+  const dataKey = property?.key;
+
+  // Fail fast if a groupable data-backed property has no accessor
+  const NON_GROUPABLE_TYPES = new Set(["formula", "button", "filesMedia"]);
+  if (property && !dataKey && !NON_GROUPABLE_TYPES.has(property.type)) {
+    throw new Error(
+      `Property "${property.id}" (type: ${property.type}) is missing a data accessor (key). Cannot group by a property with no key.`
+    );
+  }
+
   for (const item of data) {
-    // Extract value from item
-    let value: unknown;
-    if (property?.type === "formula") {
-      // Formula properties can't be grouped - skip value extraction
-      value = null;
-    } else {
-      // Read from item[propertyId]
-      value = (item as Record<string, unknown>)[propertyId];
-    }
+    // Extract value from item using the data key
+    const value = dataKey ? (item as Record<string, unknown>)[dataKey] : null;
 
     const { groupKey, sortValue } = getGroupKeyAndSortValue(
       value,
@@ -440,7 +454,7 @@ function formatWeekRange(
 
 /**
  * Compute grouped data with various computation functions
- * @param propertyId - Property ID to compute on (references property.id, not data key)
+ * @param propertyId - Property ID to compute on (resolved id, used to look up property schema)
  */
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex switch for different computation types
 export function computeData<TData>(
@@ -454,19 +468,17 @@ export function computeData<TData>(
   // Find the property schema for value extraction
   const property = properties?.find((p) => p.id === propertyId);
 
+  // Resolve data key from property schema
+  const dataKey = property?.key;
+
   // Helper to extract value from item
   const extractValue = (item: TData): unknown => {
-    if (!propertyId) {
+    if (!dataKey) {
       return undefined;
     }
 
-    if (property?.type === "formula") {
-      // Formula properties can't be used for group counts
-      return null;
-    }
-
-    // Read from item[propertyId]
-    return (item as Record<string, unknown>)[propertyId];
+    // Read from item[key]
+    return (item as Record<string, unknown>)[dataKey];
   };
 
   for (const [groupKey, items] of Object.entries(groupedData)) {
@@ -655,8 +667,8 @@ export function transformToChartData(
 /**
  * Compute grouped data with secondary grouping (for stacked/grouped charts)
  * Returns data in format: { xAxisGroup: { secondaryGroup: value, ... }, ... }
- * @param secondaryPropertyId - Property ID for secondary grouping (references property.id, not data key)
- * @param computePropertyId - Property ID to compute on (references property.id, not data key)
+ * @param secondaryPropertyId - Property ID for secondary grouping (resolved id)
+ * @param computePropertyId - Property ID to compute on (resolved id)
  */
 export function computeGroupedData<TData>(
   xAxisGroupedData: Record<string, TData[]>,

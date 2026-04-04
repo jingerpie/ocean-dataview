@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef } from "react";
-import type { WhereNode } from "../types/filter.type";
+import type { SearchQuery, WhereNode } from "../types/filter.type";
 import type { GroupConfigInput } from "../types/group.type";
 import type { Limit } from "../types/pagination";
 import type {
@@ -42,19 +42,20 @@ export interface UsePageControllerOptions<
 > {
   /** Factory for fetching column counts (board-specific) */
   columnQuery?: (params: {
-    columnConfig: GroupConfigInput;
     filter: WhereNode[] | null;
+    groupBy: GroupConfigInput;
     hideEmpty: boolean;
-    search: string;
+    search: SearchQuery | null;
   }) => BaseQueryOptions;
   /** Factory for fetching data items */
   dataQuery: PageQueryOptionsFactory<TQueryOptions>;
   /** Factory for fetching group counts with pagination (accordion rows) */
   groupQuery?: (params: {
     filter: WhereNode[] | null;
-    groupConfig: GroupConfigInput;
+    groupBy: GroupConfigInput;
     hideEmpty: boolean;
-    search: string;
+    search: SearchQuery | null;
+    sort?: "asc" | "desc";
   }) => InfiniteGroupQueryOptions;
 }
 
@@ -81,10 +82,10 @@ export function usePageController<
   columnQueryRef.current = columnQuery;
   const stableColumnQuery = useMemo<
     | ((params: {
-        columnConfig: GroupConfigInput;
         filter: WhereNode[] | null;
+        groupBy: GroupConfigInput;
         hideEmpty: boolean;
-        search: string;
+        search: SearchQuery | null;
       }) => BaseQueryOptions)
     | undefined
   >(() => {
@@ -106,9 +107,10 @@ export function usePageController<
   const stableGroupQuery = useMemo<
     | ((params: {
         filter: WhereNode[] | null;
-        groupConfig: GroupConfigInput;
+        groupBy: GroupConfigInput;
         hideEmpty: boolean;
-        search: string;
+        search: SearchQuery | null;
+        sort?: "asc" | "desc";
       }) => InfiniteGroupQueryOptions)
     | undefined
   >(() => {

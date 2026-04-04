@@ -7,8 +7,9 @@ export {
   type FilterCondition,
   isWhereExpression,
   type SearchQuery,
+  type SearchWhereClause,
   type SortQuery,
-  searchQuerySchema,
+  searchWhereClauseSchema,
   type WhereNode,
   type WhereRule,
   whereNodeSchema,
@@ -19,8 +20,6 @@ export {
   type GroupByConfig,
   type GroupConfigInput,
   groupByConfigSchema,
-  type ParsedGroupConfig,
-  toParsedGroupConfig,
 } from "./group.type";
 // Pagination types used by packages/trpc and apps/web
 export {

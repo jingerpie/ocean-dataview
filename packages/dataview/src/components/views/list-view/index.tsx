@@ -38,6 +38,12 @@ export interface ListViewProps<TData> {
    * For flat lists: renders below the list
    */
   pagination?: PaginationMode;
+
+  /**
+   * Sticky header configuration for grouped mode.
+   * @default { enabled: false }
+   */
+  stickyHeader?: { enabled: boolean; offset?: number };
 }
 
 /**
@@ -48,7 +54,13 @@ export function ListView<
   TData,
   TProperties extends
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
->({ onItemClick, pagination }: ListViewProps<TData>) {
+>({
+  onItemClick,
+  pagination,
+  stickyHeader: stickyHeaderProp,
+}: ListViewProps<TData>) {
+  const stickyEnabled = stickyHeaderProp?.enabled ?? false;
+  const stickyOffset = stickyHeaderProp?.offset ?? 0;
   // Get data and properties from context
   const {
     data,
@@ -123,12 +135,13 @@ export function ListView<
                 groupByPropertyDef={groupByProperty}
                 key={groupItem.key}
                 showAggregation={group.showCount ?? true}
-                stickyHeader={{ enabled: true, offset: 57 }}
+                stickyHeader={{ enabled: stickyEnabled, offset: stickyOffset }}
               >
                 {isExpanded ? (
                   <Suspense
                     fallback={
                       <ListSkeleton
+                        propertySizes={displayProperties.map((p) => p.size)}
                         propertyTypes={displayProperties.map((p) => p.type)}
                         rowCount={limit ?? ListView.defaultLimit}
                       />
@@ -174,6 +187,7 @@ export function ListView<
       fallback={
         <ListSkeleton
           pagination={pagination}
+          propertySizes={displayProperties.map((p) => p.size)}
           propertyTypes={displayProperties.map((p) => p.type)}
           rowCount={limit ?? ListView.defaultLimit}
         />

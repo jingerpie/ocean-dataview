@@ -15,7 +15,11 @@ import { parseAsFilter } from "../../parsers/filter";
 import { parseAsGroupBy } from "../../parsers/group";
 import { parseAsCursors } from "../../parsers/pagination";
 import { parseAsSort } from "../../parsers/sort";
-import type { SortQuery, WhereNode } from "../../types/filter.type";
+import type {
+  SearchQuery,
+  SortQuery,
+  WhereNode,
+} from "../../types/filter.type";
 import type {
   ColumnConfigInput,
   GroupConfigInput,
@@ -48,8 +52,8 @@ export interface QueryParamsState {
   isPending: boolean;
   /** Page size limit */
   limit: Limit;
-  /** Search query */
-  search: string;
+  /** Validated search */
+  search: SearchQuery | null;
   /** Validated sort */
   sort: SortQuery[];
 }
@@ -237,20 +241,21 @@ export function QueryParamsProvider({
   const rawFilter = (urlFilter ?? defaultFilter) as WhereNode[] | null;
   const rawGroup = (urlGroup ?? defaultGroup) as GroupConfigInput | null;
   const rawSort = (urlSort ?? defaultSort) as SortQuery[];
-  const search = urlSearch ?? defaultSearch;
+  const rawSearch = urlSearch ?? defaultSearch;
 
   // ============================================================================
   // Validate and build state
   // ============================================================================
 
   const state = useMemo<QueryParamsState>(() => {
-    const { column, cursors, filter, group, limit, sort } = validate(
+    const { column, cursors, filter, group, limit, search, sort } = validate(
       {
         column: rawColumn,
         cursors: urlCursors,
         filter: rawFilter,
         group: rawGroup,
         limit: urlLimit,
+        search: rawSearch,
         sort: rawSort,
       },
       properties,
@@ -267,7 +272,7 @@ export function QueryParamsProvider({
     properties,
     defaultLimit,
     isPending,
-    search,
+    rawSearch,
   ]);
 
   // ============================================================================

@@ -21,21 +21,6 @@ export const TABLE_COLUMN_WIDTHS: Record<PropertyType, number> = {
 };
 
 /**
- * Average character width for estimating header label width (in pixels)
- */
-export const TABLE_HEADER_CHAR_WIDTH = 8;
-
-/**
- * Padding added to header label width calculation (in pixels)
- */
-export const TABLE_HEADER_PADDING = 24;
-
-/**
- * Maximum width for table header/column (in pixels)
- */
-export const TABLE_HEADER_MAX_WIDTH = 300;
-
-/**
  * Skeleton widths for row-based layouts (Table columns, List flex rows)
  * Used by: TableSkeleton, ListSkeleton
  */

@@ -580,7 +580,7 @@ export function useChartTransform<
         const property = properties.find(
           (p) => p.id === xAxisWhatToShow.property
         );
-        return property?.label;
+        return property?.name;
       }
       return undefined;
     }
@@ -589,7 +589,7 @@ export function useChartTransform<
       const property = properties.find(
         (p) => p.id === xAxisWhatToShow.property
       );
-      return property?.label;
+      return property?.name;
     }
     return undefined;
   }, [chartType, config.xAxis?.whatToShow, properties]);
@@ -604,7 +604,7 @@ export function useChartTransform<
         const property = properties.find(
           (p) => p.id === yAxisWhatToShow.property
         );
-        return property?.label;
+        return property?.name;
       }
       return undefined;
     }
@@ -616,7 +616,7 @@ export function useChartTransform<
       const property = properties.find(
         (p) => p.id === yAxisWhatToShow.property
       );
-      return property?.label;
+      return property?.name;
     }
     return undefined;
   }, [chartType, config.yAxis?.whatToShow, properties]);

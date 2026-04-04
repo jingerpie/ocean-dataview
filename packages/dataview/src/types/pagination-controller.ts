@@ -5,7 +5,7 @@
  * They contain query factories - actual URL state is managed by QueryBridge.
  */
 
-import type { SortQuery, WhereNode } from "./filter.type";
+import type { SearchQuery, SortQuery, WhereNode } from "./filter.type";
 import type { GroupConfigInput } from "./group.type";
 import type { Limit } from "./pagination";
 import type { CursorValue } from "./pagination-types";
@@ -44,10 +44,12 @@ export interface InfiniteGroupQueryOptions {
  */
 export interface GroupQueryOptionsFactoryParams {
   filter: WhereNode[] | null;
-  groupConfig: GroupConfigInput;
+  /** The group configuration */
+  groupBy: GroupConfigInput;
   /** Whether to hide groups with 0 items (defaults to false) */
   hideEmpty: boolean;
-  search: string;
+  search: SearchQuery | null;
+  sort?: "asc" | "desc";
 }
 
 /**
@@ -64,11 +66,12 @@ export type GroupQueryOptionsFactory = (
  * Mirrors group query params for consistency.
  */
 export interface ColumnQueryOptionsFactoryParams {
-  columnConfig: GroupConfigInput;
   filter: WhereNode[] | null;
+  /** The column configuration */
+  groupBy: GroupConfigInput;
   /** Whether to hide columns with 0 items (defaults to false) */
   hideEmpty: boolean;
-  search: string;
+  search: SearchQuery | null;
 }
 
 /**
@@ -84,17 +87,24 @@ export type ColumnQueryOptionsFactory = (
 // ============================================================================
 
 /**
+ * Group filter: config + key to filter items within a specific group.
+ * Null in flat mode (no grouping).
+ */
+export interface GroupFilter {
+  key: string;
+  type: GroupConfigInput;
+}
+
+/**
  * Query options factory params for page-based pagination.
  */
 export interface PageQueryOptionsFactoryParams {
   cursor?: CursorValue;
   filter: WhereNode[] | null;
-  /** The current group config (null for flat mode) */
-  groupConfig: GroupConfigInput | null;
-  /** The group key for this query ("__ungrouped__" for flat mode) */
-  groupKey: string;
+  /** Group filter (null for flat mode) */
+  groupBy: GroupFilter | null;
   limit: Limit;
-  search: string;
+  search: SearchQuery | null;
   sort: SortQuery[];
 }
 
@@ -132,12 +142,10 @@ export interface PageController<TQueryOptions> {
  */
 export interface InfiniteQueryOptionsFactoryParams {
   filter: WhereNode[] | null;
-  /** The current group config (null for flat mode) */
-  groupConfig: GroupConfigInput | null;
-  /** The group key for this query ("__ungrouped__" for flat mode) */
-  groupKey: string;
+  /** Group filter (null for flat mode) */
+  groupBy: GroupFilter | null;
   limit: Limit;
-  search: string;
+  search: SearchQuery | null;
   sort: SortQuery[];
 }
 

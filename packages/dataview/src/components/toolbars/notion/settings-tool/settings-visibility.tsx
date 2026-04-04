@@ -47,10 +47,10 @@ function SettingsVisibility({
               <CommandItem
                 key={propertyId}
                 onSelect={() => toggleProperty(propertyId)}
-                value={String(property.label ?? property.id)}
+                value={String(property.name ?? property.id)}
               >
                 <span className="flex-1 truncate">
-                  {property.label ?? String(property.id)}
+                  {property.name ?? String(property.id)}
                 </span>
                 {isVisible ? <EyeIcon /> : <EyeOffIcon />}
               </CommandItem>

@@ -8,7 +8,6 @@ import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useViewSetup } from "../../../hooks/use-view-setup";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import { cn } from "../../../lib/utils";
 import type { PaginationContext } from "../../../types/pagination";
 import type { DataViewProperty } from "../../../types/property.type";
 import { getGalleryCardDimensions } from "../../../utils/get-card-sizes";
@@ -24,6 +23,14 @@ import { DataCard } from "../data-card";
 import { GallerySkeleton } from "./gallery-skeleton";
 
 export interface GalleryViewProps<TData> {
+  /**
+   * Card layout mode
+   * - "list": Properties stack vertically, one per line
+   * - "compact": Properties flow in a wrapping row
+   * @default "list"
+   */
+  cardLayout?: "list" | "compact";
+
   /**
    * Property ID for card preview image (references property.id, not data key)
    */
@@ -65,6 +72,12 @@ export interface GalleryViewProps<TData> {
   showPropertyNames?: boolean;
 
   /**
+   * Sticky header configuration for grouped mode.
+   * @default { enabled: false }
+   */
+  stickyHeader?: { enabled: boolean; offset?: number };
+
+  /**
    * Wrap all properties text
    * @default false
    */
@@ -80,14 +93,18 @@ export function GalleryView<
   TProperties extends
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
+  cardLayout = "list",
   cardPreview,
   cardSize = "medium",
   fitMedia = true,
   onCardClick,
   pagination,
   showPropertyNames = false,
+  stickyHeader: stickyHeaderProp,
   wrapAllProperties = false,
 }: GalleryViewProps<TData>) {
+  const stickyEnabled = stickyHeaderProp?.enabled ?? false;
+  const stickyOffset = stickyHeaderProp?.offset ?? 0;
   // Get data and properties from context
   const {
     data,
@@ -126,7 +143,7 @@ export function GalleryView<
     propertyVisibility
   );
 
-  const { imageHeight, cols } = getGalleryCardDimensions(cardSize);
+  const { imageHeight, minWidth } = getGalleryCardDimensions(cardSize);
 
   // Determine if we're using infinite pagination for data
   const useInfinitePagination =
@@ -165,14 +182,16 @@ export function GalleryView<
                 groupByPropertyDef={groupByProperty}
                 key={groupItem.key}
                 showAggregation={group.showCount ?? true}
-                stickyHeader={{ enabled: true, offset: 57 }}
+                stickyHeader={{ enabled: stickyEnabled, offset: stickyOffset }}
               >
                 {isExpanded ? (
                   <Suspense
                     fallback={
                       <GallerySkeleton
                         cardCount={limit ?? GalleryView.defaultLimit}
+                        cardLayout={cardLayout}
                         cardSize={cardSize}
+                        propertySizes={displayProperties.map((p) => p.size)}
                         propertyTypes={displayProperties.map((p) => p.type)}
                         withImage={Boolean(cardPreview)}
                       />
@@ -180,12 +199,13 @@ export function GalleryView<
                   >
                     {useInfinitePagination ? (
                       <SuspendingInfiniteGalleryContent<TData, TProperties>
+                        cardLayout={cardLayout}
                         cardPreview={cardPreview}
-                        cols={cols}
                         displayProperties={displayProperties}
                         fitMedia={fitMedia}
                         groupItem={groupItem}
                         imageHeight={imageHeight}
+                        minWidth={minWidth}
                         onCardClick={onCardClick}
                         pagination={pagination}
                         properties={properties}
@@ -194,12 +214,13 @@ export function GalleryView<
                       />
                     ) : (
                       <SuspendingPageGalleryContent<TData, TProperties>
+                        cardLayout={cardLayout}
                         cardPreview={cardPreview}
-                        cols={cols}
                         displayProperties={displayProperties}
                         fitMedia={fitMedia}
                         groupItem={groupItem}
                         imageHeight={imageHeight}
+                        minWidth={minWidth}
                         onCardClick={onCardClick}
                         pagination={pagination}
                         properties={properties}
@@ -230,8 +251,10 @@ export function GalleryView<
       fallback={
         <GallerySkeleton
           cardCount={limit ?? GalleryView.defaultLimit}
+          cardLayout={cardLayout}
           cardSize={cardSize}
           pagination={pagination}
+          propertySizes={displayProperties.map((p) => p.size)}
           propertyTypes={displayProperties.map((p) => p.type)}
           withImage={Boolean(cardPreview)}
         />
@@ -239,8 +262,8 @@ export function GalleryView<
     >
       {useInfinitePagination ? (
         <SuspendingInfiniteGalleryContent<TData, TProperties>
+          cardLayout={cardLayout}
           cardPreview={cardPreview}
-          cols={cols}
           displayProperties={displayProperties}
           fitMedia={fitMedia}
           groupItem={{
@@ -251,6 +274,7 @@ export function GalleryView<
             sortValue: "",
           }}
           imageHeight={imageHeight}
+          minWidth={minWidth}
           onCardClick={onCardClick}
           pagination={pagination}
           properties={properties}
@@ -259,8 +283,8 @@ export function GalleryView<
         />
       ) : (
         <SuspendingPageGalleryContent<TData, TProperties>
+          cardLayout={cardLayout}
           cardPreview={cardPreview}
-          cols={cols}
           displayProperties={displayProperties}
           fitMedia={fitMedia}
           groupItem={{
@@ -271,6 +295,7 @@ export function GalleryView<
             sortValue: "",
           }}
           imageHeight={imageHeight}
+          minWidth={minWidth}
           onCardClick={onCardClick}
           pagination={pagination}
           properties={properties}
@@ -294,12 +319,13 @@ interface SuspendingGroupGalleryContentProps<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
+  cardLayout: "list" | "compact";
   cardPreview?: string;
-  cols: string;
   displayProperties: TProperties[number][];
   fitMedia: boolean;
   groupItem: GroupedDataItem<TData>;
   imageHeight: number;
+  minWidth: number;
   onCardClick?: (item: TData) => void;
   pagination?: PaginationMode;
   properties: TProperties;
@@ -314,24 +340,26 @@ function GalleryContentRenderer<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 >({
+  cardLayout,
   cardPreview,
-  cols,
   data,
   displayProperties,
   fitMedia,
   imageHeight,
+  minWidth,
   onCardClick,
   paginationNode,
   properties,
   showPropertyNames,
   wrapAllProperties,
 }: {
+  cardLayout: "list" | "compact";
   cardPreview?: string;
-  cols: string;
   data: TData[];
   displayProperties: TProperties[number][];
   fitMedia: boolean;
   imageHeight: number;
+  minWidth: number;
   onCardClick?: (item: TData) => void;
   paginationNode: React.ReactNode;
   properties: TProperties;
@@ -343,7 +371,12 @@ function GalleryContentRenderer<
 
   return (
     <>
-      <div className={cn("grid gap-4", cols)}>
+      <div
+        className="grid gap-4"
+        style={{
+          gridTemplateColumns: `repeat(auto-fill, minmax(${minWidth}px, 1fr))`,
+        }}
+      >
         {transformedItems.map((item, index) => {
           const firstProperty = displayProperties[0];
           const uniqueKey = firstProperty
@@ -353,6 +386,7 @@ function GalleryContentRenderer<
           return (
             <DataCard
               allProperties={properties}
+              cardLayout={cardLayout}
               cardPreview={cardPreview}
               displayProperties={displayProperties}
               fitMedia={fitMedia}
@@ -378,12 +412,13 @@ function SuspendingPageGalleryContent<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 >({
+  cardLayout,
   cardPreview,
-  cols,
   displayProperties,
   fitMedia,
   groupItem,
   imageHeight,
+  minWidth,
   onCardClick,
   pagination,
   properties,
@@ -410,12 +445,13 @@ function SuspendingPageGalleryContent<
 
         return (
           <GalleryContentRenderer
+            cardLayout={cardLayout}
             cardPreview={cardPreview}
-            cols={cols}
             data={result.data}
             displayProperties={displayProperties}
             fitMedia={fitMedia}
             imageHeight={imageHeight}
+            minWidth={minWidth}
             onCardClick={onCardClick}
             paginationNode={
               <Pagination context={paginationContext} mode={pagination} />
@@ -437,12 +473,13 @@ function SuspendingInfiniteGalleryContent<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 >({
+  cardLayout,
   cardPreview,
-  cols,
   displayProperties,
   fitMedia,
   groupItem,
   imageHeight,
+  minWidth,
   onCardClick,
   pagination,
   properties,
@@ -474,12 +511,13 @@ function SuspendingInfiniteGalleryContent<
 
         return (
           <GalleryContentRenderer
+            cardLayout={cardLayout}
             cardPreview={cardPreview}
-            cols={cols}
             data={result.data}
             displayProperties={displayProperties}
             fitMedia={fitMedia}
             imageHeight={imageHeight}
+            minWidth={minWidth}
             onCardClick={onCardClick}
             paginationNode={
               <Pagination context={paginationContext} mode={pagination} />

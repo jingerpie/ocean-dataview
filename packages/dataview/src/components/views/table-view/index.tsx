@@ -18,6 +18,7 @@ import { useDisplayProperties } from "../../../hooks/use-display-properties";
 import type { GroupedDataItem } from "../../../hooks/use-group-config";
 import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
+import { useScrollSync } from "../../../hooks/use-scroll-sync";
 import { useViewSetup } from "../../../hooks/use-view-setup";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import type { BulkAction } from "../../../types/action.type";
@@ -70,16 +71,30 @@ export interface TableViewProps<TData> {
   pagination?: PaginationMode;
 
   /**
+   * Default for showing property names in column headers.
+   * Per-property `showName` overrides this.
+   * @default true
+   */
+  showPropertyNames?: boolean;
+
+  /**
    * Show vertical lines between columns
    * @default true
    */
   showVerticalLines?: boolean;
 
   /**
-   * Wrap text in all columns
+   * Sticky header configuration.
+   * @default { enabled: false }
+   */
+  stickyHeader?: { enabled: boolean; offset?: number };
+
+  /**
+   * Default for wrapping text in cells.
+   * Per-property `wrap` overrides this.
    * @default true
    */
-  wrapAllColumns?: boolean;
+  wrapAllProperties?: boolean;
 }
 
 /**
@@ -95,9 +110,15 @@ export function TableView<
   bulkActions,
   onRowClick,
   pagination,
+  showPropertyNames = true,
   showVerticalLines = true,
-  wrapAllColumns = true,
+  stickyHeader: stickyHeaderProp,
+  wrapAllProperties = true,
 }: TableViewProps<TData>) {
+  const stickyEnabled = stickyHeaderProp?.enabled ?? false;
+  const stickyOffset = stickyHeaderProp?.offset ?? 0;
+  const { register: registerScroll } = useScrollSync();
+
   // Get data and properties from context
   const {
     data,
@@ -148,22 +169,31 @@ export function TableView<
   // Generate columns from properties
   const columns = useMemo<ColumnDef<TData>[]>(() => {
     const propertyColumns: ColumnDef<TData>[] = displayProperties.map(
-      (property) => ({
-        id: String(property.id),
-        accessorKey: String(property.id),
-        header: property.label ?? String(property.id),
-        cell: ({ getValue, row }) => (
-          <DataCell
-            allProperties={properties}
-            item={row.original}
-            property={property}
-            value={getValue()}
-          />
-        ),
-        meta: {
-          propertyType: property.type,
-        },
-      })
+      (property) => {
+        const resolvedShowName = property.showName ?? showPropertyNames;
+        const resolvedWrap = property.wrap ?? wrapAllProperties;
+
+        return {
+          id: String(property.id),
+          accessorKey: String(property.id),
+          header: resolvedShowName
+            ? (property.name ?? String(property.id))
+            : "",
+          cell: ({ getValue, row }) => (
+            <DataCell
+              allProperties={properties}
+              item={row.original}
+              property={property}
+              value={getValue()}
+            />
+          ),
+          meta: {
+            propertyType: property.type,
+            propertySize: property.size,
+            wrap: resolvedWrap,
+          },
+        };
+      }
     );
 
     const allColumns: ColumnDef<TData>[] = [];
@@ -272,12 +302,13 @@ export function TableView<
                 groupByPropertyDef={groupByProperty}
                 key={groupItem.key}
                 showAggregation={group.showCount ?? true}
-                stickyHeader={{ enabled: true, offset: 57 }}
+                stickyHeader={{ enabled: stickyEnabled, offset: stickyOffset }}
               >
                 {isExpanded ? (
                   <Suspense
                     fallback={
                       <TableSkeleton
+                        propertySizes={displayProperties.map((p) => p.size)}
                         propertyTypes={displayProperties.map((p) => p.type)}
                         rowCount={limit ?? TableView.defaultLimit}
                         withBulkActions={enableRowSelection}
@@ -290,14 +321,17 @@ export function TableView<
                         columns={columns}
                         enableRowSelection={enableRowSelection}
                         groupItem={groupItem}
-                        headerOffset={101}
+                        headerOffset={stickyOffset + 44}
+                        hideScrollbar
                         onRowClick={onRowClick}
                         onRowSelectionChange={setRowSelection}
                         pagination={pagination}
                         properties={properties}
+                        registerScroll={registerScroll}
                         rowSelection={rowSelection}
                         showVerticalLines={showVerticalLines}
-                        wrapAllColumns={wrapAllColumns}
+                        stickyEnabled={stickyEnabled}
+                        wrapAllProperties={wrapAllProperties}
                       />
                     ) : (
                       <SuspendingPageTableContent<TData, TProperties>
@@ -305,14 +339,17 @@ export function TableView<
                         columns={columns}
                         enableRowSelection={enableRowSelection}
                         groupItem={groupItem}
-                        headerOffset={101}
+                        headerOffset={stickyOffset + 44}
+                        hideScrollbar
                         onRowClick={onRowClick}
                         onRowSelectionChange={setRowSelection}
                         pagination={pagination}
                         properties={properties}
+                        registerScroll={registerScroll}
                         rowSelection={rowSelection}
                         showVerticalLines={showVerticalLines}
-                        wrapAllColumns={wrapAllColumns}
+                        stickyEnabled={stickyEnabled}
+                        wrapAllProperties={wrapAllProperties}
                       />
                     )}
                   </Suspense>
@@ -328,6 +365,9 @@ export function TableView<
           isFetching={isFetchingNextGroupPage}
           onLoadMore={onLoadMoreGroups}
         />
+
+        {/* Shared horizontal scrollbar for all grouped tables */}
+        <ScrollSyncBar register={registerScroll} />
       </div>
     );
   }
@@ -338,6 +378,7 @@ export function TableView<
       fallback={
         <TableSkeleton
           pagination={pagination}
+          propertySizes={displayProperties.map((p) => p.size)}
           propertyTypes={displayProperties.map((p) => p.type)}
           rowCount={limit ?? TableView.defaultLimit}
           withBulkActions={enableRowSelection}
@@ -356,14 +397,16 @@ export function TableView<
             displayCount: "0",
             sortValue: "",
           }}
-          headerOffset={57}
+          headerOffset={stickyOffset}
           onRowClick={onRowClick}
           onRowSelectionChange={setRowSelection}
           pagination={pagination}
           properties={properties}
+          registerScroll={registerScroll}
           rowSelection={rowSelection}
           showVerticalLines={showVerticalLines}
-          wrapAllColumns={wrapAllColumns}
+          stickyEnabled={stickyEnabled}
+          wrapAllProperties={wrapAllProperties}
         />
       ) : (
         <SuspendingPageTableContent<TData, TProperties>
@@ -377,14 +420,16 @@ export function TableView<
             displayCount: "0",
             sortValue: "",
           }}
-          headerOffset={57}
+          headerOffset={stickyOffset}
           onRowClick={onRowClick}
           onRowSelectionChange={setRowSelection}
           pagination={pagination}
           properties={properties}
+          registerScroll={registerScroll}
           rowSelection={rowSelection}
           showVerticalLines={showVerticalLines}
-          wrapAllColumns={wrapAllColumns}
+          stickyEnabled={stickyEnabled}
+          wrapAllProperties={wrapAllProperties}
         />
       )}
     </Suspense>
@@ -407,15 +452,20 @@ interface SuspendingGroupTableContentProps<
   columns: ColumnDef<TData>[];
   enableRowSelection: boolean;
   groupItem: GroupedDataItem<TData>;
-  /** Offset for sticky header (57 for flat, 101 for grouped with GroupSection above) */
+  /** Offset for sticky header */
   headerOffset: number;
+  /** Hide individual scrollbars (shared scrollbar provided at view level) */
+  hideScrollbar?: boolean;
   onRowClick?: (row: TData) => void;
   onRowSelectionChange: (state: RowSelectionState) => void;
   pagination?: PaginationMode;
   properties: TProperties;
+  /** External scroll sync registration for cross-group horizontal scroll */
+  registerScroll?: (el: HTMLElement) => () => void;
   rowSelection: RowSelectionState;
   showVerticalLines: boolean;
-  wrapAllColumns: boolean;
+  stickyEnabled: boolean;
+  wrapAllProperties: boolean;
 }
 
 /**
@@ -430,26 +480,32 @@ function TableContentRenderer<
   data,
   enableRowSelection,
   headerOffset,
+  hideScrollbar,
   onRowClick,
   onRowSelectionChange,
   paginationNode,
   properties,
+  registerScroll,
   rowSelection,
   showVerticalLines,
-  wrapAllColumns,
+  stickyEnabled,
+  wrapAllProperties,
 }: {
   actionBar?: (table: TanStackTable<TData>) => React.ReactNode;
   columns: ColumnDef<TData>[];
   data: TData[];
   enableRowSelection: boolean;
   headerOffset: number;
+  hideScrollbar?: boolean;
   onRowClick?: (row: TData) => void;
   onRowSelectionChange: (state: RowSelectionState) => void;
   paginationNode: React.ReactNode;
   properties: TProperties;
+  registerScroll?: (el: HTMLElement) => () => void;
   rowSelection: RowSelectionState;
   showVerticalLines: boolean;
-  wrapAllColumns: boolean;
+  stickyEnabled: boolean;
+  wrapAllProperties: boolean;
 }) {
   // Transform data with property schema
   const transformedItems = transformData(data, properties) as TData[];
@@ -461,13 +517,15 @@ function TableContentRenderer<
         columns={columns}
         data={transformedItems}
         enableRowSelection={enableRowSelection}
-        header={{ enabled: true, sticky: true }}
+        header={{ enabled: true, sticky: stickyEnabled }}
+        hideScrollbar={hideScrollbar}
         offset={headerOffset}
         onRowClick={onRowClick}
         onRowSelectionChange={onRowSelectionChange}
+        registerScroll={registerScroll}
         rowSelection={rowSelection}
         showVerticalLines={showVerticalLines}
-        wrapAllColumns={wrapAllColumns}
+        wrapAllProperties={wrapAllProperties}
       />
       {paginationNode}
     </>
@@ -486,13 +544,16 @@ function SuspendingPageTableContent<
   enableRowSelection,
   groupItem,
   headerOffset,
+  hideScrollbar,
   onRowClick,
   onRowSelectionChange,
   pagination,
   properties,
+  registerScroll,
   rowSelection,
   showVerticalLines,
-  wrapAllColumns,
+  stickyEnabled,
+  wrapAllProperties,
 }: SuspendingGroupTableContentProps<TData, TProperties>) {
   return (
     <SuspendingGroupContent<TData> groupKey={groupItem.key}>
@@ -507,8 +568,14 @@ function SuspendingPageTableContent<
           isFetching: result.isFetching,
           limit: result.limit,
           onLimitChange: result.onLimitChange,
-          onNext: result.onNext,
-          onPrev: result.onPrev,
+          onNext: () => {
+            onRowSelectionChange({});
+            result.onNext();
+          },
+          onPrev: () => {
+            onRowSelectionChange({});
+            result.onPrev();
+          },
           totalCount: groupItem.count,
         };
 
@@ -519,15 +586,18 @@ function SuspendingPageTableContent<
             data={result.data}
             enableRowSelection={enableRowSelection}
             headerOffset={headerOffset}
+            hideScrollbar={hideScrollbar}
             onRowClick={onRowClick}
             onRowSelectionChange={onRowSelectionChange}
             paginationNode={
               <Pagination context={paginationContext} mode={pagination} />
             }
             properties={properties}
+            registerScroll={registerScroll}
             rowSelection={rowSelection}
             showVerticalLines={showVerticalLines}
-            wrapAllColumns={wrapAllColumns}
+            stickyEnabled={stickyEnabled}
+            wrapAllProperties={wrapAllProperties}
           />
         );
       }}
@@ -547,13 +617,16 @@ function SuspendingInfiniteTableContent<
   enableRowSelection,
   groupItem,
   headerOffset,
+  hideScrollbar,
   onRowClick,
   onRowSelectionChange,
   pagination,
   properties,
+  registerScroll,
   rowSelection,
   showVerticalLines,
-  wrapAllColumns,
+  stickyEnabled,
+  wrapAllProperties,
 }: SuspendingGroupTableContentProps<TData, TProperties>) {
   return (
     <SuspendingInfiniteGroupContent<TData> groupKey={groupItem.key}>
@@ -585,15 +658,18 @@ function SuspendingInfiniteTableContent<
             data={result.data}
             enableRowSelection={enableRowSelection}
             headerOffset={headerOffset}
+            hideScrollbar={hideScrollbar}
             onRowClick={onRowClick}
             onRowSelectionChange={onRowSelectionChange}
             paginationNode={
               <Pagination context={paginationContext} mode={pagination} />
             }
             properties={properties}
+            registerScroll={registerScroll}
             rowSelection={rowSelection}
             showVerticalLines={showVerticalLines}
-            wrapAllColumns={wrapAllColumns}
+            stickyEnabled={stickyEnabled}
+            wrapAllProperties={wrapAllProperties}
           />
         );
       }}
@@ -693,6 +769,84 @@ function InfiniteScrollGroupsSentinel({
           <span className="text-sm">Loading more groups...</span>
         </div>
       )}
+    </div>
+  );
+}
+
+// ============================================================================
+// Scroll Sync Bar
+// ============================================================================
+
+/**
+ * ScrollSyncBar - A visible horizontal scrollbar that syncs with all
+ * registered scroll containers. Used in grouped mode where individual
+ * DataTable scrollbars are hidden.
+ *
+ * Measures content width from sibling scroll containers via ResizeObserver.
+ */
+function ScrollSyncBar({
+  register,
+}: {
+  register: (el: HTMLElement) => () => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const spacerRef = useRef<HTMLDivElement>(null);
+  const [contentWidth, setContentWidth] = useState(0);
+
+  // Register with scroll sync
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) {
+      return;
+    }
+    return register(el);
+  }, [register]);
+
+  // Observe any registered scroll container to measure content width
+  useEffect(() => {
+    const scrollEl = scrollRef.current;
+    if (!scrollEl) {
+      return;
+    }
+
+    const updateWidth = () => {
+      // Find any overflow-x-auto container in the parent tree to measure from
+      const parent = scrollEl.closest(".flex.flex-col");
+      if (!parent) {
+        return;
+      }
+      const container = parent.querySelector<HTMLElement>(".overflow-x-auto");
+      if (!container || container === scrollEl) {
+        setContentWidth(0);
+        return;
+      }
+      setContentWidth(container.scrollWidth);
+    };
+
+    // Delay initial check to allow Suspense children to mount
+    const timer = setTimeout(updateWidth, 100);
+
+    const observer = new MutationObserver(updateWidth);
+    const parent = scrollEl.closest(".flex.flex-col");
+    if (parent) {
+      observer.observe(parent, { childList: true, subtree: true });
+    }
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, []);
+
+  return (
+    <div
+      className="sticky bottom-0 overflow-x-auto"
+      ref={scrollRef}
+      style={
+        contentWidth === 0 ? { visibility: "hidden", height: 0 } : undefined
+      }
+    >
+      <div ref={spacerRef} style={{ width: contentWidth, height: 1 }} />
     </div>
   );
 }

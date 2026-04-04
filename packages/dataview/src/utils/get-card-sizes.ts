@@ -10,8 +10,8 @@ export interface BoardCardDimensions {
 }
 
 export interface GalleryCardDimensions {
-  cols: string; // Tailwind grid classes
   imageHeight: number;
+  minWidth: number; // minimum card width in px for auto-fill
 }
 
 /**
@@ -28,18 +28,9 @@ export const BOARD_CARD_SIZES: Record<CardSize, BoardCardDimensions> = {
  * Gallery view card dimensions by size
  */
 export const GALLERY_CARD_SIZES: Record<CardSize, GalleryCardDimensions> = {
-  small: {
-    imageHeight: 150,
-    cols: "grid-cols-1 sm:grid-cols-3 lg:grid-cols-5",
-  },
-  medium: {
-    imageHeight: 200,
-    cols: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
-  },
-  large: {
-    imageHeight: 260,
-    cols: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
-  },
+  small: { imageHeight: 150, minWidth: 180 },
+  medium: { imageHeight: 200, minWidth: 250 },
+  large: { imageHeight: 260, minWidth: 320 },
 };
 
 /**

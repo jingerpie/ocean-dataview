@@ -10,7 +10,6 @@ import type {
   WhereNode,
 } from "@sparkyidea/dataview/types";
 import { BoardView } from "@sparkyidea/dataview/views/board-view";
-import { combineGroupFilter } from "@/utils/group-filter";
 import { useTRPC } from "@/utils/trpc/client";
 import { DataViewTab } from "./dataview-tab";
 import { productProperties } from "./product-properties";
@@ -51,43 +50,16 @@ export function ProductBoardView({
   const effectiveColumnConfig = column ?? defaultColumnConfig;
 
   const { controller } = useInfiniteController({
-    columnQuery: (params) =>
-      trpc.product.getGroup.queryOptions({
-        filter: params.filter,
-        groupBy: params.columnConfig,
-        hideEmpty: params.hideEmpty,
-        search: params.search,
-      }),
+    columnQuery: (params) => trpc.product.getGroup.queryOptions(params),
 
     groupQuery: (params) =>
-      trpc.product.getGroup.infiniteQueryOptions(
-        {
-          filter: params.filter,
-          groupBy: params.groupConfig,
-          hideEmpty: params.hideEmpty,
-          search: params.search,
-          sort: params.groupConfig.sort,
-          limit: 25,
-        },
-        { getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined }
-      ),
+      trpc.product.getGroup.infiniteQueryOptions(params, {
+        getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      }),
 
     dataQuery: (params) =>
       trpc.product.getManyByColumn.infiniteQueryOptions(
-        {
-          columnBy: effectiveColumnConfig,
-          limit: params.limit,
-          filter:
-            params.groupConfig && params.groupKey
-              ? combineGroupFilter(
-                  params.groupConfig,
-                  params.groupKey,
-                  params.filter
-                )
-              : params.filter,
-          sort: params.sort ?? [],
-          search: params.search,
-        },
+        { ...params, columnBy: effectiveColumnConfig },
         {
           getNextPageParam: (lastPage) => {
             const hasAnyMore = Object.values(lastPage.hasNextPage).some(
@@ -133,6 +105,7 @@ export function ProductBoardView({
         colorColumns
         fitMedia
         pagination="loadMore"
+        stickyHeader={{ enabled: true, offset: 57 }}
       />
     </DataViewProvider>
   );

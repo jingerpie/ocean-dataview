@@ -9,7 +9,6 @@ import type {
   WhereNode,
 } from "@sparkyidea/dataview/types";
 import { ListView } from "@sparkyidea/dataview/views/list-view";
-import { combineGroupFilter } from "@/utils/group-filter";
 import { useTRPC } from "@/utils/trpc/client";
 import { DataViewTab } from "./dataview-tab";
 import { productListProperties } from "./product-list-properties";
@@ -40,38 +39,15 @@ export function ProductListView({
 
   const { controller } = useInfiniteController({
     groupQuery: (params) =>
-      trpc.product.getGroup.infiniteQueryOptions(
-        {
-          filter: params.filter,
-          groupBy: params.groupConfig,
-          hideEmpty: params.hideEmpty,
-          search: params.search,
-          sort: params.groupConfig.sort,
-          limit: 25,
-        },
-        { getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined }
-      ),
+      trpc.product.getGroup.infiniteQueryOptions(params, {
+        getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      }),
 
     dataQuery: (params) =>
-      trpc.product.getMany.infiniteQueryOptions(
-        {
-          filter:
-            params.groupConfig && params.groupKey
-              ? combineGroupFilter(
-                  params.groupConfig,
-                  params.groupKey,
-                  params.filter
-                )
-              : params.filter,
-          search: params.search,
-          sort: params.sort ?? [],
-          limit: params.limit,
-        },
-        {
-          getNextPageParam: (lastPage) =>
-            lastPage.hasNextPage ? lastPage.endCursor : undefined,
-        }
-      ),
+      trpc.product.getMany.infiniteQueryOptions(params, {
+        getNextPageParam: (lastPage) =>
+          lastPage.hasNextPage ? lastPage.endCursor : undefined,
+      }),
   });
 
   // Add view options to group config
@@ -92,7 +68,10 @@ export function ProductListView({
       <NotionToolbar enableSettings>
         <DataViewTab options={productTabOptions} />
       </NotionToolbar>
-      <ListView pagination="loadMore" />
+      <ListView
+        pagination="loadMore"
+        stickyHeader={{ enabled: true, offset: 57 }}
+      />
     </DataViewProvider>
   );
 }

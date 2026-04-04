@@ -68,12 +68,42 @@ export interface BaseProperty<_T> {
    */
   hidden?: boolean;
   /**
-   * Unique identifier for this property.
-   * Must correspond to a field in the data object (except for formula type).
+   * Unique identity for this property.
+   * Used for React keys, filter/sort/group refs, URL params, visibility toggles.
+   * Resolved via priority chain: id → key → name → index.
+   * Always present after normalization.
    */
   id: string;
-  label?: string;
+  /**
+   * Data field accessor. Maps to `item[key]`.
+   * Required for data-backed types to read values from items.
+   */
+  key?: string;
+  /** Display name shown in UI (column headers, filter pickers, etc.) */
+  name?: string;
+  /**
+   * Per-property override for `showPropertyNames`.
+   * - `true`: Always show this property's name
+   * - `false`: Always hide this property's name
+   * - `undefined`: Use the global `showPropertyNames` setting
+   */
+  showName?: boolean;
+  /**
+   * Display size/width for this property (in pixels).
+   * - Table: used as column width (maps to TanStack ColumnDef sizing)
+   * - List: used as flex-basis for non-first properties
+   * - Card (Board/Gallery): used as width hint in compact layout
+   * Falls back to default behavior when omitted.
+   */
+  size?: number;
   type: PropertyType;
+  /**
+   * Per-property override for `wrapAllProperties`.
+   * - `true`: Always wrap this property's value
+   * - `false`: Never wrap this property's value
+   * - `undefined`: Use the global `wrapAllProperties` setting
+   */
+  wrap?: boolean;
 }
 
 // Type-specific configurations
@@ -96,6 +126,9 @@ export interface NumberConfig {
     | "dollar"
     | "euro"
     | "pound";
+  /** Divide stored value by this for display, multiply filter input by this for query.
+   *  Example: cents stored as integers → scale: 100 to display as dollars. */
+  scale?: number;
   showAs?: {
     type?: "number" | "bar" | "ring"; // default: "number"
     color?: BadgeColor; // default: "green" (only used for bar/ring)
@@ -106,6 +139,8 @@ export interface NumberConfig {
 
 export interface SelectOption {
   color?: BadgeColor;
+  /** Display label. Falls back to `value` when omitted. */
+  name?: string;
   value: string;
 }
 
@@ -133,7 +168,7 @@ export interface StatusGroup {
   color: BadgeColor;
   /** Optional icon component to display. Defaults to CircleDashed. */
   icon?: IconComponent;
-  label: string;
+  name: string;
   options: string[];
 }
 
@@ -201,7 +236,7 @@ export type PropertyConfig =
  * Covariant property metadata type - safe to pass to any component.
  *
  * This type excludes the `value` function which causes TypeScript contravariance issues.
- * Use PropertyMeta when components only need property metadata (id, type, label, config)
+ * Use PropertyMeta when components only need property metadata (id, type, name, config)
  * but don't need to call the value function.
  *
  * @example
@@ -228,12 +263,20 @@ export interface PropertyMeta {
   enableSort?: boolean;
   /** Hide from visibility toggle and columns @default false */
   hidden?: boolean;
-  /** Unique identifier for this property */
+  /** Unique identifier for this property (always resolved after normalization) */
   id: string;
-  /** Display label */
-  label?: string;
+  /** Data field accessor (undefined for formula/button) */
+  key?: string;
+  /** Display name shown in UI */
+  name?: string;
+  /** Per-property override for showPropertyNames */
+  showName?: boolean;
+  /** Display size/width in pixels */
+  size?: number;
   /** Property type for rendering */
   type: PropertyType;
+  /** Per-property override for wrapAllProperties */
+  wrap?: boolean;
 }
 
 /**
@@ -334,11 +377,11 @@ export type PropertyRenderFunction = (id: string) => any;
  *
  * @example
  * ```tsx
- * // Using property() for rendering and item for data access
+ * // Formula — id required, no key (no data field)
  * {
  *   id: "productSummary",
  *   type: "formula",
- *   label: "Product",
+ *   name: "Product",
  *   sortBy: "name",
  *   value: (property, item) => (
  *     <div className="flex flex-col gap-1">
@@ -347,19 +390,6 @@ export type PropertyRenderFunction = (id: string) => any;
  *       {item.minCalories > 500 && (
  *         <span className="text-red-500 text-xs">High cal</span>
  *       )}
- *     </div>
- *   ),
- * }
- *
- * // Using property components directly for manual composition
- * // import { TextProperty, NumberProperty } from "@sparkyidea/dataview/components/ui/properties";
- * {
- *   id: "summary",
- *   type: "formula",
- *   value: (property, item) => (
- *     <div className="flex gap-2">
- *       <TextProperty value={item.title} />
- *       <NumberProperty value={item.price} config={{ numberFormat: "dollar" }} />
  *     </div>
  *   ),
  * }
@@ -394,10 +424,11 @@ export type FormulaPropertyType<T> = BaseProperty<T> & {
  *
  * @example
  * ```tsx
+ * // Button — id required, no key (no data field)
  * {
  *   id: "actions",
  *   type: "button",
- *   label: "Actions",
+ *   name: "Actions",
  *   value: (item) => [
  *     { label: "View", icon: Eye, onClick: () => viewItem(item) },
  *     { label: "Edit", icon: Edit, onClick: () => editItem(item) },
@@ -419,9 +450,8 @@ export type ButtonPropertyType<T> = BaseProperty<T> & {
 };
 
 /**
- * Main type for defining data view properties
- * Union of all property types
- * Use this when defining property arrays: DataViewProperty<YourType>[]
+ * Main type for defining data view properties (resolved — id always present).
+ * Used throughout the system after normalization.
  */
 export type DataViewProperty<T> =
   | TextPropertyType<T>
@@ -449,7 +479,7 @@ export type PropertyKeys<T extends readonly DataViewProperty<any>[]> =
 // Re-export filter types for unified system
 export type {
   FilterCondition,
-  SearchQuery,
+  SearchWhereClause,
   SortQuery,
   WhereExpression,
   WhereNode,
@@ -465,13 +495,15 @@ const EXCLUDED_SEARCH_TYPES: PropertyType[] = [
 ];
 
 /**
- * Extract property IDs that should be included in search queries.
+ * Extract data field keys that should be included in search queries.
  *
  * Default behavior by type:
  * - Included: text, url, email, phone, number, select, multiSelect, status, date
- * - Excluded: filesMedia, checkbox, formula
+ * - Excluded: filesMedia, checkbox, formula, button
  *
  * Override with `enableSearch: true/false` on individual properties.
+ *
+ * @returns Array of data field keys (property.key) for searchable properties
  *
  * @example
  * const searchableFields = getSearchableProperties(productProperties);
@@ -493,7 +525,8 @@ export function getSearchableProperties<T>(
       // Default: include unless type is in excluded list
       return !EXCLUDED_SEARCH_TYPES.includes(p.type);
     })
-    .map((p) => p.id);
+    .map((p) => p.key ?? p.id)
+    .filter((key): key is string => key !== undefined);
 }
 
 // Sort configuration (simple client-side sorting)

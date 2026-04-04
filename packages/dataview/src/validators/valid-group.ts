@@ -73,7 +73,16 @@ type PropertyLike = Pick<PropertyMeta, "enableGroup" | "id" | "type">;
 export function validateGroupConfig(
   properties: readonly PropertyLike[],
   groupBy: string,
-  showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option"
+  showAs?:
+    | "day"
+    | "week"
+    | "month"
+    | "year"
+    | "relative"
+    | "group"
+    | "option"
+    | "exact"
+    | "alphabetical"
 ): string | null {
   // groupBy references property IDs
   // Find a property that matches this ID for validation

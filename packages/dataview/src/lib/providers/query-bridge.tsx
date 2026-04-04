@@ -13,7 +13,11 @@ import {
   useMemo,
 } from "react";
 import { useExpandedGroups } from "../../hooks/use-expanded-groups";
-import type { SortQuery, WhereNode } from "../../types/filter.type";
+import type {
+  SearchQuery,
+  SortQuery,
+  WhereNode,
+} from "../../types/filter.type";
 import type {
   ColumnConfigInput,
   GroupConfigInput,
@@ -151,7 +155,7 @@ export interface QueryRuntimeState {
   isPending: boolean;
   limit: Limit;
   onLoadMoreGroups: () => void;
-  search: string;
+  search: SearchQuery | null;
 
   // Setters
   setCursor: (groupKey: string, cursor: CursorValue | null) => void;
@@ -214,13 +218,14 @@ interface InfiniteGroupKeysProps {
   // Accept any function that returns infinite query options (tRPC or manual)
   groupQuery: (params: {
     filter: WhereNode[] | null;
-    groupConfig: GroupConfigInput;
+    groupBy: GroupConfigInput;
     hideEmpty: boolean;
-    search: string;
+    search: SearchQuery | null;
+    sort?: "asc" | "desc";
     // biome-ignore lint/suspicious/noExplicitAny: Must accept tRPC's infiniteQueryOptions return type
   }) => any;
   hideEmpty: boolean;
-  search: string;
+  search: SearchQuery | null;
 }
 
 /**
@@ -246,9 +251,10 @@ function InfiniteGroupKeys({
 
   const factoryOptions = groupQuery({
     filter: deferredFilter,
-    groupConfig: groupByConfig,
+    groupBy: groupByConfig,
     hideEmpty: deferredHideEmpty,
     search: deferredSearch,
+    sort: groupByConfig.sort,
   });
 
   // Spread tRPC options directly - tRPC's infiniteQueryOptions returns a complete config
@@ -309,17 +315,17 @@ interface SuspendingColumnKeysProps {
   }) => ReactNode;
   columnByConfig: GroupConfigInput;
   columnQuery: (params: {
-    columnConfig: GroupConfigInput;
     filter: WhereNode[] | null;
+    groupBy: GroupConfigInput;
     hideEmpty: boolean;
-    search: string;
+    search: SearchQuery | null;
   }) => {
     queryFn?: unknown;
     queryKey: readonly unknown[];
   };
   filter: WhereNode[] | null;
   hideEmpty: boolean;
-  search: string;
+  search: SearchQuery | null;
 }
 
 /**
@@ -342,8 +348,8 @@ function SuspendingColumnKeys({
   const deferredHideEmpty = useDeferredValue(hideEmpty);
 
   const factoryOptions = columnQuery({
-    columnConfig: columnByConfig,
     filter: deferredFilter,
+    groupBy: columnByConfig,
     hideEmpty: deferredHideEmpty,
     search: deferredSearch,
   });
@@ -598,7 +604,7 @@ interface PageQueryBridgeInnerProps<
   isPending: boolean;
   limit: Limit;
   onLoadMoreGroups: () => void;
-  search: string;
+  search: SearchQuery | null;
   setColumn: (column: ColumnConfigInput | null) => void;
   setCursor: (groupKey: string, cursor: CursorValue | null) => void;
   setFilter: (filter: WhereNode[] | null) => void;
@@ -773,7 +779,7 @@ function PageQueryBridgeInner<
         onLoadMoreGroups={onLoadMoreGroups}
         pagination={pagination}
         propertyVisibility={propertyVisibility}
-        search={search}
+        search={search?.search}
         sort={sort}
       >
         {children}
@@ -1039,7 +1045,7 @@ interface InfiniteQueryBridgeInnerProps<
   isPending: boolean;
   limit: Limit;
   onLoadMoreGroups: () => void;
-  search: string;
+  search: SearchQuery | null;
   setColumn: (column: ColumnConfigInput | null) => void;
   setFilter: (filter: WhereNode[] | null) => void;
   setGroup: (group: GroupConfigInput | null) => void;
@@ -1211,7 +1217,7 @@ function InfiniteQueryBridgeInner<
         onLoadMoreGroups={onLoadMoreGroups}
         pagination={pagination}
         propertyVisibility={propertyVisibility}
-        search={search}
+        search={search?.search}
         sort={sort}
       >
         {children}

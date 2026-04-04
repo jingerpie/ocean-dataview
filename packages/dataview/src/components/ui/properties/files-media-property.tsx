@@ -79,7 +79,7 @@ function renderFile(url: string, className?: string) {
   return (
     <a
       className={cn(
-        "relative inline-block h-[26px] w-[26px] overflow-hidden rounded align-top hover:opacity-80",
+        "inline-block shrink-0 overflow-hidden rounded align-top hover:opacity-80",
         className
       )}
       href={url}
@@ -89,10 +89,10 @@ function renderFile(url: string, className?: string) {
     >
       <Image
         alt="Media"
-        className="object-cover"
-        fill
-        sizes="(max-width: 768px) 100vw, 200px"
+        className="h-[26px] w-auto object-contain"
+        height={26}
         src={url}
+        width={26}
       />
     </a>
   );

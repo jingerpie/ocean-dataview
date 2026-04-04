@@ -1,13 +1,21 @@
 "use client";
 
 import { AlertCircle, Loader2 } from "lucide-react";
-import { Suspense, useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useDisplayProperties } from "../../../hooks/use-display-properties";
 import type { GroupedDataItem } from "../../../hooks/use-group-config";
 import { useGroupParams } from "../../../hooks/use-group-params";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
+import { useScrollSync } from "../../../hooks/use-scroll-sync";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import { toParsedGroupConfig } from "../../../types/group.type";
+import type { GroupByConfig } from "../../../types/group.type";
 import type { PaginationContext } from "../../../types/pagination";
 import type {
   GroupCountInfo,
@@ -30,9 +38,10 @@ import { SuspendingInfiniteGroupContent } from "../../ui/suspending-group-conten
 import { DataCard } from "../data-card";
 import { DataCell } from "../data-cell";
 import { EmptyState } from "../empty-state";
-import { BoardColumnHeaders } from "./board-column-headers";
+import { BoardColumnHeaders, parseColumnWidth } from "./board-column-headers";
 import { BoardColumns } from "./board-columns";
 import { BoardSkeleton } from "./board-skeleton";
+import { StickyColumnLabel } from "./sticky-column-label";
 
 /**
  * Pagination mode for board views.
@@ -44,6 +53,14 @@ import { BoardSkeleton } from "./board-skeleton";
 export type BoardPaginationMode = "loadMore" | "infiniteScroll";
 
 export interface BoardViewProps<TData> {
+  /**
+   * Card layout mode
+   * - "list": Properties stack vertically, one per line
+   * - "compact": Properties flow in a wrapping row
+   * @default "list"
+   */
+  cardLayout?: "list" | "compact";
+
   /**
    * Property ID for card preview image (references property.id, not data key)
    */
@@ -101,6 +118,12 @@ export interface BoardViewProps<TData> {
   showPropertyNames?: boolean;
 
   /**
+   * Sticky header configuration.
+   * @default { enabled: false }
+   */
+  stickyHeader?: { enabled: boolean; offset?: number };
+
+  /**
    * Wrap all properties text
    * @default false
    */
@@ -116,6 +139,7 @@ export function BoardView<
   TProperties extends
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
+  cardLayout = "list",
   cardPreview,
   cardSize = "medium",
   colorColumns = false,
@@ -126,8 +150,11 @@ export function BoardView<
   onCardClick,
   pagination,
   showPropertyNames = false,
+  stickyHeader: stickyHeaderProp,
   wrapAllProperties = false,
 }: BoardViewProps<TData>) {
+  const stickyEnabled = stickyHeaderProp?.enabled ?? false;
+  const stickyOffset = stickyHeaderProp?.offset ?? 0;
   // Get data and properties from context
   // Board terminology: column = board columns, group = accordion rows
   const {
@@ -155,17 +182,6 @@ export function BoardView<
   const columnSortValues = contextCounts?.groupSortValues;
   const groupCounts = contextCounts?.group;
 
-  // Parse configs from discriminated unions
-  // parsedColumn = board columns, parsedGroup = accordion rows
-  const parsedColumn = useMemo(
-    () => (columnConfig ? toParsedGroupConfig(columnConfig) : undefined),
-    [columnConfig]
-  );
-  const parsedGroup = useMemo(
-    () => (groupConfig ? toParsedGroupConfig(groupConfig) : undefined),
-    [groupConfig]
-  );
-
   // Validate property keys
   const propertyValidationError = useMemo(
     () => validatePropertyKeys(properties),
@@ -174,19 +190,19 @@ export function BoardView<
 
   // Get column property for header display
   const columnProperty = useMemo(() => {
-    if (parsedColumn?.property) {
-      return properties.find((p) => String(p.id) === parsedColumn.property);
+    if (columnConfig?.propertyId) {
+      return properties.find((p) => String(p.id) === columnConfig.propertyId);
     }
     return undefined;
-  }, [parsedColumn, properties]);
+  }, [columnConfig, properties]);
 
   // Get row group property for accordion headers
   const rowGroupPropertyDef = useMemo(() => {
-    if (parsedGroup?.property) {
-      return properties.find((p) => String(p.id) === parsedGroup.property);
+    if (groupConfig?.propertyId) {
+      return properties.find((p) => String(p.id) === groupConfig.propertyId);
     }
     return undefined;
-  }, [parsedGroup, properties]);
+  }, [groupConfig, properties]);
 
   // Build column structure from counts (for headers)
   const columns: GroupedDataItem<TData>[] = useMemo(() => {
@@ -293,6 +309,7 @@ export function BoardView<
   const getCardContent = (item: TData) => (
     <DataCard
       allProperties={properties}
+      cardLayout={cardLayout}
       cardPreview={cardPreview}
       displayProperties={displayProperties}
       fitMedia={fitMedia}
@@ -318,7 +335,10 @@ export function BoardView<
     const getBgClass = (color: string) =>
       getBadgeBgTransparentClass(color as BadgeColor);
 
-    if (columnProperty.type === "status" && parsedColumn?.showAs === "group") {
+    if (
+      columnConfig?.propertyType === "status" &&
+      columnConfig.showAs === "group"
+    ) {
       const statusGroupMap: Record<string, BadgeColor> = {
         "To Do": "gray",
         "In Progress": "blue",
@@ -368,9 +388,21 @@ export function BoardView<
     );
   };
 
-  // Refs for scroll containers
-  const groupedScrollContainerRef = useRef<HTMLDivElement>(null);
-  const flatScrollContainerRef = useRef<HTMLDivElement>(null);
+  // Refs and scroll sync
+  const boardContainerRef = useRef<HTMLDivElement>(null);
+  const originalHeaderRef = useRef<HTMLDivElement>(null);
+  const headerScrollRef = useRef<HTMLDivElement>(null);
+  const { register: registerScroll } = useScrollSync();
+  const columnWidthPx = parseColumnWidth(columnWidth);
+
+  // Register the header scroll container with scroll sync
+  useEffect(() => {
+    const el = headerScrollRef.current;
+    if (!el) {
+      return;
+    }
+    return registerScroll(el);
+  }, [registerScroll]);
 
   // Error state
   if (propertyValidationError) {
@@ -393,73 +425,101 @@ export function BoardView<
   const isGroupedBoard = Boolean(groupConfig);
 
   // GROUPED VIEW: Accordion rows with columns inside each
-  // Check groupKeys from context (populated by SuspendingGroupKeys in QueryBridge)
-  // Note: Headers render from context counts (not suspended), each row has its own Suspense
+  // Sticky elements (column headers, group headers) render OUTSIDE overflow-x-auto
+  // so that position: sticky works for vertical scrolling.
+  // Each group's card content gets its own overflow-x-auto, synced via useScrollSync.
   if (isGroupedBoard && groupKeys && groupKeys.length > 0) {
     // Show skeleton while group counts are loading
     if (!hasRowGroups) {
       return (
         <BoardSkeleton
+          cardLayout={cardLayout}
           cardSize={cardSize}
           cardsPerColumn={limit ?? BoardView.defaultLimit}
           columnCount={columns.length || 3}
           pagination={pagination}
+          propertySizes={displayProperties.map((p) => p.size)}
           propertyTypes={displayProperties.map((p) => p.type)}
           withImage={Boolean(cardPreview)}
         />
       );
     }
     return (
-      <div className="relative max-w-full overflow-clip">
-        <div className="overflow-x-auto pb-4" ref={groupedScrollContainerRef}>
+      <div
+        className="relative max-w-full overflow-clip"
+        ref={boardContainerRef}
+      >
+        {/* Sticky column header - outside overflow-x, sticky works */}
+        <StickyColumnLabel
+          className={undefined}
+          columnHeader={getColumnHeader}
+          columnWidthPx={columnWidthPx}
+          containerRef={boardContainerRef}
+          enabled={stickyEnabled}
+          getColumnBgClass={getColumnBgClass}
+          groups={columns}
+          headerRef={originalHeaderRef}
+          offset={stickyOffset}
+          registerScroll={registerScroll}
+        />
+
+        {/* Original column headers - hidden scrollbar, synced */}
+        <div
+          className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          ref={headerScrollRef}
+        >
           <div className="min-w-fit">
-            {/* Column Headers (sticky) */}
             <BoardColumnHeaders
               columnHeader={getColumnHeader}
               columnWidth={columnWidth}
-              containerRef={groupedScrollContainerRef}
               getColumnBgClass={getColumnBgClass}
               groups={columns}
-              stickyHeader={{
-                enabled: true,
-                offset: 57,
-              }}
+              headerRef={originalHeaderRef}
             />
+          </div>
+        </div>
 
-            {/* Row group accordion sections */}
-            <Accordion
-              multiple
-              onValueChange={onExpandedGroupsChange}
-              value={expandedGroups ?? []}
-            >
-              {rowGroups.map((rowGroup) => {
-                const isExpanded =
-                  expandedGroups?.includes(rowGroup.key) ?? false;
+        {/* Row group accordion sections - group headers outside overflow-x */}
+        <Accordion
+          multiple
+          onValueChange={onExpandedGroupsChange}
+          value={expandedGroups ?? []}
+        >
+          {rowGroups.map((rowGroup) => {
+            const isExpanded = expandedGroups?.includes(rowGroup.key) ?? false;
 
-                return (
-                  <GroupSection
-                    group={rowGroup}
-                    groupByPropertyDef={rowGroupPropertyDef}
-                    key={rowGroup.key}
-                    showAggregation={groupConfig?.showCount ?? true}
-                    stickyHeader={{
-                      enabled: true,
-                      offset: 93, // 57 (site header + border) + 36 (column headers)
-                    }}
+            return (
+              <GroupSection
+                group={rowGroup}
+                groupByPropertyDef={rowGroupPropertyDef}
+                key={rowGroup.key}
+                showAggregation={groupConfig?.showCount ?? true}
+                stickyHeader={{
+                  enabled: stickyEnabled,
+                  offset: stickyOffset + 36,
+                }}
+              >
+                {isExpanded ? (
+                  <Suspense
+                    fallback={
+                      <BoardSkeleton
+                        cardLayout={cardLayout}
+                        cardSize={cardSize}
+                        cardsPerColumn={limit ?? BoardView.defaultLimit}
+                        columnCount={columns.length}
+                        propertySizes={displayProperties.map((p) => p.size)}
+                        propertyTypes={displayProperties.map((p) => p.type)}
+                        withImage={Boolean(cardPreview)}
+                      />
+                    }
                   >
-                    {isExpanded ? (
-                      <Suspense
-                        fallback={
-                          <BoardSkeleton
-                            cardSize={cardSize}
-                            cardsPerColumn={limit ?? BoardView.defaultLimit}
-                            columnCount={columns.length}
-                            propertyTypes={displayProperties.map((p) => p.type)}
-                            withImage={Boolean(cardPreview)}
-                          />
-                        }
-                      >
+                    <SyncedScrollContainer
+                      className="pb-4"
+                      register={registerScroll}
+                    >
+                      <div className="min-w-fit">
                         <SuspendingInfiniteBoardContent<TData, TProperties>
+                          columnConfig={columnConfig ?? undefined}
                           columns={columns}
                           columnWidth={columnWidth}
                           getCardContent={getCardContent}
@@ -467,25 +527,27 @@ export function BoardView<
                           groupKey={rowGroup.key}
                           keyExtractor={keyExtractor}
                           pagination={pagination}
-                          parsedColumn={parsedColumn}
                           properties={properties}
                           rounded="all"
                         />
-                      </Suspense>
-                    ) : null}
-                  </GroupSection>
-                );
-              })}
-            </Accordion>
+                      </div>
+                    </SyncedScrollContainer>
+                  </Suspense>
+                ) : null}
+              </GroupSection>
+            );
+          })}
+        </Accordion>
 
-            {/* Infinite scroll sentinel for groups */}
-            <InfiniteScrollGroupsSentinel
-              hasNext={hasNextGroupPage}
-              isFetching={isFetchingNextGroupPage}
-              onLoadMore={onLoadMoreGroups}
-            />
-          </div>
-        </div>
+        {/* Infinite scroll sentinel for groups */}
+        <InfiniteScrollGroupsSentinel
+          hasNext={hasNextGroupPage}
+          isFetching={isFetchingNextGroupPage}
+          onLoadMore={onLoadMoreGroups}
+        />
+
+        {/* Shared horizontal scrollbar */}
+        <ScrollSyncBar register={registerScroll} />
       </div>
     );
   }
@@ -495,38 +557,50 @@ export function BoardView<
     return <EmptyState />;
   }
 
-  // FLAT VIEW: Uses SuspendingGroupContent with __ungrouped__ key
-  // Both headers and content are inside Suspense so they appear together after data loads
+  // FLAT VIEW: StickyColumnLabel outside overflow-x, content inside
   return (
-    <div className="relative max-w-full overflow-clip">
-      <div className="overflow-x-auto pb-4" ref={flatScrollContainerRef}>
-        <div className="min-w-fit">
-          <Suspense
-            fallback={
-              <BoardSkeleton
-                cardSize={cardSize}
-                cardsPerColumn={limit ?? BoardView.defaultLimit}
-                columnCount={columns.length}
-                pagination={pagination}
-                propertyTypes={displayProperties.map((p) => p.type)}
-                withImage={Boolean(cardPreview)}
-              />
-            }
-          >
-            {/* Column Headers - inside Suspense to render with cards */}
+    <div className="relative max-w-full overflow-clip" ref={boardContainerRef}>
+      <Suspense
+        fallback={
+          <BoardSkeleton
+            cardLayout={cardLayout}
+            cardSize={cardSize}
+            cardsPerColumn={limit ?? BoardView.defaultLimit}
+            columnCount={columns.length}
+            pagination={pagination}
+            propertySizes={displayProperties.map((p) => p.size)}
+            propertyTypes={displayProperties.map((p) => p.type)}
+            withImage={Boolean(cardPreview)}
+          />
+        }
+      >
+        {/* Sticky column header - outside overflow-x */}
+        <StickyColumnLabel
+          className={undefined}
+          columnHeader={getColumnHeader}
+          columnWidthPx={columnWidthPx}
+          containerRef={boardContainerRef}
+          enabled={stickyEnabled}
+          getColumnBgClass={getColumnBgClass}
+          groups={columns}
+          headerRef={originalHeaderRef}
+          offset={stickyOffset}
+          registerScroll={registerScroll}
+        />
+
+        {/* Column headers + cards in single scroll container */}
+        <div className="overflow-x-auto pb-4" ref={headerScrollRef}>
+          <div className="min-w-fit">
             <BoardColumnHeaders
               columnHeader={getColumnHeader}
               columnWidth={columnWidth}
-              containerRef={flatScrollContainerRef}
               getColumnBgClass={getColumnBgClass}
               groups={columns}
+              headerRef={originalHeaderRef}
               rounded="top"
-              stickyHeader={{
-                enabled: true,
-                offset: 57,
-              }}
             />
             <SuspendingInfiniteBoardContent<TData, TProperties>
+              columnConfig={columnConfig ?? undefined}
               columns={columns}
               columnWidth={columnWidth}
               getCardContent={getCardContent}
@@ -534,13 +608,12 @@ export function BoardView<
               groupKey="__ungrouped__"
               keyExtractor={keyExtractor}
               pagination={pagination}
-              parsedColumn={parsedColumn}
               properties={properties}
               rounded="bottom"
             />
-          </Suspense>
+          </div>
         </div>
-      </div>
+      </Suspense>
     </div>
   );
 }
@@ -557,6 +630,7 @@ interface SuspendingBoardContentProps<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
+  columnConfig?: GroupByConfig;
   columns: GroupedDataItem<TData>[];
   columnWidth: string;
   getCardContent: (item: TData) => React.ReactNode;
@@ -564,20 +638,6 @@ interface SuspendingBoardContentProps<
   groupKey: string;
   keyExtractor: (item: TData, index: number) => string;
   pagination?: BoardPaginationMode;
-  parsedColumn?: {
-    property: string;
-    showAs?:
-      | "day"
-      | "week"
-      | "month"
-      | "year"
-      | "relative"
-      | "group"
-      | "option";
-    startWeekOn?: "monday" | "sunday";
-    textShowAs?: "exact" | "alphabetical";
-    numberRange?: { range: [number, number]; step: number };
-  };
   properties: TProperties;
   rounded?: "top" | "bottom" | "all";
 }
@@ -595,7 +655,7 @@ function BoardContentRenderer<
   getCardContent,
   getColumnBgClass,
   keyExtractor,
-  parsedColumn,
+  columnConfig,
   properties,
   renderFooter,
   rounded = "all",
@@ -606,10 +666,7 @@ function BoardContentRenderer<
   getCardContent: (item: TData) => React.ReactNode;
   getColumnBgClass: (columnName: string) => string;
   keyExtractor: (item: TData, index: number) => string;
-  parsedColumn?: SuspendingBoardContentProps<
-    TData,
-    TProperties
-  >["parsedColumn"];
+  columnConfig?: GroupByConfig;
   properties: TProperties;
   renderFooter?: (columnKey: string) => React.ReactNode;
   rounded?: "top" | "bottom" | "all";
@@ -618,13 +675,23 @@ function BoardContentRenderer<
   const transformedItems = transformData(data, properties) as TData[];
 
   // Group transformed data by column property
-  const { groups: columnGroups } = parsedColumn?.property
-    ? groupDataByProperty(transformedItems, parsedColumn.property, properties, {
-        showAs: parsedColumn.showAs,
-        startWeekOn: parsedColumn.startWeekOn,
-        textShowAs: parsedColumn.textShowAs,
-        numberRange: parsedColumn.numberRange,
-      })
+  const { groups: columnGroups } = columnConfig?.propertyId
+    ? groupDataByProperty(
+        transformedItems,
+        columnConfig.propertyId,
+        properties,
+        {
+          showAs: "showAs" in columnConfig ? columnConfig.showAs : undefined,
+          startWeekOn:
+            columnConfig.propertyType === "date"
+              ? columnConfig.startWeekOn
+              : undefined,
+          numberRange:
+            columnConfig.propertyType === "number"
+              ? columnConfig.numberRange
+              : undefined,
+        }
+      )
     : { groups: {} as Record<string, TData[]> };
 
   return (
@@ -655,7 +722,7 @@ function SuspendingInfiniteBoardContent<
   groupKey,
   keyExtractor,
   pagination,
-  parsedColumn,
+  columnConfig,
   properties,
   rounded = "all",
 }: SuspendingBoardContentProps<TData, TProperties>) {
@@ -664,13 +731,13 @@ function SuspendingInfiniteBoardContent<
       {(result: UseInfiniteGroupQueryResult<TData>) => {
         return (
           <BoardContentRenderer
+            columnConfig={columnConfig ?? undefined}
             columns={columns}
             columnWidth={columnWidth}
             data={result.data}
             getCardContent={getCardContent}
             getColumnBgClass={getColumnBgClass}
             keyExtractor={keyExtractor}
-            parsedColumn={parsedColumn}
             properties={properties}
             renderFooter={
               pagination
@@ -781,6 +848,116 @@ function InfiniteScrollGroupsSentinel({
           <span className="text-sm">Loading more groups...</span>
         </div>
       )}
+    </div>
+  );
+}
+
+// ============================================================================
+// Synced Scroll Container
+// ============================================================================
+
+/**
+ * SyncedScrollContainer - overflow-x-auto container with hidden scrollbar
+ * that registers with the board-level scroll sync.
+ */
+function SyncedScrollContainer({
+  children,
+  className,
+  register,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  register: (el: HTMLElement) => () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) {
+      return;
+    }
+    return register(el);
+  }, [register]);
+
+  return (
+    <div
+      className={`overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${className ?? ""}`.trim()}
+      ref={ref}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ============================================================================
+// Scroll Sync Bar
+// ============================================================================
+
+/**
+ * ScrollSyncBar - A visible horizontal scrollbar that syncs with all
+ * registered scroll containers. Measures content width from sibling
+ * scroll containers via MutationObserver.
+ */
+function ScrollSyncBar({
+  register,
+}: {
+  register: (el: HTMLElement) => () => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [contentWidth, setContentWidth] = useState(0);
+
+  // Register with scroll sync
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) {
+      return;
+    }
+    return register(el);
+  }, [register]);
+
+  // Observe DOM to measure content width from sibling scroll containers
+  useEffect(() => {
+    const scrollEl = scrollRef.current;
+    if (!scrollEl) {
+      return;
+    }
+
+    const updateWidth = () => {
+      // Find any overflow-x-auto sibling/descendant to measure from
+      const parent = scrollEl.parentElement;
+      if (!parent) {
+        return;
+      }
+      const container = parent.querySelector<HTMLElement>(".overflow-x-auto");
+      if (container && container !== scrollEl) {
+        setContentWidth(container.scrollWidth);
+      }
+    };
+
+    // Delay initial check to allow Suspense children to mount
+    const timer = setTimeout(updateWidth, 100);
+
+    const observer = new MutationObserver(updateWidth);
+    const parent = scrollEl.parentElement;
+    if (parent) {
+      observer.observe(parent, { childList: true, subtree: true });
+    }
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, []);
+
+  return (
+    <div
+      className="sticky bottom-0 overflow-x-auto"
+      ref={scrollRef}
+      style={
+        contentWidth === 0 ? { visibility: "hidden", height: 0 } : undefined
+      }
+    >
+      <div style={{ width: contentWidth, height: 1 }} />
     </div>
   );
 }

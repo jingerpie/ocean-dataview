@@ -12,13 +12,13 @@ export type Product = ProductWithVariants;
 
 export const productProperties = [
   {
-    id: "productName",
-    label: "Text",
+    key: "productName",
+    name: "Text",
     type: "text",
   },
   {
-    id: "price",
-    label: "Number",
+    key: "price",
+    name: "Number",
     type: "number",
     config: {
       numberFormat: "dollar",
@@ -26,8 +26,8 @@ export const productProperties = [
     },
   },
   {
-    id: "stockLevel",
-    label: "Number (Bar)",
+    key: "stockLevel",
+    name: "Number (Bar)",
     type: "number",
     config: {
       showAs: {
@@ -38,8 +38,8 @@ export const productProperties = [
     },
   },
   {
-    id: "rating",
-    label: "Number (Ring)",
+    key: "rating",
+    name: "Number (Ring)",
     type: "number",
     config: {
       showAs: {
@@ -50,8 +50,8 @@ export const productProperties = [
     },
   },
   {
-    id: "category",
-    label: "Select",
+    key: "category",
+    name: "Select",
     type: "select",
     config: {
       options: [
@@ -69,8 +69,8 @@ export const productProperties = [
     },
   },
   {
-    id: "tags",
-    label: "Multi Select",
+    key: "tags",
+    name: "Multi Select",
     type: "multiSelect",
     config: {
       options: [
@@ -84,25 +84,25 @@ export const productProperties = [
     },
   },
   {
-    id: "availability",
-    label: "Status",
+    key: "availability",
+    name: "Status",
     type: "status",
     config: {
       groups: [
         {
-          label: "Available",
+          name: "Available",
           color: "green",
           options: ["In stock"],
           icon: CheckCircle2,
         },
         {
-          label: "Warning",
+          name: "Warning",
           color: "yellow",
           options: ["Low stock"],
           icon: AlertCircle,
         },
         {
-          label: "Unavailable",
+          name: "Unavailable",
           color: "red",
           options: ["Out of stock"],
           icon: XCircle,
@@ -111,39 +111,39 @@ export const productProperties = [
     },
   },
   {
-    id: "lastRestocked",
-    label: "Date",
+    key: "lastRestocked",
+    name: "Date",
     type: "date",
   },
   {
-    id: "featured",
-    label: "Checkbox",
+    key: "featured",
+    name: "Checkbox",
     type: "checkbox",
   },
   {
-    id: "productImage",
-    label: "Files & Media",
+    key: "productImage",
+    name: "Files & Media",
     type: "filesMedia",
   },
   {
-    id: "productLink",
-    label: "URL",
+    key: "productLink",
+    name: "URL",
     type: "url",
     enableGroup: false,
   },
   {
-    id: "supplierPhone",
-    label: "Phone",
+    key: "supplierPhone",
+    name: "Phone",
     type: "phone",
   },
   {
-    id: "supplierEmail",
-    label: "Email",
+    key: "supplierEmail",
+    name: "Email",
     type: "email",
   },
   {
     id: "_totalWorth",
-    label: "Formula",
+    name: "Formula",
     type: "formula",
     value: (property, item) => (
       <div className="flex items-center gap-4">
@@ -161,7 +161,7 @@ export const productProperties = [
   },
   {
     id: "actions",
-    label: "Actions",
+    name: "Actions",
     type: "button",
     value: (item) => [
       {

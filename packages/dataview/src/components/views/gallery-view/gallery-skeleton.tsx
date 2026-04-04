@@ -16,6 +16,11 @@ interface GallerySkeletonProps extends React.ComponentProps<"div"> {
    */
   cardCount: number;
   /**
+   * Card layout mode
+   * @default "list"
+   */
+  cardLayout?: "list" | "compact";
+  /**
    * Card size preset
    * @default "medium"
    */
@@ -24,6 +29,11 @@ interface GallerySkeletonProps extends React.ComponentProps<"div"> {
    * Pagination mode - matches GalleryView pagination prop
    */
   pagination?: PaginationMode;
+  /**
+   * Property sizes (in pixels) - per-property size override.
+   * Falls back to CARD_SKELETON_WIDTHS[type] when undefined.
+   */
+  propertySizes?: (number | undefined)[];
   /**
    * Property types - determines realistic widths per property
    */
@@ -37,21 +47,29 @@ interface GallerySkeletonProps extends React.ComponentProps<"div"> {
 
 export function GallerySkeleton({
   cardCount,
+  cardLayout = "list",
   cardSize = "medium",
   pagination,
+  propertySizes,
   propertyTypes,
   withImage = true,
   className,
   ...props
 }: GallerySkeletonProps) {
-  const { imageHeight, cols } = getGalleryCardDimensions(cardSize);
+  const isCompact = cardLayout === "compact";
+  const { imageHeight, minWidth } = getGalleryCardDimensions(cardSize);
 
   return (
     <div
       className={cn("flex w-full flex-col gap-2.5 overflow-clip", className)}
       {...props}
     >
-      <div className={cn("grid gap-4", cols)}>
+      <div
+        className="grid gap-4"
+        style={{
+          gridTemplateColumns: `repeat(auto-fill, minmax(${minWidth}px, 1fr))`,
+        }}
+      >
         {Array.from({ length: cardCount }).map((_, i) => (
           <Card className="gap-0 overflow-hidden py-0" key={i}>
             {withImage && (
@@ -60,14 +78,27 @@ export function GallerySkeleton({
                 style={{ height: imageHeight }}
               />
             )}
-            <CardContent className="flex flex-col gap-2 p-3">
-              {propertyTypes.map((type, j) => (
-                <Skeleton
-                  className="h-5"
-                  key={j}
-                  style={{ width: CARD_SKELETON_WIDTHS[type] }}
-                />
-              ))}
+            <CardContent
+              className={cn(
+                "flex gap-2 p-3",
+                isCompact ? "flex-wrap items-center" : "flex-col"
+              )}
+            >
+              {propertyTypes.map((type, j) => {
+                const width = propertySizes?.[j]
+                  ? `${propertySizes[j]}px`
+                  : CARD_SKELETON_WIDTHS[type];
+                return (
+                  <Skeleton
+                    className={cn(
+                      "h-5",
+                      isCompact && j === 0 && "w-full basis-full"
+                    )}
+                    key={j}
+                    style={isCompact && j === 0 ? undefined : { width }}
+                  />
+                );
+              })}
             </CardContent>
           </Card>
         ))}

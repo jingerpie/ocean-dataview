@@ -62,7 +62,7 @@ function SelectBody({
     .filter((o): o is SelectOption => o !== undefined);
 
   const filteredOptions = options.filter((o) =>
-    o.value.toLowerCase().includes(search.toLowerCase())
+    (o.name ?? o.value).toLowerCase().includes(search.toLowerCase())
   );
 
   const handleSelect = (value: string) => {
@@ -84,7 +84,7 @@ function SelectBody({
               key={option.value}
               onRemove={() => onRemove(option.value)}
             >
-              {option.value}
+              {option.name ?? option.value}
             </CommandChip>
           );
         })}
@@ -118,7 +118,7 @@ function SelectBody({
                   className={getBadgeClasses(color)}
                   showRemove={false}
                 >
-                  {option.value}
+                  {option.name ?? option.value}
                 </CommandChip>
               </CommandItem>
             );
@@ -177,7 +177,7 @@ function SelectAdvanceFilter({
                   key={option.value}
                   showRemove={false}
                 >
-                  {option.value}
+                  {option.name ?? option.value}
                 </CommandChip>
               );
             })}

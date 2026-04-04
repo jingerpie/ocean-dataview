@@ -1,4 +1,4 @@
-import type { ParsedGroupConfig } from "@sparkyidea/dataview/types";
+import type { GroupByConfig } from "@sparkyidea/dataview/types";
 import { asc, desc, gt, lt, type SQL, sql, type Table } from "drizzle-orm";
 import { getColumn } from "./build-filter";
 
@@ -215,26 +215,19 @@ function buildNumberRangeOrder(
  */
 export function buildGroupBy<T extends Table>(
   table: T,
-  parsed: ParsedGroupConfig,
+  config: GroupByConfig,
   propertyConfig?: PropertyConfig
 ): GroupByResult | null {
-  const column = getColumn(table, parsed.property as keyof T);
+  const column = getColumn(table, config.propertyId as keyof T);
   if (!column) {
     return null;
   }
 
   const columnSql = sql`${column}`;
 
-  switch (parsed.propertyType) {
+  switch (config.propertyType) {
     case "date": {
-      const showAs = parsed.showAs as
-        | "day"
-        | "week"
-        | "month"
-        | "year"
-        | "relative";
-
-      switch (showAs) {
+      switch (config.showAs) {
         case "relative":
           return {
             groupKey: buildRelativeDateCase(columnSql),
@@ -270,7 +263,7 @@ export function buildGroupBy<T extends Table>(
     }
 
     case "status": {
-      if (parsed.showAs === "group") {
+      if (config.showAs === "group") {
         return {
           groupKey: buildStatusGroupCase(columnSql, propertyConfig?.config),
           orderBy: buildStatusGroupOrder(columnSql, propertyConfig?.config),
@@ -278,13 +271,13 @@ export function buildGroupBy<T extends Table>(
       }
       // showAs: "option" - group by individual status value
       return {
-        groupKey: sql`COALESCE(${column}::text, 'No ' || '${sql.raw(parsed.property)}')`,
+        groupKey: sql`COALESCE(${column}::text, 'No ' || '${sql.raw(config.propertyId)}')`,
         orderBy: buildStatusGroupOrder(columnSql, propertyConfig?.config),
       };
     }
 
     case "text": {
-      if (parsed.textShowAs === "alphabetical") {
+      if (config.showAs === "alphabetical") {
         return {
           groupKey: sql`CASE
             WHEN ${column} IS NULL OR ${column} = '' THEN '#'
@@ -300,14 +293,14 @@ export function buildGroupBy<T extends Table>(
       }
       // exact - group by value
       return {
-        groupKey: sql`COALESCE(${column}::text, 'No ' || '${sql.raw(parsed.property)}')`,
+        groupKey: sql`COALESCE(${column}::text, 'No ' || '${sql.raw(config.propertyId)}')`,
         orderBy: sql`COALESCE(${column}, '')`,
       };
     }
 
     case "number": {
       // Use provided range or default to 0-1000 with step 100
-      const { range, step } = parsed.numberRange ?? {
+      const { range, step } = config.numberRange ?? {
         range: [0, 1000] as [number, number],
         step: 100,
       };
@@ -330,15 +323,16 @@ export function buildGroupBy<T extends Table>(
     // Handle NULL/empty arrays by replacing with single-element array containing "No property"
     case "multiSelect":
       return {
-        groupKey: sql`UNNEST(CASE WHEN ${column} IS NULL OR CARDINALITY(${column}) = 0 THEN ARRAY['No ${sql.raw(parsed.property)}'] ELSE ${column} END)`,
-        orderBy: sql`UNNEST(CASE WHEN ${column} IS NULL OR CARDINALITY(${column}) = 0 THEN ARRAY['No ${sql.raw(parsed.property)}'] ELSE ${column} END)`,
+        groupKey: sql`UNNEST(CASE WHEN ${column} IS NULL OR CARDINALITY(${column}) = 0 THEN ARRAY['No ${sql.raw(config.propertyId)}'] ELSE ${column} END)`,
+        orderBy: sql`UNNEST(CASE WHEN ${column} IS NULL OR CARDINALITY(${column}) = 0 THEN ARRAY['No ${sql.raw(config.propertyId)}'] ELSE ${column} END)`,
       };
 
     // select and any other types use simple grouping
+    // Cast to ::text for orderBy so enum columns don't fail COALESCE with ''
     default:
       return {
-        groupKey: sql`COALESCE(${column}::text, 'No ' || '${sql.raw(parsed.property)}')`,
-        orderBy: sql`COALESCE(${column}, '')`,
+        groupKey: sql`COALESCE(${column}::text, 'No ' || '${sql.raw(config.propertyId)}')`,
+        orderBy: sql`COALESCE(${column}::text, '')`,
       };
   }
 }
@@ -365,7 +359,7 @@ function buildDateGroupWhere(
     case "year":
       return sql`TO_CHAR(${column}, 'YYYY') = ${groupKey}`;
     default:
-      return sql`${column} = ${groupKey}`;
+      return sql`${column}::text = ${groupKey}`;
   }
 }
 
@@ -426,11 +420,11 @@ function buildNumberRangeWhere(
  */
 export function buildGroupWhere<T extends Table>(
   table: T,
-  parsed: ParsedGroupConfig,
+  config: GroupByConfig,
   groupKey: string,
   propertyConfig?: PropertyConfig
 ): SQL | null {
-  const column = getColumn(table, parsed.property as keyof T);
+  const column = getColumn(table, config.propertyId as keyof T);
   if (!column) {
     return null;
   }
@@ -438,29 +432,29 @@ export function buildGroupWhere<T extends Table>(
   const columnSql = sql`${column}`;
 
   // Handle null group
-  if (groupKey === `No ${parsed.property}` || groupKey === "null") {
+  if (groupKey === `No ${config.propertyId}` || groupKey === "null") {
     return sql`${column} IS NULL`;
   }
 
-  switch (parsed.propertyType) {
+  switch (config.propertyType) {
     case "date":
       return buildDateGroupWhere(
         column,
         columnSql,
         groupKey,
-        parsed.showAs ?? "day"
+        config.showAs ?? "day"
       );
 
     case "status":
       return buildStatusGroupWhere(
         column,
         groupKey,
-        parsed.showAs,
+        config.showAs,
         propertyConfig?.config
       );
 
     case "text":
-      if (parsed.textShowAs === "alphabetical") {
+      if (config.showAs === "alphabetical") {
         if (groupKey === "#") {
           return sql`(${column} IS NULL OR ${column} = '' OR NOT (UPPER(SUBSTR(${column}, 1, 1)) ~ '[A-Z]'))`;
         }
@@ -470,7 +464,7 @@ export function buildGroupWhere<T extends Table>(
 
     case "number": {
       // Use provided range or default to 0-1000 (must match buildGroupBy default)
-      const { range } = parsed.numberRange ?? {
+      const { range } = config.numberRange ?? {
         range: [0, 1000] as [number, number],
       };
       const numWhere = buildNumberRangeWhere(column, groupKey, range);
@@ -490,12 +484,12 @@ export function buildGroupWhere<T extends Table>(
     case "multiSelect":
       // For multiSelect, check if the groupKey is contained in the array column
       // Handle "No property" case for NULL/empty arrays
-      if (groupKey === `No ${parsed.property}`) {
+      if (groupKey === `No ${config.propertyId}`) {
         return sql`(${column} IS NULL OR CARDINALITY(${column}) = 0)`;
       }
       return sql`${groupKey} = ANY(${column})`;
 
     default:
-      return sql`${column} = ${groupKey}`;
+      return sql`${column}::text = ${groupKey}`;
   }
 }

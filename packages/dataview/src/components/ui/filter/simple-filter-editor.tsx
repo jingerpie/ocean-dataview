@@ -26,7 +26,7 @@ interface SimpleFilterEditorProps {
  * Simple filter editor - popover content for editing a single filter rule.
  *
  * Structure:
- * - Header: Property label + Condition picker + Actions menu
+ * - Header: Property name + Condition picker + Actions menu
  * - Body: Value input (dispatched by property type)
  *
  * Used inside SimpleFilterChip's popover content.
@@ -37,7 +37,7 @@ function SimpleFilterEditor({
   onRuleChange,
   onClose,
 }: SimpleFilterEditorProps) {
-  const label = property.label ?? String(property.id);
+  const displayName = property.name ?? String(property.id);
 
   const handleConditionChange = (newCondition: FilterCondition) => {
     onRuleChange(applyConditionChange(rule, newCondition));
@@ -62,7 +62,7 @@ function SimpleFilterEditor({
       <div className="flex items-center justify-between px-1">
         <div className="flex min-w-0 items-center pl-1">
           <span className="max-w-24 truncate font-medium text-muted-foreground text-xs">
-            {label}
+            {displayName}
           </span>
           <ConditionPicker
             className="p-1 font-semibold text-xs"

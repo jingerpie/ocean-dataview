@@ -12,7 +12,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 /**
  * Hook for managing search term with debouncing (300ms).
  *
- * Reads from QueryParamsContext (single source of truth).
+ * Reads from QueryParamsContext (single source of truth for validated state).
  * Local state provides immediate input feedback, debounced to URL.
  *
  * @example
@@ -24,13 +24,16 @@ export function useSearchParams() {
   const { search } = useQueryParamsState();
   const { setSearch: setSearchAction } = useQueryParamsActions();
 
+  // Extract raw string from validated search for UI display
+  const searchText = search?.search ?? "";
+
   // Local state for immediate input feedback (debounced to URL)
-  const [inputValue, setInputValue] = useState(search);
+  const [inputValue, setInputValue] = useState(searchText);
 
   // Sync local state when external search changes (e.g., browser navigation)
   useEffect(() => {
-    setInputValue(search);
-  }, [search]);
+    setInputValue(searchText);
+  }, [searchText]);
 
   // Debounced URL update via context action
   const debouncedSetUrl = useDebouncedCallback((value: string) => {
