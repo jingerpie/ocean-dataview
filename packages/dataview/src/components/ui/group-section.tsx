@@ -301,7 +301,7 @@ export function GroupSection<TData>({
   };
 
   const triggerContent = (
-    <AccordionTrigger className="py-3 hover:no-underline">
+    <AccordionTrigger className="h-11.5 hover:no-underline">
       <div className="flex items-center gap-2">
         {renderGroupLabel()}
         {showAggregation && (
