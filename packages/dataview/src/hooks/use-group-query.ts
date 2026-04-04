@@ -86,8 +86,10 @@ export function useGroupQuery<TData = unknown>(
       dataQuery({
         cursor: deferredCursor,
         filter: deferredFilter,
-        groupConfig: deferredGroup,
-        groupKey,
+        group:
+          deferredGroup && groupKey !== "__ungrouped__"
+            ? { groupBy: deferredGroup, groupKey }
+            : null,
         limit: deferredLimit,
         search: deferredSearch,
         sort: deferredSort,

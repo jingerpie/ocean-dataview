@@ -22,7 +22,7 @@ import {
 
 export const productRouter = router({
   getMany: publicProcedure.input(getManyInput).query(async ({ input }) => {
-    const { cursor, limit, filter, sort, search } = input;
+    const { cursor, limit, filter, sort, search, group } = input;
     const { after, before } = getCursorParams(cursor);
 
     // Build filter/search WHERE
@@ -32,6 +32,11 @@ export const productRouter = router({
     );
     const searchWhere = buildWhere(product, searchQuery ? [searchQuery] : null);
     const filterWhere = buildWhere(product, filter);
+
+    // Build group WHERE (for grouped views that pass group config)
+    const groupWhere = group
+      ? (buildGroupWhere(product, group.groupBy, group.groupKey) ?? undefined)
+      : undefined;
 
     // Determine pagination direction
     const isBackward = !!before;
@@ -60,7 +65,7 @@ export const productRouter = router({
       direction: isBackward ? "backward" : "forward",
     });
 
-    const where = and(filterWhere, searchWhere, cursorWhere);
+    const where = and(filterWhere, searchWhere, cursorWhere, groupWhere);
 
     const data = await db.query.product.findMany({
       where,
@@ -239,6 +244,7 @@ export const productRouter = router({
         sort,
         search,
         columnKeys: requestedColumnKeys,
+        group,
       } = input;
 
       // Parse the GroupByConfig for column
@@ -254,6 +260,11 @@ export const productRouter = router({
         searchQuery ? [searchQuery] : null
       );
       const filterWhere = buildWhere(product, filter);
+
+      // Build row-level group WHERE (for board views with row grouping)
+      const rowGroupWhere = group
+        ? (buildGroupWhere(product, group.groupBy, group.groupKey) ?? undefined)
+        : undefined;
 
       // Prepare sort with tiebreaker
       const primaryDirection = sort?.[0]?.direction ?? "desc";
@@ -290,7 +301,7 @@ export const productRouter = router({
         const columnsResult = await db
           .selectDistinct({ columnKey: columnKeyExpr, sortValue: orderBy })
           .from(product)
-          .where(and(filterWhere, searchWhere))
+          .where(and(filterWhere, searchWhere, rowGroupWhere))
           .orderBy(orderBy);
 
         columnKeysToFetch = columnsResult.map((r) =>
@@ -334,7 +345,13 @@ export const productRouter = router({
 
         // Fetch with limit + 1 to check hasMore
         const data = await db.query.product.findMany({
-          where: and(filterWhere, searchWhere, cursorWhere, columnWhere),
+          where: and(
+            filterWhere,
+            searchWhere,
+            cursorWhere,
+            columnWhere,
+            rowGroupWhere
+          ),
           orderBy,
           limit: limit + 1,
         });

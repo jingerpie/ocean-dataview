@@ -1,4 +1,8 @@
-import type { ParsedGroupConfig } from "@sparkyidea/dataview/types";
+import {
+  type GroupByConfig,
+  type ParsedGroupConfig,
+  toParsedGroupConfig,
+} from "@sparkyidea/dataview/types";
 import { asc, desc, gt, lt, type SQL, sql, type Table } from "drizzle-orm";
 import { getColumn } from "./build-filter";
 
@@ -422,14 +426,19 @@ function buildNumberRangeWhere(
 
 /**
  * Build SQL WHERE expression to filter items belonging to a specific group.
+ * Accepts either GroupByConfig (canonical) or ParsedGroupConfig (internal).
  * Used when fetching items for a particular group key.
  */
 export function buildGroupWhere<T extends Table>(
   table: T,
-  parsed: ParsedGroupConfig,
+  groupByConfig: GroupByConfig | ParsedGroupConfig,
   groupKey: string,
   propertyConfig?: PropertyConfig
 ): SQL | null {
+  const parsed: ParsedGroupConfig =
+    "propertyId" in groupByConfig
+      ? toParsedGroupConfig(groupByConfig as GroupByConfig)
+      : groupByConfig;
   const column = getColumn(table, parsed.property as keyof T);
   if (!column) {
     return null;

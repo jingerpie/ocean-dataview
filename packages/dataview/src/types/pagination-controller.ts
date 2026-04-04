@@ -84,15 +84,22 @@ export type ColumnQueryOptionsFactory = (
 // ============================================================================
 
 /**
+ * Group filter: groupBy config + groupKey to filter items within a specific group.
+ * Null in flat mode (no grouping).
+ */
+export interface GroupFilter {
+  groupBy: GroupConfigInput;
+  groupKey: string;
+}
+
+/**
  * Query options factory params for page-based pagination.
  */
 export interface PageQueryOptionsFactoryParams {
   cursor?: CursorValue;
   filter: WhereNode[] | null;
-  /** The current group config (null for flat mode) */
-  groupConfig: GroupConfigInput | null;
-  /** The group key for this query ("__ungrouped__" for flat mode) */
-  groupKey: string;
+  /** Group filter (null for flat mode) */
+  group: GroupFilter | null;
   limit: Limit;
   search: SearchQuery | null;
   sort: SortQuery[];
@@ -132,10 +139,8 @@ export interface PageController<TQueryOptions> {
  */
 export interface InfiniteQueryOptionsFactoryParams {
   filter: WhereNode[] | null;
-  /** The current group config (null for flat mode) */
-  groupConfig: GroupConfigInput | null;
-  /** The group key for this query ("__ungrouped__" for flat mode) */
-  groupKey: string;
+  /** Group filter (null for flat mode) */
+  group: GroupFilter | null;
   limit: Limit;
   search: SearchQuery | null;
   sort: SortQuery[];

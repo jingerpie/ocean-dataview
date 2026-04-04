@@ -9,7 +9,6 @@ import type {
   Limit,
   WhereNode,
 } from "@sparkyidea/dataview/types";
-import { combineGroupFilter } from "@sparkyidea/dataview/utils";
 import { BoardView } from "@sparkyidea/dataview/views/board-view";
 import { useTRPC } from "@/utils/trpc/client";
 import { DataViewTab } from "./dataview-tab";
@@ -77,14 +76,8 @@ export function ProductBoardView({
         {
           columnBy: effectiveColumnConfig,
           limit: params.limit,
-          filter:
-            params.groupConfig && params.groupKey
-              ? combineGroupFilter(
-                  params.groupConfig,
-                  params.groupKey,
-                  params.filter
-                )
-              : params.filter,
+          filter: params.filter,
+          group: params.group ?? undefined,
           sort: params.sort ?? [],
           search: params.search,
         },

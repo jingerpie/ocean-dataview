@@ -8,7 +8,6 @@ import type {
   Limit,
   WhereNode,
 } from "@sparkyidea/dataview/types";
-import { combineGroupFilter } from "@sparkyidea/dataview/utils";
 import { TableView } from "@sparkyidea/dataview/views/table-view";
 import { useTRPC } from "@/utils/trpc/client";
 import { bulkActions } from "./bulk-actions";
@@ -56,14 +55,8 @@ export function ProductTableView({
     dataQuery: (params) =>
       trpc.product.getMany.queryOptions({
         ...(params.cursor ? { cursor: params.cursor } : {}),
-        filter:
-          params.groupConfig && params.groupKey
-            ? combineGroupFilter(
-                params.groupConfig,
-                params.groupKey,
-                params.filter
-              )
-            : params.filter,
+        filter: params.filter,
+        group: params.group ?? undefined,
         limit: params.limit,
         search: params.search,
         sort: params.sort ?? [],
