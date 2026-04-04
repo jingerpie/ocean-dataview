@@ -7,12 +7,8 @@ import {
   useRef,
   useState,
 } from "react";
-import { createPortal } from "react-dom";
-import { useDebouncedCallback } from "../../../hooks/use-debounced-callback";
 import { useScrollParent } from "../../../hooks/use-scroll-parent";
 import { cn } from "../../../lib/utils";
-
-const RESIZE_DEBOUNCE_MS = 150;
 
 interface StickyColumnLabelProps {
   /**
@@ -31,7 +27,7 @@ interface StickyColumnLabelProps {
   columnWidthPx: number;
 
   /**
-   * Reference to the scroll container element
+   * Reference to the board container element (for visibility bottom-edge check)
    */
   containerRef: React.RefObject<HTMLDivElement | null>;
 
@@ -44,6 +40,7 @@ interface StickyColumnLabelProps {
    * Column background class getter
    */
   getColumnBgClass?: (groupName: string) => string | undefined;
+
   /**
    * Groups to render in the header
    */
@@ -54,19 +51,26 @@ interface StickyColumnLabelProps {
   }>;
 
   /**
-   * Reference to the original header element
+   * Reference to the original header element (for visibility top-edge check)
    */
   headerRef: React.RefObject<HTMLDivElement | null>;
 
   /**
-   * Offset from top of viewport (e.g., navbar height)
+   * Offset from top of scroll container
    */
   offset?: number;
+
+  /**
+   * Register a scroll container with the board-level scroll sync.
+   * Returns a cleanup function.
+   */
+  registerScroll: (el: HTMLElement) => () => void;
 }
 
 /**
- * StickyColumnLabel - Portal-based sticky header for board column labels
- * Syncs horizontal scroll with the main board content
+ * StickyColumnLabel - Sticky header for board column labels.
+ * Uses position: sticky for vertical sticking.
+ * Horizontal scroll is synced via the board-level scroll sync.
  */
 export function StickyColumnLabel({
   groups,
@@ -78,18 +82,14 @@ export function StickyColumnLabel({
   containerRef,
   offset = 0,
   className,
+  registerScroll,
 }: StickyColumnLabelProps) {
   const stickyHeaderScrollRef = useRef<HTMLDivElement>(null);
   const [showStickyHeader, setShowStickyHeader] = useState(false);
-  const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  // Shared scroll state for instant synchronization
-  const scrollStateRef = useRef({ scrollLeft: 0, isUpdating: false });
 
   const getScrollParent = useScrollParent();
 
-  // Scroll handler logic (reads from refs)
+  // Visibility check: show sticky header when original header scrolls past threshold
   const handleScrollLogic = useCallback(() => {
     const headerElement = headerRef.current;
     const containerElement = containerRef.current;
@@ -97,206 +97,104 @@ export function StickyColumnLabel({
       return;
     }
 
-    // Check if header top is above the sticky threshold
+    // Convert scroll-container-relative offset to viewport coords for getBoundingClientRect comparison
+    const scrollParent = getScrollParent(containerElement);
+    const scrollContainerTop =
+      scrollParent === window
+        ? 0
+        : (scrollParent as HTMLElement).getBoundingClientRect().top;
+    const viewportThreshold = scrollContainerTop + offset;
+
     const headerRect = headerElement.getBoundingClientRect();
     const contRect = containerElement.getBoundingClientRect();
 
     setShowStickyHeader(
-      headerRect.top < offset && contRect.bottom > offset + headerRect.height
+      headerRect.top < viewportThreshold &&
+        contRect.bottom > viewportThreshold + headerRect.height
     );
+  }, [headerRef, containerRef, offset, getScrollParent]);
 
-    // Update container rect
-    setContainerRect(contRect);
-  }, [headerRef, containerRef, offset]);
-
-  // Debounced resize handler (150ms)
-  const debouncedResizeHandler = useDebouncedCallback(
-    handleScrollLogic,
-    RESIZE_DEBOUNCE_MS
-  );
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
+  // Visibility listeners (vertical scroll + resize)
   useEffect(() => {
     if (!enabled) {
       setShowStickyHeader(false);
       return;
     }
 
-    const headerElement = headerRef.current;
     const containerElement = containerRef.current;
-    if (!(headerElement && containerElement)) {
+    if (!containerElement) {
       return;
     }
 
-    // Synchronous scroll update function
-    const updateScrollPosition = (newScrollLeft: number) => {
-      if (scrollStateRef.current.isUpdating) {
-        return;
-      }
-
-      scrollStateRef.current.isUpdating = true;
-      scrollStateRef.current.scrollLeft = newScrollLeft;
-
-      // Update both containers synchronously
-      const stickyScrollElement = stickyHeaderScrollRef.current;
-
-      if (containerElement.scrollLeft !== newScrollLeft) {
-        containerElement.scrollLeft = newScrollLeft;
-      }
-
-      if (
-        stickyScrollElement &&
-        stickyScrollElement.scrollLeft !== newScrollLeft
-      ) {
-        stickyScrollElement.scrollLeft = newScrollLeft;
-      }
-
-      // Reset flag synchronously
-      scrollStateRef.current.isUpdating = false;
-    };
-
-    // Initial setup
+    // Initial check
     handleScrollLogic();
 
-    // Handle horizontal scroll in container
-    const handleContainerScroll = (e: Event) => {
-      const target = e.target as HTMLElement;
-      updateScrollPosition(target.scrollLeft);
-    };
-
-    // Update on resize - use debounced handler
-    const resizeObserver = new ResizeObserver(() => {
-      debouncedResizeHandler();
-    });
-
+    // Resize observer on board container
+    const resizeObserver = new ResizeObserver(handleScrollLogic);
     resizeObserver.observe(containerElement);
 
+    // Listen for vertical scroll on the scroll parent
     const scrollParent = getScrollParent(containerElement);
     scrollParent.addEventListener("scroll", handleScrollLogic, {
-      passive: true,
-    });
-    containerElement.addEventListener("scroll", handleContainerScroll, {
       passive: true,
     });
 
     return () => {
       resizeObserver.disconnect();
       scrollParent.removeEventListener("scroll", handleScrollLogic);
-      containerElement.removeEventListener("scroll", handleContainerScroll);
     };
-  }, [
-    enabled,
-    headerRef,
-    containerRef,
-    handleScrollLogic,
-    debouncedResizeHandler,
-    getScrollParent,
-  ]);
+  }, [enabled, containerRef, handleScrollLogic, getScrollParent]);
 
-  // Effect for sticky header scroll synchronization
+  // Register sticky header's inner scroll element with board scroll sync
   useEffect(() => {
-    if (!enabled) {
+    const el = stickyHeaderScrollRef.current;
+    if (!(enabled && showStickyHeader && el)) {
       return;
     }
+    return registerScroll(el);
+  }, [enabled, showStickyHeader, registerScroll]);
 
-    const stickyScrollElement = stickyHeaderScrollRef.current;
-    const containerElement = containerRef.current;
-
-    if (!(stickyScrollElement && containerElement && showStickyHeader)) {
-      return;
-    }
-
-    // Synchronous scroll update function
-    const updateScrollPosition = (newScrollLeft: number) => {
-      if (scrollStateRef.current.isUpdating) {
-        return;
-      }
-
-      scrollStateRef.current.isUpdating = true;
-      scrollStateRef.current.scrollLeft = newScrollLeft;
-
-      // Update both containers synchronously
-      if (containerElement.scrollLeft !== newScrollLeft) {
-        containerElement.scrollLeft = newScrollLeft;
-      }
-
-      if (stickyScrollElement.scrollLeft !== newScrollLeft) {
-        stickyScrollElement.scrollLeft = newScrollLeft;
-      }
-
-      // Reset flag synchronously
-      scrollStateRef.current.isUpdating = false;
-    };
-
-    const handleStickyScroll = (e: Event) => {
-      const target = e.target as HTMLElement;
-      updateScrollPosition(target.scrollLeft);
-    };
-
-    // Sync initial position immediately
-    stickyScrollElement.scrollLeft = scrollStateRef.current.scrollLeft;
-
-    // Add listeners
-    stickyScrollElement.addEventListener("scroll", handleStickyScroll, {
-      passive: true,
-    });
-
-    return () => {
-      stickyScrollElement.removeEventListener("scroll", handleStickyScroll);
-    };
-  }, [enabled, showStickyHeader, containerRef]);
-
-  // Don't render anything if not enabled, not mounted, or conditions not met
-  if (!(enabled && mounted && showStickyHeader && containerRect)) {
+  // Don't render anything if not enabled
+  if (!enabled) {
     return null;
   }
 
-  // Render the sticky header using a portal
-  return createPortal(
+  return (
     <div
-      className="fixed z-40 bg-background"
-      style={{
-        top: offset,
-        left: Math.max(0, containerRect.left),
-        width: Math.min(
-          containerRect.width,
-          window.innerWidth - Math.max(0, containerRect.left)
-        ),
-      }}
+      className="sticky z-40"
+      style={{ top: offset, height: 0, overflow: "visible" }}
     >
-      <div
-        className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        ref={stickyHeaderScrollRef}
-      >
-        <div className="flex min-w-fit gap-4">
-          {groups.map((group) => (
-            <div
-              className={cn(
-                "shrink-0 rounded-t-lg p-2",
-                className,
-                getColumnBgClass?.(group.key) || "bg-muted/30"
-              )}
-              key={group.key}
-              style={{ width: columnWidthPx }}
-            >
-              {columnHeader ? (
-                columnHeader(group.key, group.count)
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-sm">{group.key}</span>
-                  <span className="text-muted-foreground text-xs">
-                    {group.displayCount ?? group.count}
-                  </span>
-                </div>
-              )}
-            </div>
-          ))}
+      {showStickyHeader && (
+        <div
+          className="overflow-x-auto bg-background [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          ref={stickyHeaderScrollRef}
+        >
+          <div className="flex min-w-fit gap-4">
+            {groups.map((group) => (
+              <div
+                className={cn(
+                  "shrink-0 rounded-t-lg p-2",
+                  className,
+                  getColumnBgClass?.(group.key) || "bg-muted/30"
+                )}
+                key={group.key}
+                style={{ width: columnWidthPx }}
+              >
+                {columnHeader ? (
+                  columnHeader(group.key, group.count)
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm">{group.key}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {group.displayCount ?? group.count}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    </div>,
-    document.body
+      )}
+    </div>
   );
 }

@@ -64,6 +64,12 @@ export interface GalleryViewProps<TData> {
   showPropertyNames?: boolean;
 
   /**
+   * Sticky header configuration for grouped mode.
+   * @default { enabled: false }
+   */
+  stickyHeader?: { enabled: boolean; offset?: number };
+
+  /**
    * Wrap all properties text
    * @default false
    */
@@ -85,8 +91,11 @@ export function GalleryView<
   onCardClick,
   pagination,
   showPropertyNames = false,
+  stickyHeader: stickyHeaderProp,
   wrapAllProperties = false,
 }: GalleryViewProps<TData>) {
+  const stickyEnabled = stickyHeaderProp?.enabled ?? false;
+  const stickyOffset = stickyHeaderProp?.offset ?? 0;
   // Get data and properties from context
   const {
     data,
@@ -164,7 +173,7 @@ export function GalleryView<
                 groupByPropertyDef={groupByProperty}
                 key={groupItem.key}
                 showAggregation={group.showCount ?? true}
-                stickyHeader={{ enabled: true, offset: 57 }}
+                stickyHeader={{ enabled: stickyEnabled, offset: stickyOffset }}
               >
                 {isExpanded ? (
                   <Suspense

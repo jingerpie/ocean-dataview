@@ -18,6 +18,7 @@ import { useDisplayProperties } from "../../../hooks/use-display-properties";
 import type { GroupedDataItem } from "../../../hooks/use-group-config";
 import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
+import { useScrollSync } from "../../../hooks/use-scroll-sync";
 import { useViewSetup } from "../../../hooks/use-view-setup";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import type { BulkAction } from "../../../types/action.type";
@@ -116,6 +117,7 @@ export function TableView<
 }: TableViewProps<TData>) {
   const stickyEnabled = stickyHeaderProp?.enabled ?? false;
   const stickyOffset = stickyHeaderProp?.offset ?? 0;
+  const { register: registerScroll } = useScrollSync();
 
   // Get data and properties from context
   const {
@@ -318,10 +320,12 @@ export function TableView<
                         enableRowSelection={enableRowSelection}
                         groupItem={groupItem}
                         headerOffset={stickyOffset + 44}
+                        hideScrollbar
                         onRowClick={onRowClick}
                         onRowSelectionChange={setRowSelection}
                         pagination={pagination}
                         properties={properties}
+                        registerScroll={registerScroll}
                         rowSelection={rowSelection}
                         showVerticalLines={showVerticalLines}
                         stickyEnabled={stickyEnabled}
@@ -334,10 +338,12 @@ export function TableView<
                         enableRowSelection={enableRowSelection}
                         groupItem={groupItem}
                         headerOffset={stickyOffset + 44}
+                        hideScrollbar
                         onRowClick={onRowClick}
                         onRowSelectionChange={setRowSelection}
                         pagination={pagination}
                         properties={properties}
+                        registerScroll={registerScroll}
                         rowSelection={rowSelection}
                         showVerticalLines={showVerticalLines}
                         stickyEnabled={stickyEnabled}
@@ -357,6 +363,9 @@ export function TableView<
           isFetching={isFetchingNextGroupPage}
           onLoadMore={onLoadMoreGroups}
         />
+
+        {/* Shared horizontal scrollbar for all grouped tables */}
+        <ScrollSyncBar register={registerScroll} />
       </div>
     );
   }
@@ -390,6 +399,7 @@ export function TableView<
           onRowSelectionChange={setRowSelection}
           pagination={pagination}
           properties={properties}
+          registerScroll={registerScroll}
           rowSelection={rowSelection}
           showVerticalLines={showVerticalLines}
           stickyEnabled={stickyEnabled}
@@ -412,6 +422,7 @@ export function TableView<
           onRowSelectionChange={setRowSelection}
           pagination={pagination}
           properties={properties}
+          registerScroll={registerScroll}
           rowSelection={rowSelection}
           showVerticalLines={showVerticalLines}
           stickyEnabled={stickyEnabled}
@@ -440,10 +451,14 @@ interface SuspendingGroupTableContentProps<
   groupItem: GroupedDataItem<TData>;
   /** Offset for sticky header */
   headerOffset: number;
+  /** Hide individual scrollbars (shared scrollbar provided at view level) */
+  hideScrollbar?: boolean;
   onRowClick?: (row: TData) => void;
   onRowSelectionChange: (state: RowSelectionState) => void;
   pagination?: PaginationMode;
   properties: TProperties;
+  /** External scroll sync registration for cross-group horizontal scroll */
+  registerScroll?: (el: HTMLElement) => () => void;
   rowSelection: RowSelectionState;
   showVerticalLines: boolean;
   stickyEnabled: boolean;
@@ -462,10 +477,12 @@ function TableContentRenderer<
   data,
   enableRowSelection,
   headerOffset,
+  hideScrollbar,
   onRowClick,
   onRowSelectionChange,
   paginationNode,
   properties,
+  registerScroll,
   rowSelection,
   showVerticalLines,
   stickyEnabled,
@@ -476,10 +493,12 @@ function TableContentRenderer<
   data: TData[];
   enableRowSelection: boolean;
   headerOffset: number;
+  hideScrollbar?: boolean;
   onRowClick?: (row: TData) => void;
   onRowSelectionChange: (state: RowSelectionState) => void;
   paginationNode: React.ReactNode;
   properties: TProperties;
+  registerScroll?: (el: HTMLElement) => () => void;
   rowSelection: RowSelectionState;
   showVerticalLines: boolean;
   stickyEnabled: boolean;
@@ -496,9 +515,11 @@ function TableContentRenderer<
         data={transformedItems}
         enableRowSelection={enableRowSelection}
         header={{ enabled: true, sticky: stickyEnabled }}
+        hideScrollbar={hideScrollbar}
         offset={headerOffset}
         onRowClick={onRowClick}
         onRowSelectionChange={onRowSelectionChange}
+        registerScroll={registerScroll}
         rowSelection={rowSelection}
         showVerticalLines={showVerticalLines}
         wrapAllProperties={wrapAllProperties}
@@ -520,10 +541,12 @@ function SuspendingPageTableContent<
   enableRowSelection,
   groupItem,
   headerOffset,
+  hideScrollbar,
   onRowClick,
   onRowSelectionChange,
   pagination,
   properties,
+  registerScroll,
   rowSelection,
   showVerticalLines,
   stickyEnabled,
@@ -554,12 +577,14 @@ function SuspendingPageTableContent<
             data={result.data}
             enableRowSelection={enableRowSelection}
             headerOffset={headerOffset}
+            hideScrollbar={hideScrollbar}
             onRowClick={onRowClick}
             onRowSelectionChange={onRowSelectionChange}
             paginationNode={
               <Pagination context={paginationContext} mode={pagination} />
             }
             properties={properties}
+            registerScroll={registerScroll}
             rowSelection={rowSelection}
             showVerticalLines={showVerticalLines}
             stickyEnabled={stickyEnabled}
@@ -583,10 +608,12 @@ function SuspendingInfiniteTableContent<
   enableRowSelection,
   groupItem,
   headerOffset,
+  hideScrollbar,
   onRowClick,
   onRowSelectionChange,
   pagination,
   properties,
+  registerScroll,
   rowSelection,
   showVerticalLines,
   stickyEnabled,
@@ -622,12 +649,14 @@ function SuspendingInfiniteTableContent<
             data={result.data}
             enableRowSelection={enableRowSelection}
             headerOffset={headerOffset}
+            hideScrollbar={hideScrollbar}
             onRowClick={onRowClick}
             onRowSelectionChange={onRowSelectionChange}
             paginationNode={
               <Pagination context={paginationContext} mode={pagination} />
             }
             properties={properties}
+            registerScroll={registerScroll}
             rowSelection={rowSelection}
             showVerticalLines={showVerticalLines}
             stickyEnabled={stickyEnabled}
@@ -731,6 +760,82 @@ function InfiniteScrollGroupsSentinel({
           <span className="text-sm">Loading more groups...</span>
         </div>
       )}
+    </div>
+  );
+}
+
+// ============================================================================
+// Scroll Sync Bar
+// ============================================================================
+
+/**
+ * ScrollSyncBar - A visible horizontal scrollbar that syncs with all
+ * registered scroll containers. Used in grouped mode where individual
+ * DataTable scrollbars are hidden.
+ *
+ * Measures content width from sibling scroll containers via ResizeObserver.
+ */
+function ScrollSyncBar({
+  register,
+}: {
+  register: (el: HTMLElement) => () => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const spacerRef = useRef<HTMLDivElement>(null);
+  const [contentWidth, setContentWidth] = useState(0);
+
+  // Register with scroll sync
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) {
+      return;
+    }
+    return register(el);
+  }, [register]);
+
+  // Observe any registered scroll container to measure content width
+  useEffect(() => {
+    const scrollEl = scrollRef.current;
+    if (!scrollEl) {
+      return;
+    }
+
+    const updateWidth = () => {
+      // Find any overflow-x-auto container in the parent tree to measure from
+      const parent = scrollEl.closest(".flex.flex-col");
+      if (!parent) {
+        return;
+      }
+      const container = parent.querySelector<HTMLElement>(".overflow-x-auto");
+      if (container && container !== scrollEl) {
+        setContentWidth(container.scrollWidth);
+      }
+    };
+
+    // Delay initial check to allow Suspense children to mount
+    const timer = setTimeout(updateWidth, 100);
+
+    const observer = new MutationObserver(updateWidth);
+    const parent = scrollEl.closest(".flex.flex-col");
+    if (parent) {
+      observer.observe(parent, { childList: true, subtree: true });
+    }
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, []);
+
+  return (
+    <div
+      className="sticky bottom-0 overflow-x-auto"
+      ref={scrollRef}
+      style={
+        contentWidth === 0 ? { visibility: "hidden", height: 0 } : undefined
+      }
+    >
+      <div ref={spacerRef} style={{ width: contentWidth, height: 1 }} />
     </div>
   );
 }

@@ -9,7 +9,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import type * as React from "react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
+import { useScrollSync } from "../../../hooks/use-scroll-sync";
 import { cn } from "../../../lib/utils";
 import type { PropertyType } from "../../../types/filter.type";
 import {
@@ -86,6 +87,20 @@ interface DataTableProps<TData> {
   header?: boolean | HeaderConfig;
 
   /**
+   * Register a scroll container with external scroll sync.
+   * When provided, DataTable uses this instead of creating its own sync.
+   */
+  /**
+   * When true, renders just the <Table> without overflow wrappers or sticky header.
+   * Used when the parent provides a shared scroll container.
+   */
+  /**
+   * Hide the horizontal scrollbar. Used in grouped mode where
+   * a shared scrollbar is provided at the view level.
+   */
+  hideScrollbar?: boolean;
+
+  /**
    * Offset from top when sticky header is enabled (in pixels)
    */
   offset?: number;
@@ -99,6 +114,8 @@ interface DataTableProps<TData> {
    * Row selection change callback
    */
   onRowSelectionChange?: (state: RowSelectionState) => void;
+
+  registerScroll?: (el: HTMLElement) => () => void;
 
   /**
    * Row selection state
@@ -130,9 +147,22 @@ export function DataTable<TData>({
   header = true,
   offset = 0,
   className,
+  hideScrollbar = false,
+  registerScroll: externalRegisterScroll,
 }: DataTableProps<TData>) {
   const tableHeaderRef = useRef<HTMLTableSectionElement>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const { register: internalRegisterScroll } = useScrollSync();
+  const registerScroll = externalRegisterScroll ?? internalRegisterScroll;
+
+  // Register the table body scroll container with scroll sync
+  useEffect(() => {
+    const el = tableContainerRef.current;
+    if (!el) {
+      return;
+    }
+    return registerScroll(el);
+  }, [registerScroll]);
 
   const headerConfig: HeaderConfig =
     typeof header === "boolean"
@@ -161,12 +191,100 @@ export function DataTable<TData>({
   // Check if any rows are selected
   const hasSelectedRows = table.getFilteredSelectedRowModel().rows.length > 0;
 
+  const tableElement = (
+    <Table>
+      {headerConfig.enabled && (
+        <TableHeader ref={tableHeaderRef}>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                const meta = header.column.columnDef.meta as
+                  | { propertyType?: PropertyType }
+                  | undefined;
+                const propertyType = meta?.propertyType;
+                const headerDef = header.column.columnDef.header;
+                const headerLabel =
+                  typeof headerDef === "string" ? headerDef : undefined;
+                const columnWidth = calculateColumnWidth(
+                  propertyType,
+                  headerLabel
+                );
+                const isSelectionColumn = header.id === "select";
+                return (
+                  <TableHead
+                    className={cn(isSelectionColumn && "pr-0")}
+                    colSpan={header.colSpan}
+                    key={header.id}
+                    style={{
+                      minWidth: columnWidth,
+                      maxWidth: columnWidth,
+                    }}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                );
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+      )}
+      <TableBody>
+        {table.getRowModel().rows.map((row) => (
+          <TableRow
+            className={cn(onRowClick && "cursor-pointer")}
+            data-state={row.getIsSelected() && "selected"}
+            key={row.id}
+            onClick={() => onRowClick?.(row.original)}
+          >
+            {row.getVisibleCells().map((cell) => {
+              const meta = cell.column.columnDef.meta as
+                | { propertyType?: PropertyType; wrap?: boolean }
+                | undefined;
+              const propertyType = meta?.propertyType;
+              const cellWrap = meta?.wrap ?? wrapAllProperties;
+              const headerDef = cell.column.columnDef.header;
+              const headerLabel =
+                typeof headerDef === "string" ? headerDef : undefined;
+              const columnWidth = calculateColumnWidth(
+                propertyType,
+                headerLabel
+              );
+              const isSelectionColumn = cell.column.id === "select";
+              return (
+                <TableCell
+                  className={cn(
+                    showVerticalLines && "border-r last:border-r-0",
+                    cellWrap ? "whitespace-normal" : "truncate",
+                    isSelectionColumn && "pr-0"
+                  )}
+                  key={cell.id}
+                  style={{
+                    minWidth: columnWidth,
+                    maxWidth: columnWidth,
+                  }}
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              );
+            })}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+
   return (
     <>
       {/* Sticky Header Component */}
       <DataTableStickyHeader
         enabled={!!headerConfig.sticky}
         offset={offset}
+        registerScroll={registerScroll}
         table={table}
         tableContainerRef={tableContainerRef}
         tableHeaderRef={tableHeaderRef}
@@ -174,94 +292,15 @@ export function DataTable<TData>({
 
       {/* Original Table */}
       <div className={cn("overflow-clip", className)}>
-        <div className="overflow-x-auto" ref={tableContainerRef}>
-          <Table>
-            {headerConfig.enabled && (
-              <TableHeader ref={tableHeaderRef}>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      const meta = header.column.columnDef.meta as
-                        | { propertyType?: PropertyType }
-                        | undefined;
-                      const propertyType = meta?.propertyType;
-                      const headerDef = header.column.columnDef.header;
-                      const headerLabel =
-                        typeof headerDef === "string" ? headerDef : undefined;
-                      const columnWidth = calculateColumnWidth(
-                        propertyType,
-                        headerLabel
-                      );
-                      const isSelectionColumn = header.id === "select";
-                      return (
-                        <TableHead
-                          className={cn(isSelectionColumn && "pr-0")}
-                          colSpan={header.colSpan}
-                          key={header.id}
-                          style={{
-                            minWidth: columnWidth,
-                            maxWidth: columnWidth,
-                          }}
-                        >
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-            )}
-            <TableBody>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow
-                  className={cn(onRowClick && "cursor-pointer")}
-                  data-state={row.getIsSelected() && "selected"}
-                  key={row.id}
-                  onClick={() => onRowClick?.(row.original)}
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    const meta = cell.column.columnDef.meta as
-                      | { propertyType?: PropertyType; wrap?: boolean }
-                      | undefined;
-                    const propertyType = meta?.propertyType;
-                    const cellWrap = meta?.wrap ?? wrapAllProperties;
-                    const headerDef = cell.column.columnDef.header;
-                    const headerLabel =
-                      typeof headerDef === "string" ? headerDef : undefined;
-                    const columnWidth = calculateColumnWidth(
-                      propertyType,
-                      headerLabel
-                    );
-                    const isSelectionColumn = cell.column.id === "select";
-                    return (
-                      <TableCell
-                        className={cn(
-                          showVerticalLines && "border-r last:border-r-0",
-                          cellWrap ? "whitespace-normal" : "truncate",
-                          isSelectionColumn && "pr-0"
-                        )}
-                        key={cell.id}
-                        style={{
-                          minWidth: columnWidth,
-                          maxWidth: columnWidth,
-                        }}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <div
+          className={cn(
+            "overflow-x-auto",
+            hideScrollbar &&
+              "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          )}
+          ref={tableContainerRef}
+        >
+          {tableElement}
         </div>
       </div>
 

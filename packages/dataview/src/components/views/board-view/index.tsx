@@ -1,11 +1,19 @@
 "use client";
 
 import { AlertCircle, Loader2 } from "lucide-react";
-import { Suspense, useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useDisplayProperties } from "../../../hooks/use-display-properties";
 import type { GroupedDataItem } from "../../../hooks/use-group-config";
 import { useGroupParams } from "../../../hooks/use-group-params";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
+import { useScrollSync } from "../../../hooks/use-scroll-sync";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import { toParsedGroupConfig } from "../../../types/group.type";
 import type { PaginationContext } from "../../../types/pagination";
@@ -30,9 +38,10 @@ import { SuspendingInfiniteGroupContent } from "../../ui/suspending-group-conten
 import { DataCard } from "../data-card";
 import { DataCell } from "../data-cell";
 import { EmptyState } from "../empty-state";
-import { BoardColumnHeaders } from "./board-column-headers";
+import { BoardColumnHeaders, parseColumnWidth } from "./board-column-headers";
 import { BoardColumns } from "./board-columns";
 import { BoardSkeleton } from "./board-skeleton";
+import { StickyColumnLabel } from "./sticky-column-label";
 
 /**
  * Pagination mode for board views.
@@ -377,9 +386,21 @@ export function BoardView<
     );
   };
 
-  // Refs for scroll containers
-  const groupedScrollContainerRef = useRef<HTMLDivElement>(null);
-  const flatScrollContainerRef = useRef<HTMLDivElement>(null);
+  // Refs and scroll sync
+  const boardContainerRef = useRef<HTMLDivElement>(null);
+  const originalHeaderRef = useRef<HTMLDivElement>(null);
+  const headerScrollRef = useRef<HTMLDivElement>(null);
+  const { register: registerScroll } = useScrollSync();
+  const columnWidthPx = parseColumnWidth(columnWidth);
+
+  // Register the header scroll container with scroll sync
+  useEffect(() => {
+    const el = headerScrollRef.current;
+    if (!el) {
+      return;
+    }
+    return registerScroll(el);
+  }, [registerScroll]);
 
   // Error state
   if (propertyValidationError) {
@@ -402,8 +423,9 @@ export function BoardView<
   const isGroupedBoard = Boolean(groupConfig);
 
   // GROUPED VIEW: Accordion rows with columns inside each
-  // Check groupKeys from context (populated by SuspendingGroupKeys in QueryBridge)
-  // Note: Headers render from context counts (not suspended), each row has its own Suspense
+  // Sticky elements (column headers, group headers) render OUTSIDE overflow-x-auto
+  // so that position: sticky works for vertical scrolling.
+  // Each group's card content gets its own overflow-x-auto, synced via useScrollSync.
   if (isGroupedBoard && groupKeys && groupKeys.length > 0) {
     // Show skeleton while group counts are loading
     if (!hasRowGroups) {
@@ -419,55 +441,77 @@ export function BoardView<
       );
     }
     return (
-      <div className="relative max-w-full overflow-clip">
-        <div className="overflow-x-auto pb-4" ref={groupedScrollContainerRef}>
+      <div
+        className="relative max-w-full overflow-clip"
+        ref={boardContainerRef}
+      >
+        {/* Sticky column header - outside overflow-x, sticky works */}
+        <StickyColumnLabel
+          className={undefined}
+          columnHeader={getColumnHeader}
+          columnWidthPx={columnWidthPx}
+          containerRef={boardContainerRef}
+          enabled={stickyEnabled}
+          getColumnBgClass={getColumnBgClass}
+          groups={columns}
+          headerRef={originalHeaderRef}
+          offset={stickyOffset}
+          registerScroll={registerScroll}
+        />
+
+        {/* Original column headers - hidden scrollbar, synced */}
+        <div
+          className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          ref={headerScrollRef}
+        >
           <div className="min-w-fit">
-            {/* Column Headers (sticky) */}
             <BoardColumnHeaders
               columnHeader={getColumnHeader}
               columnWidth={columnWidth}
-              containerRef={groupedScrollContainerRef}
               getColumnBgClass={getColumnBgClass}
               groups={columns}
-              stickyHeader={{
-                enabled: stickyEnabled,
-                offset: stickyOffset,
-              }}
+              headerRef={originalHeaderRef}
             />
+          </div>
+        </div>
 
-            {/* Row group accordion sections */}
-            <Accordion
-              multiple
-              onValueChange={onExpandedGroupsChange}
-              value={expandedGroups ?? []}
-            >
-              {rowGroups.map((rowGroup) => {
-                const isExpanded =
-                  expandedGroups?.includes(rowGroup.key) ?? false;
+        {/* Row group accordion sections - group headers outside overflow-x */}
+        <Accordion
+          multiple
+          onValueChange={onExpandedGroupsChange}
+          value={expandedGroups ?? []}
+        >
+          {rowGroups.map((rowGroup) => {
+            const isExpanded = expandedGroups?.includes(rowGroup.key) ?? false;
 
-                return (
-                  <GroupSection
-                    group={rowGroup}
-                    groupByPropertyDef={rowGroupPropertyDef}
-                    key={rowGroup.key}
-                    showAggregation={groupConfig?.showCount ?? true}
-                    stickyHeader={{
-                      enabled: stickyEnabled,
-                      offset: stickyOffset + 36, // stickyOffset + column headers height
-                    }}
+            return (
+              <GroupSection
+                group={rowGroup}
+                groupByPropertyDef={rowGroupPropertyDef}
+                key={rowGroup.key}
+                showAggregation={groupConfig?.showCount ?? true}
+                stickyHeader={{
+                  enabled: stickyEnabled,
+                  offset: stickyOffset + 36,
+                }}
+              >
+                {isExpanded ? (
+                  <Suspense
+                    fallback={
+                      <BoardSkeleton
+                        cardSize={cardSize}
+                        cardsPerColumn={limit ?? BoardView.defaultLimit}
+                        columnCount={columns.length}
+                        propertyTypes={displayProperties.map((p) => p.type)}
+                        withImage={Boolean(cardPreview)}
+                      />
+                    }
                   >
-                    {isExpanded ? (
-                      <Suspense
-                        fallback={
-                          <BoardSkeleton
-                            cardSize={cardSize}
-                            cardsPerColumn={limit ?? BoardView.defaultLimit}
-                            columnCount={columns.length}
-                            propertyTypes={displayProperties.map((p) => p.type)}
-                            withImage={Boolean(cardPreview)}
-                          />
-                        }
-                      >
+                    <SyncedScrollContainer
+                      className="pb-4"
+                      register={registerScroll}
+                    >
+                      <div className="min-w-fit">
                         <SuspendingInfiniteBoardContent<TData, TProperties>
                           columns={columns}
                           columnWidth={columnWidth}
@@ -480,21 +524,24 @@ export function BoardView<
                           properties={properties}
                           rounded="all"
                         />
-                      </Suspense>
-                    ) : null}
-                  </GroupSection>
-                );
-              })}
-            </Accordion>
+                      </div>
+                    </SyncedScrollContainer>
+                  </Suspense>
+                ) : null}
+              </GroupSection>
+            );
+          })}
+        </Accordion>
 
-            {/* Infinite scroll sentinel for groups */}
-            <InfiniteScrollGroupsSentinel
-              hasNext={hasNextGroupPage}
-              isFetching={isFetchingNextGroupPage}
-              onLoadMore={onLoadMoreGroups}
-            />
-          </div>
-        </div>
+        {/* Infinite scroll sentinel for groups */}
+        <InfiniteScrollGroupsSentinel
+          hasNext={hasNextGroupPage}
+          isFetching={isFetchingNextGroupPage}
+          onLoadMore={onLoadMoreGroups}
+        />
+
+        {/* Shared horizontal scrollbar */}
+        <ScrollSyncBar register={registerScroll} />
       </div>
     );
   }
@@ -504,36 +551,45 @@ export function BoardView<
     return <EmptyState />;
   }
 
-  // FLAT VIEW: Uses SuspendingGroupContent with __ungrouped__ key
-  // Both headers and content are inside Suspense so they appear together after data loads
+  // FLAT VIEW: StickyColumnLabel outside overflow-x, content inside
   return (
-    <div className="relative max-w-full overflow-clip">
-      <div className="overflow-x-auto pb-4" ref={flatScrollContainerRef}>
-        <div className="min-w-fit">
-          <Suspense
-            fallback={
-              <BoardSkeleton
-                cardSize={cardSize}
-                cardsPerColumn={limit ?? BoardView.defaultLimit}
-                columnCount={columns.length}
-                pagination={pagination}
-                propertyTypes={displayProperties.map((p) => p.type)}
-                withImage={Boolean(cardPreview)}
-              />
-            }
-          >
-            {/* Column Headers - inside Suspense to render with cards */}
+    <div className="relative max-w-full overflow-clip" ref={boardContainerRef}>
+      <Suspense
+        fallback={
+          <BoardSkeleton
+            cardSize={cardSize}
+            cardsPerColumn={limit ?? BoardView.defaultLimit}
+            columnCount={columns.length}
+            pagination={pagination}
+            propertyTypes={displayProperties.map((p) => p.type)}
+            withImage={Boolean(cardPreview)}
+          />
+        }
+      >
+        {/* Sticky column header - outside overflow-x */}
+        <StickyColumnLabel
+          className={undefined}
+          columnHeader={getColumnHeader}
+          columnWidthPx={columnWidthPx}
+          containerRef={boardContainerRef}
+          enabled={stickyEnabled}
+          getColumnBgClass={getColumnBgClass}
+          groups={columns}
+          headerRef={originalHeaderRef}
+          offset={stickyOffset}
+          registerScroll={registerScroll}
+        />
+
+        {/* Column headers + cards in single scroll container */}
+        <div className="overflow-x-auto pb-4" ref={headerScrollRef}>
+          <div className="min-w-fit">
             <BoardColumnHeaders
               columnHeader={getColumnHeader}
               columnWidth={columnWidth}
-              containerRef={flatScrollContainerRef}
               getColumnBgClass={getColumnBgClass}
               groups={columns}
+              headerRef={originalHeaderRef}
               rounded="top"
-              stickyHeader={{
-                enabled: stickyEnabled,
-                offset: stickyOffset,
-              }}
             />
             <SuspendingInfiniteBoardContent<TData, TProperties>
               columns={columns}
@@ -547,9 +603,9 @@ export function BoardView<
               properties={properties}
               rounded="bottom"
             />
-          </Suspense>
+          </div>
         </div>
-      </div>
+      </Suspense>
     </div>
   );
 }
@@ -790,6 +846,116 @@ function InfiniteScrollGroupsSentinel({
           <span className="text-sm">Loading more groups...</span>
         </div>
       )}
+    </div>
+  );
+}
+
+// ============================================================================
+// Synced Scroll Container
+// ============================================================================
+
+/**
+ * SyncedScrollContainer - overflow-x-auto container with hidden scrollbar
+ * that registers with the board-level scroll sync.
+ */
+function SyncedScrollContainer({
+  children,
+  className,
+  register,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  register: (el: HTMLElement) => () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) {
+      return;
+    }
+    return register(el);
+  }, [register]);
+
+  return (
+    <div
+      className={`overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${className ?? ""}`.trim()}
+      ref={ref}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ============================================================================
+// Scroll Sync Bar
+// ============================================================================
+
+/**
+ * ScrollSyncBar - A visible horizontal scrollbar that syncs with all
+ * registered scroll containers. Measures content width from sibling
+ * scroll containers via MutationObserver.
+ */
+function ScrollSyncBar({
+  register,
+}: {
+  register: (el: HTMLElement) => () => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [contentWidth, setContentWidth] = useState(0);
+
+  // Register with scroll sync
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) {
+      return;
+    }
+    return register(el);
+  }, [register]);
+
+  // Observe DOM to measure content width from sibling scroll containers
+  useEffect(() => {
+    const scrollEl = scrollRef.current;
+    if (!scrollEl) {
+      return;
+    }
+
+    const updateWidth = () => {
+      // Find any overflow-x-auto sibling/descendant to measure from
+      const parent = scrollEl.parentElement;
+      if (!parent) {
+        return;
+      }
+      const container = parent.querySelector<HTMLElement>(".overflow-x-auto");
+      if (container && container !== scrollEl) {
+        setContentWidth(container.scrollWidth);
+      }
+    };
+
+    // Delay initial check to allow Suspense children to mount
+    const timer = setTimeout(updateWidth, 100);
+
+    const observer = new MutationObserver(updateWidth);
+    const parent = scrollEl.parentElement;
+    if (parent) {
+      observer.observe(parent, { childList: true, subtree: true });
+    }
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, []);
+
+  return (
+    <div
+      className="sticky bottom-0 overflow-x-auto"
+      ref={scrollRef}
+      style={
+        contentWidth === 0 ? { visibility: "hidden", height: 0 } : undefined
+      }
+    >
+      <div style={{ width: contentWidth, height: 1 }} />
     </div>
   );
 }

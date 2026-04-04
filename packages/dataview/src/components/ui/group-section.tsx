@@ -202,9 +202,11 @@ interface GroupSectionProps<TData> {
    * Sticky header configuration
    */
   stickyHeader?: {
+    /** Sticky axis: "vertical" (page scroll) or "horizontal" (inside overflow-x-auto) */
+    axis?: "vertical" | "horizontal";
     /** Enable sticky header behavior */
     enabled: boolean;
-    /** Offset from top of viewport (e.g., navbar height) */
+    /** Offset from top of viewport (only used for vertical axis) */
     offset?: number;
   };
 }
@@ -315,8 +317,9 @@ export function GroupSection<TData>({
     <AccordionItem ref={itemRef} value={group.key}>
       {stickyHeader?.enabled ? (
         <StickyGroupLabel
+          axis={stickyHeader.axis}
           containerRef={itemRef}
-          offset={stickyHeader.offset ?? 57}
+          offset={stickyHeader.offset}
         >
           {triggerContent}
         </StickyGroupLabel>
