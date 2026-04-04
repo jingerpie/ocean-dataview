@@ -1,7 +1,4 @@
-import {
-  getCursorParams,
-  toParsedGroupConfig,
-} from "@sparkyidea/dataview/types";
+import { getCursorParams } from "@sparkyidea/dataview/types";
 import { db } from "@sparkyidea/db";
 import { product } from "@sparkyidea/db/schema/product";
 import { and, count } from "drizzle-orm";
@@ -117,9 +114,7 @@ export const productRouter = router({
         limit,
         cursor,
       } = input;
-      const parsed = toParsedGroupConfig(groupBy);
-
-      const groupByResult = buildGroupBy(product, parsed);
+      const groupByResult = buildGroupBy(product, groupBy);
       if (!groupByResult) {
         return {
           counts: {},
@@ -186,7 +181,7 @@ export const productRouter = router({
         const key =
           row.groupKey instanceof Date
             ? row.groupKey.toISOString()
-            : String(row.groupKey ?? `No ${parsed.property}`);
+            : String(row.groupKey ?? `No ${groupBy.propertyId}`);
         countsMap.set(key, Number(row.count));
       }
 
@@ -198,7 +193,7 @@ export const productRouter = router({
         const key =
           row.groupKey instanceof Date
             ? row.groupKey.toISOString()
-            : String(row.groupKey ?? `No ${parsed.property}`);
+            : String(row.groupKey ?? `No ${groupBy.propertyId}`);
         const rawCount = countsMap.get(key) ?? 0;
 
         // Skip empty groups when hideEmpty is true
@@ -247,9 +242,6 @@ export const productRouter = router({
         groupBy,
       } = input;
 
-      // Parse the GroupByConfig for column
-      const parsed = toParsedGroupConfig(columnBy);
-
       // Build common WHERE clauses
       const searchQuery = buildSearchFilter(
         search?.search ?? "",
@@ -284,7 +276,7 @@ export const productRouter = router({
         columnKeysToFetch = requestedColumnKeys;
       } else {
         // Get distinct columns using buildGroupBy for transformed keys
-        const groupByResult = buildGroupBy(product, parsed);
+        const groupByResult = buildGroupBy(product, columnBy);
 
         if (!groupByResult) {
           return {
@@ -305,7 +297,7 @@ export const productRouter = router({
           .orderBy(orderBy);
 
         columnKeysToFetch = columnsResult.map((r) =>
-          String(r.columnKey ?? `No ${parsed.property}`)
+          String(r.columnKey ?? `No ${columnBy.propertyId}`)
         );
       }
 
@@ -330,7 +322,7 @@ export const productRouter = router({
         }
 
         // Build column WHERE using buildGroupWhere
-        const columnWhere = buildGroupWhere(product, parsed, columnKey);
+        const columnWhere = buildGroupWhere(product, columnBy, columnKey);
 
         if (!columnWhere) {
           continue;

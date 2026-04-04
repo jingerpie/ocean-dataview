@@ -161,6 +161,7 @@ export function StickyColumnLabel({
 
   return (
     <div
+      aria-hidden="true"
       className="sticky z-40"
       style={{ top: offset, height: 0, overflow: "visible" }}
     >

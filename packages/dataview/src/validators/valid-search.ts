@@ -9,10 +9,13 @@ const NON_SEARCHABLE_TYPES = new Set([
   "checkbox",
 ]);
 
-type PropertyLike = Pick<PropertyMeta, "enableSearch" | "id" | "type">;
+type PropertyLike = Pick<PropertyMeta, "enableSearch" | "id" | "type"> & {
+  key?: string;
+};
 
 /**
- * Extract searchable property IDs from properties.
+ * Extract searchable property keys (data accessors) from properties.
+ * Uses `key` (the database column) with fallback to `id` for backwards compat.
  * Respects enableSearch: true/false overrides.
  */
 function getSearchablePropertyIds(
@@ -28,7 +31,7 @@ function getSearchablePropertyIds(
       }
       return !NON_SEARCHABLE_TYPES.has(p.type);
     })
-    .map((p) => p.id);
+    .map((p) => p.key ?? p.id);
 }
 
 /**

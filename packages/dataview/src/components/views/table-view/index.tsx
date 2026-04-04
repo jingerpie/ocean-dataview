@@ -813,9 +813,11 @@ function ScrollSyncBar({
         return;
       }
       const container = parent.querySelector<HTMLElement>(".overflow-x-auto");
-      if (container && container !== scrollEl) {
-        setContentWidth(container.scrollWidth);
+      if (!container || container === scrollEl) {
+        setContentWidth(0);
+        return;
       }
+      setContentWidth(container.scrollWidth);
     };
 
     // Delay initial check to allow Suspense children to mount

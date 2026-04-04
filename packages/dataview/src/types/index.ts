@@ -20,8 +20,6 @@ export {
   type GroupByConfig,
   type GroupConfigInput,
   groupByConfigSchema,
-  type ParsedGroupConfig,
-  toParsedGroupConfig,
 } from "./group.type";
 // Pagination types used by packages/trpc and apps/web
 export {

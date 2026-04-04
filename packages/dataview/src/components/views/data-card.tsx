@@ -75,9 +75,13 @@ export function DataCard<TData>({
   onCardClick,
   className,
 }: DataCardProps<TData>) {
-  // Handle cardPreview - if it's an array, use the first element
-  const previewValue = cardPreview
-    ? (item as Record<string, unknown>)[cardPreview]
+  // Handle cardPreview - resolve through property.key for correct data access
+  const previewProperty = cardPreview
+    ? (allProperties ?? displayProperties).find((p) => p.id === cardPreview)
+    : undefined;
+  const previewKey = previewProperty?.key ?? cardPreview;
+  const previewValue = previewKey
+    ? (item as Record<string, unknown>)[previewKey]
     : null;
   const imageUrl = Array.isArray(previewValue)
     ? previewValue[0]

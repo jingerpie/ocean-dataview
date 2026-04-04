@@ -15,7 +15,7 @@ import { useGroupParams } from "../../../hooks/use-group-params";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useScrollSync } from "../../../hooks/use-scroll-sync";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import { toParsedGroupConfig } from "../../../types/group.type";
+import type { GroupByConfig } from "../../../types/group.type";
 import type { PaginationContext } from "../../../types/pagination";
 import type {
   GroupCountInfo,
@@ -173,17 +173,6 @@ export function BoardView<
   const columnSortValues = contextCounts?.groupSortValues;
   const groupCounts = contextCounts?.group;
 
-  // Parse configs from discriminated unions
-  // parsedColumn = board columns, parsedGroup = accordion rows
-  const parsedColumn = useMemo(
-    () => (columnConfig ? toParsedGroupConfig(columnConfig) : undefined),
-    [columnConfig]
-  );
-  const parsedGroup = useMemo(
-    () => (groupConfig ? toParsedGroupConfig(groupConfig) : undefined),
-    [groupConfig]
-  );
-
   // Validate property keys
   const propertyValidationError = useMemo(
     () => validatePropertyKeys(properties),
@@ -192,19 +181,19 @@ export function BoardView<
 
   // Get column property for header display
   const columnProperty = useMemo(() => {
-    if (parsedColumn?.property) {
-      return properties.find((p) => String(p.id) === parsedColumn.property);
+    if (columnConfig?.propertyId) {
+      return properties.find((p) => String(p.id) === columnConfig.propertyId);
     }
     return undefined;
-  }, [parsedColumn, properties]);
+  }, [columnConfig, properties]);
 
   // Get row group property for accordion headers
   const rowGroupPropertyDef = useMemo(() => {
-    if (parsedGroup?.property) {
-      return properties.find((p) => String(p.id) === parsedGroup.property);
+    if (groupConfig?.propertyId) {
+      return properties.find((p) => String(p.id) === groupConfig.propertyId);
     }
     return undefined;
-  }, [parsedGroup, properties]);
+  }, [groupConfig, properties]);
 
   // Build column structure from counts (for headers)
   const columns: GroupedDataItem<TData>[] = useMemo(() => {
@@ -336,7 +325,10 @@ export function BoardView<
     const getBgClass = (color: string) =>
       getBadgeBgTransparentClass(color as BadgeColor);
 
-    if (columnProperty.type === "status" && parsedColumn?.showAs === "group") {
+    if (
+      columnConfig?.propertyType === "status" &&
+      columnConfig.showAs === "group"
+    ) {
       const statusGroupMap: Record<string, BadgeColor> = {
         "To Do": "gray",
         "In Progress": "blue",
@@ -513,6 +505,7 @@ export function BoardView<
                     >
                       <div className="min-w-fit">
                         <SuspendingInfiniteBoardContent<TData, TProperties>
+                          columnConfig={columnConfig ?? undefined}
                           columns={columns}
                           columnWidth={columnWidth}
                           getCardContent={getCardContent}
@@ -520,7 +513,6 @@ export function BoardView<
                           groupKey={rowGroup.key}
                           keyExtractor={keyExtractor}
                           pagination={pagination}
-                          parsedColumn={parsedColumn}
                           properties={properties}
                           rounded="all"
                         />
@@ -592,6 +584,7 @@ export function BoardView<
               rounded="top"
             />
             <SuspendingInfiniteBoardContent<TData, TProperties>
+              columnConfig={columnConfig ?? undefined}
               columns={columns}
               columnWidth={columnWidth}
               getCardContent={getCardContent}
@@ -599,7 +592,6 @@ export function BoardView<
               groupKey="__ungrouped__"
               keyExtractor={keyExtractor}
               pagination={pagination}
-              parsedColumn={parsedColumn}
               properties={properties}
               rounded="bottom"
             />
@@ -622,6 +614,7 @@ interface SuspendingBoardContentProps<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
+  columnConfig?: GroupByConfig;
   columns: GroupedDataItem<TData>[];
   columnWidth: string;
   getCardContent: (item: TData) => React.ReactNode;
@@ -629,20 +622,6 @@ interface SuspendingBoardContentProps<
   groupKey: string;
   keyExtractor: (item: TData, index: number) => string;
   pagination?: BoardPaginationMode;
-  parsedColumn?: {
-    property: string;
-    showAs?:
-      | "day"
-      | "week"
-      | "month"
-      | "year"
-      | "relative"
-      | "group"
-      | "option";
-    startWeekOn?: "monday" | "sunday";
-    textShowAs?: "exact" | "alphabetical";
-    numberRange?: { range: [number, number]; step: number };
-  };
   properties: TProperties;
   rounded?: "top" | "bottom" | "all";
 }
@@ -660,7 +639,7 @@ function BoardContentRenderer<
   getCardContent,
   getColumnBgClass,
   keyExtractor,
-  parsedColumn,
+  columnConfig,
   properties,
   renderFooter,
   rounded = "all",
@@ -671,10 +650,7 @@ function BoardContentRenderer<
   getCardContent: (item: TData) => React.ReactNode;
   getColumnBgClass: (columnName: string) => string;
   keyExtractor: (item: TData, index: number) => string;
-  parsedColumn?: SuspendingBoardContentProps<
-    TData,
-    TProperties
-  >["parsedColumn"];
+  columnConfig?: GroupByConfig;
   properties: TProperties;
   renderFooter?: (columnKey: string) => React.ReactNode;
   rounded?: "top" | "bottom" | "all";
@@ -683,13 +659,23 @@ function BoardContentRenderer<
   const transformedItems = transformData(data, properties) as TData[];
 
   // Group transformed data by column property
-  const { groups: columnGroups } = parsedColumn?.property
-    ? groupDataByProperty(transformedItems, parsedColumn.property, properties, {
-        showAs: parsedColumn.showAs,
-        startWeekOn: parsedColumn.startWeekOn,
-        textShowAs: parsedColumn.textShowAs,
-        numberRange: parsedColumn.numberRange,
-      })
+  const { groups: columnGroups } = columnConfig?.propertyId
+    ? groupDataByProperty(
+        transformedItems,
+        columnConfig.propertyId,
+        properties,
+        {
+          showAs: "showAs" in columnConfig ? columnConfig.showAs : undefined,
+          startWeekOn:
+            columnConfig.propertyType === "date"
+              ? columnConfig.startWeekOn
+              : undefined,
+          numberRange:
+            columnConfig.propertyType === "number"
+              ? columnConfig.numberRange
+              : undefined,
+        }
+      )
     : { groups: {} as Record<string, TData[]> };
 
   return (
@@ -720,7 +706,7 @@ function SuspendingInfiniteBoardContent<
   groupKey,
   keyExtractor,
   pagination,
-  parsedColumn,
+  columnConfig,
   properties,
   rounded = "all",
 }: SuspendingBoardContentProps<TData, TProperties>) {
@@ -729,13 +715,13 @@ function SuspendingInfiniteBoardContent<
       {(result: UseInfiniteGroupQueryResult<TData>) => {
         return (
           <BoardContentRenderer
+            columnConfig={columnConfig ?? undefined}
             columns={columns}
             columnWidth={columnWidth}
             data={result.data}
             getCardContent={getCardContent}
             getColumnBgClass={getColumnBgClass}
             keyExtractor={keyExtractor}
-            parsedColumn={parsedColumn}
             properties={properties}
             renderFooter={
               pagination

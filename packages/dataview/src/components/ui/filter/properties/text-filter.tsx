@@ -105,10 +105,18 @@ function toStoredValue(
   scale: number,
   onValueChange: (value: unknown) => void
 ) {
-  if (scale !== 1 && input !== "") {
-    onValueChange(Math.round(Number(input) * scale));
+  if (input === "") {
+    onValueChange(undefined);
+    return;
+  }
+  const num = Number(input);
+  if (Number.isNaN(num)) {
+    return;
+  }
+  if (scale === 1) {
+    onValueChange(num);
   } else {
-    onValueChange(input);
+    onValueChange(Math.round(num * scale));
   }
 }
 

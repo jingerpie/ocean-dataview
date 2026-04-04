@@ -15,11 +15,18 @@ export interface GroupConfig {
   onExpandedChange?: (groups: string[]) => void;
   /** Display aggregation counts in group headers (default: true) */
   showAggregation?: boolean;
-  showAs?: "day" | "week" | "month" | "year" | "relative" | "group" | "option";
+  showAs?:
+    | "day"
+    | "week"
+    | "month"
+    | "year"
+    | "relative"
+    | "group"
+    | "option"
+    | "exact"
+    | "alphabetical";
   sort?: "propertyAscending" | "propertyDescending";
   startWeekOn?: "monday" | "sunday";
-  /** Text showAs for alphabetical grouping */
-  textShowAs?: "exact" | "alphabetical";
 }
 
 export interface GroupedDataItem<TData> {
@@ -145,7 +152,6 @@ export function useGroupConfig<TData>(
       {
         showAs: effectiveShowAs,
         startWeekOn: groupConfig.startWeekOn,
-        textShowAs: groupConfig.textShowAs,
         numberRange: groupConfig.numberRange,
       }
     );
