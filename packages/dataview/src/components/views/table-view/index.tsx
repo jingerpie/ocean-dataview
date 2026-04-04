@@ -565,8 +565,14 @@ function SuspendingPageTableContent<
           isFetching: result.isFetching,
           limit: result.limit,
           onLimitChange: result.onLimitChange,
-          onNext: result.onNext,
-          onPrev: result.onPrev,
+          onNext: () => {
+            onRowSelectionChange({});
+            result.onNext();
+          },
+          onPrev: () => {
+            onRowSelectionChange({});
+            result.onPrev();
+          },
           totalCount: groupItem.count,
         };
 
