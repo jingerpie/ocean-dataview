@@ -109,13 +109,21 @@ export interface BaseProperty<_T> {
 // Type-specific configurations
 export type BadgeColor =
   | "gray"
+  | "gray-subtle"
   | "blue"
+  | "blue-subtle"
   | "purple"
+  | "purple-subtle"
   | "yellow"
+  | "yellow-subtle"
   | "red"
+  | "red-subtle"
   | "pink"
+  | "pink-subtle"
   | "green"
-  | "teal";
+  | "green-subtle"
+  | "teal"
+  | "teal-subtle";
 
 export interface NumberConfig {
   decimalPlaces?: number; // 0-10
