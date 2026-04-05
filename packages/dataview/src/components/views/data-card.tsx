@@ -59,7 +59,8 @@ export interface DataCardProps<TData> {
   onCardClick?: (item: TData) => void;
 
   /**
-   * Show property names
+   * Global default for showing property names.
+   * Each property's `showName` overrides this.
    */
   showPropertyNames?: boolean;
 
@@ -176,6 +177,7 @@ export function DataCard<TData>({
                 allProperties={allProperties}
                 item={item}
                 property={property}
+                showPropertyNames={showPropertyNames}
                 value={value}
                 wrap={resolvedWrap}
               />

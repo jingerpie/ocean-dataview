@@ -33,13 +33,21 @@ interface DataCellProps<T> {
    * Internal: tracks renderedProperties formula IDs to detect circular references
    */
   renderedProperties?: Set<string>;
+  /**
+   * Global default for showing property names in formula sub-properties.
+   * Each sub-property's `showName` overrides this.
+   * Only used by formula properties to pass through to createFormulaRenderer.
+   */
+  showPropertyNames?: boolean;
   value: unknown;
   wrap?: boolean;
 }
 
 /**
- * Master property display component that delegates to type-specific property components
- * Memoized to prevent unnecessary re-renders in table cells
+ * Property value renderer — delegates to type-specific property components.
+ * Name labels are NOT rendered here; they are handled by the consumer
+ * (DataCard for top-level properties, createFormulaRenderer for sub-properties).
+ * Memoized to prevent unnecessary re-renders in table cells.
  */
 function DataCellComponent<T>({
   value,
@@ -49,6 +57,7 @@ function DataCellComponent<T>({
   allProperties,
   configOverride,
   renderedProperties = new Set(),
+  showPropertyNames = false,
 }: DataCellProps<T>) {
   const displayValue = value;
 
@@ -69,7 +78,8 @@ function DataCellComponent<T>({
       const [propertyRender, itemData] = createFormulaRenderer(
         item,
         allProperties,
-        renderedProperties
+        renderedProperties,
+        showPropertyNames
       );
       return <>{valueFn(propertyRender, itemData)}</>;
     }
