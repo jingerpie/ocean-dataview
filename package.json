@@ -94,7 +94,7 @@
     "@biomejs/biome": "2.4.7",
     "@sparkyidea/config": "workspace:*",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
-    "@types/bun": "1.3.9",
+    "@types/bun": "1.3.11",
     "fluent-ffmpeg": "^2.1.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
