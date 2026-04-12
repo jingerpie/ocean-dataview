@@ -54,6 +54,11 @@ export interface TableViewProps<TData> {
   bulkActions?: BulkAction<TData>[];
 
   /**
+   * Additional className for the table wrapper
+   */
+  className?: string;
+
+  /**
    * Row click handler
    */
   onRowClick?: (row: TData) => void;
@@ -108,6 +113,7 @@ export function TableView<
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
   bulkActions,
+  className,
   onRowClick,
   pagination,
   showPropertyNames = true,
@@ -175,7 +181,8 @@ export function TableView<
 
         return {
           id: String(property.id),
-          accessorKey: String(property.id),
+          accessorFn: (row: TData) =>
+            (row as Record<string, unknown>)[property.id],
           header: resolvedShowName
             ? (property.name ?? String(property.id))
             : "",
@@ -318,6 +325,7 @@ export function TableView<
                     {useInfinitePagination ? (
                       <SuspendingInfiniteTableContent<TData, TProperties>
                         actionBar={actionBar}
+                        className={className}
                         columns={columns}
                         enableRowSelection={enableRowSelection}
                         groupItem={groupItem}
@@ -336,6 +344,7 @@ export function TableView<
                     ) : (
                       <SuspendingPageTableContent<TData, TProperties>
                         actionBar={actionBar}
+                        className={className}
                         columns={columns}
                         enableRowSelection={enableRowSelection}
                         groupItem={groupItem}
@@ -388,6 +397,7 @@ export function TableView<
       {useInfinitePagination ? (
         <SuspendingInfiniteTableContent<TData, TProperties>
           actionBar={actionBar}
+          className={className}
           columns={columns}
           enableRowSelection={enableRowSelection}
           groupItem={{
@@ -411,6 +421,7 @@ export function TableView<
       ) : (
         <SuspendingPageTableContent<TData, TProperties>
           actionBar={actionBar}
+          className={className}
           columns={columns}
           enableRowSelection={enableRowSelection}
           groupItem={{
@@ -449,6 +460,7 @@ interface SuspendingGroupTableContentProps<
   TProperties extends readonly DataViewProperty<TData>[],
 > {
   actionBar?: (table: TanStackTable<TData>) => React.ReactNode;
+  className?: string;
   columns: ColumnDef<TData>[];
   enableRowSelection: boolean;
   groupItem: GroupedDataItem<TData>;
@@ -476,6 +488,7 @@ function TableContentRenderer<
   TProperties extends readonly DataViewProperty<TData>[],
 >({
   actionBar,
+  className,
   columns,
   data,
   enableRowSelection,
@@ -492,6 +505,7 @@ function TableContentRenderer<
   wrapAllProperties,
 }: {
   actionBar?: (table: TanStackTable<TData>) => React.ReactNode;
+  className?: string;
   columns: ColumnDef<TData>[];
   data: TData[];
   enableRowSelection: boolean;
@@ -514,6 +528,7 @@ function TableContentRenderer<
     <>
       <DataTable
         actionBar={actionBar}
+        className={className}
         columns={columns}
         data={transformedItems}
         enableRowSelection={enableRowSelection}
@@ -540,6 +555,7 @@ function SuspendingPageTableContent<
   TProperties extends readonly DataViewProperty<TData>[],
 >({
   actionBar,
+  className,
   columns,
   enableRowSelection,
   groupItem,
@@ -582,6 +598,7 @@ function SuspendingPageTableContent<
         return (
           <TableContentRenderer
             actionBar={actionBar}
+            className={className}
             columns={columns}
             data={result.data}
             enableRowSelection={enableRowSelection}
@@ -613,6 +630,7 @@ function SuspendingInfiniteTableContent<
   TProperties extends readonly DataViewProperty<TData>[],
 >({
   actionBar,
+  className,
   columns,
   enableRowSelection,
   groupItem,
@@ -654,6 +672,7 @@ function SuspendingInfiniteTableContent<
         return (
           <TableContentRenderer
             actionBar={actionBar}
+            className={className}
             columns={columns}
             data={result.data}
             enableRowSelection={enableRowSelection}

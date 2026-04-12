@@ -15,6 +15,7 @@ import { useGroupParams } from "../../../hooks/use-group-params";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useScrollSync } from "../../../hooks/use-scroll-sync";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
+import { cn } from "../../../lib/utils";
 import type { GroupByConfig } from "../../../types/group.type";
 import type { PaginationContext } from "../../../types/pagination";
 import type {
@@ -71,6 +72,11 @@ export interface BoardViewProps<TData> {
    * @default "medium"
    */
   cardSize?: "small" | "medium" | "large";
+
+  /**
+   * Additional className for the board wrapper
+   */
+  className?: string;
 
   /**
    * Color column backgrounds based on property option colors
@@ -142,6 +148,7 @@ export function BoardView<
   cardLayout = "list",
   cardPreview,
   cardSize = "medium",
+  className,
   colorColumns = false,
   counts: _counts,
   fitMedia = true,
@@ -446,7 +453,7 @@ export function BoardView<
     }
     return (
       <div
-        className="relative max-w-full overflow-clip"
+        className={cn("relative max-w-full overflow-clip", className)}
         ref={boardContainerRef}
       >
         {/* Sticky column header - outside overflow-x, sticky works */}
@@ -559,7 +566,10 @@ export function BoardView<
 
   // FLAT VIEW: StickyColumnLabel outside overflow-x, content inside
   return (
-    <div className="relative max-w-full overflow-clip" ref={boardContainerRef}>
+    <div
+      className={cn("relative max-w-full overflow-clip", className)}
+      ref={boardContainerRef}
+    >
       <Suspense
         fallback={
           <BoardSkeleton

@@ -2,6 +2,7 @@
 
 import { cn } from "../../../lib/utils";
 import type { DataViewProperty } from "../../../types/property.type";
+import { Separator } from "../../ui/separator";
 import { DataCell } from "../data-cell";
 import { ROW_SKELETON_WIDTHS } from "../skeleton-widths";
 
@@ -29,6 +30,11 @@ export interface ListRowProps<TData> {
    * Item click handler
    */
   onItemClick?: (item: TData) => void;
+
+  /**
+   * Show horizontal divider lines between rows
+   */
+  showHorizontalLines?: boolean;
 }
 
 /**
@@ -41,15 +47,16 @@ export function ListRow<TData>({
   allProperties,
   onItemClick,
   className,
+  showHorizontalLines,
 }: ListRowProps<TData>) {
   return (
     <div className={cn("overflow-hidden", className)}>
-      <div className="flex w-full flex-col">
+      <div className="flex w-full flex-col gap-1">
         {data.map((item, index) => {
           // Generate a unique key by combining property values or fallback to index
           const firstProperty = displayProperties[0];
-          const firstValue = firstProperty?.key
-            ? (item as Record<string, unknown>)[firstProperty.key]
+          const firstValue = firstProperty
+            ? (item as Record<string, unknown>)[firstProperty.id]
             : undefined;
           const uniqueKey = firstValue
             ? `row-${String(firstValue)}-${index}`
@@ -58,52 +65,61 @@ export function ListRow<TData>({
           const RowElement = onItemClick ? "button" : "div";
 
           return (
-            <RowElement
-              className={cn(
-                "flex items-center gap-4 rounded-md px-2 py-1 transition-colors hover:bg-muted",
-                onItemClick &&
-                  "cursor-pointer border-0 bg-transparent text-left"
-              )}
+            <div
+              className={
+                showHorizontalLines && index > 0
+                  ? "flex flex-col gap-1"
+                  : undefined
+              }
               key={uniqueKey}
-              onClick={() => onItemClick?.(item)}
-              {...(onItemClick && { type: "button" as const })}
             >
-              {displayProperties.map((property, propIndex) => {
-                const value = property.key
-                  ? (item as Record<string, unknown>)[property.key]
-                  : undefined;
-                const isFirst = propIndex === 0;
+              {showHorizontalLines && index > 0 && <Separator />}
+              <RowElement
+                className={cn(
+                  "flex items-center gap-4 rounded-md px-2 py-1 transition-colors hover:bg-muted",
+                  onItemClick &&
+                    "cursor-pointer border-0 bg-transparent text-left"
+                )}
+                onClick={() => onItemClick?.(item)}
+                {...(onItemClick && { type: "button" as const })}
+              >
+                {displayProperties.map((property, propIndex) => {
+                  const value = (item as Record<string, unknown>)[property.id];
+                  const isFirst = propIndex === 0;
 
-                let itemStyle:
-                  | { minWidth?: string; width?: number }
-                  | undefined;
-                if (isFirst) {
-                  itemStyle = { minWidth: ROW_SKELETON_WIDTHS[property.type] };
-                } else if (property.size) {
-                  itemStyle = { width: property.size };
-                }
+                  let itemStyle:
+                    | { minWidth?: string; width?: number }
+                    | undefined;
+                  if (isFirst) {
+                    itemStyle = {
+                      minWidth: ROW_SKELETON_WIDTHS[property.type],
+                    };
+                  } else if (property.size) {
+                    itemStyle = { width: property.size };
+                  }
 
-                return (
-                  <div
-                    className={cn(
-                      "flex items-center",
-                      isFirst
-                        ? "min-w-0 flex-1 overflow-hidden font-medium"
-                        : "shrink-0"
-                    )}
-                    key={String(property.id)}
-                    style={itemStyle}
-                  >
-                    <DataCell
-                      allProperties={allProperties}
-                      item={item}
-                      property={property}
-                      value={value}
-                    />
-                  </div>
-                );
-              })}
-            </RowElement>
+                  return (
+                    <div
+                      className={cn(
+                        "flex items-center",
+                        isFirst
+                          ? "min-w-0 flex-1 overflow-hidden font-medium"
+                          : "shrink-0"
+                      )}
+                      key={String(property.id)}
+                      style={itemStyle}
+                    >
+                      <DataCell
+                        allProperties={allProperties}
+                        item={item}
+                        property={property}
+                        value={value}
+                      />
+                    </div>
+                  );
+                })}
+              </RowElement>
+            </div>
           );
         })}
       </div>

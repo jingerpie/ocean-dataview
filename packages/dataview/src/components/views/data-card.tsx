@@ -88,13 +88,13 @@ export function DataCard<TData>({
   className,
 }: DataCardProps<TData>) {
   const isCompact = cardLayout === "compact";
-  // Handle cardPreview - resolve through property.key for correct data access
+  // Handle cardPreview - resolve through property.id for correct data access
   const previewProperty = cardPreview
     ? (allProperties ?? displayProperties).find((p) => p.id === cardPreview)
     : undefined;
-  const previewKey = previewProperty?.key ?? cardPreview;
-  const previewValue = previewKey
-    ? (item as Record<string, unknown>)[previewKey]
+  const previewId = previewProperty?.id ?? cardPreview;
+  const previewValue = previewId
+    ? (item as Record<string, unknown>)[previewId]
     : null;
   const imageUrl = Array.isArray(previewValue)
     ? previewValue[0]
@@ -114,7 +114,11 @@ export function DataCard<TData>({
         <div className="relative bg-muted" style={{ height: imageHeight }}>
           {imageUrl ? (
             <Image
-              alt="Preview"
+              alt={String(
+                (item as Record<string, unknown>).title ??
+                  (item as Record<string, unknown>).name ??
+                  "Preview image"
+              )}
               className={cn(
                 "transition-opacity",
                 fitMedia ? "object-contain" : "object-cover"
@@ -140,9 +144,7 @@ export function DataCard<TData>({
         )}
       >
         {displayProperties.map((property, propIndex) => {
-          const value = property.key
-            ? (item as Record<string, unknown>)[property.key]
-            : undefined;
+          const value = (item as Record<string, unknown>)[property.id];
           const isFirst = propIndex === 0;
           const resolvedShowName = property.showName ?? showPropertyNames;
           const resolvedWrap = property.wrap ?? wrapAllProperties;
