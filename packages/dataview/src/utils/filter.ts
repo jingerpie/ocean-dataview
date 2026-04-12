@@ -1,5 +1,6 @@
 import { DATA_TABLE_CONFIG } from "../types/config";
 import type { FilterCondition, PropertyType } from "../types/filter.type";
+import { getEffectiveType, type PropertyMeta } from "../types/property.type";
 
 /**
  * Gets available filter conditions for a property type.
@@ -38,6 +39,11 @@ export function getFilterConditions(propertyType: PropertyType) {
       // Formula only supports isEmpty/isNotEmpty
       return DATA_TABLE_CONFIG.filesConditions;
 
+    case "rollup":
+      // Default to text conditions when property context isn't available.
+      // Use getFilterConditionsForProperty() when you have the full property.
+      return DATA_TABLE_CONFIG.textConditions;
+
     case "button":
       // Button is not filterable
       throw new Error(`PropertyType "${propertyType}" is not filterable`);
@@ -73,6 +79,29 @@ export function getDefaultFilterCondition(
       return conditions[0]?.value ?? "eq";
     }
   }
+}
+
+/**
+ * Gets available filter conditions for a property, resolving rollup effective type.
+ * Preferred over getFilterConditions() when you have the full property metadata.
+ */
+export function getFilterConditionsForProperty(property: PropertyMeta) {
+  if (property.type === "rollup") {
+    return getFilterConditions(getEffectiveType(property));
+  }
+  return getFilterConditions(property.type);
+}
+
+/**
+ * Gets the default filter condition for a property, resolving rollup effective type.
+ */
+export function getDefaultFilterConditionForProperty(
+  property: PropertyMeta
+): FilterCondition {
+  if (property.type === "rollup") {
+    return getDefaultFilterCondition(getEffectiveType(property));
+  }
+  return getDefaultFilterCondition(property.type);
 }
 
 /**

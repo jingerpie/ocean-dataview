@@ -6,6 +6,8 @@ export type { BulkAction } from "./action.type";
 export {
   type FilterCondition,
   isWhereExpression,
+  type Quantifier,
+  quantifierValues,
   type SearchQuery,
   type SearchWhereClause,
   type SortQuery,
@@ -28,4 +30,9 @@ export {
   type Limit,
 } from "./pagination";
 // Property types used by apps/web
-export type { DataViewProperty } from "./property.type";
+export {
+  type DataViewProperty,
+  getScalarRollups,
+  isDisplayRollup,
+  type SelectConfig,
+} from "./property.type";
