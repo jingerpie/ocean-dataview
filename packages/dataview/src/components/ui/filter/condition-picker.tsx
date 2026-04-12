@@ -4,7 +4,11 @@ import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 import { cn } from "../../../lib/utils";
 import type { FilterCondition, PropertyType } from "../../../types/filter.type";
-import { getFilterConditions } from "../../../utils/filter";
+import type { PropertyMeta } from "../../../types/property.type";
+import {
+  getFilterConditions,
+  getFilterConditionsForProperty,
+} from "../../../utils/filter";
 import { Button } from "../button";
 import { Command, CommandGroup, CommandItem, CommandList } from "../command";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
@@ -15,6 +19,8 @@ interface ConditionPickerProps {
   /** Inline style (no border, transparent) for filter chips */
   inline?: boolean;
   onConditionChange: (condition: FilterCondition) => void;
+  /** Full property metadata — used to resolve rollup effective type */
+  property?: PropertyMeta;
   /** Property type determines available conditions */
   propertyType: PropertyType;
 }
@@ -23,11 +29,15 @@ function ConditionPicker({
   condition,
   onConditionChange,
   propertyType,
+  property,
   inline,
   className,
 }: ConditionPickerProps) {
   const [open, setOpen] = useState(false);
-  const items = getFilterConditions(propertyType);
+  const items =
+    property && property.type === "rollup"
+      ? getFilterConditionsForProperty(property)
+      : getFilterConditions(propertyType);
   const selected = items.find((item) => item.value === condition);
 
   const handleSelect = (value: string) => {

@@ -8,6 +8,7 @@ import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useViewSetup } from "../../../hooks/use-view-setup";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
+import { cn } from "../../../lib/utils";
 import type { PaginationContext } from "../../../types/pagination";
 import type { DataViewProperty } from "../../../types/property.type";
 import { getGalleryCardDimensions } from "../../../utils/get-card-sizes";
@@ -41,6 +42,11 @@ export interface GalleryViewProps<TData> {
    * @default "medium"
    */
   cardSize?: "small" | "medium" | "large";
+
+  /**
+   * Additional className for the gallery wrapper
+   */
+  className?: string;
 
   /**
    * Whether to fit media to card (object-cover vs object-contain)
@@ -94,6 +100,7 @@ export function GalleryView<
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
   cardLayout = "list",
+  className,
   cardPreview,
   cardSize = "medium",
   fitMedia = true,
@@ -201,6 +208,7 @@ export function GalleryView<
                       <SuspendingInfiniteGalleryContent<TData, TProperties>
                         cardLayout={cardLayout}
                         cardPreview={cardPreview}
+                        className={className}
                         displayProperties={displayProperties}
                         fitMedia={fitMedia}
                         groupItem={groupItem}
@@ -216,6 +224,7 @@ export function GalleryView<
                       <SuspendingPageGalleryContent<TData, TProperties>
                         cardLayout={cardLayout}
                         cardPreview={cardPreview}
+                        className={className}
                         displayProperties={displayProperties}
                         fitMedia={fitMedia}
                         groupItem={groupItem}
@@ -264,6 +273,7 @@ export function GalleryView<
         <SuspendingInfiniteGalleryContent<TData, TProperties>
           cardLayout={cardLayout}
           cardPreview={cardPreview}
+          className={className}
           displayProperties={displayProperties}
           fitMedia={fitMedia}
           groupItem={{
@@ -285,6 +295,7 @@ export function GalleryView<
         <SuspendingPageGalleryContent<TData, TProperties>
           cardLayout={cardLayout}
           cardPreview={cardPreview}
+          className={className}
           displayProperties={displayProperties}
           fitMedia={fitMedia}
           groupItem={{
@@ -321,6 +332,7 @@ interface SuspendingGroupGalleryContentProps<
 > {
   cardLayout: "list" | "compact";
   cardPreview?: string;
+  className?: string;
   displayProperties: TProperties[number][];
   fitMedia: boolean;
   groupItem: GroupedDataItem<TData>;
@@ -342,6 +354,7 @@ function GalleryContentRenderer<
 >({
   cardLayout,
   cardPreview,
+  className,
   data,
   displayProperties,
   fitMedia,
@@ -355,6 +368,7 @@ function GalleryContentRenderer<
 }: {
   cardLayout: "list" | "compact";
   cardPreview?: string;
+  className?: string;
   data: TData[];
   displayProperties: TProperties[number][];
   fitMedia: boolean;
@@ -370,7 +384,7 @@ function GalleryContentRenderer<
   const transformedItems = transformData(data, properties) as TData[];
 
   return (
-    <>
+    <div className={cn("overflow-clip", className)}>
       <div
         className="grid gap-4"
         style={{
@@ -401,7 +415,7 @@ function GalleryContentRenderer<
         })}
       </div>
       {paginationNode}
-    </>
+    </div>
   );
 }
 
@@ -414,6 +428,7 @@ function SuspendingPageGalleryContent<
 >({
   cardLayout,
   cardPreview,
+  className,
   displayProperties,
   fitMedia,
   groupItem,
@@ -447,6 +462,7 @@ function SuspendingPageGalleryContent<
           <GalleryContentRenderer
             cardLayout={cardLayout}
             cardPreview={cardPreview}
+            className={className}
             data={result.data}
             displayProperties={displayProperties}
             fitMedia={fitMedia}
@@ -475,6 +491,7 @@ function SuspendingInfiniteGalleryContent<
 >({
   cardLayout,
   cardPreview,
+  className,
   displayProperties,
   fitMedia,
   groupItem,
@@ -513,6 +530,7 @@ function SuspendingInfiniteGalleryContent<
           <GalleryContentRenderer
             cardLayout={cardLayout}
             cardPreview={cardPreview}
+            className={className}
             data={result.data}
             displayProperties={displayProperties}
             fitMedia={fitMedia}

@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import type { DataViewProperty } from "../../types/property.type";
+import type { DataViewProperty, RollupConfig } from "../../types/property.type";
 import { ButtonProperty } from "../ui/properties/button-property";
 import { CheckboxProperty } from "../ui/properties/checkbox-property";
 import { DateProperty } from "../ui/properties/date-property";
@@ -33,13 +33,121 @@ interface DataCellProps<T> {
    * Internal: tracks renderedProperties formula IDs to detect circular references
    */
   renderedProperties?: Set<string>;
+  /**
+   * Global default for showing property names in formula sub-properties.
+   * Each sub-property's `showName` overrides this.
+   * Only used by formula properties to pass through to createFormulaRenderer.
+   */
+  showPropertyNames?: boolean;
   value: unknown;
   wrap?: boolean;
 }
 
+// ============================================================================
+// Rollup Array Display — renders each item using the underlying type's component
+// ============================================================================
+
+function RollupArrayDisplay({
+  items,
+  rollupConfig,
+  wrap,
+}: {
+  items: unknown[];
+  rollupConfig: RollupConfig;
+  wrap: boolean;
+}) {
+  switch (rollupConfig.type) {
+    case "select":
+    case "multiSelect":
+    case "status":
+      return (
+        <div className="flex flex-wrap gap-1">
+          {items.map((v, i) => (
+            <SelectProperty
+              config={{ options: rollupConfig.options ?? [] }}
+              key={`${String(v)}-${i}`}
+              value={v as string | null}
+            />
+          ))}
+        </div>
+      );
+
+    case "date":
+      return (
+        <span className="text-sm">
+          {items.map((v, i) => (
+            <span key={`${String(v)}-${i}`}>
+              {i > 0 && ", "}
+              <DateProperty
+                config={{
+                  dateFormat: rollupConfig.dateFormat,
+                  timeFormat: rollupConfig.timeFormat,
+                }}
+                value={v as Date | string | null}
+              />
+            </span>
+          ))}
+        </span>
+      );
+
+    case "checkbox":
+      return (
+        <div className="flex flex-wrap gap-1">
+          {items.map((v, i) => (
+            <CheckboxProperty
+              key={`${String(v)}-${i}`}
+              value={v as boolean | null}
+            />
+          ))}
+        </div>
+      );
+
+    case "filesMedia":
+      return <FilesMediaProperty value={items as string[]} />;
+
+    case "number":
+      return (
+        <span className="text-sm">
+          {items.map((v, i) => (
+            <span key={`${String(v)}-${i}`}>
+              {i > 0 && ", "}
+              <NumberProperty
+                config={{
+                  numberFormat: rollupConfig.numberFormat,
+                  decimalPlaces: rollupConfig.decimalPlaces,
+                  scale: rollupConfig.scale,
+                  showAs: rollupConfig.showAs,
+                }}
+                value={v as number | null}
+              />
+            </span>
+          ))}
+        </span>
+      );
+
+    case "url":
+      return (
+        <span className="text-sm">
+          {items.map((v, i) => (
+            <span key={`${String(v)}-${i}`}>
+              {i > 0 && ", "}
+              <UrlProperty value={v as string | null} />
+            </span>
+          ))}
+        </span>
+      );
+
+    // text, email, phone — render as comma-separated text
+    default:
+      return <TextProperty value={items.join(", ")} wrap={wrap} />;
+  }
+}
+
 /**
- * Master property display component that delegates to type-specific property components
- * Memoized to prevent unnecessary re-renders in table cells
+ * Property value renderer — delegates to type-specific property components.
+ * Name labels are NOT rendered here; they are handled by the consumer
+ * (DataCard for top-level properties, createFormulaRenderer for sub-properties).
+ * Memoized to prevent unnecessary re-renders in table cells.
  */
 function DataCellComponent<T>({
   value,
@@ -49,6 +157,7 @@ function DataCellComponent<T>({
   allProperties,
   configOverride,
   renderedProperties = new Set(),
+  showPropertyNames = false,
 }: DataCellProps<T>) {
   const displayValue = value;
 
@@ -66,12 +175,13 @@ function DataCellComponent<T>({
       if (!(valueFn && allProperties)) {
         return null;
       }
-      const [propertyRender, itemData] = createFormulaRenderer(
+      const propertyRender = createFormulaRenderer(
         item,
         allProperties,
-        renderedProperties
+        renderedProperties,
+        showPropertyNames
       );
-      return <>{valueFn(propertyRender, itemData)}</>;
+      return <>{valueFn(propertyRender, item)}</>;
     }
 
     case "text":
@@ -145,6 +255,37 @@ function DataCellComponent<T>({
     case "button": {
       const buttons = property.value(item);
       return <ButtonProperty buttons={buttons} />;
+    }
+
+    case "rollup": {
+      const rollupConfig = property.config as RollupConfig;
+      if (
+        rollupConfig.calculation === "showOriginal" ||
+        rollupConfig.calculation === "showUnique"
+      ) {
+        const items = Array.isArray(displayValue) ? displayValue : [];
+        if (items.length === 0) {
+          return <TextProperty value={null} wrap={false} />;
+        }
+        return (
+          <RollupArrayDisplay
+            items={items}
+            rollupConfig={rollupConfig}
+            wrap={wrap ?? property.wrap ?? false}
+          />
+        );
+      }
+      return (
+        <NumberProperty
+          config={{
+            numberFormat: rollupConfig.numberFormat,
+            decimalPlaces: rollupConfig.decimalPlaces,
+            scale: rollupConfig.scale,
+            showAs: rollupConfig.showAs,
+          }}
+          value={displayValue as number | null}
+        />
+      );
     }
 
     default:

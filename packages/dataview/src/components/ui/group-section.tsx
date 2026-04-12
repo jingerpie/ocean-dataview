@@ -98,33 +98,38 @@ const RANGE_REGEX = /^(\d+)-(\d+)$/;
  * Format a single number using NumberConfig settings
  */
 function formatNumber(value: number, config?: NumberConfig): string {
-  const { numberFormat = "number", decimalPlaces = 0 } = config ?? {};
+  const {
+    numberFormat = "number",
+    decimalPlaces = 0,
+    scale = 1,
+  } = config ?? {};
+  const scaled = scale === 1 ? value : value / scale;
 
   switch (numberFormat) {
     case "numberWithCommas":
-      return value.toLocaleString(undefined, {
+      return scaled.toLocaleString(undefined, {
         minimumFractionDigits: decimalPlaces,
         maximumFractionDigits: decimalPlaces,
       });
     case "percentage":
-      return `${value.toFixed(decimalPlaces)}%`;
+      return `${scaled.toFixed(decimalPlaces)}%`;
     case "dollar":
-      return `$${value.toLocaleString(undefined, {
+      return `$${scaled.toLocaleString(undefined, {
         minimumFractionDigits: decimalPlaces,
         maximumFractionDigits: decimalPlaces,
       })}`;
     case "euro":
-      return `€${value.toLocaleString(undefined, {
+      return `€${scaled.toLocaleString(undefined, {
         minimumFractionDigits: decimalPlaces,
         maximumFractionDigits: decimalPlaces,
       })}`;
     case "pound":
-      return `£${value.toLocaleString(undefined, {
+      return `£${scaled.toLocaleString(undefined, {
         minimumFractionDigits: decimalPlaces,
         maximumFractionDigits: decimalPlaces,
       })}`;
     default:
-      return value.toFixed(decimalPlaces);
+      return scaled.toFixed(decimalPlaces);
   }
 }
 
@@ -316,11 +321,7 @@ export function GroupSection<TData>({
   return (
     <AccordionItem ref={itemRef} value={group.key}>
       {stickyHeader?.enabled ? (
-        <StickyGroupLabel
-          axis={stickyHeader.axis}
-          containerRef={itemRef}
-          offset={stickyHeader.offset}
-        >
+        <StickyGroupLabel axis={stickyHeader.axis} offset={stickyHeader.offset}>
           {triggerContent}
         </StickyGroupLabel>
       ) : (

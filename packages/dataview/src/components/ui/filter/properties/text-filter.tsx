@@ -131,13 +131,19 @@ function TextAdvanceFilter({
 }: TextFilterValueProps) {
   const isNumber = property.type === "number";
   const scale = getScale(property);
-  const displayValue = toDisplayValue(rule.value, scale);
+  const displayValue = isNumber
+    ? toDisplayValue(rule.value, scale)
+    : String(rule.value ?? "");
 
   return (
     <DebouncedTextInput
       className="h-8"
       inputMode={isNumber ? "numeric" : undefined}
-      onChange={(value) => toStoredValue(value, scale, onValueChange)}
+      onChange={(value) =>
+        isNumber
+          ? toStoredValue(value, scale, onValueChange)
+          : onValueChange(value || undefined)
+      }
       placeholder="Enter value..."
       type={isNumber ? "number" : "text"}
       value={displayValue}
@@ -156,14 +162,20 @@ function TextValueEditor({
 }: TextFilterValueProps) {
   const isNumber = property.type === "number";
   const scale = getScale(property);
-  const displayValue = toDisplayValue(rule.value, scale);
+  const displayValue = isNumber
+    ? toDisplayValue(rule.value, scale)
+    : String(rule.value ?? "");
 
   return (
     <div className="p-1">
       <Input
         className="h-8"
         inputMode={isNumber ? "numeric" : undefined}
-        onChange={(e) => toStoredValue(e.target.value, scale, onValueChange)}
+        onChange={(e) =>
+          isNumber
+            ? toStoredValue(e.target.value, scale, onValueChange)
+            : onValueChange(e.target.value || undefined)
+        }
         placeholder="Enter value..."
         type={isNumber ? "number" : "text"}
         value={displayValue}

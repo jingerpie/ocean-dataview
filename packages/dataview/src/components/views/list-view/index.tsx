@@ -8,6 +8,7 @@ import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useViewSetup } from "../../../hooks/use-view-setup";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
+import { cn } from "../../../lib/utils";
 import type { PaginationContext } from "../../../types/pagination";
 import type { DataViewProperty } from "../../../types/property.type";
 import { transformData } from "../../../utils/transform-data";
@@ -22,6 +23,11 @@ import { ListRow } from "./list-row";
 import { ListSkeleton } from "./list-skeleton";
 
 export interface ListViewProps<TData> {
+  /**
+   * Additional className for the list wrapper
+   */
+  className?: string;
+
   /**
    * Item click handler
    */
@@ -40,6 +46,11 @@ export interface ListViewProps<TData> {
   pagination?: PaginationMode;
 
   /**
+   * Show horizontal divider lines between rows
+   */
+  showHorizontalLines?: boolean;
+
+  /**
    * Sticky header configuration for grouped mode.
    * @default { enabled: false }
    */
@@ -55,8 +66,10 @@ export function ListView<
   TProperties extends
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
+  className,
   onItemClick,
   pagination,
+  showHorizontalLines,
   stickyHeader: stickyHeaderProp,
 }: ListViewProps<TData>) {
   const stickyEnabled = stickyHeaderProp?.enabled ?? false;
@@ -149,19 +162,23 @@ export function ListView<
                   >
                     {useInfinitePagination ? (
                       <SuspendingInfiniteListContent<TData, TProperties>
+                        className={className}
                         displayProperties={displayProperties}
                         groupItem={groupItem}
                         onItemClick={onItemClick}
                         pagination={pagination}
                         properties={properties}
+                        showHorizontalLines={showHorizontalLines}
                       />
                     ) : (
                       <SuspendingPageListContent<TData, TProperties>
+                        className={className}
                         displayProperties={displayProperties}
                         groupItem={groupItem}
                         onItemClick={onItemClick}
                         pagination={pagination}
                         properties={properties}
+                        showHorizontalLines={showHorizontalLines}
                       />
                     )}
                   </Suspense>
@@ -195,6 +212,7 @@ export function ListView<
     >
       {useInfinitePagination ? (
         <SuspendingInfiniteListContent<TData, TProperties>
+          className={className}
           displayProperties={displayProperties}
           groupItem={{
             key: "__ungrouped__",
@@ -206,9 +224,11 @@ export function ListView<
           onItemClick={onItemClick}
           pagination={pagination}
           properties={properties}
+          showHorizontalLines={showHorizontalLines}
         />
       ) : (
         <SuspendingPageListContent<TData, TProperties>
+          className={className}
           displayProperties={displayProperties}
           groupItem={{
             key: "__ungrouped__",
@@ -220,6 +240,7 @@ export function ListView<
           onItemClick={onItemClick}
           pagination={pagination}
           properties={properties}
+          showHorizontalLines={showHorizontalLines}
         />
       )}
     </Suspense>
@@ -238,11 +259,13 @@ interface SuspendingGroupListContentProps<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 > {
+  className?: string;
   displayProperties: TProperties[number][];
   groupItem: GroupedDataItem<TData>;
   onItemClick?: (item: TData) => void;
   pagination?: PaginationMode;
   properties: TProperties;
+  showHorizontalLines?: boolean;
 }
 
 /**
@@ -252,31 +275,36 @@ function ListContentRenderer<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 >({
+  className,
   data,
   displayProperties,
   onItemClick,
   paginationNode,
   properties,
+  showHorizontalLines,
 }: {
+  className?: string;
   data: TData[];
   displayProperties: TProperties[number][];
   onItemClick?: (item: TData) => void;
   paginationNode: React.ReactNode;
   properties: TProperties;
+  showHorizontalLines?: boolean;
 }) {
   // Transform data with property schema
   const transformedItems = transformData(data, properties) as TData[];
 
   return (
-    <>
+    <div className={cn("overflow-clip", className)}>
       <ListRow
         allProperties={properties}
         data={transformedItems}
         displayProperties={displayProperties}
         onItemClick={onItemClick}
+        showHorizontalLines={showHorizontalLines}
       />
       {paginationNode}
-    </>
+    </div>
   );
 }
 
@@ -287,11 +315,13 @@ function SuspendingPageListContent<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 >({
+  className,
   displayProperties,
   groupItem,
   onItemClick,
   pagination,
   properties,
+  showHorizontalLines,
 }: SuspendingGroupListContentProps<TData, TProperties>) {
   return (
     <SuspendingGroupContent<TData> groupKey={groupItem.key}>
@@ -313,6 +343,7 @@ function SuspendingPageListContent<
 
         return (
           <ListContentRenderer
+            className={className}
             data={result.data}
             displayProperties={displayProperties}
             onItemClick={onItemClick}
@@ -320,6 +351,7 @@ function SuspendingPageListContent<
               <Pagination context={paginationContext} mode={pagination} />
             }
             properties={properties}
+            showHorizontalLines={showHorizontalLines}
           />
         );
       }}
@@ -334,11 +366,13 @@ function SuspendingInfiniteListContent<
   TData,
   TProperties extends readonly DataViewProperty<TData>[],
 >({
+  className,
   displayProperties,
   groupItem,
   onItemClick,
   pagination,
   properties,
+  showHorizontalLines,
 }: SuspendingGroupListContentProps<TData, TProperties>) {
   return (
     <SuspendingInfiniteGroupContent<TData> groupKey={groupItem.key}>
@@ -365,6 +399,7 @@ function SuspendingInfiniteListContent<
 
         return (
           <ListContentRenderer
+            className={className}
             data={result.data}
             displayProperties={displayProperties}
             onItemClick={onItemClick}
@@ -372,6 +407,7 @@ function SuspendingInfiniteListContent<
               <Pagination context={paginationContext} mode={pagination} />
             }
             properties={properties}
+            showHorizontalLines={showHorizontalLines}
           />
         );
       }}

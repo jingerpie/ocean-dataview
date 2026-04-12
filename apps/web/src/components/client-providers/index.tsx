@@ -16,6 +16,7 @@ export default function ClientProviders({
       defaultTheme="system"
       disableTransitionOnChange
       enableSystem
+      storageKey="dataview-theme"
     >
       <TRPCReactProvider>
         {children}

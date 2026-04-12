@@ -3,7 +3,13 @@ import {
   isWhereRule,
   type WhereNode,
 } from "../types/filter.type";
-import type { DataViewProperty, PropertyMeta } from "../types/property.type";
+import {
+  type DataViewProperty,
+  getEffectiveType,
+  isDisplayRollup,
+  type PropertyMeta,
+} from "../types/property.type";
+import { isValidConditionForPropertyType } from "../utils/filter";
 
 // ============================================================================
 // Property Extraction
@@ -13,21 +19,36 @@ import type { DataViewProperty, PropertyMeta } from "../types/property.type";
 const NON_FILTERABLE_TYPES = new Set(["formula", "button"]);
 
 /** Minimal property shape for validation (works with both DataViewProperty and PropertyMeta) */
-type PropertyLike = Pick<PropertyMeta, "enableFilter" | "id" | "type">;
+type PropertyLike = Pick<
+  PropertyMeta,
+  "config" | "enableFilter" | "id" | "type"
+>;
 
 /**
- * Extract filterable property IDs from properties.
+ * Extract filterable properties as a map of id -> type.
  * Excludes formula and button types which aren't filterable.
  * Respects enableFilter: false on individual properties.
  */
-function getFilterablePropertyIds(
+function getFilterablePropertyMap(
   properties: readonly PropertyLike[]
-): Set<string> {
+): Map<string, PropertyLike> {
+  const map = new Map<string, PropertyLike>();
+  for (const p of properties) {
+    if (!NON_FILTERABLE_TYPES.has(p.type) && p.enableFilter !== false) {
+      map.set(p.id, p);
+    }
+  }
+  return map;
+}
+
+/**
+ * Extract display rollup property IDs (showOriginal / showUnique).
+ * These require a quantifier (any/none/every) when used in filters.
+ */
+function getDisplayRollupIds(properties: readonly PropertyLike[]): Set<string> {
   return new Set(
     properties
-      .filter(
-        (p) => !NON_FILTERABLE_TYPES.has(p.type) && p.enableFilter !== false
-      )
+      .filter((p) => isDisplayRollup(p as PropertyMeta))
       .map((p) => p.id)
   );
 }
@@ -38,13 +59,27 @@ function getFilterablePropertyIds(
 
 /**
  * Process a single node and return it if valid, null if invalid.
+ * Validates: property exists, condition is valid for property type,
+ * and display rollup properties require a quantifier.
  */
 function filterSingleNode(
   node: WhereNode,
-  validKeys: Set<string>
+  propertyMap: Map<string, PropertyLike>,
+  rollupKeys: Set<string>
 ): WhereNode | null {
   if (isWhereRule(node)) {
-    return validKeys.has(node.property) ? node : null;
+    const property = propertyMap.get(node.property);
+    if (!property) {
+      return null;
+    }
+    const effectiveType = getEffectiveType(property as PropertyMeta);
+    if (!isValidConditionForPropertyType(node.condition, effectiveType)) {
+      return null;
+    }
+    if (rollupKeys.has(node.property) && !node.quantifier) {
+      return null;
+    }
+    return node;
   }
 
   if (!isWhereExpression(node)) {
@@ -52,7 +87,7 @@ function filterSingleNode(
   }
 
   const items = node.and ?? node.or ?? [];
-  const filtered = filterInvalidNodes(items, validKeys);
+  const filtered = filterInvalidNodes(items, propertyMap, rollupKeys);
   if (!filtered || filtered.length === 0) {
     return null;
   }
@@ -67,12 +102,13 @@ function filterSingleNode(
  */
 function filterInvalidNodes(
   nodes: WhereNode[],
-  validKeys: Set<string>
+  propertyMap: Map<string, PropertyLike>,
+  rollupKeys: Set<string>
 ): WhereNode[] | null {
   const result: WhereNode[] = [];
 
   for (const node of nodes) {
-    const filtered = filterSingleNode(node, validKeys);
+    const filtered = filterSingleNode(node, propertyMap, rollupKeys);
     if (filtered) {
       result.push(filtered);
     }
@@ -105,6 +141,7 @@ export function validateFilter<T>(
   if (!filter) {
     return null;
   }
-  const validPropertyIds = getFilterablePropertyIds(properties);
-  return filterInvalidNodes(filter, validPropertyIds);
+  const propertyMap = getFilterablePropertyMap(properties);
+  const rollupIds = getDisplayRollupIds(properties);
+  return filterInvalidNodes(filter, propertyMap, rollupIds);
 }

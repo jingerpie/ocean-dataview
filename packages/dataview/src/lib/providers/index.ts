@@ -2,3 +2,4 @@
 
 export { ChartViewProvider } from "./chart-view-provider";
 export { DataViewProvider } from "./data-view-provider";
+export { SimpleDataViewProvider } from "./simple-data-view";

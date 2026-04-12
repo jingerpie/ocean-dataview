@@ -34,7 +34,7 @@ export const productTableProperties = [
     config: {
       showAs: {
         type: "bar",
-        color: "red",
+        color: "red-subtle",
         divideBy: 100,
       },
     },
@@ -47,7 +47,7 @@ export const productTableProperties = [
     config: {
       showAs: {
         type: "ring",
-        color: "green",
+        color: "green-subtle",
         divideBy: 100,
       },
     },
@@ -59,16 +59,16 @@ export const productTableProperties = [
     type: "select",
     config: {
       options: [
-        { value: "Accessories", color: "blue" },
-        { value: "Bottoms", color: "purple" },
-        { value: "Dresses", color: "pink" },
-        { value: "Footwear", color: "yellow" },
-        { value: "Garden", color: "green" },
-        { value: "Home", color: "teal" },
-        { value: "Jewelry", color: "gray" },
-        { value: "Lingerie", color: "red" },
-        { value: "Outerwear", color: "gray" },
-        { value: "Tops", color: "blue" },
+        { value: "Accessories", color: "blue-subtle" },
+        { value: "Bottoms", color: "purple-subtle" },
+        { value: "Dresses", color: "pink-subtle" },
+        { value: "Footwear", color: "yellow-subtle" },
+        { value: "Garden", color: "green-subtle" },
+        { value: "Home", color: "teal-subtle" },
+        { value: "Jewelry", color: "gray-subtle" },
+        { value: "Lingerie", color: "red-subtle" },
+        { value: "Outerwear", color: "gray-subtle" },
+        { value: "Tops", color: "blue-subtle" },
       ],
     },
     size: 150,
@@ -79,12 +79,12 @@ export const productTableProperties = [
     type: "multiSelect",
     config: {
       options: [
-        { value: "Bestseller", color: "yellow" },
-        { value: "Eco-friendly", color: "green" },
-        { value: "Limited Edition", color: "purple" },
-        { value: "New Arrival", color: "blue" },
-        { value: "On Sale", color: "red" },
-        { value: "Seasonal", color: "pink" },
+        { value: "Bestseller", color: "yellow-subtle" },
+        { value: "Eco-friendly", color: "green-subtle" },
+        { value: "Limited Edition", color: "purple-subtle" },
+        { value: "New Arrival", color: "blue-subtle" },
+        { value: "On Sale", color: "red-subtle" },
+        { value: "Seasonal", color: "pink-subtle" },
       ],
     },
     size: 150,
@@ -97,19 +97,19 @@ export const productTableProperties = [
       groups: [
         {
           name: "Available",
-          color: "green",
+          color: "green-subtle",
           options: ["In stock"],
           icon: CheckCircle2,
         },
         {
           name: "Warning",
-          color: "yellow",
+          color: "yellow-subtle",
           options: ["Low stock"],
           icon: AlertCircle,
         },
         {
           name: "Unavailable",
-          color: "red",
+          color: "red-subtle",
           options: ["Out of stock"],
           icon: XCircle,
         },

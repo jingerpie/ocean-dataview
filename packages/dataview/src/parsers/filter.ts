@@ -3,7 +3,9 @@ import {
   decodeArrayValue,
   matchExpression,
   parsePrimitive,
+  splitByDot,
   splitRespectingParens,
+  unescapeValue,
 } from "../lib/url-dsl/decoder";
 import {
   encodeArrayValue,
@@ -13,6 +15,7 @@ import {
 import {
   isWhereExpression,
   isWhereRule,
+  type Quantifier,
   type WhereNode,
   type WhereRule,
 } from "../types/filter.type";
@@ -22,6 +25,7 @@ import {
 // ============================================================================
 // Rule: property.condition[.value]
 // Array value: property.condition.(value1,value2,value3)
+// Array quantifier: any(rule) | none(rule) | every(rule)
 // Expression: and(rule1,rule2) or or(rule1,rule2)
 // Top-level: rule1,rule2,and(rule3,rule4)
 
@@ -40,33 +44,45 @@ function encodeRule(rule: WhereRule): string {
     encodePrimitive(rule.condition),
   ];
 
+  let encoded: string;
+
   if (rule.value === undefined || rule.value === null) {
-    return baseParts.join(".");
+    encoded = baseParts.join(".");
+  } else {
+    const value = rule.value;
+
+    // Handle array values with parentheses wrapper
+    if (Array.isArray(value)) {
+      const primitiveArray = value.filter(
+        (v): v is string | number | boolean =>
+          typeof v === "string" ||
+          typeof v === "number" ||
+          typeof v === "boolean"
+      );
+      const arrayStr = encodeArrayValue(primitiveArray);
+      encoded = `${baseParts.join(".")}.${arrayStr}`;
+    } else if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      encoded = encodeTuple([rule.property, rule.condition, value]);
+    } else {
+      // Fallback: serialize to JSON string for complex objects
+      encoded = encodeTuple([
+        rule.property,
+        rule.condition,
+        JSON.stringify(value),
+      ]);
+    }
   }
 
-  const value = rule.value;
-
-  // Handle array values with parentheses wrapper
-  if (Array.isArray(value)) {
-    const primitiveArray = value.filter(
-      (v): v is string | number | boolean =>
-        typeof v === "string" || typeof v === "number" || typeof v === "boolean"
-    );
-    const arrayStr = encodeArrayValue(primitiveArray);
-    return `${baseParts.join(".")}.${arrayStr}`;
+  // Wrap with array quantifier if present
+  if (rule.quantifier) {
+    return `${rule.quantifier}(${encoded})`;
   }
 
-  // Handle primitive values
-  if (
-    typeof value === "string" ||
-    typeof value === "number" ||
-    typeof value === "boolean"
-  ) {
-    return encodeTuple([rule.property, rule.condition, value]);
-  }
-
-  // Fallback: serialize to JSON string for complex objects
-  return encodeTuple([rule.property, rule.condition, JSON.stringify(value)]);
+  return encoded;
 }
 
 /**
@@ -112,32 +128,27 @@ export function encodeFilter(filter: WhereNode[]): string {
  * Example: "status.isAnyOf.(a,b)" → { property: "status", condition: "isAnyOf", value: ["a", "b"] }
  */
 function decodeRule(value: string): WhereRule | null {
-  // Find the first two dot-separated parts (property and condition)
-  // Then handle the rest as value (which may contain array syntax)
-  const firstDot = value.indexOf(".");
-  if (firstDot === -1) {
+  // Split by dots, respecting quoted values (e.g. "listingVariants.sku".iLike."value")
+  const parts = splitByDot(value);
+
+  if (parts.length < 2) {
     return null;
   }
 
-  const property = value.slice(0, firstDot);
-  const afterProperty = value.slice(firstDot + 1);
-
-  const secondDot = afterProperty.indexOf(".");
-  if (secondDot === -1) {
-    // Only property.condition, no value
-    const condition = afterProperty;
-    if (!(property && condition)) {
-      return null;
-    }
-    return { property, condition } as WhereRule;
-  }
-
-  const condition = afterProperty.slice(0, secondDot);
-  const valueStr = afterProperty.slice(secondDot + 1);
+  const property = unescapeValue(parts[0] ?? "").value;
+  const condition = unescapeValue(parts[1] ?? "").value;
 
   if (!(property && condition)) {
     return null;
   }
+
+  // Only property.condition, no value
+  if (parts.length === 2) {
+    return { property, condition } as WhereRule;
+  }
+
+  // Rejoin remaining parts as the value string (handles unquoted dots in values)
+  const valueStr = parts.slice(2).join(".");
 
   // Check if value is an array (wrapped in parentheses)
   if (valueStr.startsWith("(") && valueStr.endsWith(")")) {
@@ -155,7 +166,19 @@ function decodeRule(value: string): WhereRule | null {
 /**
  * Decode a filter node (rule or expression) from DSL format.
  */
+const QUANTIFIER_REGEX = /^(any|none|every)\((.+)\)$/;
+
 function decodeNode(value: string): WhereNode | null {
+  // Check for array quantifier wrapper: any(...), none(...), every(...)
+  const quantifierMatch = value.match(QUANTIFIER_REGEX);
+  if (quantifierMatch?.[1] && quantifierMatch[2]) {
+    const rule = decodeRule(quantifierMatch[2]);
+    if (rule) {
+      rule.quantifier = quantifierMatch[1] as Quantifier;
+    }
+    return rule;
+  }
+
   const expr = matchExpression(value);
 
   if (expr) {

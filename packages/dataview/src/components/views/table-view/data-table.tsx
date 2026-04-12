@@ -215,7 +215,15 @@ export function DataTable<TData>({
             className={cn(onRowClick && "cursor-pointer")}
             data-state={row.getIsSelected() && "selected"}
             key={row.id}
-            onClick={() => onRowClick?.(row.original)}
+            onClick={(e) => {
+              const el = (e.target as HTMLElement).closest(
+                "input, button, a, [role='checkbox']"
+              );
+              if (el) {
+                return;
+              }
+              onRowClick?.(row.original);
+            }}
           >
             {row.getVisibleCells().map((cell) => {
               const meta = cell.column.columnDef.meta as
@@ -247,27 +255,29 @@ export function DataTable<TData>({
 
   return (
     <>
-      {/* Sticky Header Component */}
-      <DataTableStickyHeader
-        enabled={!!headerConfig.sticky}
-        offset={offset}
-        registerScroll={registerScroll}
-        table={table}
-        tableContainerRef={tableContainerRef}
-        tableHeaderRef={tableHeaderRef}
-      />
+      {/* Wrapper groups sticky header + table as a single flex child so the
+          parent flex-col gap doesn't apply to the zero-height sticky div. */}
+      <div>
+        <DataTableStickyHeader
+          enabled={!!headerConfig.sticky}
+          offset={offset}
+          registerScroll={registerScroll}
+          table={table}
+          tableContainerRef={tableContainerRef}
+          tableHeaderRef={tableHeaderRef}
+        />
 
-      {/* Original Table */}
-      <div className={cn("overflow-clip", className)}>
-        <div
-          className={cn(
-            "overflow-x-auto",
-            hideScrollbar &&
-              "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          )}
-          ref={tableContainerRef}
-        >
-          {tableElement}
+        <div className={cn("overflow-clip", className)}>
+          <div
+            className={cn(
+              "overflow-x-auto",
+              hideScrollbar &&
+                "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            )}
+            ref={tableContainerRef}
+          >
+            {tableElement}
+          </div>
         </div>
       </div>
 
