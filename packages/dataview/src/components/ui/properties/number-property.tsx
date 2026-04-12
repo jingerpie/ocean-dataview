@@ -3,7 +3,10 @@
 import { useMemo } from "react";
 import { cn } from "../../../lib/utils";
 import type { NumberConfig } from "../../../types/property.type";
-import { getBadgeForegroundVar } from "../../../utils/badge-colors";
+import {
+  getBadgeBgVar,
+  getBadgeForegroundVar,
+} from "../../../utils/badge-colors";
 import { getUserLocale } from "../../../utils/locale-helpers";
 
 interface NumberPropertyProps {
@@ -79,6 +82,8 @@ export function NumberProperty({
   }
 
   const cssColor = getBadgeForegroundVar(color);
+  const isSubtle = color.endsWith("-subtle");
+  const cssBgColor = isSubtle ? getBadgeBgVar(color) : undefined;
 
   // Bar visualization
   if (showAsType === "bar") {
@@ -90,7 +95,13 @@ export function NumberProperty({
         {showNumber && (
           <span className="whitespace-nowrap text-sm">{formattedValue}</span>
         )}
-        <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
+        <div
+          className={cn(
+            "h-1 flex-1 overflow-hidden rounded-full",
+            !isSubtle && "bg-muted"
+          )}
+          style={isSubtle ? { backgroundColor: cssBgColor } : undefined}
+        >
           <div
             className="h-full transition-all"
             style={{
@@ -124,12 +135,12 @@ export function NumberProperty({
         >
           <title>{`Progress: ${clampedPercentage}%`}</title>
           <circle
-            className="text-muted"
+            className={isSubtle ? undefined : "text-muted"}
             cx="11"
             cy="11"
             fill="none"
             r={radius}
-            stroke="currentColor"
+            stroke={isSubtle ? cssBgColor : "currentColor"}
             strokeWidth="4"
           />
           <circle

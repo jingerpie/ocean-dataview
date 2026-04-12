@@ -7,10 +7,11 @@ import { Badge } from "../badge";
 
 interface StatusPropertyProps {
   config?: StatusConfig;
+  size?: "sm" | "md" | "lg";
   value: string | null;
 }
 
-export function StatusProperty({ value, config }: StatusPropertyProps) {
+export function StatusProperty({ value, config, size }: StatusPropertyProps) {
   if (!value) {
     return <span className="text-muted-foreground text-sm">-</span>;
   }
@@ -25,7 +26,7 @@ export function StatusProperty({ value, config }: StatusPropertyProps) {
   // Fallback: gray badge with default icon if no matching group found
   if (!groupInfo) {
     return (
-      <Badge variant="gray-subtle">
+      <Badge size={size} variant="gray-subtle">
         <CircleDashed className="size-3 text-current" />
         {stringValue}
       </Badge>
@@ -36,7 +37,7 @@ export function StatusProperty({ value, config }: StatusPropertyProps) {
   const Icon = groupInfo.icon ?? CircleDashed;
 
   return (
-    <Badge variant={variant}>
+    <Badge size={size} variant={variant}>
       <Icon className="size-3 text-current" />
       {stringValue}
     </Badge>

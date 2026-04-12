@@ -6,12 +6,14 @@ import { Badge } from "../badge";
 
 interface MultiSelectPropertyProps {
   config?: MultiSelectConfig;
+  size?: "sm" | "md" | "lg";
   value: string[];
 }
 
 export function MultiSelectProperty({
   value,
   config,
+  size,
 }: MultiSelectPropertyProps) {
   if (!value || (Array.isArray(value) && value.length === 0)) {
     return <span className="text-muted-foreground text-sm">-</span>;
@@ -29,7 +31,7 @@ export function MultiSelectProperty({
         // If option not found, still render as badge with gray color
         if (!option) {
           return (
-            <Badge key={stringValue} variant="gray-subtle">
+            <Badge key={stringValue} size={size} variant="gray-subtle">
               {stringValue}
             </Badge>
           );
@@ -38,7 +40,7 @@ export function MultiSelectProperty({
         const variant = getBadgeVariant(option.color);
 
         return (
-          <Badge key={option.value} variant={variant}>
+          <Badge key={option.value} size={size} variant={variant}>
             {option.name ?? option.value}
           </Badge>
         );
