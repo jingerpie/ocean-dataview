@@ -1,10 +1,12 @@
 import {
   isWhereExpression,
   isWhereRule,
+  type SortQuery,
   type WhereExpression,
   type WhereNode,
   type WhereRule,
 } from "../types/filter.type";
+import type { PropertyMeta } from "../types/property.type";
 
 // ============================================================================
 // Basic Helpers
@@ -637,4 +639,72 @@ export function getConditionSummary(
 
   const opLabel = opLabels[op] ?? op;
   return `${prop} ${opLabel} ${valueStr}`.trim();
+}
+
+// ============================================================================
+// Property ID → Key Resolution
+// ============================================================================
+
+/**
+ * Build a map from property id to key for properties where they differ.
+ * Properties without a key, or where id === key, are excluded.
+ */
+export function buildIdToKeyMap(
+  properties: readonly Pick<PropertyMeta, "id" | "key">[]
+): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const p of properties) {
+    if (p.key && p.id !== p.key) {
+      map.set(p.id, p.key);
+    }
+  }
+  return map;
+}
+
+/**
+ * Recursively resolve property ids to keys in a filter tree.
+ * Rules whose property id exists in the map get their property replaced with the key.
+ * Returns a new tree (immutable).
+ */
+export function resolveFilterKeys(
+  filter: WhereNode[] | null,
+  idToKeyMap: Map<string, string>
+): WhereNode[] | null {
+  if (!filter || idToKeyMap.size === 0) {
+    return filter;
+  }
+  return filter.map((node) => resolveNodeKeys(node, idToKeyMap));
+}
+
+function resolveNodeKeys(
+  node: WhereNode,
+  idToKeyMap: Map<string, string>
+): WhereNode {
+  if (isWhereRule(node)) {
+    const key = idToKeyMap.get(node.property);
+    return key ? { ...node, property: key } : node;
+  }
+  if (isWhereExpression(node)) {
+    const items = node.and ?? node.or ?? [];
+    const resolved = items.map((child) => resolveNodeKeys(child, idToKeyMap));
+    return node.and ? { and: resolved } : { or: resolved };
+  }
+  return node;
+}
+
+/**
+ * Resolve property ids to keys in sort queries.
+ * Returns a new array (immutable).
+ */
+export function resolveSortKeys(
+  sort: SortQuery[],
+  idToKeyMap: Map<string, string>
+): SortQuery[] {
+  if (sort.length === 0 || idToKeyMap.size === 0) {
+    return sort;
+  }
+  return sort.map((s) => {
+    const key = idToKeyMap.get(s.property);
+    return key ? { ...s, property: key } : s;
+  });
 }
