@@ -63,6 +63,8 @@ export interface SimpleDataViewProviderProps<
   };
   properties: TProperties;
   propertyVisibility?: TProperties[number]["id"][];
+  /** Prefix for every URL parameter key. See DataViewProvider. */
+  urlPrefix?: string;
 }
 
 export function SimpleDataViewProvider<
@@ -75,6 +77,7 @@ export function SimpleDataViewProvider<
   defaults,
   properties,
   propertyVisibility,
+  urlPrefix,
 }: SimpleDataViewProviderProps<TData, TProperties>) {
   // --------------------------------------------------------------------------
   // Resolve group config (shorthand → full GroupConfigInput)
@@ -293,6 +296,7 @@ export function SimpleDataViewProvider<
       defaults={mergedDefaults}
       properties={properties}
       propertyVisibility={propertyVisibility}
+      urlPrefix={urlPrefix}
     >
       {children}
     </DataViewProvider>

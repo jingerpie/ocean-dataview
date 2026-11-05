@@ -1,4 +1,5 @@
-import { create } from "zustand";
+import { useMemo } from "react";
+import { useToolbarPopoverState } from "../lib/providers/toolbar-popover-context";
 
 interface AdvanceFilterBuilderState {
   close: () => void;
@@ -8,12 +9,20 @@ interface AdvanceFilterBuilderState {
   toggle: () => void;
 }
 
-export const useAdvanceFilterBuilder = create<AdvanceFilterBuilderState>(
-  (set) => ({
-    isOpen: false,
-    open: () => set({ isOpen: true }),
-    close: () => set({ isOpen: false }),
-    toggle: () => set((state) => ({ isOpen: !state.isOpen })),
-    setOpen: (open) => set({ isOpen: open }),
-  })
-);
+/**
+ * Open state of the advanced filter builder for the enclosing DataViewProvider.
+ */
+export function useAdvanceFilterBuilder(): AdvanceFilterBuilderState {
+  const { advancedFilterOpen, setAdvancedFilterOpen } =
+    useToolbarPopoverState();
+  return useMemo(
+    () => ({
+      isOpen: advancedFilterOpen,
+      open: () => setAdvancedFilterOpen(true),
+      close: () => setAdvancedFilterOpen(false),
+      toggle: () => setAdvancedFilterOpen(!advancedFilterOpen),
+      setOpen: setAdvancedFilterOpen,
+    }),
+    [advancedFilterOpen, setAdvancedFilterOpen]
+  );
+}

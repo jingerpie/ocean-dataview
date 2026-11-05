@@ -42,8 +42,7 @@
     "recharts": "catalog:",
     "tailwind-merge": "catalog:",
     "usehooks-ts": "catalog:",
-    "zod": "catalog:",
-    "zustand": "catalog:"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@sparkyidea/config": "workspace:*",

@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import type { PropertyMeta } from "../../types/property.type";
+import { ToolbarPopoverProvider } from "./toolbar-popover-context";
 
 // ============================================================================
 // Types
@@ -178,6 +179,8 @@ export function ToolbarContextProvider({
   );
 
   return (
-    <ToolbarContext.Provider value={value}>{children}</ToolbarContext.Provider>
+    <ToolbarContext.Provider value={value}>
+      <ToolbarPopoverProvider>{children}</ToolbarPopoverProvider>
+    </ToolbarContext.Provider>
   );
 }

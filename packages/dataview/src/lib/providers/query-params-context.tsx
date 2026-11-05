@@ -166,6 +166,11 @@ interface QueryParamsProviderProps {
   defaults?: QueryParamsDefaults;
   /** Property schema for validation */
   properties: readonly DataViewProperty<unknown>[] | readonly PropertyMeta[];
+  /**
+   * Prefix for every URL parameter key (for example `"orders."` gives
+   * `?orders.filter=...`). Use a distinct prefix for each view on a page.
+   */
+  urlPrefix?: string;
 }
 
 /**
@@ -188,6 +193,7 @@ export function QueryParamsProvider({
   children,
   defaults,
   properties,
+  urlPrefix = "",
 }: QueryParamsProviderProps) {
   const {
     column: defaultColumn = null,
@@ -205,31 +211,31 @@ export function QueryParamsProvider({
   // ============================================================================
 
   const [urlColumn, setUrlColumn] = useQueryState(
-    "column",
+    `${urlPrefix}column`,
     parseAsColumnBy.withOptions({ throttleMs: THROTTLE_MS })
   );
   const [urlCursors, setUrlCursors] = useQueryState(
-    "cursors",
+    `${urlPrefix}cursors`,
     parseAsCursors.withOptions({ throttleMs: THROTTLE_MS })
   );
   const [urlFilter, setUrlFilter] = useQueryState(
-    "filter",
+    `${urlPrefix}filter`,
     parseAsFilter.withOptions({ throttleMs: THROTTLE_MS })
   );
   const [urlGroup, setUrlGroup] = useQueryState(
-    "group",
+    `${urlPrefix}group`,
     parseAsGroupBy.withOptions({ throttleMs: THROTTLE_MS })
   );
   const [urlLimit, setUrlLimit] = useQueryState(
-    "limit",
+    `${urlPrefix}limit`,
     parseAsInteger.withOptions({ throttleMs: THROTTLE_MS })
   );
   const [urlSearch, setUrlSearch] = useQueryState(
-    "search",
+    `${urlPrefix}search`,
     parseAsString.withOptions({ throttleMs: THROTTLE_MS })
   );
   const [urlSort, setUrlSort] = useQueryState(
-    "sort",
+    `${urlPrefix}sort`,
     parseAsSort.withOptions({ throttleMs: THROTTLE_MS })
   );
 

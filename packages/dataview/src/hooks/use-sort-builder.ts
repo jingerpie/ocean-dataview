@@ -1,4 +1,5 @@
-import { create } from "zustand";
+import { useMemo } from "react";
+import { useToolbarPopoverState } from "../lib/providers/toolbar-popover-context";
 
 interface SortBuilderState {
   close: () => void;
@@ -8,10 +9,19 @@ interface SortBuilderState {
   toggle: () => void;
 }
 
-export const useSortBuilder = create<SortBuilderState>((set) => ({
-  isOpen: false,
-  open: () => set({ isOpen: true }),
-  close: () => set({ isOpen: false }),
-  toggle: () => set((state) => ({ isOpen: !state.isOpen })),
-  setOpen: (open) => set({ isOpen: open }),
-}));
+/**
+ * Open state of the sort builder for the enclosing DataViewProvider.
+ */
+export function useSortBuilder(): SortBuilderState {
+  const { sortBuilderOpen, setSortBuilderOpen } = useToolbarPopoverState();
+  return useMemo(
+    () => ({
+      isOpen: sortBuilderOpen,
+      open: () => setSortBuilderOpen(true),
+      close: () => setSortBuilderOpen(false),
+      toggle: () => setSortBuilderOpen(!sortBuilderOpen),
+      setOpen: setSortBuilderOpen,
+    }),
+    [sortBuilderOpen, setSortBuilderOpen]
+  );
+}

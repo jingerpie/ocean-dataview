@@ -112,6 +112,11 @@ export interface DataViewProviderProps<
   defaults?: DefaultsConfig;
   properties: TProperties;
   propertyVisibility?: TProperties[number]["id"][];
+  /**
+   * Prefix for every URL parameter key (for example `"orders."` gives
+   * `?orders.filter=...`). Use a distinct prefix for each view on a page.
+   */
+  urlPrefix?: string;
 }
 
 // ============================================================================
@@ -137,6 +142,7 @@ export function DataViewProvider<
   defaults,
   properties,
   propertyVisibility,
+  urlPrefix,
 }: DataViewProviderProps<TData, TProperties, TQueryOptions>) {
   // Normalize properties: resolve id from key, validate uniqueness
   const normalizedProperties = useMemo(
@@ -177,6 +183,7 @@ export function DataViewProvider<
     <QueryParamsProvider
       defaults={mergedDefaults}
       properties={normalizedProperties}
+      urlPrefix={urlPrefix}
     >
       <ToolbarContextProvider properties={propertyMetas}>
         <DataViewSetupContext.Provider value={setup}>

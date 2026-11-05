@@ -45,7 +45,7 @@ export function SimpleFilterActions({
   className,
 }: SimpleFilterActionsProps) {
   const { filter, setFilter, removeFilter } = useFilterParams();
-  const openAdvanceFilterBuilder = useAdvanceFilterBuilder((s) => s.open);
+  const openAdvanceFilterBuilder = useAdvanceFilterBuilder().open;
 
   // Remove this rule from filter array - uses immediate removeFilter
   const handleRemove = useCallback(() => {

@@ -1,4 +1,5 @@
-import { create } from "zustand";
+import { useMemo } from "react";
+import { useToolbarPopoverState } from "../lib/providers/toolbar-popover-context";
 
 interface SimpleFilterChipState {
   /** Close the currently open filter chip */
@@ -11,9 +12,18 @@ interface SimpleFilterChipState {
   setOpen: (propertyId: string | null) => void;
 }
 
-export const useSimpleFilterChip = create<SimpleFilterChipState>((set) => ({
-  openPropertyId: null,
-  open: (propertyId) => set({ openPropertyId: propertyId }),
-  close: () => set({ openPropertyId: null }),
-  setOpen: (propertyId) => set({ openPropertyId: propertyId }),
-}));
+/**
+ * Open simple filter chip for the enclosing DataViewProvider.
+ */
+export function useSimpleFilterChip(): SimpleFilterChipState {
+  const { openFilterChipId, setOpenFilterChipId } = useToolbarPopoverState();
+  return useMemo(
+    () => ({
+      openPropertyId: openFilterChipId,
+      open: (propertyId) => setOpenFilterChipId(propertyId),
+      close: () => setOpenFilterChipId(null),
+      setOpen: setOpenFilterChipId,
+    }),
+    [openFilterChipId, setOpenFilterChipId]
+  );
+}

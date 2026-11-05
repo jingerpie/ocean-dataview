@@ -13,6 +13,8 @@ import {
 export interface DataViewParserOptions {
   /** Default limit value (default: 25) */
   limitDefault?: Limit;
+  /** URL key prefix; must match the DataViewProvider `urlPrefix` */
+  urlPrefix?: string;
 }
 
 const defaultSearchParser = createParser({
@@ -37,16 +39,31 @@ const defaultSearchParser = createParser({
  * ```
  */
 export function createDataViewParamsCache(options?: DataViewParserOptions) {
-  return createSearchParamsCache({
-    column: columnServerParser,
-    cursors: cursorsServerParser,
-    expanded: expandedServerParser,
-    filter: filterServerParser,
-    group: groupServerParser,
-    limit: limitServerParser.withDefault(options?.limitDefault ?? 25),
-    search: defaultSearchParser,
-    sort: sortServerParser.withDefault([]),
-  });
+  const prefix = options?.urlPrefix ?? "";
+  return createSearchParamsCache(
+    {
+      column: columnServerParser,
+      cursors: cursorsServerParser,
+      expanded: expandedServerParser,
+      filter: filterServerParser,
+      group: groupServerParser,
+      limit: limitServerParser.withDefault(options?.limitDefault ?? 25),
+      search: defaultSearchParser,
+      sort: sortServerParser.withDefault([]),
+    },
+    {
+      urlKeys: {
+        column: `${prefix}column`,
+        cursors: `${prefix}cursors`,
+        expanded: `${prefix}expanded`,
+        filter: `${prefix}filter`,
+        group: `${prefix}group`,
+        limit: `${prefix}limit`,
+        search: `${prefix}search`,
+        sort: `${prefix}sort`,
+      },
+    }
+  );
 }
 
 /**
