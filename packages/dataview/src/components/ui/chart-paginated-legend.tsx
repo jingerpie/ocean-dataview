@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import type { LegendPayload } from "recharts/types/component/DefaultLegendContent";
+import type { LegendPayload } from "recharts";
 import { PaginatedLegend } from "./paginated-legend";
 
 interface ChartPaginatedLegendProps {

@@ -1,5 +1,9 @@
 import { useState } from "react";
-import type { LegendPayload } from "recharts/types/component/DefaultLegendContent";
+
+/** Minimal legend entry shape (structurally compatible with Recharts payloads). */
+export interface LegendEntry {
+  dataKey?: unknown;
+}
 
 /**
  * Custom hook for managing interactive legend state
@@ -25,7 +29,7 @@ export function useInteractiveLegend(groupKeys: string[]) {
   );
 
   // Handle mouse enter on legend item
-  const handleLegendMouseEnter = (data: LegendPayload) => {
+  const handleLegendMouseEnter = (data: LegendEntry) => {
     const key = String(data.dataKey);
     if (data.dataKey && !legendProps[key]) {
       setLegendProps({ ...legendProps, hover: key });
@@ -38,7 +42,7 @@ export function useInteractiveLegend(groupKeys: string[]) {
   };
 
   // Handle click to toggle visibility
-  const selectItem = (data: LegendPayload) => {
+  const selectItem = (data: LegendEntry) => {
     const key = String(data.dataKey);
     if (data.dataKey) {
       setLegendProps({

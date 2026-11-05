@@ -11,20 +11,25 @@ import {
   useMemo,
   useRef,
 } from "react";
+import type {
+  DefaultTooltipContentProps,
+  LegendProps,
+  TooltipContentProps,
+} from "recharts";
 import {
   Legend,
   type LegendPayload,
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import type {
-  NameType,
-  Payload,
-  ValueType,
-} from "recharts/types/component/DefaultTooltipContent";
-import type { Props as LegendProps } from "recharts/types/component/Legend";
-import type { TooltipContentProps } from "recharts/types/component/Tooltip";
 import { cn } from "../lib/utils";
+
+// Recharts does not export these from its root; derive them from public types.
+type ValueType = number | string | readonly (number | string)[];
+type NameType = number | string;
+type Payload<TValue extends ValueType, TName extends NameType> = NonNullable<
+  DefaultTooltipContentProps<TValue, TName>["payload"]
+>[number];
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;

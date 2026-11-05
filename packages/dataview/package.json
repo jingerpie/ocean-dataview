@@ -14,7 +14,8 @@
     "./hooks": "./src/hooks/index.ts",
     "./types": "./src/types/index.ts",
     "./utils": "./src/utils/index.ts",
-    "./skeletons": "./src/components/skeletons/index.ts"
+    "./skeletons": "./src/components/skeletons/index.ts",
+    "./image": "./src/components/lib/image.tsx"
   },
   "scripts": {
     "check-types": "tsc --noEmit",
@@ -34,7 +35,6 @@
     "cmdk": "catalog:",
     "date-fns": "catalog:",
     "lucide-react": "catalog:",
-    "next": "catalog:",
     "nuqs": "catalog:",
     "react": "catalog:",
     "react-day-picker": "catalog:",

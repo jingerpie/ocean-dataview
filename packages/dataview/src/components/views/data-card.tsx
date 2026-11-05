@@ -1,12 +1,12 @@
 "use client";
 
 import { ImageIcon } from "lucide-react";
-import Image from "next/image";
 import { useMemo } from "react";
 import type { DataViewProperty } from "../../types/property.type";
 import { isPropertyValueEmpty } from "../../utils/is-property-value-empty";
 import { getCardPinIds, resolveCardPins } from "../../utils/resolve-card-pins";
 import { resolveShowName } from "../../utils/resolve-show-name";
+import { useDataViewImage } from "../lib/image";
 import {
   getShowNameValueClasses,
   getShowNameWrapperClasses,
@@ -97,6 +97,7 @@ export function DataCard<TData>({
   onCardClick,
   className,
 }: DataCardProps<TData>) {
+  const Image = useDataViewImage();
   const isCompact = cardLayout === "compact";
   // Handle cardPreview - resolve through property.id for correct data access
   const previewProperty = cardPreview
@@ -169,10 +170,9 @@ export function DataCard<TData>({
                   "Preview image"
               )}
               className={cn(
-                "transition-opacity",
+                "absolute inset-0 h-full w-full transition-opacity",
                 fitMedia ? "object-contain" : "object-cover"
               )}
-              fill
               loading="lazy"
               sizes="(min-width: 1280px) 20vw, (min-width: 768px) 33vw, 100vw"
               src={imageUrl}

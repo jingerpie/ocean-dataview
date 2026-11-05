@@ -1,8 +1,8 @@
 "use client";
 
 import { FileIcon } from "lucide-react";
-import Image from "next/image";
 import { useState } from "react";
+import { useDataViewImage } from "../../lib/image";
 import { cn } from "../../lib/utils";
 import { Skeleton } from "../skeleton";
 
@@ -74,6 +74,7 @@ interface ImageThumbnailProps {
 }
 
 function ImageThumbnail({ url, className }: ImageThumbnailProps) {
+  const Image = useDataViewImage();
   const [isLoaded, setIsLoaded] = useState(false);
 
   return (
@@ -94,10 +95,8 @@ function ImageThumbnail({ url, className }: ImageThumbnailProps) {
           "h-[26px] w-auto object-contain transition-opacity",
           isLoaded ? "opacity-100" : "opacity-0"
         )}
-        height={0}
         onLoad={() => setIsLoaded(true)}
         src={url}
-        width={0}
       />
     </a>
   );
