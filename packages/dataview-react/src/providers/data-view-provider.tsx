@@ -10,12 +10,12 @@ import type {
   SortQuery,
   ViewCounts,
   WhereNode,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   type DataViewProperty,
   normalizeProperties,
   toPropertyMetaArray,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   createContext,
   type ReactNode,

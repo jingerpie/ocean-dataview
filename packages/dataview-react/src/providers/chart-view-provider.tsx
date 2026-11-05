@@ -1,6 +1,6 @@
 "use client";
 
-import type { DataViewProperty } from "@sparkyidea/dataview-core";
+import type { DataViewProperty } from "@jingerpie/dataview-core";
 import type { ReactNode } from "react";
 import { useMemo } from "react";
 import {

@@ -9,7 +9,7 @@ import type {
   SortQuery,
   ViewCounts,
   WhereNode,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { createContext, useContext } from "react";
 import type { InfinitePaginationState } from "../hooks/use-infinite-controller";
 import type { PagePaginationState } from "../hooks/use-page-controller";
@@ -26,7 +26,7 @@ export type PaginationOutput<TData> =
 export type {
   ColumnConfigInput,
   GroupConfigInput,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 
 export interface DataViewContextValue<
   TData,

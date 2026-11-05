@@ -43,8 +43,8 @@
         "@dnd-kit/core": "catalog:",
         "@dnd-kit/sortable": "catalog:",
         "@dnd-kit/utilities": "catalog:",
-        "@sparkyidea/dataview-core": "workspace:*",
-        "@sparkyidea/dataview-react": "workspace:*",
+        "@jingerpie/dataview-core": "workspace:*",
+        "@jingerpie/dataview-react": "workspace:*",
         "@sparkyidea/env": "workspace:*",
         "@sparkyidea/trpc": "workspace:*",
         "@sparkyidea/ui": "workspace:*",
@@ -98,7 +98,7 @@
       "version": "0.0.0",
     },
     "packages/dataview-core": {
-      "name": "@sparkyidea/dataview-core",
+      "name": "@jingerpie/dataview-core",
       "version": "0.1.0-alpha.0",
       "devDependencies": {
         "@sparkyidea/config": "workspace:*",
@@ -116,11 +116,11 @@
       },
     },
     "packages/dataview-drizzle": {
-      "name": "@sparkyidea/dataview-drizzle",
+      "name": "@jingerpie/dataview-drizzle",
       "version": "0.1.0-alpha.0",
       "devDependencies": {
+        "@jingerpie/dataview-core": "workspace:*",
         "@sparkyidea/config": "workspace:*",
-        "@sparkyidea/dataview-core": "workspace:*",
         "@types/bun": "1.3.9",
         "date-fns": "catalog:",
         "drizzle-orm": "catalog:",
@@ -128,17 +128,17 @@
         "typescript": "catalog:",
       },
       "peerDependencies": {
-        "@sparkyidea/dataview-core": "workspace:^",
+        "@jingerpie/dataview-core": "workspace:^",
         "date-fns": "^4.1.0",
         "drizzle-orm": "^0.45.0",
       },
     },
     "packages/dataview-react": {
-      "name": "@sparkyidea/dataview-react",
+      "name": "@jingerpie/dataview-react",
       "version": "0.1.0-alpha.0",
       "devDependencies": {
+        "@jingerpie/dataview-core": "workspace:*",
         "@sparkyidea/config": "workspace:*",
-        "@sparkyidea/dataview-core": "workspace:*",
         "@tanstack/react-query": "catalog:",
         "@types/react": "catalog:",
         "nuqs": "catalog:",
@@ -148,7 +148,7 @@
         "vitest": "catalog:",
       },
       "peerDependencies": {
-        "@sparkyidea/dataview-core": "workspace:^",
+        "@jingerpie/dataview-core": "workspace:^",
         "@tanstack/react-query": "^5.90.0",
         "nuqs": "^2.8.0",
         "react": "^19.0.0",
@@ -189,8 +189,8 @@
     "packages/trpc": {
       "name": "@sparkyidea/trpc",
       "dependencies": {
-        "@sparkyidea/dataview-core": "workspace:*",
-        "@sparkyidea/dataview-drizzle": "workspace:*",
+        "@jingerpie/dataview-core": "workspace:*",
+        "@jingerpie/dataview-drizzle": "workspace:*",
         "@sparkyidea/db": "workspace:*",
         "@sparkyidea/env": "workspace:*",
         "@trpc/client": "catalog:",
@@ -581,6 +581,12 @@
 
     "@inquirer/type": ["@inquirer/type@3.0.10", "", { "peerDependencies": { "@types/node": ">=18" }, "optionalPeers": ["@types/node"] }, "sha512-BvziSRxfz5Ov8ch0z/n3oijRSEcEsHnhggm4xFZe93DHcUCTlutlq9Ox4SVENAfcRD22UQq7T/atg9Wr3k09eA=="],
 
+    "@jingerpie/dataview-core": ["@jingerpie/dataview-core@workspace:packages/dataview-core"],
+
+    "@jingerpie/dataview-drizzle": ["@jingerpie/dataview-drizzle@workspace:packages/dataview-drizzle"],
+
+    "@jingerpie/dataview-react": ["@jingerpie/dataview-react@workspace:packages/dataview-react"],
+
     "@jridgewell/gen-mapping": ["@jridgewell/gen-mapping@0.3.13", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA=="],
 
     "@jridgewell/remapping": ["@jridgewell/remapping@2.3.5", "", { "dependencies": { "@jridgewell/gen-mapping": "^0.3.5", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-LI9u/+laYG4Ds1TDKSJW2YPrIlcVYOwi2fUC6xB43lueCjgxV4lffOCZCtYFiH6TNOX+tQKXx97T4IKHbhyHEQ=="],
@@ -822,12 +828,6 @@
     "@sindresorhus/merge-streams": ["@sindresorhus/merge-streams@4.0.0", "", {}, "sha512-tlqY9xq5ukxTUZBmoOp+m61cqwQD5pHJtFY3Mn8CA8ps6yghLH/Hw8UPdqg4OLmFW3IFlcXnQNmo/dh8HzXYIQ=="],
 
     "@sparkyidea/config": ["@sparkyidea/config@workspace:packages/config"],
-
-    "@sparkyidea/dataview-core": ["@sparkyidea/dataview-core@workspace:packages/dataview-core"],
-
-    "@sparkyidea/dataview-drizzle": ["@sparkyidea/dataview-drizzle@workspace:packages/dataview-drizzle"],
-
-    "@sparkyidea/dataview-react": ["@sparkyidea/dataview-react@workspace:packages/dataview-react"],
 
     "@sparkyidea/db": ["@sparkyidea/db@workspace:packages/db"],
 

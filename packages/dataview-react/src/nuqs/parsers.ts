@@ -3,7 +3,7 @@ import type {
   CursorValue,
   SortQuery,
   WhereNode,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   cursorsValidator,
   cursorValidator,
@@ -21,7 +21,7 @@ import {
   LIMIT_OPTIONS,
   type Limit,
   sortValidator,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { createParser } from "nuqs/server";
 
 // ============================================================================

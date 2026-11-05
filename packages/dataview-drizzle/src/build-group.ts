@@ -1,4 +1,4 @@
-import type { GroupByConfig } from "@sparkyidea/dataview-core";
+import type { GroupByConfig } from "@jingerpie/dataview-core";
 import { asc, desc, gt, lt, type SQL, sql, type Table } from "drizzle-orm";
 import { getColumn } from "./build-filter";
 

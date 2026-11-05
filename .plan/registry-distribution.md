@@ -27,9 +27,9 @@ Source: `better-auth-ui-main` (studied 2026-11-05).
 
 | Package | Contents | Peers |
 |---|---|---|
-| `@sparkyidea/dataview-core` | Domain and query schemas (`types/*` minus React presentation fields), validators, URL DSL encode/decode, pure parsers, filter/group/sort/compute/transform utils, chart data transforms, `filter-preview`, `build-search`, transport-neutral input schemas (from `packages/trpc/src/lib/schemas.ts`), `get-skeleton-props`, `skeleton-widths`, `row-id` | `zod`, `date-fns`, `chrono-node` |
-| `@sparkyidea/dataview-react` | Providers (`DataViewProvider`, `SimpleDataViewProvider`, `ChartViewProvider`), query bridges, contexts, controllers, hooks, per-instance stores. `/nuqs` subpath for URL-state integration, `/nuqs/server` for server-safe parsers and cache. Controlled (non-URL) state supported independently | `react`, `@tanstack/react-query`, `zustand`, optional `nuqs` |
-| `@sparkyidea/dataview-drizzle` | `buildWhere`, `buildSort`/`buildCursor`, `buildGroupBy`/`buildGroupWhere`, `build-rollup`. Documented as **PostgreSQL only** (casts, arrays, aggregate SQL are dialect-specific) | `drizzle-orm`, `dataview-core` |
+| `@jingerpie/dataview-core` | Domain and query schemas (`types/*` minus React presentation fields), validators, URL DSL encode/decode, pure parsers, filter/group/sort/compute/transform utils, chart data transforms, `filter-preview`, `build-search`, transport-neutral input schemas (from `packages/trpc/src/lib/schemas.ts`), `get-skeleton-props`, `skeleton-widths`, `row-id` | `zod`, `date-fns`, `chrono-node` |
+| `@jingerpie/dataview-react` | Providers (`DataViewProvider`, `SimpleDataViewProvider`, `ChartViewProvider`), query bridges, contexts, controllers, hooks, per-instance stores. `/nuqs` subpath for URL-state integration, `/nuqs/server` for server-safe parsers and cache. Controlled (non-URL) state supported independently | `react`, `@tanstack/react-query`, `zustand`, optional `nuqs` |
+| `@jingerpie/dataview-drizzle` | `buildWhere`, `buildSort`/`buildCursor`, `buildGroupBy`/`buildGroupWhere`, `build-rollup`. Documented as **PostgreSQL only** (casts, arrays, aggregate SQL are dialect-specific) | `drizzle-orm`, `dataview-core` |
 | shadcn registry (`apps/web/public/r`) | Views, notion toolbar, preset tabs, skeletons, property renderers, filter/sort/group/pagination/bulk-action UI, property icons, badge and chart colors, chart rendering, customized primitives | resolved per item |
 
 Decisions:
@@ -84,13 +84,13 @@ Risks: default values, selection identity, and scroll sync can regress. Mitigate
 
 **Status: done.** Decisions (Codex, 2026-11-05):
 
-- Names `@sparkyidea/dataview-{core,react,drizzle}`, version `0.1.0-alpha.0`, `publishConfig` `{ access: public, tag: alpha }`. Build and pack only; publishing to npm is left to the user (`npm publish` from each package after `bun run build`).
+- Names `@jingerpie/dataview-{core,react,drizzle}`, version `0.1.0-alpha.0`, `publishConfig` `{ access: public, tag: alpha }`. Build and pack only; publishing to npm is left to the user (`npm publish` from each package after `bun run build`).
 - `schemas.ts` and `build-search.ts` moved to core; `build-filter/sort/group/rollup` and their tests to drizzle. `packages/trpc` depends on core and drizzle.
 - Parsers split: pure codecs (`codecs/`) in core; nuqs `createParser` wrappers and `createDataViewParamsCache` in `dataview-react/nuqs/server`.
 - Controlled state in scope: `DataViewProvider` takes `state?: DataViewStateAdapter` (`{ value, onChange, isPending? }`), in-memory by default; `useNuqsDataViewState({ urlPrefix })` from `/nuqs` keeps it in the URL. It writes only changed keys, because nuqs functional updates read a lazily updated ref and rewriting every key let stale values win.
 - DOM hooks (`useScrollSync`, `useLoadMoreSentinel`, `useInteractiveLegend`, `useScrollParent`, `useIntersectionObserver`) stay with the UI.
 - `packages/dataview` is now private `@sparkyidea/dataview-ui` and imports the headless packages through public exports only.
-- Build: tsdown `unbundle` + `dts`, so each file keeps its `"use client"` directive and `DataViewRegister` stays in its own declaration file (`@sparkyidea/dataview-core/register`) that `dataview-react` augments from every entry. Exports point at `dist`; turbo runs `^build` before `check-types`, `test`, and `dev` (packages run `tsdown --watch` in dev).
+- Build: tsdown `unbundle` + `dts`, so each file keeps its `"use client"` directive and `DataViewRegister` stays in its own declaration file (`@jingerpie/dataview-core/register`) that `dataview-react` augments from every entry. Exports point at `dist`; turbo runs `^build` before `check-types`, `test`, and `dev` (packages run `tsdown --watch` in dev).
 - Exports are root barrels plus `/register`, `/nuqs`, `/nuqs/server` (simpler than per-file subpaths; ESM tree-shakes).
 - `fixtures/{server,react-vite,react-next}` installed from packed tarballs by `bun run verify:packages`: typecheck with `skipLibCheck: false` (errors inside third-party declarations ignored), server runtime asserts, Vite build plus server render with controlled state and no nuqs, Next build with nuqs and the server params cache.
 - Findings: server users of `dataview-react/nuqs/server` need `@types/react` (the augmentation references React types); `useDataViewContext().data` is empty in bridged views, so custom views read rows with `useGroupQuery({ groupKey: UNGROUPED_KEY })` (now an exported constant).
@@ -132,7 +132,7 @@ Changes:
    - Customized primitives (accordion, badge `size`, button, calendar `readOnly`, checkbox indeterminate, command `CommandChips`, select `render`, table, tabs) and `chart.tsx` ship as **distinctly named** `registry:ui` items so they never overwrite a user's `button.tsx` etc. Upstream to shadcn only where the API already matches.
    - Reuse the user's `cn`.
 4. CSS: `src/styles.css` only contains `@source "."`; the real badge and chart tokens, dark-mode values, and Tailwind mappings live in `packages/ui/src/styles/globals.css`. Ship dataview-specific tokens and animations through registry `cssVars` / `css`, without copying the app's global theme.
-5. Copied files import only public npm exports (`@sparkyidea/dataview-react`, `-core`) and local registry files. Forbid workspace aliases and private paths (enforced in the build script).
+5. Copied files import only public npm exports (`@jingerpie/dataview-react`, `-core`) and local registry files. Forbid workspace aliases and private paths (enforced in the build script).
 6. Pin compatible npm ranges in registry items and keep versioned registry artifacts, because copied UI does not update automatically.
 7. Rollout order: table view, gallery view, notion toolbar first; then list, board, charts.
 
@@ -150,7 +150,7 @@ Risks: primitive name conflicts and missing CSS tokens in the consumer app.
 - Start only after `0.1.0-alpha.0` is on npm, so consumers install real versions (no `file:`/`link:` dependencies). Publish from each package directory with `bun publish` (it resolves `workspace:` and `catalog:`; `npm publish` would not), in order core, react, drizzle. `publishConfig` already sets `access: public` and `tag: alpha`.
 - Consumers pin exact `0.1.0-alpha.0`: core + react in `apps/app`, core + drizzle in `packages/trpc`.
 - Install UI with `shadcn@latest add` against a local registry server (`build-registry.ts --base-url http://localhost:<port>`) and commit the generated files. Entry items: dashseller `table-view list-view gallery-view notion-toolbar dataview-skeletons`; sellerhunt `table-view gallery-view notion-toolbar preset-tabs dataview-skeletons`; plus directly imported `*-property` items. Keep their `base-lyra` style; review overwrites instead of forcing them.
-- Replace `packages/trpc/src/lib` build-filter/group/rollup/sort with `@sparkyidea/dataview-drizzle`, schemas/build-search with core; keep app-specific helpers; keep app-specific test cases as integration tests against the public packages.
+- Replace `packages/trpc/src/lib` build-filter/group/rollup/sort with `@jingerpie/dataview-drizzle`, schemas/build-search with core; keep app-specific helpers; keep app-specific test cases as integration tests against the public packages.
 - Branch `refactor/headless-split` in each consumer (from dashseller `dev`, sellerhunt `main`), one local commit each, no push. sellerhunt first, then dashseller. Both must pass check, check-types, test, build, plus manual URL/filter/sort/group/pagination/bulk/images/dark-mode checks.
 
 Changes:

@@ -1,12 +1,12 @@
 import type {
   DataViewProperty,
   GroupedDataItem,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   getGroup,
   groupByProperty,
   validateGroupConfig,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { useMemo } from "react";
 
 export interface GroupConfig {
@@ -35,7 +35,7 @@ export interface GroupConfig {
   startWeekOn?: "monday" | "sunday";
 }
 
-export type { GroupedDataItem } from "@sparkyidea/dataview-core";
+export type { GroupedDataItem } from "@jingerpie/dataview-core";
 
 export interface UseGroupConfigOptions {
   /** Auto-select a suitable property if groupBy not provided (BoardView only) */

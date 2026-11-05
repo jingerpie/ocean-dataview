@@ -4,7 +4,7 @@ import {
   useFilterParams,
   useSortParams,
   useToolbarContext,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import {
   Popover,
   PopoverContent,

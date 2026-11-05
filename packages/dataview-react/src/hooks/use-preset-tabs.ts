@@ -4,13 +4,13 @@ import type {
   GroupConfigInput,
   SortQuery,
   WhereNode,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   collectFilterProperties,
   encodeFilter,
   extractPropertiesFromFilter,
   removePropertiesFromFilter,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { useEffect, useMemo, useRef } from "react";
 import { useFilterParams } from "./use-filter-params";
 import { useGroupParams } from "./use-group-params";

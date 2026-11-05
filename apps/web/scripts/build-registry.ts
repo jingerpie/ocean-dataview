@@ -8,7 +8,7 @@
  *    - `@sparkyidea/ui/components/x` -> stock shadcn item `x`, rewritten to
  *      `@/registry/base-nova/ui/x` so the CLI maps it to the user's ui alias
  *    - `@/lib/utils` -> stock `utils`
- *    - npm packages -> `dependencies` with pinned ranges; `@sparkyidea/*`
+ *    - npm packages -> `dependencies` with pinned ranges; workspace package
  *      imports must match a public package export
  *    Relative imports, other aliases, and workspace-only packages fail.
  * 3. Write rewritten sources and registry.json to a staging directory, then run
@@ -193,7 +193,7 @@ interface Analysis {
   stockDependencies: Set<string>;
 }
 
-/** Record an npm import; `@sparkyidea/*` must use a public export. */
+/** Record an npm import; workspace packages must use a public export. */
 function addPackage(file: string, spec: string, result: Analysis) {
   const name = packageName(spec);
   const workspace = workspaceExports.get(name);

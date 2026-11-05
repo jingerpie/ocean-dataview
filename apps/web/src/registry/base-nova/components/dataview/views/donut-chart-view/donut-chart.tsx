@@ -3,7 +3,7 @@
 import type {
   ChartDataPoint,
   DataLabelFormatType,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { useMemo } from "react";
 import {
   Cell,

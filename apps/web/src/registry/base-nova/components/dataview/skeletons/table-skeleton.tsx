@@ -4,7 +4,7 @@ import {
   getSkeletonProps,
   type SkeletonPropertyLike,
   TABLE_COLUMN_WIDTHS,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { Skeleton } from "@sparkyidea/ui/components/skeleton";
 import { cn } from "@/lib/utils";
 import type { PaginationMode } from "@/registry/base-nova/components/dataview/pagination/pagination";

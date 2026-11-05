@@ -4,8 +4,8 @@ import type {
   PropertyMeta,
   WhereExpression,
   WhereNode,
-} from "@sparkyidea/dataview-core";
-import { useAdvanceFilterBuilder } from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-core";
+import { useAdvanceFilterBuilder } from "@jingerpie/dataview-react";
 import { AdvancedFilterEditor } from "@/registry/base-nova/components/dataview/filter/advanced-filter-editor";
 import { FilterTrigger } from "@/registry/base-nova/components/dataview/filter/filter-trigger";
 

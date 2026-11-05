@@ -1,11 +1,11 @@
 "use client";
 
-import type { DataViewProperty, GroupCounts } from "@sparkyidea/dataview-core";
+import type { DataViewProperty, GroupCounts } from "@jingerpie/dataview-core";
 import {
   buildGroupItems,
   getGroupOptions,
   validatePropertyKeys,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { useMemo } from "react";
 import { useDataViewContext } from "../providers/data-view-context";
 import { useDataViewSetup } from "../providers/data-view-provider";

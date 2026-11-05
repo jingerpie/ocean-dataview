@@ -3,11 +3,11 @@
 import type {
   DataViewProperty,
   HorizontalBarChartConfig,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   useChartTransform,
   useChartViewContext,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import { AlertCircle } from "lucide-react";
 import { EmptyState } from "@/registry/base-nova/components/dataview/views/empty-state";
 import { HorizontalBarChartInner } from "@/registry/base-nova/components/dataview/views/horizontal-bar-chart-view/horizontal-bar-chart";

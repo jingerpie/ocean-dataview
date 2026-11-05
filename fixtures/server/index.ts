@@ -5,9 +5,9 @@ import {
   getManyInput,
   validateFilter,
   type WhereNode,
-} from "@sparkyidea/dataview-core";
-import { buildSort, buildWhere } from "@sparkyidea/dataview-drizzle";
-import { createDataViewParamsCache } from "@sparkyidea/dataview-react/nuqs/server";
+} from "@jingerpie/dataview-core";
+import { buildSort, buildWhere } from "@jingerpie/dataview-drizzle";
+import { createDataViewParamsCache } from "@jingerpie/dataview-react/nuqs/server";
 import { integer, PgDialect, pgTable, text } from "drizzle-orm/pg-core";
 
 const products = pgTable("products", {

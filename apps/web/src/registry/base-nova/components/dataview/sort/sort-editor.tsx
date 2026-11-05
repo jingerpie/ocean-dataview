@@ -2,8 +2,8 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { PropertyMeta, SortQuery } from "@sparkyidea/dataview-core";
-import { useSortParams } from "@sparkyidea/dataview-react";
+import type { PropertyMeta, SortQuery } from "@jingerpie/dataview-core";
+import { useSortParams } from "@jingerpie/dataview-react";
 import {
   Popover,
   PopoverContent,

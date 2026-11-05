@@ -6,7 +6,7 @@ import type {
   GroupConfigInput,
   SortQuery,
   WhereNode,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { useCallback, useMemo, useState } from "react";
 
 /**

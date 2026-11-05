@@ -5,13 +5,13 @@ import type {
   WhereExpression,
   WhereNode,
   WhereRule,
-} from "@sparkyidea/dataview-core";
-import { createRuleFromProperty } from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
+import { createRuleFromProperty } from "@jingerpie/dataview-core";
 import {
   useFilterParams,
   useSimpleFilterChip,
   useSortParams,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import { Separator } from "@sparkyidea/ui/components/separator";
 import { useCallback, useState } from "react";
 import { flushSync } from "react-dom";

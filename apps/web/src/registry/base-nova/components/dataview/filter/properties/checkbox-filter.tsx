@@ -1,6 +1,6 @@
 "use client";
 
-import type { PropertyMeta, WhereRule } from "@sparkyidea/dataview-core";
+import type { PropertyMeta, WhereRule } from "@jingerpie/dataview-core";
 import { CheckIcon } from "lucide-react";
 import { Button } from "@/registry/base-nova/ui/dataview-button";
 import {

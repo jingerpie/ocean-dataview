@@ -1,12 +1,12 @@
 "use client";
 
-import type { PropertyMeta } from "@sparkyidea/dataview-core";
-import { analyzeFilter } from "@sparkyidea/dataview-core";
+import type { PropertyMeta } from "@jingerpie/dataview-core";
+import { analyzeFilter } from "@jingerpie/dataview-core";
 import {
   useFilterParams,
   useSortParams,
   useToolbarContext,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import { Separator } from "@sparkyidea/ui/components/separator";
 import { useEffect, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";

@@ -4,12 +4,12 @@ import type {
   GroupConfigInput,
   SortQuery,
   WhereNode,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   useFilterParams,
   useGroupParams,
   useSortParams,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import { Label } from "@sparkyidea/ui/components/label";
 import {
   Select,

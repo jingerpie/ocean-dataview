@@ -1,10 +1,10 @@
 "use client";
 
-import type { PropertyMeta } from "@sparkyidea/dataview-core";
+import type { PropertyMeta } from "@jingerpie/dataview-core";
 import {
   type GroupingMode,
   useGroupingParams,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import { CheckIcon } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { PropertyIcon } from "@/registry/base-nova/components/dataview/shared/property-icon";

@@ -1,6 +1,6 @@
 "use client";
 
-import type { DataViewProperty } from "@sparkyidea/dataview-core";
+import type { DataViewProperty } from "@jingerpie/dataview-core";
 
 // Product type from database
 export interface Product {

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ResolvedShowName } from "@sparkyidea/dataview-core";
+import type { ResolvedShowName } from "@jingerpie/dataview-core";
 import { cn } from "@/lib/utils";
 
 interface PropertyNameLabelProps {

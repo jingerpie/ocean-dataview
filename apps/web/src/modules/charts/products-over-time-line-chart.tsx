@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartViewProvider } from "@sparkyidea/dataview-react";
+import { ChartViewProvider } from "@jingerpie/dataview-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { LineChartView } from "@/registry/base-nova/components/dataview/views/line-chart-view/line-chart-view";

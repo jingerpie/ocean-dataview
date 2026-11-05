@@ -1,4 +1,4 @@
-import type { DataViewProperty } from "@sparkyidea/dataview-core";
+import type { DataViewProperty } from "@jingerpie/dataview-core";
 import type { AppRouter } from "@sparkyidea/trpc/routers/index";
 import type { inferRouterOutputs } from "@trpc/server";
 import { AlertCircle, CheckCircle2, Edit, Eye, XCircle } from "lucide-react";

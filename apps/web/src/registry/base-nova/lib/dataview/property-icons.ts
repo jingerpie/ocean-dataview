@@ -1,4 +1,4 @@
-import type { PropertyType } from "@sparkyidea/dataview-core";
+import type { PropertyType } from "@jingerpie/dataview-core";
 import {
   ALargeSmallIcon,
   AtSignIcon,

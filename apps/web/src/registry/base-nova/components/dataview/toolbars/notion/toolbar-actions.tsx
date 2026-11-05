@@ -1,11 +1,11 @@
 "use client";
 
-import type { GroupConfigInput, PropertyMeta } from "@sparkyidea/dataview-core";
+import type { GroupConfigInput, PropertyMeta } from "@jingerpie/dataview-core";
 import {
   useQueryParamsState,
   useSearchParams,
   useToolbarContext,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import { cn } from "@/lib/utils";
 import { SearchInput } from "@/registry/base-nova/components/dataview/search/search-input";
 import { FilterTool } from "@/registry/base-nova/components/dataview/toolbars/notion/filter-tool";

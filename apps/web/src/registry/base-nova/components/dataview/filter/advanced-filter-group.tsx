@@ -1,6 +1,6 @@
 "use client";
 
-import type { PropertyMeta } from "@sparkyidea/dataview-core";
+import type { PropertyMeta } from "@jingerpie/dataview-core";
 import {
   addCondition,
   addGroup,
@@ -15,7 +15,7 @@ import {
   type WhereNode,
   type WhereRule,
   wrapInGroup,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { cn } from "@/lib/utils";
 import { AddFilterButton } from "@/registry/base-nova/components/dataview/filter/advanced-add-filter-button";
 import { AdvancedFilterActions } from "@/registry/base-nova/components/dataview/filter/advanced-filter-actions";

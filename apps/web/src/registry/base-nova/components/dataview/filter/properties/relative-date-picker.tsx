@@ -5,7 +5,7 @@ import {
   type RelativeDirection,
   type RelativeToTodayValue,
   type RelativeUnit,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { Input } from "@sparkyidea/ui/components/input";
 import { Calendar } from "@/registry/base-nova/ui/dataview-calendar";
 import {
@@ -187,6 +187,6 @@ function RelativeDatePicker({ value, onChange }: RelativeDatePickerProps) {
   return <RelativeDateDropdowns onChange={onChange} value={value} />;
 }
 
-export type { RelativeToTodayValue } from "@sparkyidea/dataview-core";
+export type { RelativeToTodayValue } from "@jingerpie/dataview-core";
 export type { RelativeDatePickerProps };
 export { RelativeDatePicker, RelativeDatePickerContent };

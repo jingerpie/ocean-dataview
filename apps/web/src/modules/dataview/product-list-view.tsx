@@ -4,13 +4,13 @@ import type {
   GroupConfigInput,
   Limit,
   WhereNode,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   DataViewContent,
   DataViewProvider,
   useInfiniteController,
-} from "@sparkyidea/dataview-react";
-import { useNuqsDataViewState } from "@sparkyidea/dataview-react/nuqs";
+} from "@jingerpie/dataview-react";
+import { useNuqsDataViewState } from "@jingerpie/dataview-react/nuqs";
 import { Suspense } from "react";
 import { ListSkeleton } from "@/registry/base-nova/components/dataview/skeletons/list-skeleton";
 import { ToolbarSkeleton } from "@/registry/base-nova/components/dataview/skeletons/toolbar-skeleton";

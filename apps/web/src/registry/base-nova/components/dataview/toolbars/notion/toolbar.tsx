@@ -1,7 +1,7 @@
 // biome-ignore-all lint/performance/noBarrelFile: `./toolbars/notion` package export path — surfaces the pieces for app consumers
 "use client";
 
-import type { PropertyMeta } from "@sparkyidea/dataview-core";
+import type { PropertyMeta } from "@jingerpie/dataview-core";
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { NotionToolbarActions } from "@/registry/base-nova/components/dataview/toolbars/notion/toolbar-actions";

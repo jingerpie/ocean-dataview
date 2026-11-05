@@ -1,11 +1,11 @@
 "use client";
 
-import type { PropertyMeta } from "@sparkyidea/dataview-core";
-import { createRuleFromProperty, isWhereRule } from "@sparkyidea/dataview-core";
+import type { PropertyMeta } from "@jingerpie/dataview-core";
+import { createRuleFromProperty, isWhereRule } from "@jingerpie/dataview-core";
 import {
   useAdvanceFilterBuilder,
   useFilterParams,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import { PlusIcon } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { PropertyIcon } from "@/registry/base-nova/components/dataview/shared/property-icon";

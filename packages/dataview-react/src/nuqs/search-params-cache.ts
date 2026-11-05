@@ -1,4 +1,4 @@
-import type { Limit } from "@sparkyidea/dataview-core";
+import type { Limit } from "@jingerpie/dataview-core";
 import { createParser, createSearchParamsCache } from "nuqs/server";
 import {
   columnServerParser,

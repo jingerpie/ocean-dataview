@@ -1,4 +1,4 @@
-import type { ResolvedShowName } from "@sparkyidea/dataview-core";
+import type { ResolvedShowName } from "@jingerpie/dataview-core";
 
 /**
  * Classes for the element wrapping the value in a horizontal layout, or

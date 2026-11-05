@@ -2,7 +2,7 @@ import {
   type DataViewProperty,
   UNGROUPED_KEY,
   type WhereNode,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   DataViewContent,
   type DataViewStateAdapter,
@@ -11,7 +11,7 @@ import {
   useFilterParams,
   useGroupQuery,
   useLocalDataViewState,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ComponentType, Suspense, type SVGProps } from "react";
 
@@ -27,7 +27,7 @@ const StarIcon: ComponentType<SVGProps<SVGSVGElement>> = (props) => (
 );
 
 // Status group `icon` is typed as a React component through the
-// DataViewRegister augmentation shipped by @sparkyidea/dataview-react.
+// DataViewRegister augmentation shipped by @jingerpie/dataview-react.
 export const properties: readonly DataViewProperty<Product>[] = [
   { id: "name", name: "Name", type: "text" },
   { id: "price", name: "Price", type: "number" },

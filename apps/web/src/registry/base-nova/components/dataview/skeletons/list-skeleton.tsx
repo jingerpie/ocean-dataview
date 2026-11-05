@@ -5,7 +5,7 @@ import {
   ROW_PATTERNS,
   ROW_SKELETON_WIDTHS,
   type SkeletonPropertyLike,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { Skeleton } from "@sparkyidea/ui/components/skeleton";
 import { cn } from "@/lib/utils";
 import { PaginationSkeleton } from "@/registry/base-nova/components/dataview/pagination/pagination-skeleton";

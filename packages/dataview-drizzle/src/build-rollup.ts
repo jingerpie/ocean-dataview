@@ -1,4 +1,4 @@
-import type { FilterCondition, WhereRule } from "@sparkyidea/dataview-core";
+import type { FilterCondition, WhereRule } from "@jingerpie/dataview-core";
 import {
   type AnyColumn,
   getTableName,

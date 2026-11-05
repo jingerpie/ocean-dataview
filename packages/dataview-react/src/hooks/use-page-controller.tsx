@@ -9,7 +9,7 @@ import type {
   PageQueryOptionsFactory,
   SearchQuery,
   WhereNode,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { useCallback, useMemo, useRef } from "react";
 
 export interface PageGroupInfo<TData> {
@@ -36,7 +36,7 @@ export type {
   GroupQueryOptionsFactory,
   PageQueryOptionsFactory,
   PageQueryOptionsFactoryParams,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 
 export interface UsePageControllerOptions<
   TQueryOptions extends BaseQueryOptions = BaseQueryOptions,

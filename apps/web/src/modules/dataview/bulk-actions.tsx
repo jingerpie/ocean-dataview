@@ -1,4 +1,4 @@
-import type { BulkAction } from "@sparkyidea/dataview-core";
+import type { BulkAction } from "@jingerpie/dataview-core";
 import { Edit, Eye, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "./product-properties";

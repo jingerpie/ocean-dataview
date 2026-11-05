@@ -1,6 +1,6 @@
 "use client";
 
-import type { PaginationContext } from "@sparkyidea/dataview-core";
+import type { PaginationContext } from "@jingerpie/dataview-core";
 import { InfiniteScrollPagination } from "@/registry/base-nova/components/dataview/pagination/infinite-scroll-pagination";
 import { LoadMorePagination } from "@/registry/base-nova/components/dataview/pagination/load-more-pagination";
 import { PagePagination } from "@/registry/base-nova/components/dataview/pagination/page-pagination";

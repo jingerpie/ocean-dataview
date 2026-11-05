@@ -4,7 +4,7 @@ import {
   CARD_SKELETON_WIDTHS,
   getSkeletonProps,
   type SkeletonPropertyLike,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { Card, CardContent } from "@sparkyidea/ui/components/card";
 import { Skeleton } from "@sparkyidea/ui/components/skeleton";
 import { cn } from "@/lib/utils";

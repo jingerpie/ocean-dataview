@@ -3,14 +3,14 @@
 import type {
   CardPinPosition,
   DataViewProperty,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   CARD_PIN_POSITIONS,
   type CardPinsByPosition,
   isPropertyValueEmpty,
   type ResolvedCardPin,
   resolveShowName,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { cn } from "@/lib/utils";
 import { DataCell } from "@/registry/base-nova/components/dataview/views/data-cell";
 import { PropertyNameLabel } from "@/registry/base-nova/components/dataview/views/property-name-label";

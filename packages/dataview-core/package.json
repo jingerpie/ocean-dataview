@@ -1,5 +1,5 @@
 {
-  "name": "@sparkyidea/dataview-core",
+  "name": "@jingerpie/dataview-core",
   "version": "0.1.0-alpha.0",
   "description": "Framework-neutral types, validators, URL codecs, and query schemas for Ocean DataView",
   "license": "MIT",

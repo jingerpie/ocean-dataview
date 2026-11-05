@@ -15,8 +15,8 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import type { PropertyMeta } from "@sparkyidea/dataview-core";
-import { useSortParams } from "@sparkyidea/dataview-react";
+import type { PropertyMeta } from "@jingerpie/dataview-core";
+import { useSortParams } from "@jingerpie/dataview-react";
 import {
   Popover,
   PopoverContent,

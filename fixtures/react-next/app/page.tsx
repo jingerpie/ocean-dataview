@@ -1,4 +1,4 @@
-import { createDataViewParamsCache } from "@sparkyidea/dataview-react/nuqs/server";
+import { createDataViewParamsCache } from "@jingerpie/dataview-react/nuqs/server";
 import { ProductsView } from "./products-view";
 
 const paramsCache = createDataViewParamsCache({ urlPrefix: "p." });

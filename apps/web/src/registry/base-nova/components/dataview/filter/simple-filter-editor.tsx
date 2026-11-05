@@ -1,13 +1,13 @@
 "use client";
 
-import type { FilterCondition, WhereRule } from "@sparkyidea/dataview-core";
+import type { FilterCondition, WhereRule } from "@jingerpie/dataview-core";
 import {
   applyConditionChange,
   applyQuantifierChange,
   getEffectiveType,
   isDisplayRollup,
   type PropertyMeta,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { ConditionPicker } from "@/registry/base-nova/components/dataview/filter/condition-picker";
 import { CheckboxValueEditor } from "@/registry/base-nova/components/dataview/filter/properties/checkbox-filter";
 import { DateValueEditor } from "@/registry/base-nova/components/dataview/filter/properties/date-filter";

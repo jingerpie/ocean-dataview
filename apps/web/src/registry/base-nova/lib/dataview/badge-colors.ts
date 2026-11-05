@@ -1,4 +1,4 @@
-import type { BadgeColor } from "@sparkyidea/dataview-core";
+import type { BadgeColor } from "@jingerpie/dataview-core";
 
 const BASE_COLORS = [
   "gray",

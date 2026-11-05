@@ -2,8 +2,8 @@ import type {
   DataViewProperty,
   GroupConfigInput,
   ViewCounts,
-} from "@sparkyidea/dataview-core";
-import { transformData, validatePropertyKeys } from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
+import { transformData, validatePropertyKeys } from "@jingerpie/dataview-core";
 import { useMemo } from "react";
 import type { GroupConfig, GroupedDataItem } from "./use-group-config";
 import { useGroupConfig } from "./use-group-config";

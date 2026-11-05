@@ -1,8 +1,8 @@
 "use client";
 
-import type { PropertyMeta, WhereRule } from "@sparkyidea/dataview-core";
-import { getFilterPreview } from "@sparkyidea/dataview-core";
-import { useSimpleFilterChip } from "@sparkyidea/dataview-react";
+import type { PropertyMeta, WhereRule } from "@jingerpie/dataview-core";
+import { getFilterPreview } from "@jingerpie/dataview-core";
+import { useSimpleFilterChip } from "@jingerpie/dataview-react";
 import {
   Popover,
   PopoverContent,

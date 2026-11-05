@@ -1,11 +1,11 @@
 "use client";
 
-import type { PropertyMeta } from "@sparkyidea/dataview-core";
-import { createRuleFromProperty } from "@sparkyidea/dataview-core";
+import type { PropertyMeta } from "@jingerpie/dataview-core";
+import { createRuleFromProperty } from "@jingerpie/dataview-core";
 import {
   useFilterParams,
   useSimpleFilterChip,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import { ListFilterIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 import { flushSync } from "react-dom";

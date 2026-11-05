@@ -11,8 +11,8 @@ import type {
   SearchQuery,
   SortQuery,
   WhereNode,
-} from "@sparkyidea/dataview-core";
-import { validate } from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
+import { validate } from "@jingerpie/dataview-core";
 import {
   createContext,
   type ReactNode,

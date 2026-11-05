@@ -1,6 +1,6 @@
 "use client";
 
-import type { Quantifier } from "@sparkyidea/dataview-core";
+import type { Quantifier } from "@jingerpie/dataview-core";
 import {
   Popover,
   PopoverContent,

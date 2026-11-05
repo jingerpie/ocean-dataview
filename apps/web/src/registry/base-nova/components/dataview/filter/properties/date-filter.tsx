@@ -1,6 +1,6 @@
 "use client";
 
-import type { PropertyMeta, WhereRule } from "@sparkyidea/dataview-core";
+import type { PropertyMeta, WhereRule } from "@jingerpie/dataview-core";
 import type { DateRangeValue } from "@/registry/base-nova/components/dataview/filter/properties/range-date-picker";
 import {
   RangeDatePicker,

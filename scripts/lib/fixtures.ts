@@ -51,7 +51,7 @@ export async function packPackages(
 ): Promise<Record<string, string>> {
   const tarballDir = join(work, "tarballs");
   console.log("Building packages…");
-  await $`bunx turbo run build ${PACKAGES.map((p) => `--filter=@sparkyidea/${p}`)}`
+  await $`bunx turbo run build ${PACKAGES.map((p) => `--filter=@jingerpie/${p}`)}`
     .cwd(ROOT)
     .quiet();
   for (const pkg of PACKAGES) {
@@ -61,9 +61,9 @@ export async function packPackages(
   }
   const tarballs: Record<string, string> = {};
   for (const file of readdirSync(tarballDir)) {
-    const pkg = PACKAGES.find((p) => file.startsWith(`sparkyidea-${p}-`));
+    const pkg = PACKAGES.find((p) => file.startsWith(`jingerpie-${p}-`));
     if (pkg) {
-      tarballs[`@sparkyidea/${pkg}`] = `file:${join(tarballDir, file)}`;
+      tarballs[`@jingerpie/${pkg}`] = `file:${join(tarballDir, file)}`;
     }
   }
   return tarballs;
@@ -88,7 +88,7 @@ export async function prepareFixture(
     ...tarballs,
     ...Object.fromEntries(deps.map((dep) => [dep, version(dep)])),
   };
-  // Peer ranges on @sparkyidea/* would otherwise resolve from the registry
+  // Peer ranges on @jingerpie/* would otherwise resolve from the registry
   manifest.overrides = tarballs;
   writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
   console.log(`\n▶ ${name} (${dir})`);
@@ -112,7 +112,7 @@ export async function typecheck(dir: string): Promise<void> {
     .filter(
       (line) =>
         !line.startsWith("node_modules/") ||
-        line.startsWith("node_modules/@sparkyidea/")
+        line.startsWith("node_modules/@jingerpie/")
     );
   if (errors.length > 0) {
     throw new Error(`Type errors in ${dir}:\n${errors.join("\n")}`);

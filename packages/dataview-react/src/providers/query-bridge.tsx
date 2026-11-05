@@ -14,13 +14,13 @@ import type {
   SortQuery,
   ViewCounts,
   WhereNode,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   buildIdToKeyMap,
   resolveFilterKeys,
   resolveSortKeys,
   UNGROUPED_KEY,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   useSuspenseInfiniteQuery,
   useSuspenseQuery,

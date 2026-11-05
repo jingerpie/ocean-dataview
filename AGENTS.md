@@ -21,16 +21,16 @@ This is a Turborepo monorepo containing a full-stack data visualization platform
 
 ### Packages
 
-- **packages/dataview-core** - Framework-neutral logic (`@sparkyidea/dataview-core`, npm package)
+- **packages/dataview-core** - Framework-neutral logic (`@jingerpie/dataview-core`, npm package)
   - Types, validators, URL codecs, transport schemas, `DataViewRegister`
   - No React, nuqs, or styling imports (enforced by a boundary test)
-- **packages/dataview-react** - Headless React layer (`@sparkyidea/dataview-react`, npm package)
+- **packages/dataview-react** - Headless React layer (`@jingerpie/dataview-react`, npm package)
   - Providers (DataViewProvider, DataViewContent, QueryBridge), controllers, hooks
   - `/nuqs` (URL state adapter) and `/nuqs/server` (parsers, params cache)
-- **packages/dataview-drizzle** - PostgreSQL SQL builders (`@sparkyidea/dataview-drizzle`, npm package)
+- **packages/dataview-drizzle** - PostgreSQL SQL builders (`@jingerpie/dataview-drizzle`, npm package)
 - **apps/web/src/registry/base-nova** - Styled UI shipped as a shadcn registry
   - Views, Notion toolbar, property renderers, skeletons, customized primitives
-  - Import other registry files via `@/registry/base-nova/...`, stock primitives via `@sparkyidea/ui/components/*`, `cn` via `@/lib/utils`, logic via the public `@sparkyidea/dataview-*` exports
+  - Import other registry files via `@/registry/base-nova/...`, stock primitives via `@sparkyidea/ui/components/*`, `cn` via `@/lib/utils`, logic via the public `@jingerpie/dataview-*` exports
   - Items are declared in `apps/web/registry.metadata.json`; `bun run build:registry` generates `public/r`
 
 - **packages/db** - Database layer (`@sparkyidea/db`)
@@ -376,7 +376,7 @@ refactor(shared): simplify filter parser
 ### Add a new view type
 
 1. Create `apps/web/src/registry/base-nova/components/dataview/views/new-view/new-view.tsx`
-2. Use `useDataViewContext()` and `useViewSetup()` from `@sparkyidea/dataview-react`
+2. Use `useDataViewContext()` and `useViewSetup()` from `@jingerpie/dataview-react`
 3. Implement with Suspense boundaries per group
 4. Add a registry item in `apps/web/registry.metadata.json` and run `bun run verify:registry`
 

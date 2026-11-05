@@ -1,7 +1,7 @@
 "use client";
 
-import type { PropertyMeta } from "@sparkyidea/dataview-core";
-import { useSortParams } from "@sparkyidea/dataview-react";
+import type { PropertyMeta } from "@jingerpie/dataview-core";
+import { useSortParams } from "@jingerpie/dataview-react";
 import { useCallback, useMemo } from "react";
 import { PropertyIcon } from "@/registry/base-nova/components/dataview/shared/property-icon";
 import {

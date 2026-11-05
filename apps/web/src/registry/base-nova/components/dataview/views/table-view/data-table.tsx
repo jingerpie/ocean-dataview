@@ -1,6 +1,6 @@
 "use client";
 
-import { rowId } from "@sparkyidea/dataview-core";
+import { rowId } from "@jingerpie/dataview-core";
 import {
   type ColumnDef,
   flexRender,

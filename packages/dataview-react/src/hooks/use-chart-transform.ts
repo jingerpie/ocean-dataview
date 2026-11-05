@@ -5,7 +5,7 @@ import type {
   ComputationType,
   DataViewProperty,
   DateGroupingType,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   type ChartDataPoint,
   computeData,
@@ -15,7 +15,7 @@ import {
   transformData,
   transformToChartData,
   validateChartConfig,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { useMemo } from "react";
 
 // Helper: Check if showAs value is a date/status grouping type

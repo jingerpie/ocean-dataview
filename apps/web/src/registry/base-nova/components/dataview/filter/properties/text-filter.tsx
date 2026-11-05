@@ -4,8 +4,8 @@ import type {
   NumberConfig,
   PropertyMeta,
   WhereRule,
-} from "@sparkyidea/dataview-core";
-import { useDebouncedCallback } from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-core";
+import { useDebouncedCallback } from "@jingerpie/dataview-react";
 import { Input } from "@sparkyidea/ui/components/input";
 import { useEffect, useRef, useState } from "react";
 

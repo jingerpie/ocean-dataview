@@ -4,13 +4,13 @@ import {
   type DataViewProperty,
   type Limit,
   UNGROUPED_KEY,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   DataViewContent,
   SimpleDataViewProvider,
   useGroupQuery,
-} from "@sparkyidea/dataview-react";
-import { useNuqsDataViewState } from "@sparkyidea/dataview-react/nuqs";
+} from "@jingerpie/dataview-react";
+import { useNuqsDataViewState } from "@jingerpie/dataview-react/nuqs";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Suspense, useState } from "react";
 

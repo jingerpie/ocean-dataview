@@ -1,7 +1,7 @@
 "use client";
 
-import type { DataViewProperty, NumberConfig } from "@sparkyidea/dataview-core";
-import { useGroupParams } from "@sparkyidea/dataview-react";
+import type { DataViewProperty, NumberConfig } from "@jingerpie/dataview-core";
+import { useGroupParams } from "@jingerpie/dataview-react";
 import { useRef } from "react";
 import { DataCell } from "@/registry/base-nova/components/dataview/views/data-cell";
 import { StickyGroupLabel } from "@/registry/base-nova/components/dataview/views/sticky-group-label";

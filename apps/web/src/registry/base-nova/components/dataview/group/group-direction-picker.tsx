@@ -3,7 +3,7 @@
 import {
   type GroupingMode,
   useGroupingParams,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import { CheckIcon } from "lucide-react";
 import { useCallback } from "react";
 import {

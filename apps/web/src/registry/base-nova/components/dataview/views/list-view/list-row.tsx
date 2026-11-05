@@ -1,7 +1,7 @@
 "use client";
 
-import type { DataViewProperty } from "@sparkyidea/dataview-core";
-import { ROW_SKELETON_WIDTHS } from "@sparkyidea/dataview-core";
+import type { DataViewProperty } from "@jingerpie/dataview-core";
+import { ROW_SKELETON_WIDTHS } from "@jingerpie/dataview-core";
 import { Separator } from "@sparkyidea/ui/components/separator";
 import { cn } from "@/lib/utils";
 import { DataCell } from "@/registry/base-nova/components/dataview/views/data-cell";

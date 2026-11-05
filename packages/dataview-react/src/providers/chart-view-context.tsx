@@ -1,6 +1,6 @@
 "use client";
 
-import type { DataViewProperty } from "@sparkyidea/dataview-core";
+import type { DataViewProperty } from "@jingerpie/dataview-core";
 import { createContext, useContext } from "react";
 
 export interface ChartViewContextValue<

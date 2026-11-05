@@ -1,6 +1,6 @@
 # Package fixtures
 
-Consumer projects that install the packed `@sparkyidea/dataview-*` tarballs
+Consumer projects that install the packed `@jingerpie/dataview-*` tarballs
 (no workspace links, no source aliases) and check that the published
 exports typecheck, bundle, and run.
 

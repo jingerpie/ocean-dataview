@@ -5,7 +5,7 @@ import {
   parseDate,
   parseValue,
   toDateOnlyString,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,

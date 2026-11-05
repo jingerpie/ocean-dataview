@@ -1,6 +1,6 @@
 "use client";
 
-import type { ButtonAction } from "@sparkyidea/dataview-core";
+import type { ButtonAction } from "@jingerpie/dataview-core";
 import { ButtonGroup } from "@sparkyidea/ui/components/button-group";
 import { Button } from "@/registry/base-nova/ui/dataview-button";
 

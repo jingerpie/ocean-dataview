@@ -6,8 +6,8 @@ import type {
   StatusConfig,
   StatusGroup,
   WhereRule,
-} from "@sparkyidea/dataview-core";
-import { extractSelectValues } from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
+import { extractSelectValues } from "@jingerpie/dataview-core";
 import {
   Popover,
   PopoverContent,

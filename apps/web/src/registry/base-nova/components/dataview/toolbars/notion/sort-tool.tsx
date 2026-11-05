@@ -1,7 +1,7 @@
 "use client";
 
-import type { PropertyMeta } from "@sparkyidea/dataview-core";
-import { useSortBuilder, useSortParams } from "@sparkyidea/dataview-react";
+import type { PropertyMeta } from "@jingerpie/dataview-core";
+import { useSortBuilder, useSortParams } from "@jingerpie/dataview-react";
 import { SortAscIcon } from "lucide-react";
 import { useState } from "react";
 import { SortPicker } from "@/registry/base-nova/components/dataview/sort/sort-picker";

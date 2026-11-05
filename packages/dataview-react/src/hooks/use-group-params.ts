@@ -1,9 +1,6 @@
 "use client";
 
-import type {
-  GroupByConfig,
-  GroupConfigInput,
-} from "@sparkyidea/dataview-core";
+import type { GroupByConfig, GroupConfigInput } from "@jingerpie/dataview-core";
 import { useCallback } from "react";
 import {
   useQueryParamsActions,

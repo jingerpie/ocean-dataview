@@ -1,6 +1,6 @@
 "use client";
 
-import type { WhereNode } from "@sparkyidea/dataview-core";
+import type { WhereNode } from "@jingerpie/dataview-core";
 import { useCallback } from "react";
 import {
   useQueryParamsActions,

@@ -7,7 +7,7 @@ import type {
   InfiniteController,
   InfiniteQueryOptionsFactory,
   Limit,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { useCallback, useMemo, useRef } from "react";
 
 /**
@@ -61,7 +61,7 @@ export type {
   GroupQueryOptionsFactory,
   InfiniteQueryOptionsFactory,
   InfiniteQueryOptionsFactoryParams,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 
 export interface UseInfiniteControllerOptions<
   TQueryOptions extends InfiniteQueryOptions = InfiniteQueryOptions,

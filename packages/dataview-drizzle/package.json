@@ -1,5 +1,5 @@
 {
-  "name": "@sparkyidea/dataview-drizzle",
+  "name": "@jingerpie/dataview-drizzle",
   "version": "0.1.0-alpha.0",
   "description": "PostgreSQL query builders (Drizzle ORM) for Ocean DataView filters, sorts, groups, and rollups",
   "license": "MIT",
@@ -31,13 +31,13 @@
     "test": "bun test src"
   },
   "peerDependencies": {
-    "@sparkyidea/dataview-core": "workspace:^",
+    "@jingerpie/dataview-core": "workspace:^",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.45.0"
   },
   "devDependencies": {
     "@sparkyidea/config": "workspace:*",
-    "@sparkyidea/dataview-core": "workspace:*",
+    "@jingerpie/dataview-core": "workspace:*",
     "@types/bun": "1.3.9",
     "date-fns": "catalog:",
     "drizzle-orm": "catalog:",

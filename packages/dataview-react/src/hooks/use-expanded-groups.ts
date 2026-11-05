@@ -1,5 +1,5 @@
-import type { GroupConfigInput } from "@sparkyidea/dataview-core";
-import { UNGROUPED_KEY } from "@sparkyidea/dataview-core";
+import type { GroupConfigInput } from "@jingerpie/dataview-core";
+import { UNGROUPED_KEY } from "@jingerpie/dataview-core";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseExpandedGroupsOptions {

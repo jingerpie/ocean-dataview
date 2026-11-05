@@ -1,6 +1,6 @@
 "use client";
 
-import type { PropertyMeta } from "@sparkyidea/dataview-core";
+import type { PropertyMeta } from "@jingerpie/dataview-core";
 import {
   createContext,
   useCallback,

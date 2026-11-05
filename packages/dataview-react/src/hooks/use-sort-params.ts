@@ -1,6 +1,6 @@
 "use client";
 
-import type { SortQuery } from "@sparkyidea/dataview-core";
+import type { SortQuery } from "@jingerpie/dataview-core";
 import { useCallback } from "react";
 import {
   useQueryParamsActions,

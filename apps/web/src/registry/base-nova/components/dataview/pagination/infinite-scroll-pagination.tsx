@@ -1,6 +1,6 @@
 "use client";
 
-import type { PaginationContext } from "@sparkyidea/dataview-core";
+import type { PaginationContext } from "@jingerpie/dataview-core";
 import { Loader2 } from "lucide-react";
 import { useIntersectionObserver } from "@/registry/base-nova/hooks/dataview/use-intersection-observer";
 

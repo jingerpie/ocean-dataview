@@ -4,14 +4,14 @@ import {
   getGroupInput,
   getManyByColumnInput,
   getManyInput,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   buildCursor,
   buildGroupBy,
   buildGroupCursor,
   buildGroupWhere,
   buildWhere,
-} from "@sparkyidea/dataview-drizzle";
+} from "@jingerpie/dataview-drizzle";
 import { db } from "@sparkyidea/db";
 import { product } from "@sparkyidea/db/schema/product";
 import { and, count } from "drizzle-orm";

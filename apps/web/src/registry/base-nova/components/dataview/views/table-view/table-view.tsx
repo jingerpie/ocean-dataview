@@ -4,19 +4,19 @@ import type {
   BulkAction,
   DataViewProperty,
   PaginationContext,
-} from "@sparkyidea/dataview-core";
-import { transformData, UNGROUPED_KEY } from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
+import { transformData, UNGROUPED_KEY } from "@jingerpie/dataview-core";
 import type {
   GroupedDataItem,
   UseGroupQueryResult,
   UseInfiniteGroupQueryResult,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import {
   DEFAULT_LIMIT,
   useDataViewContext,
   useDisplayProperties,
   useViewSetup,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import type {
   ColumnDef,
   RowSelectionState,

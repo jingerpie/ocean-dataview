@@ -13,8 +13,8 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@sparkyidea/dataview-core": "workspace:*",
-    "@sparkyidea/dataview-drizzle": "workspace:*",
+    "@jingerpie/dataview-core": "workspace:*",
+    "@jingerpie/dataview-drizzle": "workspace:*",
     "@sparkyidea/db": "workspace:*",
     "@sparkyidea/env": "workspace:*",
     "@trpc/client": "catalog:",

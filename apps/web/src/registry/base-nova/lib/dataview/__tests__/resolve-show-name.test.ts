@@ -1,4 +1,4 @@
-import { resolveShowName } from "@sparkyidea/dataview-core";
+import { resolveShowName } from "@jingerpie/dataview-core";
 import { describe, expect, it } from "vitest";
 import {
   getShowNameValueClasses,

@@ -1,7 +1,7 @@
 "use client";
 
-import type { NumberConfig } from "@sparkyidea/dataview-core";
-import { getUserLocale } from "@sparkyidea/dataview-core";
+import type { NumberConfig } from "@jingerpie/dataview-core";
+import { getUserLocale } from "@jingerpie/dataview-core";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import {

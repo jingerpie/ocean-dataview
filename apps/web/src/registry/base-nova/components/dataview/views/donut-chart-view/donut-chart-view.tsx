@@ -3,11 +3,11 @@
 import type {
   DataViewProperty,
   DonutChartConfig,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   useChartTransform,
   useChartViewContext,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import { AlertCircle } from "lucide-react";
 import { DonutChartInner } from "@/registry/base-nova/components/dataview/views/donut-chart-view/donut-chart";
 import { EmptyState } from "@/registry/base-nova/components/dataview/views/empty-state";

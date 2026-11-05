@@ -1,12 +1,12 @@
 "use client";
 
-import type { DataViewProperty } from "@sparkyidea/dataview-core";
+import type { DataViewProperty } from "@jingerpie/dataview-core";
 import {
   getCardPinIds,
   isPropertyValueEmpty,
   resolveCardPins,
   resolveShowName,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { Card, CardContent } from "@sparkyidea/ui/components/card";
 import { ImageIcon } from "lucide-react";
 import { useMemo } from "react";

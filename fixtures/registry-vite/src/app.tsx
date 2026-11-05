@@ -1,8 +1,8 @@
-import type { DataViewProperty } from "@sparkyidea/dataview-core";
+import type { DataViewProperty } from "@jingerpie/dataview-core";
 import {
   DataViewContent,
   SimpleDataViewProvider,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { NotionToolbar } from "@/components/dataview/toolbars/notion/toolbar";

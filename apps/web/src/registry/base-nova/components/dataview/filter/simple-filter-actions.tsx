@@ -4,11 +4,11 @@ import {
   isWhereRule,
   type WhereExpression,
   type WhereRule,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   useAdvanceFilterBuilder,
   useFilterParams,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import {
   DropdownMenu,
   DropdownMenuContent,

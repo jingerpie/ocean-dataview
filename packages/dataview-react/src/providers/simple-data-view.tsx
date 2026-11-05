@@ -5,7 +5,7 @@ import type {
   DataViewProperty,
   GroupConfigInput,
   PageController,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { type ReactNode, useCallback, useMemo } from "react";
 import { DataViewProvider, type DefaultsConfig } from "./data-view-provider";
 import type { DataViewStateAdapter } from "./data-view-state";

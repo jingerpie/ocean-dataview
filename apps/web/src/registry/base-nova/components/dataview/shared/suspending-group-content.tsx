@@ -5,7 +5,7 @@ import {
   type UseInfiniteGroupQueryResult,
   useGroupQuery,
   useInfiniteGroupQuery,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import type { ReactNode } from "react";
 import { EmptyState } from "@/registry/base-nova/components/dataview/views/empty-state";
 

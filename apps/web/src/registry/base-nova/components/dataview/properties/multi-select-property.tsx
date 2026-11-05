@@ -1,6 +1,6 @@
 "use client";
 
-import type { MultiSelectConfig } from "@sparkyidea/dataview-core";
+import type { MultiSelectConfig } from "@jingerpie/dataview-core";
 import { getBadgeVariant } from "@/registry/base-nova/lib/dataview/get-badge-variant";
 import { Badge } from "@/registry/base-nova/ui/dataview-badge";
 

@@ -7,17 +7,17 @@ description: Compose a data view from a provider, toolbars, and a content bounda
 
 | Package | Contents |
 |---------|----------|
-| `@sparkyidea/dataview-core` | Types, validators, URL codecs, transport schemas. No React. |
-| `@sparkyidea/dataview-react` | Providers and hooks. `/nuqs` and `/nuqs/server` add URL state through nuqs. |
-| `@sparkyidea/dataview-drizzle` | PostgreSQL query builders for Drizzle ORM. |
+| `@jingerpie/dataview-core` | Types, validators, URL codecs, transport schemas. No React. |
+| `@jingerpie/dataview-react` | Providers and hooks. `/nuqs` and `/nuqs/server` add URL state through nuqs. |
+| `@jingerpie/dataview-drizzle` | PostgreSQL query builders for Drizzle ORM. |
 
 ## Composition
 
 `DataViewProvider` holds the view state and toolbar state for one data view. It renders no markup of its own, so you own the layout. Put toolbars anywhere inside it, and wrap the view in `DataViewContent`, which runs the controller queries.
 
 ```tsx
-import { DataViewContent, DataViewProvider, usePageController } from "@sparkyidea/dataview-react";
-import { useNuqsDataViewState } from "@sparkyidea/dataview-react/nuqs";
+import { DataViewContent, DataViewProvider, usePageController } from "@jingerpie/dataview-react";
+import { useNuqsDataViewState } from "@jingerpie/dataview-react/nuqs";
 
 const state = useNuqsDataViewState();
 
@@ -76,7 +76,7 @@ const returns = useNuqsDataViewState({ urlPrefix: "returns." });
 This gives URLs like `?orders.filter=…&returns.sort=…`. On the server, pass the same prefix to the params cache:
 
 ```ts
-import { createDataViewParamsCache } from "@sparkyidea/dataview-react/nuqs/server";
+import { createDataViewParamsCache } from "@jingerpie/dataview-react/nuqs/server";
 
 const ordersParams = createDataViewParamsCache({ urlPrefix: "orders." });
 ```

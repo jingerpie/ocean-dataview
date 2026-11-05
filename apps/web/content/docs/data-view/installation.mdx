@@ -18,11 +18,11 @@ Ocean DataView ships in two parts:
 ## 1. Install the packages
 
 ```bash
-npm install @sparkyidea/dataview-core@alpha @sparkyidea/dataview-react@alpha @tanstack/react-query
+npm install @jingerpie/dataview-core@alpha @jingerpie/dataview-react@alpha @tanstack/react-query
 # Optional: URL state
 npm install nuqs
 # Server: PostgreSQL query builders for Drizzle ORM
-npm install @sparkyidea/dataview-drizzle@alpha drizzle-orm
+npm install @jingerpie/dataview-drizzle@alpha drizzle-orm
 ```
 
 ## 2. Add components
@@ -52,8 +52,8 @@ To pin a release, use the versioned URLs, for example `https://ocean-dataview.sp
 ```tsx
 "use client";
 
-import { DataViewContent, DataViewProvider, usePageController } from "@sparkyidea/dataview-react";
-import { useNuqsDataViewState } from "@sparkyidea/dataview-react/nuqs";
+import { DataViewContent, DataViewProvider, usePageController } from "@jingerpie/dataview-react";
+import { useNuqsDataViewState } from "@jingerpie/dataview-react/nuqs";
 import { NotionToolbar } from "@/components/dataview/toolbars/notion/toolbar";
 import { TableView } from "@/components/dataview/views/table-view/table-view";
 

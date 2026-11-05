@@ -1,6 +1,6 @@
 "use client";
 
-import { useDebouncedCallback } from "@sparkyidea/dataview-react";
+import { useDebouncedCallback } from "@jingerpie/dataview-react";
 import { flexRender, type Table as TanstackTable } from "@tanstack/react-table";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useScrollParent } from "@/registry/base-nova/hooks/dataview/use-scroll-parent";

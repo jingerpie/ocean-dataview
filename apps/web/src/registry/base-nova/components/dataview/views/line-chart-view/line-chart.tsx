@@ -4,7 +4,7 @@ import type {
   AxisNameType,
   ChartDataPoint,
   GridLineType,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   CartesianGrid,
   Line,

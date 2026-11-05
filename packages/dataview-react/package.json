@@ -1,5 +1,5 @@
 {
-  "name": "@sparkyidea/dataview-react",
+  "name": "@jingerpie/dataview-react",
   "version": "0.1.0-alpha.0",
   "description": "Headless React providers and hooks for Ocean DataView",
   "license": "MIT",
@@ -39,7 +39,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "peerDependencies": {
-    "@sparkyidea/dataview-core": "workspace:^",
+    "@jingerpie/dataview-core": "workspace:^",
     "@tanstack/react-query": "^5.90.0",
     "nuqs": "^2.8.0",
     "react": "^19.0.0"
@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "@sparkyidea/config": "workspace:*",
-    "@sparkyidea/dataview-core": "workspace:*",
+    "@jingerpie/dataview-core": "workspace:*",
     "@tanstack/react-query": "catalog:",
     "@types/react": "catalog:",
     "nuqs": "catalog:",

@@ -1,11 +1,11 @@
 "use client";
 
-import type { DataViewProperty, Limit } from "@sparkyidea/dataview-core";
+import type { DataViewProperty, Limit } from "@jingerpie/dataview-core";
 import {
   DataViewContent,
   SimpleDataViewProvider,
-} from "@sparkyidea/dataview-react";
-import { useNuqsDataViewState } from "@sparkyidea/dataview-react/nuqs";
+} from "@jingerpie/dataview-react";
+import { useNuqsDataViewState } from "@jingerpie/dataview-react/nuqs";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Suspense, useState } from "react";
 import { NotionToolbar } from "@/shared/components/dataview/toolbars/notion/toolbar";

@@ -1,7 +1,7 @@
 "use client";
 
-import type { DateConfig } from "@sparkyidea/dataview-core";
-import { getUserLocale } from "@sparkyidea/dataview-core";
+import type { DateConfig } from "@jingerpie/dataview-core";
+import { getUserLocale } from "@jingerpie/dataview-core";
 import type { Locale } from "date-fns";
 import {
   differenceInDays,

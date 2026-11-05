@@ -1,4 +1,4 @@
-import type { DataViewProperty } from "@sparkyidea/dataview-core";
+import type { DataViewProperty } from "@jingerpie/dataview-core";
 import { useMemo } from "react";
 
 /**

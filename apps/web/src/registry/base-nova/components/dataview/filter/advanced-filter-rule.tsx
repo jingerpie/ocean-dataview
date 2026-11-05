@@ -1,6 +1,6 @@
 "use client";
 
-import type { FilterCondition, WhereRule } from "@sparkyidea/dataview-core";
+import type { FilterCondition, WhereRule } from "@jingerpie/dataview-core";
 import {
   applyConditionChange,
   applyQuantifierChange,
@@ -8,7 +8,7 @@ import {
   getEffectiveType,
   isDisplayRollup,
   type PropertyMeta,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { cn } from "@/lib/utils";
 import { AdvancedFilterActions } from "@/registry/base-nova/components/dataview/filter/advanced-filter-actions";
 import { LogicPicker } from "@/registry/base-nova/components/dataview/filter/advanced-filter-logic-picker";

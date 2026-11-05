@@ -2,16 +2,16 @@ import type {
   ColumnConfigInput,
   SortQuery,
   WhereNode,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   validateColumn,
   validateFilter,
   validateSort,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   createDataViewParamsCache,
   type InferParamsType,
-} from "@sparkyidea/dataview-react/nuqs/server";
+} from "@jingerpie/dataview-react/nuqs/server";
 import { productProperties } from "@/modules/dataview/product-properties";
 
 // ============================================================================

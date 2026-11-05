@@ -1,6 +1,6 @@
 "use client";
 
-import type { PaginationContext } from "@sparkyidea/dataview-core";
+import type { PaginationContext } from "@jingerpie/dataview-core";
 import { ArrowDown, Loader2 } from "lucide-react";
 import { Button } from "@/registry/base-nova/ui/dataview-button";
 

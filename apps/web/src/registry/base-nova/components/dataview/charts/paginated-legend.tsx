@@ -1,6 +1,6 @@
 "use client";
 
-import { useDebouncedCallback } from "@sparkyidea/dataview-react";
+import { useDebouncedCallback } from "@jingerpie/dataview-react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import type { LegendPayload } from "recharts";

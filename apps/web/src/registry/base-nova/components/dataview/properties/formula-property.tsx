@@ -3,8 +3,8 @@
 import type {
   DataViewProperty,
   PropertyRenderFunction,
-} from "@sparkyidea/dataview-core";
-import { resolveShowName } from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
+import { resolveShowName } from "@jingerpie/dataview-core";
 import { DataCell } from "@/registry/base-nova/components/dataview/views/data-cell";
 import { PropertyNameLabel } from "@/registry/base-nova/components/dataview/views/property-name-label";
 import {

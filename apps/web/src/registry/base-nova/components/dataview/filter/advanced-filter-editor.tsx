@@ -1,6 +1,6 @@
 "use client";
 
-import type { PropertyMeta, WhereExpression } from "@sparkyidea/dataview-core";
+import type { PropertyMeta, WhereExpression } from "@jingerpie/dataview-core";
 import { Separator } from "@sparkyidea/ui/components/separator";
 import { TrashIcon } from "lucide-react";
 import { FilterGroup } from "@/registry/base-nova/components/dataview/filter/advanced-filter-group";

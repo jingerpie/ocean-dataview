@@ -4,11 +4,11 @@ import type {
   FilterCondition,
   PropertyMeta,
   PropertyType,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   getFilterConditions,
   getFilterConditionsForProperty,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   Popover,
   PopoverContent,

@@ -3,7 +3,7 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * `@sparkyidea/dataview-core` is framework-neutral: it must not import
+ * `@jingerpie/dataview-core` is framework-neutral: it must not import
  * React, icons, styling helpers, URL-state libraries, or other dataview
  * packages.
  */

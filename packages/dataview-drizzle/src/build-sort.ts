@@ -1,4 +1,4 @@
-import type { SortQuery } from "@sparkyidea/dataview-core";
+import type { SortQuery } from "@jingerpie/dataview-core";
 import { type AnyColumn, type SQL, sql, type Table } from "drizzle-orm";
 import { getColumn } from "./build-filter";
 

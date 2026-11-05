@@ -5,7 +5,7 @@ import {
   type Quantifier,
   type WhereNode,
   type WhereRule,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { addDays, parseISO, startOfDay } from "date-fns";
 import {
   type AnyColumn,

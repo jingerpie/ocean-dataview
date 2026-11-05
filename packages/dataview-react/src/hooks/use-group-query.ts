@@ -3,8 +3,8 @@
 import type {
   BidirectionalPaginatedResponse,
   Limit,
-} from "@sparkyidea/dataview-core";
-import { UNGROUPED_KEY } from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
+import { UNGROUPED_KEY } from "@jingerpie/dataview-core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useCallback, useDeferredValue, useMemo } from "react";
 import { useQueryControllerContext } from "../providers/query-bridge";

@@ -3,11 +3,11 @@
 import type {
   DataViewProperty,
   VerticalBarChartConfig,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   useChartTransform,
   useChartViewContext,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import { AlertCircle } from "lucide-react";
 import { EmptyState } from "@/registry/base-nova/components/dataview/views/empty-state";
 import { VerticalBarChartInner } from "@/registry/base-nova/components/dataview/views/vertical-bar-chart-view/vertical-bar-chart";

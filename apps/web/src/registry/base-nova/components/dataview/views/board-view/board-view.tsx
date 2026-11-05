@@ -6,21 +6,21 @@ import type {
   GroupByConfig,
   GroupCounts,
   PaginationContext,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import {
   groupByProperty as groupDataByProperty,
   transformData,
   UNGROUPED_KEY,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import type {
   GroupedDataItem,
   UseInfiniteGroupQueryResult,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import {
   DEFAULT_LIMIT,
   useBoardModel,
   useDisplayProperties,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import { AlertCircle } from "lucide-react";
 import { Suspense, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";

@@ -1,6 +1,6 @@
 "use client";
 
-import { type TabOption, usePresetTabs } from "@sparkyidea/dataview-react";
+import { type TabOption, usePresetTabs } from "@jingerpie/dataview-react";
 import { Tabs, TabsList, TabsTrigger } from "@sparkyidea/ui/components/tabs";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/registry/base-nova/ui/dataview-select";
 
-export type { TabOption } from "@sparkyidea/dataview-react";
+export type { TabOption } from "@jingerpie/dataview-react";
 
 interface PresetTabsProps {
   /** Accessible name for the tab list (and the mobile select) */

@@ -1,7 +1,7 @@
 "use client";
 
-import type { PropertyMeta } from "@sparkyidea/dataview-core";
-import { useGroupParams } from "@sparkyidea/dataview-react";
+import type { PropertyMeta } from "@jingerpie/dataview-core";
+import { useGroupParams } from "@jingerpie/dataview-react";
 import { GroupEditor } from "@/registry/base-nova/components/dataview/group/group-editor";
 import { GroupPicker } from "@/registry/base-nova/components/dataview/group/group-picker";
 import { GroupShowAsPicker } from "@/registry/base-nova/components/dataview/group/group-show-as-picker";

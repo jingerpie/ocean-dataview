@@ -2,7 +2,7 @@
  * Badge variant utilities for property components
  */
 
-import type { BadgeColor } from "@sparkyidea/dataview-core";
+import type { BadgeColor } from "@jingerpie/dataview-core";
 
 export type BadgeVariant = BadgeColor;
 

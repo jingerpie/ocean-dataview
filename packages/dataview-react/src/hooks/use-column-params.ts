@@ -3,7 +3,7 @@
 import type {
   ColumnConfigInput,
   GroupByConfig,
-} from "@sparkyidea/dataview-core";
+} from "@jingerpie/dataview-core";
 import { useCallback } from "react";
 import {
   useQueryParamsActions,

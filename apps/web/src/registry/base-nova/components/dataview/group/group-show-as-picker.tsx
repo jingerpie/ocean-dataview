@@ -1,10 +1,10 @@
 "use client";
 
-import type { GroupByConfig } from "@sparkyidea/dataview-core";
+import type { GroupByConfig } from "@jingerpie/dataview-core";
 import {
   type GroupingMode,
   useGroupingParams,
-} from "@sparkyidea/dataview-react";
+} from "@jingerpie/dataview-react";
 import { CheckIcon } from "lucide-react";
 import { useCallback } from "react";
 import {

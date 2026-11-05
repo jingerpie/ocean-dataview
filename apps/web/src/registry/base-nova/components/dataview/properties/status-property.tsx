@@ -1,6 +1,6 @@
 "use client";
 
-import type { StatusConfig } from "@sparkyidea/dataview-core";
+import type { StatusConfig } from "@jingerpie/dataview-core";
 import { CircleDashed } from "lucide-react";
 import { getBadgeVariant } from "@/registry/base-nova/lib/dataview/get-badge-variant";
 import { Badge } from "@/registry/base-nova/ui/dataview-badge";

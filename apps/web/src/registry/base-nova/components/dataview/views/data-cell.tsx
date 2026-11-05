@@ -1,6 +1,6 @@
 "use client";
 
-import type { DataViewProperty, RollupConfig } from "@sparkyidea/dataview-core";
+import type { DataViewProperty, RollupConfig } from "@jingerpie/dataview-core";
 import { memo } from "react";
 import { ButtonProperty } from "@/registry/base-nova/components/dataview/properties/button-property";
 import { CheckboxProperty } from "@/registry/base-nova/components/dataview/properties/checkbox-property";

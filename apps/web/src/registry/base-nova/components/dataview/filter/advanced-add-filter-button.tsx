@@ -1,7 +1,7 @@
 "use client";
 
-import type { PropertyMeta, WhereRule } from "@sparkyidea/dataview-core";
-import { createRuleFromProperty } from "@sparkyidea/dataview-core";
+import type { PropertyMeta, WhereRule } from "@jingerpie/dataview-core";
+import { createRuleFromProperty } from "@jingerpie/dataview-core";
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -1,6 +1,6 @@
 "use client";
 
-import type { PropertyType } from "@sparkyidea/dataview-core";
+import type { PropertyType } from "@jingerpie/dataview-core";
 import { cn } from "@/lib/utils";
 import { getPropertyIcon } from "@/registry/base-nova/lib/dataview/property-icons";
 
