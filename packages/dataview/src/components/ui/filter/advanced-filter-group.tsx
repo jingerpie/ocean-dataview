@@ -93,8 +93,12 @@ export function FilterGroup({
 
   // Handle adding a new group
   const handleAddGroup = () => {
-    // Find first property to use as default
-    const defaultProperty = properties[0]?.id ? String(properties[0].id) : "";
+    // Find first filterable property to use as default
+    const firstProperty = properties.find(
+      (p) =>
+        p.type !== "formula" && p.type !== "button" && p.enableFilter !== false
+    );
+    const defaultProperty = firstProperty?.id ? String(firstProperty.id) : "";
     onChange(addGroup(filter, [], "and", defaultProperty));
   };
 

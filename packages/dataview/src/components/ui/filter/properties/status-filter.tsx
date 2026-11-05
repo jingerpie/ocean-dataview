@@ -8,6 +8,11 @@ import type {
   StatusConfig,
   StatusGroup,
 } from "../../../../types/property.type";
+import {
+  getBadgeClasses,
+  getBadgeTextColorClass,
+} from "../../../../utils/badge-colors";
+
 import { extractSelectValues } from "../../../../utils/filter-variant";
 import { Button } from "../../button";
 import { Checkbox } from "../../checkbox";
@@ -38,21 +43,6 @@ interface StatusOption {
   icon?: StatusGroup["icon"];
   value: string;
 }
-
-// ============================================================================
-// Color mapping for status icons
-// ============================================================================
-
-const TEXT_COLOR_CLASSES: Record<BadgeColor, string> = {
-  gray: "!text-badge-gray-subtle-foreground",
-  blue: "!text-badge-blue-subtle-foreground",
-  purple: "!text-badge-purple-subtle-foreground",
-  yellow: "!text-badge-yellow-subtle-foreground",
-  red: "!text-badge-red-subtle-foreground",
-  pink: "!text-badge-pink-subtle-foreground",
-  green: "!text-badge-green-subtle-foreground",
-  teal: "!text-badge-teal-subtle-foreground",
-};
 
 // ============================================================================
 // Helper: Flatten groups into options with color
@@ -121,7 +111,7 @@ function StatusBody({
               group.options,
               selectedValues
             );
-            const textClass = TEXT_COLOR_CLASSES[group.color];
+            const textClass = getBadgeTextColorClass(group.color);
             const Icon = group.icon ?? CircleDashed;
 
             return (
@@ -159,7 +149,7 @@ function StatusBody({
                         className="[&_svg]:text-current!"
                       />
                       <CommandChip
-                        className={`bg-badge-${group.color}-subtle text-badge-${group.color}-subtle-foreground`}
+                        className={getBadgeClasses(group.color)}
                         showRemove={false}
                       >
                         <Icon className="size-3 text-current" />
@@ -242,7 +232,7 @@ function StatusAdvanceFilter({
               const Icon = option.icon ?? CircleDashed;
               return (
                 <CommandChip
-                  className={`bg-badge-${option.color}-subtle text-badge-${option.color}-subtle-foreground`}
+                  className={getBadgeClasses(option.color)}
                   key={option.value}
                   showRemove={false}
                 >

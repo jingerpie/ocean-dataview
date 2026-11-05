@@ -1,10 +1,13 @@
 "use client";
 
-import { cn } from "../../../lib/utils";
-import type { PropertyType } from "../../../types/filter.type";
-import { PaginationSkeleton } from "../../ui/pagination/pagination-skeleton";
-import { Skeleton } from "../../ui/skeleton";
-import { ROW_PATTERNS, ROW_SKELETON_WIDTHS } from "../skeleton-widths";
+import { cn } from "../../lib/utils";
+import { PaginationSkeleton } from "../ui/pagination/pagination-skeleton";
+import { Skeleton } from "../ui/skeleton";
+import {
+  getSkeletonProps,
+  type SkeletonPropertyLike,
+} from "./get-skeleton-props";
+import { ROW_PATTERNS, ROW_SKELETON_WIDTHS } from "./skeleton-widths";
 
 type PaginationMode = "page" | "loadMore" | "infiniteScroll";
 
@@ -14,14 +17,9 @@ interface ListSkeletonProps extends React.ComponentProps<"div"> {
    */
   pagination?: PaginationMode;
   /**
-   * Property sizes (in pixels) - per-property size override.
-   * Falls back to ROW_SKELETON_WIDTHS[type] when undefined.
+   * Property schema - derives types and sizes automatically, filtering hidden properties.
    */
-  propertySizes?: (number | undefined)[];
-  /**
-   * Property types for each column - determines realistic widths
-   */
-  propertyTypes: PropertyType[];
+  properties?: readonly SkeletonPropertyLike[];
   /**
    * Number of rows to display
    */
@@ -30,18 +28,18 @@ interface ListSkeletonProps extends React.ComponentProps<"div"> {
 
 export function ListSkeleton({
   pagination,
-  propertySizes,
-  propertyTypes,
+  properties,
   rowCount,
   className,
   ...props
 }: ListSkeletonProps) {
+  const { propertyTypes, propertySizes } = getSkeletonProps(properties ?? []);
+
   return (
     <div className={cn("flex w-full flex-col gap-2.5", className)} {...props}>
       <div className="overflow-clip">
         <div className="flex w-full flex-col">
           {Array.from({ length: rowCount }).map((_, rowIndex) => {
-            // Use row pattern for visual variety
             const patternOffset =
               ROW_PATTERNS[rowIndex % ROW_PATTERNS.length] ?? 0;
 
@@ -51,7 +49,6 @@ export function ListSkeleton({
                 key={rowIndex}
               >
                 {propertyTypes.map((type, colIndex) => {
-                  // Apply pattern offset to create visual variety
                   const offsetIndex =
                     (colIndex + patternOffset) % propertyTypes.length;
                   const offsetType = propertyTypes[offsetIndex] ?? type;
@@ -65,7 +62,7 @@ export function ListSkeleton({
                       )}
                       key={colIndex}
                       style={{
-                        minWidth: propertySizes?.[colIndex]
+                        minWidth: propertySizes[colIndex]
                           ? `${propertySizes[colIndex]}px`
                           : ROW_SKELETON_WIDTHS[offsetType],
                       }}

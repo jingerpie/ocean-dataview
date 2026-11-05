@@ -25,6 +25,7 @@ import type { BulkAction } from "../../../types/action.type";
 import type { PaginationContext } from "../../../types/pagination";
 import type { DataViewProperty } from "../../../types/property.type";
 import { transformData } from "../../../utils/transform-data";
+import { TableSkeleton } from "../../skeletons/table-skeleton";
 import { Accordion } from "../../ui/accordion";
 import {
   DataActionBar,
@@ -40,7 +41,6 @@ import {
 } from "../../ui/suspending-group-content";
 import { DataCell } from "../data-cell";
 import { DataTable } from "./data-table";
-import { TableSkeleton } from "./table-skeleton";
 
 export interface TableViewProps<TData> {
   /**
@@ -49,9 +49,17 @@ export interface TableViewProps<TData> {
    * - Row selection with checkboxes
    * - Floating action bar for bulk operations
    *
+   * Selection is keyed by each row's `id` (see `row-id.ts`), so it follows the
+   * records across refetches and drops rows that disappear.
+   *
    * For row-level actions, use button property type instead.
    */
   bulkActions?: BulkAction<TData>[];
+
+  /**
+   * Additional className for the table wrapper
+   */
+  className?: string;
 
   /**
    * Row click handler
@@ -108,6 +116,7 @@ export function TableView<
     readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
 >({
   bulkActions,
+  className,
   onRowClick,
   pagination,
   showPropertyNames = true,
@@ -170,12 +179,16 @@ export function TableView<
   const columns = useMemo<ColumnDef<TData>[]>(() => {
     const propertyColumns: ColumnDef<TData>[] = displayProperties.map(
       (property) => {
-        const resolvedShowName = property.showName ?? showPropertyNames;
+        // Table headers only honour show/hide; layout is a card concern.
+        const resolvedShowName = Boolean(
+          property.showName ?? showPropertyNames
+        );
         const resolvedWrap = property.wrap ?? wrapAllProperties;
 
         return {
           id: String(property.id),
-          accessorKey: String(property.id),
+          accessorFn: (row: TData) =>
+            (row as Record<string, unknown>)[property.id],
           header: resolvedShowName
             ? (property.name ?? String(property.id))
             : "",
@@ -201,7 +214,7 @@ export function TableView<
     // Add selection column if rowActions provided
     if (enableRowSelection) {
       allColumns.push({
-        id: "select",
+        id: "__row_select__",
         header: ({ table }) => (
           <Checkbox
             aria-label="Select all"
@@ -308,16 +321,16 @@ export function TableView<
                   <Suspense
                     fallback={
                       <TableSkeleton
-                        propertySizes={displayProperties.map((p) => p.size)}
-                        propertyTypes={displayProperties.map((p) => p.type)}
+                        bulkActions={enableRowSelection}
+                        properties={displayProperties}
                         rowCount={limit ?? TableView.defaultLimit}
-                        withBulkActions={enableRowSelection}
                       />
                     }
                   >
                     {useInfinitePagination ? (
                       <SuspendingInfiniteTableContent<TData, TProperties>
                         actionBar={actionBar}
+                        className={className}
                         columns={columns}
                         enableRowSelection={enableRowSelection}
                         groupItem={groupItem}
@@ -336,6 +349,7 @@ export function TableView<
                     ) : (
                       <SuspendingPageTableContent<TData, TProperties>
                         actionBar={actionBar}
+                        className={className}
                         columns={columns}
                         enableRowSelection={enableRowSelection}
                         groupItem={groupItem}
@@ -373,66 +387,55 @@ export function TableView<
   }
 
   // FLAT VIEW: Uses SuspendingGroupContent with __ungrouped__ key
-  return (
-    <Suspense
-      fallback={
-        <TableSkeleton
-          pagination={pagination}
-          propertySizes={displayProperties.map((p) => p.size)}
-          propertyTypes={displayProperties.map((p) => p.type)}
-          rowCount={limit ?? TableView.defaultLimit}
-          withBulkActions={enableRowSelection}
-        />
-      }
-    >
-      {useInfinitePagination ? (
-        <SuspendingInfiniteTableContent<TData, TProperties>
-          actionBar={actionBar}
-          columns={columns}
-          enableRowSelection={enableRowSelection}
-          groupItem={{
-            key: "__ungrouped__",
-            items: [],
-            count: 0,
-            displayCount: "0",
-            sortValue: "",
-          }}
-          headerOffset={stickyOffset}
-          onRowClick={onRowClick}
-          onRowSelectionChange={setRowSelection}
-          pagination={pagination}
-          properties={properties}
-          registerScroll={registerScroll}
-          rowSelection={rowSelection}
-          showVerticalLines={showVerticalLines}
-          stickyEnabled={stickyEnabled}
-          wrapAllProperties={wrapAllProperties}
-        />
-      ) : (
-        <SuspendingPageTableContent<TData, TProperties>
-          actionBar={actionBar}
-          columns={columns}
-          enableRowSelection={enableRowSelection}
-          groupItem={{
-            key: "__ungrouped__",
-            items: [],
-            count: 0,
-            displayCount: "0",
-            sortValue: "",
-          }}
-          headerOffset={stickyOffset}
-          onRowClick={onRowClick}
-          onRowSelectionChange={setRowSelection}
-          pagination={pagination}
-          properties={properties}
-          registerScroll={registerScroll}
-          rowSelection={rowSelection}
-          showVerticalLines={showVerticalLines}
-          stickyEnabled={stickyEnabled}
-          wrapAllProperties={wrapAllProperties}
-        />
-      )}
-    </Suspense>
+  // Suspension is caught by the outer Suspense in DataViewProvider
+  return useInfinitePagination ? (
+    <SuspendingInfiniteTableContent<TData, TProperties>
+      actionBar={actionBar}
+      className={className}
+      columns={columns}
+      enableRowSelection={enableRowSelection}
+      groupItem={{
+        key: "__ungrouped__",
+        items: [],
+        count: 0,
+        displayCount: "0",
+        sortValue: "",
+      }}
+      headerOffset={stickyOffset}
+      onRowClick={onRowClick}
+      onRowSelectionChange={setRowSelection}
+      pagination={pagination}
+      properties={properties}
+      registerScroll={registerScroll}
+      rowSelection={rowSelection}
+      showVerticalLines={showVerticalLines}
+      stickyEnabled={stickyEnabled}
+      wrapAllProperties={wrapAllProperties}
+    />
+  ) : (
+    <SuspendingPageTableContent<TData, TProperties>
+      actionBar={actionBar}
+      className={className}
+      columns={columns}
+      enableRowSelection={enableRowSelection}
+      groupItem={{
+        key: "__ungrouped__",
+        items: [],
+        count: 0,
+        displayCount: "0",
+        sortValue: "",
+      }}
+      headerOffset={stickyOffset}
+      onRowClick={onRowClick}
+      onRowSelectionChange={setRowSelection}
+      pagination={pagination}
+      properties={properties}
+      registerScroll={registerScroll}
+      rowSelection={rowSelection}
+      showVerticalLines={showVerticalLines}
+      stickyEnabled={stickyEnabled}
+      wrapAllProperties={wrapAllProperties}
+    />
   );
 }
 
@@ -449,6 +452,7 @@ interface SuspendingGroupTableContentProps<
   TProperties extends readonly DataViewProperty<TData>[],
 > {
   actionBar?: (table: TanStackTable<TData>) => React.ReactNode;
+  className?: string;
   columns: ColumnDef<TData>[];
   enableRowSelection: boolean;
   groupItem: GroupedDataItem<TData>;
@@ -476,6 +480,7 @@ function TableContentRenderer<
   TProperties extends readonly DataViewProperty<TData>[],
 >({
   actionBar,
+  className,
   columns,
   data,
   enableRowSelection,
@@ -492,6 +497,7 @@ function TableContentRenderer<
   wrapAllProperties,
 }: {
   actionBar?: (table: TanStackTable<TData>) => React.ReactNode;
+  className?: string;
   columns: ColumnDef<TData>[];
   data: TData[];
   enableRowSelection: boolean;
@@ -514,6 +520,7 @@ function TableContentRenderer<
     <>
       <DataTable
         actionBar={actionBar}
+        className={className}
         columns={columns}
         data={transformedItems}
         enableRowSelection={enableRowSelection}
@@ -540,6 +547,7 @@ function SuspendingPageTableContent<
   TProperties extends readonly DataViewProperty<TData>[],
 >({
   actionBar,
+  className,
   columns,
   enableRowSelection,
   groupItem,
@@ -582,6 +590,7 @@ function SuspendingPageTableContent<
         return (
           <TableContentRenderer
             actionBar={actionBar}
+            className={className}
             columns={columns}
             data={result.data}
             enableRowSelection={enableRowSelection}
@@ -613,6 +622,7 @@ function SuspendingInfiniteTableContent<
   TProperties extends readonly DataViewProperty<TData>[],
 >({
   actionBar,
+  className,
   columns,
   enableRowSelection,
   groupItem,
@@ -654,6 +664,7 @@ function SuspendingInfiniteTableContent<
         return (
           <TableContentRenderer
             actionBar={actionBar}
+            className={className}
             columns={columns}
             data={result.data}
             enableRowSelection={enableRowSelection}

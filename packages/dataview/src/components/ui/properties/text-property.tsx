@@ -19,7 +19,7 @@ export function TextProperty({ value, wrap = false }: TextPropertyProps) {
   const text = value == null ? "" : String(value);
 
   if (!text) {
-    return <span className="text-muted-foreground text-sm">-</span>;
+    return null;
   }
 
   return (

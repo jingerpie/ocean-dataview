@@ -21,6 +21,7 @@ import {
   TableRow,
 } from "../../ui/table";
 import { DataTableStickyHeader } from "./data-table-sticky-header";
+import { rowId } from "./row-id";
 
 /**
  * Calculate column width from explicit property.size.
@@ -157,6 +158,7 @@ export function DataTable<TData>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getRowId: rowId,
     enableRowSelection,
     state: {
       rowSelection,
@@ -186,15 +188,20 @@ export function DataTable<TData>({
                   | { propertySize?: number }
                   | undefined;
                 const columnWidth = calculateColumnWidth(meta?.propertySize);
+                const isSelect = header.column.id === "__row_select__";
                 return (
                   <TableHead
-                    className="truncate"
+                    className={cn(!isSelect && "truncate", isSelect && "w-0")}
                     colSpan={header.colSpan}
                     key={header.id}
-                    style={{
-                      minWidth: columnWidth,
-                      maxWidth: columnWidth,
-                    }}
+                    style={
+                      isSelect
+                        ? { width: "1%", whiteSpace: "nowrap" }
+                        : {
+                            minWidth: columnWidth,
+                            maxWidth: columnWidth,
+                          }
+                    }
                   >
                     {header.isPlaceholder
                       ? null
@@ -215,7 +222,15 @@ export function DataTable<TData>({
             className={cn(onRowClick && "cursor-pointer")}
             data-state={row.getIsSelected() && "selected"}
             key={row.id}
-            onClick={() => onRowClick?.(row.original)}
+            onClick={(e) => {
+              const el = (e.target as HTMLElement).closest(
+                "input, button, a, [role='checkbox']"
+              );
+              if (el) {
+                return;
+              }
+              onRowClick?.(row.original);
+            }}
           >
             {row.getVisibleCells().map((cell) => {
               const meta = cell.column.columnDef.meta as
@@ -223,17 +238,23 @@ export function DataTable<TData>({
                 | undefined;
               const cellWrap = meta?.wrap ?? wrapAllProperties;
               const columnWidth = calculateColumnWidth(meta?.propertySize);
+              const isSelect = cell.column.id === "__row_select__";
               return (
                 <TableCell
                   className={cn(
                     showVerticalLines && "border-r last:border-r-0",
-                    cellWrap ? "whitespace-normal" : "truncate"
+                    cellWrap ? "whitespace-normal" : "truncate",
+                    isSelect && "w-0"
                   )}
                   key={cell.id}
-                  style={{
-                    minWidth: columnWidth,
-                    maxWidth: columnWidth,
-                  }}
+                  style={
+                    isSelect
+                      ? { width: "1%", whiteSpace: "nowrap" }
+                      : {
+                          minWidth: columnWidth,
+                          maxWidth: columnWidth,
+                        }
+                  }
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
@@ -247,27 +268,29 @@ export function DataTable<TData>({
 
   return (
     <>
-      {/* Sticky Header Component */}
-      <DataTableStickyHeader
-        enabled={!!headerConfig.sticky}
-        offset={offset}
-        registerScroll={registerScroll}
-        table={table}
-        tableContainerRef={tableContainerRef}
-        tableHeaderRef={tableHeaderRef}
-      />
+      {/* Wrapper groups sticky header + table as a single flex child so the
+          parent flex-col gap doesn't apply to the zero-height sticky div. */}
+      <div>
+        <DataTableStickyHeader
+          enabled={!!headerConfig.sticky}
+          offset={offset}
+          registerScroll={registerScroll}
+          table={table}
+          tableContainerRef={tableContainerRef}
+          tableHeaderRef={tableHeaderRef}
+        />
 
-      {/* Original Table */}
-      <div className={cn("overflow-clip", className)}>
-        <div
-          className={cn(
-            "overflow-x-auto",
-            hideScrollbar &&
-              "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          )}
-          ref={tableContainerRef}
-        >
-          {tableElement}
+        <div className={cn("overflow-clip", className)}>
+          <div
+            className={cn(
+              "overflow-x-auto",
+              hideScrollbar &&
+                "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            )}
+            ref={tableContainerRef}
+          >
+            {tableElement}
+          </div>
         </div>
       </div>
 

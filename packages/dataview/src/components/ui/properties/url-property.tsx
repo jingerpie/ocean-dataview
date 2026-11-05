@@ -12,7 +12,7 @@ export function UrlProperty({
   config: { showFullUrl = false } = {},
 }: UrlPropertyProps) {
   if (!value) {
-    return <span className="text-muted-foreground text-sm">-</span>;
+    return null;
   }
 
   const url = String(value);

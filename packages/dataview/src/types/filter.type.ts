@@ -20,6 +20,21 @@ export interface Option {
 export type FilterCondition = DataTableConfig["conditionalOperators"][number];
 
 // ============================================================================
+// Array Quantifier (for display rollup filters)
+// ============================================================================
+
+/**
+ * Quantifier for array-returning rollup filters (showOriginal / showUnique).
+ * Controls how the inner condition is applied across related rows:
+ * - "any"   → at least one row matches (EXISTS)
+ * - "none"  → no row matches (NOT EXISTS)
+ * - "every" → all rows match (NOT EXISTS ... AND NOT condition)
+ */
+export type Quantifier = "any" | "none" | "every";
+
+export const quantifierValues = ["any", "none", "every"] as const;
+
+// ============================================================================
 // Sort
 // ============================================================================
 
@@ -55,6 +70,8 @@ export interface SortQuery {
 export interface WhereRule {
   condition: FilterCondition;
   property: string;
+  /** Quantifier for array-returning rollup filters (showOriginal/showUnique) */
+  quantifier?: Quantifier;
   value?: unknown;
 }
 
@@ -106,8 +123,9 @@ export const conditionValues = [
  * Schema for WhereRule
  */
 export const whereRuleSchema = z.object({
-  property: z.string(),
+  quantifier: z.enum(quantifierValues).optional(),
   condition: z.enum(conditionValues),
+  property: z.string(),
   value: z.unknown().optional(),
 });
 
@@ -187,4 +205,5 @@ export type PropertyType =
   | "phone"
   | "filesMedia"
   | "formula"
-  | "button";
+  | "button"
+  | "rollup";

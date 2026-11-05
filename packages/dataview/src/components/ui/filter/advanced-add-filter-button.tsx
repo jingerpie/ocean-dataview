@@ -40,9 +40,12 @@ export function AddFilterButton({
   onAddGroup,
   className,
 }: AddFilterButtonProps) {
-  // Create rule with first property as default
+  // Create rule with first filterable property as default
   const handleAddRule = () => {
-    const firstProperty = properties[0];
+    const firstProperty = properties.find(
+      (p) =>
+        p.type !== "formula" && p.type !== "button" && p.enableFilter !== false
+    );
     if (!firstProperty) {
       return;
     }

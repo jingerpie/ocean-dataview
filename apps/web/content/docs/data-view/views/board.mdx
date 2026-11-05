@@ -90,7 +90,7 @@ Board view uses `getManyByColumn` for card data and `columnQuery`/`groupQuery` f
 | `cardSize` | `"small" \| "medium" \| "large"` | `"medium"` | Card size preset |
 | `cardPreview` | `string` | - | Property ID for card preview image |
 | `colorColumns` | `boolean` | `false` | Color column backgrounds based on property colors |
-| `fitMedia` | `boolean` | `true` | Fit media to card (cover vs contain) |
+| `fitMedia` | `boolean` | `false` | Fit media to card (cover vs contain) |
 | `onCardClick` | `(item: TData) => void` | - | Card click handler |
 | `showPropertyNames` | `boolean` | `false` | Show property labels on cards |
 | `wrapAllProperties` | `boolean` | `false` | Wrap property text |
@@ -154,9 +154,9 @@ const statusProperty = {
   type: "status",
   config: {
     groups: [
-      { label: "Available", color: "green", options: ["In stock"] },
-      { label: "Warning", color: "yellow", options: ["Low stock"] },
-      { label: "Unavailable", color: "red", options: ["Out of stock"] },
+      { label: "Available", color: "green-subtle", options: ["In stock"] },
+      { label: "Warning", color: "yellow-subtle", options: ["Low stock"] },
+      { label: "Unavailable", color: "red-subtle", options: ["Out of stock"] },
     ],
   },
 };

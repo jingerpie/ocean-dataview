@@ -20,7 +20,55 @@ export type PropertyType =
   | "email"
   | "phone"
   | "formula"
-  | "button";
+  | "button"
+  | "rollup";
+
+/** Corner of the card media block where a pinned property renders (Board/Gallery only). */
+export type CardPinPosition =
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right";
+
+/** How a property's name is placed relative to its value. */
+export type ShowNameLayout = "vertical" | "horizontal";
+
+/** Horizontal only: where the value sits relative to the name. */
+export type ShowNameAlign = "start" | "end";
+
+export interface ShowNameConfig {
+  /**
+   * Horizontal only. `"end"` pushes the value to the far edge (name left,
+   * value right); `"start"` keeps name and value adjacent.
+   * @default "end"
+   */
+  align?: ShowNameAlign;
+  /**
+   * `"vertical"` stacks the name above the value; `"horizontal"` puts both on
+   * one line.
+   * @default "vertical"
+   */
+  layout?: ShowNameLayout;
+}
+
+/**
+ * Object form of `pin`. Any object (including `{}`) means pinned; the fields
+ * only affect Board/Gallery cards. Table and List ignore them.
+ * Defaults are the same for every property type.
+ */
+export interface PinConfig {
+  /**
+   * Hide until the card is hovered or a descendant has keyboard focus.
+   * @default false
+   */
+  hover?: boolean;
+  /**
+   * Corner of the media block. Pins sharing a corner stack in declaration
+   * order.
+   * @default "top-left"
+   */
+  position?: CardPinPosition;
+}
 
 // Base property structure (using _T for type consistency across property types)
 export interface BaseProperty<_T> {
@@ -82,12 +130,29 @@ export interface BaseProperty<_T> {
   /** Display name shown in UI (column headers, filter pickers, etc.) */
   name?: string;
   /**
+   * Pin this property. `true` or an object (see {@link PinConfig}) pins it;
+   * `{}` is the same as `true`.
+   * - Card (Board/Gallery): rendered as an overlay on the media block using the
+   *   property's normal renderer, and removed from the card body. Defaults to
+   *   the top-left corner, always visible, for every type. `filesMedia` and
+   *   `button` are ignored. Without a media block (`cardPreview` omitted) the
+   *   property stays in the body. `showName` applies to the overlay too.
+   * - Table: reserved for sticky-left columns (not implemented yet).
+   * - List: reserved (not implemented yet).
+   * Declaration-driven: renders regardless of `hidden` and visibility toggles.
+   * @default false
+   */
+  pin?: boolean | PinConfig;
+  /**
    * Per-property override for `showPropertyNames`.
-   * - `true`: Always show this property's name
+   * - `true`: Always show this property's name (stacked above the value)
+   * - `ShowNameConfig`: show it with a specific layout; `{}` is the same as `true`
    * - `false`: Always hide this property's name
    * - `undefined`: Use the global `showPropertyNames` setting
+   * Layout applies to cards and formula sub-properties; table headers only
+   * honour show/hide.
    */
-  showName?: boolean;
+  showName?: boolean | ShowNameConfig;
   /**
    * Display size/width for this property (in pixels).
    * - Table: used as column width (maps to TanStack ColumnDef sizing)
@@ -109,13 +174,28 @@ export interface BaseProperty<_T> {
 // Type-specific configurations
 export type BadgeColor =
   | "gray"
+  | "gray-subtle"
   | "blue"
+  | "blue-subtle"
   | "purple"
+  | "purple-subtle"
   | "yellow"
+  | "yellow-subtle"
   | "red"
+  | "red-subtle"
   | "pink"
+  | "pink-subtle"
   | "green"
-  | "teal";
+  | "green-subtle"
+  | "teal"
+  | "teal-subtle"
+  // Base badge variants (mirror `Badge` in `components/ui/badge.tsx`)
+  | "default"
+  | "secondary"
+  | "destructive"
+  | "outline"
+  | "ghost"
+  | "link";
 
 export interface NumberConfig {
   decimalPlaces?: number; // 0-10
@@ -204,6 +284,61 @@ export interface UrlConfig {
   showFullUrl?: boolean;
 }
 
+// ============================================================================
+// Rollup Configuration
+// ============================================================================
+
+/**
+ * Aggregation calculation for rollup properties.
+ * Determines how values from a related table are combined.
+ */
+export type RollupCalculation =
+  // Display (output: array of underlying type)
+  | "showOriginal"
+  | "showUnique"
+  // Count (output: number)
+  | "countAll"
+  | "countValues"
+  | "countUnique"
+  | "countEmpty"
+  | "countNotEmpty"
+  // Percent (output: number)
+  | "percentEmpty"
+  | "percentNotEmpty"
+  // Math — only valid when underlying type is "number" (output: number)
+  | "sum"
+  | "average"
+  | "median"
+  | "min"
+  | "max"
+  | "range";
+
+/**
+ * Configuration for rollup properties.
+ * Combines the underlying field type, aggregation calculation,
+ * and optional number display options for scalar outputs.
+ */
+export interface RollupConfig {
+  /** How to aggregate the related values */
+  calculation: RollupCalculation;
+  /** Date display: format */
+  dateFormat?: DateConfig["dateFormat"];
+  /** Number display: decimal places (0-10) */
+  decimalPlaces?: NumberConfig["decimalPlaces"];
+  /** Number display: format */
+  numberFormat?: NumberConfig["numberFormat"];
+  /** Select/status display: option definitions for colored badges */
+  options?: SelectOption[];
+  /** Number display: divide stored value for display */
+  scale?: NumberConfig["scale"];
+  /** Number display: bar/ring visualization */
+  showAs?: NumberConfig["showAs"];
+  /** Date display: time format */
+  timeFormat?: DateConfig["timeFormat"];
+  /** Underlying field type in the related table */
+  type: Exclude<PropertyType, "formula" | "button" | "rollup">;
+}
+
 /**
  * Individual button action configuration.
  * Used inside button property's value function where item is already in scope.
@@ -226,7 +361,8 @@ export type PropertyConfig =
   | MultiSelectConfig
   | StatusConfig
   | DateConfig
-  | UrlConfig;
+  | UrlConfig
+  | RollupConfig;
 
 // ============================================================================
 // PropertyMeta - Covariant Property Type for UI Components
@@ -269,8 +405,10 @@ export interface PropertyMeta {
   key?: string;
   /** Display name shown in UI */
   name?: string;
-  /** Per-property override for showPropertyNames */
-  showName?: boolean;
+  /** Pin flag; see BaseProperty.pin @default false */
+  pin?: boolean | PinConfig;
+  /** Per-property override for showPropertyNames; see BaseProperty.showName */
+  showName?: boolean | ShowNameConfig;
   /** Display size/width in pixels */
   size?: number;
   /** Property type for rendering */
@@ -373,25 +511,24 @@ export type PropertyRenderFunction = (id: string) => any;
  *
  * The `value` function receives:
  * - `property(id)` - Renders the property with styling (ReactNode)
- * - `item` - The raw data item for direct field access
+ * - `item` - The data item with direct property access
  *
  * @example
  * ```tsx
- * // Formula — id required, no key (no data field)
  * {
  *   id: "productSummary",
  *   type: "formula",
  *   name: "Product",
  *   sortBy: "name",
- *   value: (property, item) => (
- *     <div className="flex flex-col gap-1">
- *       {property("name")}        // Rendered with text styling
- *       {property("familyGroup")} // Rendered with select colors
- *       {item.minCalories > 500 && (
- *         <span className="text-red-500 text-xs">High cal</span>
- *       )}
- *     </div>
- *   ),
+ *   value: (property, item) => {
+ *     const minPrice = item.minPrice;
+ *     return (
+ *       <div className="flex flex-col gap-1">
+ *         {property("name")}
+ *         {minPrice > 5000 && <span className="text-red-500 text-xs">Premium</span>}
+ *       </div>
+ *     );
+ *   },
  * }
  * ```
  */
@@ -402,13 +539,16 @@ export type FormulaPropertyType<T> = BaseProperty<T> & {
    * Formula value function.
    *
    * @param property - Function to render a property with its full config
-   * @param item - The raw data item for direct field access
+   * @param item - The data item for direct property access
    * @returns ReactNode to render in the cell
    *
    * Uses method syntax for bivariant parameter types (allows DataViewProperty<T> to be assigned to DataViewProperty<unknown>)
    */
-  // biome-ignore lint/suspicious/noExplicitAny: Flexible signature to avoid type inference issues with union types
-  value?(property: PropertyRenderFunction, item: T): any;
+  value?(
+    property: PropertyRenderFunction,
+    item: T
+    // biome-ignore lint/suspicious/noExplicitAny: Flexible signature to avoid type inference issues with union types
+  ): any;
   /**
    * Optional: which property to use for sorting this formula column.
    * Since formulas can't be sorted directly, this specifies a backing property.
@@ -450,6 +590,35 @@ export type ButtonPropertyType<T> = BaseProperty<T> & {
 };
 
 /**
+ * Rollup property type — aggregates values from a related table.
+ * The `config.type` specifies the underlying field type, and
+ * `config.calculation` determines how values are aggregated.
+ *
+ * @example
+ * ```tsx
+ * // Show all variant SKUs as a list
+ * {
+ *   key: "productVariants.sku",
+ *   name: "Variant SKUs",
+ *   type: "rollup",
+ *   config: { type: "text", calculation: "showOriginal" },
+ * }
+ *
+ * // Sum of variant quantities with dollar formatting
+ * {
+ *   key: "productVariants.quantity",
+ *   name: "Total Inventory",
+ *   type: "rollup",
+ *   config: { type: "number", calculation: "sum", numberFormat: "dollar" },
+ * }
+ * ```
+ */
+export type RollupPropertyType<T> = BaseProperty<T> & {
+  type: "rollup";
+  config: RollupConfig;
+};
+
+/**
  * Main type for defining data view properties (resolved — id always present).
  * Used throughout the system after normalization.
  */
@@ -466,7 +635,8 @@ export type DataViewProperty<T> =
   | EmailPropertyType<T>
   | PhonePropertyType<T>
   | FormulaPropertyType<T>
-  | ButtonPropertyType<T>;
+  | ButtonPropertyType<T>
+  | RollupPropertyType<T>;
 
 /**
  * Extract property IDs from a property array
@@ -486,12 +656,50 @@ export type {
   WhereRule,
 } from "./filter.type";
 
+/**
+ * Returns true if the property is a display rollup (showOriginal / showUnique).
+ * Display rollups return arrays and support array quantifier filters (any/none/every).
+ */
+export function isDisplayRollup(property: PropertyMeta): boolean {
+  if (property.type !== "rollup") {
+    return false;
+  }
+  const config = property.config as RollupConfig;
+  return (
+    config.calculation === "showOriginal" || config.calculation === "showUnique"
+  );
+}
+
+/**
+ * Derives the effective output type for a property.
+ * For non-rollup properties, returns the property type directly.
+ * For rollup properties:
+ * - show_original / show_unique → underlying config.type (value is an array)
+ * - All other calculations → "number" (scalar aggregation result)
+ *
+ * Used by filter, sort, and rendering layers to determine behavior.
+ */
+export function getEffectiveType(property: PropertyMeta): PropertyType {
+  if (property.type !== "rollup") {
+    return property.type;
+  }
+  const config = property.config as RollupConfig;
+  if (
+    config.calculation === "showOriginal" ||
+    config.calculation === "showUnique"
+  ) {
+    return config.type;
+  }
+  return "number";
+}
+
 /** Property types excluded from search by default */
 const EXCLUDED_SEARCH_TYPES: PropertyType[] = [
   "filesMedia",
   "checkbox",
   "formula",
   "button",
+  "rollup",
 ];
 
 /**
@@ -527,6 +735,39 @@ export function getSearchableProperties<T>(
     })
     .map((p) => p.key ?? p.id)
     .filter((key): key is string => key !== undefined);
+}
+
+/**
+ * Extract scalar rollup definitions from properties.
+ * Returns `{ key, calculation }` for each rollup property that uses a scalar
+ * calculation (not showOriginal/showUnique). These are passed to the server
+ * to compute as SQL extras.
+ */
+export function getScalarRollups<T>(
+  properties: readonly DataViewProperty<T>[]
+): { extrasKey: string; key: string; calculation: string }[] {
+  const scalars = properties.filter((p): p is RollupPropertyType<T> => {
+    if (p.type !== "rollup") {
+      return false;
+    }
+    const config = p.config as RollupConfig;
+    return (
+      config.calculation !== "showOriginal" &&
+      config.calculation !== "showUnique"
+    );
+  });
+
+  return scalars.map((p) => {
+    const key = p.key ?? p.id;
+    const id = p.id ?? p.key ?? p.name ?? "";
+    // Always append id with _ to avoid collisions with display rollups sharing the same key
+    const extrasKey = `${key}_${id}`;
+    return {
+      extrasKey,
+      key,
+      calculation: (p.config as RollupConfig).calculation,
+    };
+  });
 }
 
 // Sort configuration (simple client-side sorting)

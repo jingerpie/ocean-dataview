@@ -2,9 +2,14 @@
 
 import { cn } from "../../../lib/utils";
 import type { FilterCondition, WhereRule } from "../../../types/filter.type";
-import type { PropertyMeta } from "../../../types/property.type";
+import {
+  getEffectiveType,
+  isDisplayRollup,
+  type PropertyMeta,
+} from "../../../types/property.type";
 import {
   applyConditionChange,
+  applyQuantifierChange,
   createRuleFromProperty,
 } from "../../../utils/filter-variant";
 import { AdvancedFilterActions } from "./advanced-filter-actions";
@@ -16,6 +21,7 @@ import { DateAdvanceFilter } from "./properties/date-filter";
 import { SelectAdvanceFilter } from "./properties/select-filter";
 import { StatusAdvanceFilter } from "./properties/status-filter";
 import { TextAdvanceFilter } from "./properties/text-filter";
+import { QuantifierPicker } from "./quantifier-picker";
 
 // ============================================================================
 // FilterRule Component
@@ -101,11 +107,22 @@ function FilterRule({
         value={property}
       />
 
+      {/* Quantifier Picker (for display rollups: showOriginal/showUnique) */}
+      {property && isDisplayRollup(property) && (
+        <QuantifierPicker
+          onQuantifierChange={(q) =>
+            onRuleChange(applyQuantifierChange(rule, q))
+          }
+          quantifier={rule.quantifier ?? "any"}
+        />
+      )}
+
       {/* Condition Picker */}
       {property && (
         <ConditionPicker
           condition={rule.condition}
           onConditionChange={handleConditionChange}
+          property={property}
           propertyType={property.type}
         />
       )}
@@ -216,6 +233,16 @@ function ValueInput({ rule, property, onValueChange }: ValueInputProps) {
     case "formula":
       // Only support isEmpty/isNotEmpty (handled above)
       return null;
+
+    case "rollup":
+      // Delegate to the effective output type's filter component
+      return (
+        <ValueInput
+          onValueChange={onValueChange}
+          property={{ ...property, type: getEffectiveType(property) }}
+          rule={rule}
+        />
+      );
 
     default:
       return null;

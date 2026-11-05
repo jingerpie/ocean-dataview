@@ -9,13 +9,17 @@
     "./providers": "./src/lib/providers/index.ts",
     "./views/*": "./src/components/views/*/index.tsx",
     "./toolbars/notion": "./src/components/toolbars/notion/toolbar.tsx",
+    "./preset-tabs": "./src/components/preset-tabs/index.tsx",
     "./properties": "./src/components/ui/properties/index.ts",
     "./hooks": "./src/hooks/index.ts",
     "./types": "./src/types/index.ts",
-    "./utils": "./src/utils/index.ts"
+    "./utils": "./src/utils/index.ts",
+    "./skeletons": "./src/components/skeletons/index.ts"
   },
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
@@ -58,7 +62,8 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "tailwindcss": "catalog:",
-    "tsdown": "catalog:"
+    "tsdown": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "typescript": "catalog:"

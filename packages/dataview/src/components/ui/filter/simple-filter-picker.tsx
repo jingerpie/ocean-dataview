@@ -71,12 +71,17 @@ function SimpleFilterPicker({
     );
   }, [properties, usedPropertyIds]);
 
-  // Add filter rule for selected property - uses immediate addFilter
+  // Add filter rule for selected property
+  // When onAddFilter is provided, it takes over the full flow (caller controls timing)
+  // Otherwise, adds filter immediately via URL params
   const handleAddFilter = useCallback(
     (property: PropertyMeta) => {
+      if (onAddFilter) {
+        onAddFilter(property);
+        return;
+      }
       const rule = createRuleFromProperty(property);
       addFilter(rule);
-      onAddFilter?.(property);
     },
     [addFilter, onAddFilter]
   );

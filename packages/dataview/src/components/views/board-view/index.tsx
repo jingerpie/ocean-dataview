@@ -15,6 +15,7 @@ import { useGroupParams } from "../../../hooks/use-group-params";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useScrollSync } from "../../../hooks/use-scroll-sync";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
+import { cn } from "../../../lib/utils";
 import type { GroupByConfig } from "../../../types/group.type";
 import type { PaginationContext } from "../../../types/pagination";
 import type {
@@ -30,6 +31,7 @@ import { groupByProperty as groupDataByProperty } from "../../../utils/compute-d
 import { getBoardCardDimensions } from "../../../utils/get-card-sizes";
 import { transformData } from "../../../utils/transform-data";
 import { validatePropertyKeys } from "../../../validators/valid-properties";
+import { BoardSkeleton } from "../../skeletons/board-skeleton";
 import { Accordion } from "../../ui/accordion";
 import { Badge } from "../../ui/badge";
 import { GroupSection } from "../../ui/group-section";
@@ -40,7 +42,6 @@ import { DataCell } from "../data-cell";
 import { EmptyState } from "../empty-state";
 import { BoardColumnHeaders, parseColumnWidth } from "./board-column-headers";
 import { BoardColumns } from "./board-columns";
-import { BoardSkeleton } from "./board-skeleton";
 import { StickyColumnLabel } from "./sticky-column-label";
 
 /**
@@ -73,6 +74,11 @@ export interface BoardViewProps<TData> {
   cardSize?: "small" | "medium" | "large";
 
   /**
+   * Additional className for the board wrapper
+   */
+  className?: string;
+
+  /**
    * Color column backgrounds based on property option colors
    * @default false
    */
@@ -86,7 +92,7 @@ export interface BoardViewProps<TData> {
 
   /**
    * Whether to fit media to card (object-cover vs object-contain)
-   * @default true
+   * @default false
    */
   fitMedia?: boolean;
 
@@ -142,9 +148,10 @@ export function BoardView<
   cardLayout = "list",
   cardPreview,
   cardSize = "medium",
+  className,
   colorColumns = false,
   counts: _counts,
-  fitMedia = true,
+  fitMedia = false,
   keyExtractor = (item: TData, index: number) =>
     String((item as { id?: string }).id || index),
   onCardClick,
@@ -438,15 +445,14 @@ export function BoardView<
           cardsPerColumn={limit ?? BoardView.defaultLimit}
           columnCount={columns.length || 3}
           pagination={pagination}
-          propertySizes={displayProperties.map((p) => p.size)}
-          propertyTypes={displayProperties.map((p) => p.type)}
+          properties={displayProperties}
           withImage={Boolean(cardPreview)}
         />
       );
     }
     return (
       <div
-        className="relative max-w-full overflow-clip"
+        className={cn("relative max-w-full overflow-clip", className)}
         ref={boardContainerRef}
       >
         {/* Sticky column header - outside overflow-x, sticky works */}
@@ -507,8 +513,7 @@ export function BoardView<
                         cardSize={cardSize}
                         cardsPerColumn={limit ?? BoardView.defaultLimit}
                         columnCount={columns.length}
-                        propertySizes={displayProperties.map((p) => p.size)}
-                        propertyTypes={displayProperties.map((p) => p.type)}
+                        properties={displayProperties}
                         withImage={Boolean(cardPreview)}
                       />
                     }
@@ -558,62 +563,51 @@ export function BoardView<
   }
 
   // FLAT VIEW: StickyColumnLabel outside overflow-x, content inside
+  // Suspension is caught by the outer Suspense in DataViewProvider
   return (
-    <div className="relative max-w-full overflow-clip" ref={boardContainerRef}>
-      <Suspense
-        fallback={
-          <BoardSkeleton
-            cardLayout={cardLayout}
-            cardSize={cardSize}
-            cardsPerColumn={limit ?? BoardView.defaultLimit}
-            columnCount={columns.length}
-            pagination={pagination}
-            propertySizes={displayProperties.map((p) => p.size)}
-            propertyTypes={displayProperties.map((p) => p.type)}
-            withImage={Boolean(cardPreview)}
-          />
-        }
-      >
-        {/* Sticky column header - outside overflow-x */}
-        <StickyColumnLabel
-          className={undefined}
-          columnHeader={getColumnHeader}
-          columnWidthPx={columnWidthPx}
-          containerRef={boardContainerRef}
-          enabled={stickyEnabled}
-          getColumnBgClass={getColumnBgClass}
-          groups={columns}
-          headerRef={originalHeaderRef}
-          offset={stickyOffset}
-          registerScroll={registerScroll}
-        />
+    <div
+      className={cn("relative max-w-full overflow-clip", className)}
+      ref={boardContainerRef}
+    >
+      {/* Sticky column header - outside overflow-x */}
+      <StickyColumnLabel
+        className={undefined}
+        columnHeader={getColumnHeader}
+        columnWidthPx={columnWidthPx}
+        containerRef={boardContainerRef}
+        enabled={stickyEnabled}
+        getColumnBgClass={getColumnBgClass}
+        groups={columns}
+        headerRef={originalHeaderRef}
+        offset={stickyOffset}
+        registerScroll={registerScroll}
+      />
 
-        {/* Column headers + cards in single scroll container */}
-        <div className="overflow-x-auto pb-4" ref={headerScrollRef}>
-          <div className="min-w-fit">
-            <BoardColumnHeaders
-              columnHeader={getColumnHeader}
-              columnWidth={columnWidth}
-              getColumnBgClass={getColumnBgClass}
-              groups={columns}
-              headerRef={originalHeaderRef}
-              rounded="top"
-            />
-            <SuspendingInfiniteBoardContent<TData, TProperties>
-              columnConfig={columnConfig ?? undefined}
-              columns={columns}
-              columnWidth={columnWidth}
-              getCardContent={getCardContent}
-              getColumnBgClass={getColumnBgClass}
-              groupKey="__ungrouped__"
-              keyExtractor={keyExtractor}
-              pagination={pagination}
-              properties={properties}
-              rounded="bottom"
-            />
-          </div>
+      {/* Column headers + cards in single scroll container */}
+      <div className="overflow-x-auto pb-4" ref={headerScrollRef}>
+        <div className="min-w-fit">
+          <BoardColumnHeaders
+            columnHeader={getColumnHeader}
+            columnWidth={columnWidth}
+            getColumnBgClass={getColumnBgClass}
+            groups={columns}
+            headerRef={originalHeaderRef}
+            rounded="top"
+          />
+          <SuspendingInfiniteBoardContent<TData, TProperties>
+            columnConfig={columnConfig ?? undefined}
+            columns={columns}
+            columnWidth={columnWidth}
+            getCardContent={getCardContent}
+            getColumnBgClass={getColumnBgClass}
+            groupKey="__ungrouped__"
+            keyExtractor={keyExtractor}
+            pagination={pagination}
+            properties={properties}
+            rounded="bottom"
+          />
         </div>
-      </Suspense>
+      </div>
     </div>
   );
 }

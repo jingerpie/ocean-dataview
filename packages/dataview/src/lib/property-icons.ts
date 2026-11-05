@@ -13,6 +13,7 @@ import {
   type LucideIcon,
   MousePointerClickIcon,
   PhoneIcon,
+  Search,
 } from "lucide-react";
 import type { PropertyType } from "../types/filter.type";
 
@@ -33,6 +34,7 @@ export const PROPERTY_TYPE_ICONS: Record<PropertyType, LucideIcon> = {
   phone: PhoneIcon,
   formula: FunctionSquareIcon,
   button: MousePointerClickIcon,
+  rollup: Search,
 };
 
 /**

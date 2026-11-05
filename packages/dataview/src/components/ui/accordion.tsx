@@ -41,20 +41,22 @@ function AccordionTrigger({
     <AccordionPrimitive.Header className="flex">
       <AccordionPrimitive.Trigger
         className={cn(
-          "group/accordion-trigger relative flex flex-1 items-center gap-1 rounded-lg border border-transparent text-left font-medium text-sm outline-none transition-all hover:underline focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:after:border-ring disabled:pointer-events-none disabled:opacity-50",
+          "group/accordion-trigger relative flex flex-1 items-center rounded-lg border border-transparent text-left font-medium text-sm outline-none transition-all hover:underline focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:after:border-ring disabled:pointer-events-none disabled:opacity-50",
           className
         )}
         data-slot="accordion-trigger"
         {...props}
       >
-        <ChevronRightIcon
-          className="pointer-events-none size-4 shrink-0 text-muted-foreground group-aria-expanded/accordion-trigger:hidden"
-          data-slot="accordion-trigger-icon"
-        />
-        <ChevronDownIcon
-          className="pointer-events-none hidden size-4 shrink-0 text-muted-foreground group-aria-expanded/accordion-trigger:inline"
-          data-slot="accordion-trigger-icon"
-        />
+        <span className="pointer-events-none flex size-6 shrink-0 items-center justify-center">
+          <ChevronRightIcon
+            className="size-4 text-muted-foreground group-aria-expanded/accordion-trigger:hidden"
+            data-slot="accordion-trigger-icon"
+          />
+          <ChevronDownIcon
+            className="hidden size-4 text-muted-foreground group-aria-expanded/accordion-trigger:inline"
+            data-slot="accordion-trigger-icon"
+          />
+        </span>
         {children}
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>

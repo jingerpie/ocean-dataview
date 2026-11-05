@@ -6,6 +6,7 @@ import { Badge } from "../badge";
 
 interface SelectPropertyProps {
   config?: SelectConfig;
+  size?: "sm" | "md" | "lg";
   value: string | null;
 }
 
@@ -16,9 +17,9 @@ interface SelectPropertyProps {
  * @param config - Select configuration with options
  * @returns Colored badge with option label
  */
-export function SelectProperty({ value, config }: SelectPropertyProps) {
+export function SelectProperty({ value, config, size }: SelectPropertyProps) {
   if (!value) {
-    return <span className="text-muted-foreground text-sm">-</span>;
+    return null;
   }
 
   const stringValue = String(value);
@@ -26,10 +27,18 @@ export function SelectProperty({ value, config }: SelectPropertyProps) {
 
   // If option not found, still render as badge with gray color
   if (!option) {
-    return <Badge variant="gray-subtle">{stringValue}</Badge>;
+    return (
+      <Badge size={size} variant="gray-subtle">
+        {stringValue}
+      </Badge>
+    );
   }
 
   const variant = getBadgeVariant(option.color);
 
-  return <Badge variant={variant}>{option.name ?? option.value}</Badge>;
+  return (
+    <Badge size={size} variant={variant}>
+      {option.name ?? option.value}
+    </Badge>
+  );
 }

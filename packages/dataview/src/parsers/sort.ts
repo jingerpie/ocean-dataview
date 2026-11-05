@@ -16,13 +16,17 @@ import type { SortQuery } from "../types/filter.type";
 // Encoder/Decoder
 // ============================================================================
 
+/** Sentinel value representing an explicitly cleared sort (empty array). */
+const EMPTY_SENTINEL = "none";
+
 /**
  * Encode sort queries to DSL format.
  * Example: [{ property: "name", direction: "asc" }] → "name.asc"
+ * Empty array encodes to "none" sentinel to distinguish from null (no URL param).
  */
 export function encodeSort(sort: SortQuery[]): string {
   if (sort.length === 0) {
-    return "";
+    return EMPTY_SENTINEL;
   }
   return sort.map((s) => encodeTuple([s.property, s.direction])).join(",");
 }
@@ -30,10 +34,15 @@ export function encodeSort(sort: SortQuery[]): string {
 /**
  * Decode DSL format to sort queries.
  * Example: "name.asc,price.desc" → [{ property: "name", direction: "asc" }, ...]
+ * "none" → [] (explicitly cleared)
+ * "" → null (no URL param, use defaults)
  */
 export function decodeSort(value: string): SortQuery[] | null {
   if (!value) {
     return null;
+  }
+  if (value === EMPTY_SENTINEL) {
+    return [];
   }
 
   const items = splitRespectingParens(value, ",");

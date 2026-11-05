@@ -169,7 +169,7 @@ export function DateProperty({
   }, [value, dateFormat, timeFormat, dateFnsLocale]);
 
   if (!formattedDate) {
-    return <span className="text-muted-foreground text-sm">-</span>;
+    return null;
   }
 
   return <span className="whitespace-nowrap text-sm">{formattedDate}</span>;

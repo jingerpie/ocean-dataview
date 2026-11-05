@@ -1,14 +1,22 @@
 "use client";
 
 import type { FilterCondition, WhereRule } from "../../../types/filter.type";
-import type { PropertyMeta } from "../../../types/property.type";
-import { applyConditionChange } from "../../../utils/filter-variant";
+import {
+  getEffectiveType,
+  isDisplayRollup,
+  type PropertyMeta,
+} from "../../../types/property.type";
+import {
+  applyConditionChange,
+  applyQuantifierChange,
+} from "../../../utils/filter-variant";
 import { ConditionPicker } from "./condition-picker";
 import { CheckboxValueEditor } from "./properties/checkbox-filter";
 import { DateValueEditor } from "./properties/date-filter";
 import { SelectValueEditor } from "./properties/select-filter";
 import { StatusValueEditor } from "./properties/status-filter";
 import { TextValueEditor } from "./properties/text-filter";
+import { QuantifierPicker } from "./quantifier-picker";
 import { SimpleFilterActions } from "./simple-filter-actions";
 
 interface SimpleFilterEditorProps {
@@ -64,11 +72,22 @@ function SimpleFilterEditor({
           <span className="max-w-24 truncate font-medium text-muted-foreground text-xs">
             {displayName}
           </span>
+          {isDisplayRollup(property) && (
+            <QuantifierPicker
+              className="p-1 font-semibold text-xs"
+              inline
+              onQuantifierChange={(q) =>
+                onRuleChange(applyQuantifierChange(rule, q))
+              }
+              quantifier={rule.quantifier ?? "any"}
+            />
+          )}
           <ConditionPicker
             className="p-1 font-semibold text-xs"
             condition={rule.condition}
             inline
             onConditionChange={handleConditionChange}
+            property={property}
             propertyType={property.type}
           />
         </div>
@@ -157,6 +176,15 @@ function ValueEditor({ rule, property, onValueChange }: ValueEditorProps) {
     case "formula":
       // Only support isEmpty/isNotEmpty (handled above)
       return null;
+
+    case "rollup":
+      return (
+        <ValueEditor
+          onValueChange={onValueChange}
+          property={{ ...property, type: getEffectiveType(property) }}
+          rule={rule}
+        />
+      );
 
     default:
       return null;

@@ -2,6 +2,7 @@
 
 import { useInfiniteController } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
+import { BoardSkeleton, ToolbarSkeleton } from "@sparkyidea/dataview/skeletons";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import type {
   ColumnConfigInput,
@@ -10,6 +11,7 @@ import type {
   WhereNode,
 } from "@sparkyidea/dataview/types";
 import { BoardView } from "@sparkyidea/dataview/views/board-view";
+import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { DataViewTab } from "./dataview-tab";
 import { productProperties } from "./product-properties";
@@ -84,29 +86,44 @@ export function ProductBoardView({
   const groupConfigForView = group ? { ...group, showCount: true } : undefined;
 
   return (
-    <DataViewProvider
-      controller={controller}
-      defaults={{
-        column: columnConfigForView,
-        filter,
-        group: groupConfigForView,
-        limit,
-        search,
-        sort: sort ?? [],
-      }}
-      properties={productProperties}
+    <Suspense
+      fallback={
+        <div className="flex flex-col gap-2">
+          <ToolbarSkeleton enableSettings tabCount={productTabOptions.length} />
+          <BoardSkeleton
+            cardSize="medium"
+            cardsPerColumn={limit}
+            pagination="loadMore"
+            properties={productProperties}
+            withImage
+          />
+        </div>
+      }
     >
-      <NotionToolbar enableSettings>
-        <DataViewTab options={productTabOptions} />
-      </NotionToolbar>
-      <BoardView
-        cardPreview="productImage"
-        cardSize="medium"
-        colorColumns
-        fitMedia
-        pagination="loadMore"
-        stickyHeader={{ enabled: true, offset: 57 }}
-      />
-    </DataViewProvider>
+      <DataViewProvider
+        controller={controller}
+        defaults={{
+          column: columnConfigForView,
+          filter,
+          group: groupConfigForView,
+          limit,
+          search,
+          sort: sort ?? [],
+        }}
+        properties={productProperties}
+      >
+        <NotionToolbar enableSettings>
+          <DataViewTab options={productTabOptions} />
+        </NotionToolbar>
+        <BoardView
+          cardPreview="productImage"
+          cardSize="medium"
+          colorColumns
+          fitMedia
+          pagination="loadMore"
+          stickyHeader={{ enabled: true, offset: 57 }}
+        />
+      </DataViewProvider>
+    </Suspense>
   );
 }

@@ -23,11 +23,6 @@ interface StickyGroupLabelProps {
   className?: string;
 
   /**
-   * Reference to the group container element
-   */
-  containerRef: React.RefObject<HTMLElement | null>;
-
-  /**
    * Offset from top of scroll container (only used for vertical axis)
    */
   offset?: number;

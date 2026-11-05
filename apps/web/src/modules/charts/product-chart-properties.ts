@@ -30,16 +30,16 @@ export const categoryProperty = {
   type: "select",
   config: {
     options: [
-      { value: "Accessories", color: "blue" },
-      { value: "Bottoms", color: "purple" },
-      { value: "Dresses", color: "pink" },
-      { value: "Footwear", color: "yellow" },
-      { value: "Garden", color: "green" },
-      { value: "Home", color: "teal" },
-      { value: "Jewelry", color: "yellow" },
-      { value: "Lingerie", color: "red" },
-      { value: "Outerwear", color: "gray" },
-      { value: "Tops", color: "blue" },
+      { value: "Accessories", color: "blue-subtle" },
+      { value: "Bottoms", color: "purple-subtle" },
+      { value: "Dresses", color: "pink-subtle" },
+      { value: "Footwear", color: "yellow-subtle" },
+      { value: "Garden", color: "green-subtle" },
+      { value: "Home", color: "teal-subtle" },
+      { value: "Jewelry", color: "yellow-subtle" },
+      { value: "Lingerie", color: "red-subtle" },
+      { value: "Outerwear", color: "gray-subtle" },
+      { value: "Tops", color: "blue-subtle" },
     ],
   },
 } as const satisfies DataViewProperty<Product>;
@@ -51,9 +51,9 @@ export const availabilityProperty = {
   type: "select",
   config: {
     options: [
-      { value: "In stock", color: "green" },
-      { value: "Low stock", color: "yellow" },
-      { value: "Out of stock", color: "red" },
+      { value: "In stock", color: "green-subtle" },
+      { value: "Low stock", color: "yellow-subtle" },
+      { value: "Out of stock", color: "red-subtle" },
     ],
   },
 } as const satisfies DataViewProperty<Product>;

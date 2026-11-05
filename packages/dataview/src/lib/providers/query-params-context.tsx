@@ -318,11 +318,20 @@ export function QueryParamsProvider({
   const setFilter = useCallback(
     (newFilter: WhereNode[] | null) => {
       startTransition(() => {
-        void setUrlFilter(newFilter);
+        // When defaults exist and user clears filter, write explicit empty []
+        // to prevent fallback to defaults. null means "no URL param" which
+        // triggers default; [] means "user explicitly cleared".
+        let value: WhereNode[] | null = null;
+        if (newFilter && newFilter.length > 0) {
+          value = newFilter;
+        } else if (defaultFilter) {
+          value = [];
+        }
+        void setUrlFilter(value);
         void setUrlCursors(null);
       });
     },
-    [setUrlFilter, setUrlCursors]
+    [setUrlFilter, setUrlCursors, defaultFilter]
   );
 
   const setGroup = useCallback(
@@ -358,11 +367,20 @@ export function QueryParamsProvider({
   const setSort = useCallback(
     (newSort: SortQuery[]) => {
       startTransition(() => {
-        void setUrlSort(newSort.length > 0 ? newSort : null);
+        // When defaults exist and user clears sort, write explicit empty
+        // to prevent fallback to defaults. null means "no URL param" which
+        // triggers default; [] means "user explicitly cleared".
+        let value: SortQuery[] | null = null;
+        if (newSort.length > 0) {
+          value = newSort;
+        } else if (defaultSort.length > 0) {
+          value = [];
+        }
+        void setUrlSort(value);
         void setUrlCursors(null);
       });
     },
-    [setUrlSort, setUrlCursors]
+    [setUrlSort, setUrlCursors, defaultSort]
   );
 
   // ============================================================================

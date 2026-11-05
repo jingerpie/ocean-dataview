@@ -2,6 +2,7 @@
 
 import { useInfiniteController } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
+import { ListSkeleton, ToolbarSkeleton } from "@sparkyidea/dataview/skeletons";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import type {
   GroupConfigInput,
@@ -9,6 +10,7 @@ import type {
   WhereNode,
 } from "@sparkyidea/dataview/types";
 import { ListView } from "@sparkyidea/dataview/views/list-view";
+import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { DataViewTab } from "./dataview-tab";
 import { productListProperties } from "./product-list-properties";
@@ -54,24 +56,37 @@ export function ProductListView({
   const groupConfigForView = group ? { ...group, showCount: true } : undefined;
 
   return (
-    <DataViewProvider
-      controller={controller}
-      defaults={{
-        filter,
-        group: groupConfigForView,
-        limit,
-        search,
-        sort: sort ?? [],
-      }}
-      properties={productListProperties}
+    <Suspense
+      fallback={
+        <div className="flex flex-col gap-2">
+          <ToolbarSkeleton enableSettings tabCount={productTabOptions.length} />
+          <ListSkeleton
+            pagination="loadMore"
+            properties={productListProperties}
+            rowCount={limit}
+          />
+        </div>
+      }
     >
-      <NotionToolbar enableSettings>
-        <DataViewTab options={productTabOptions} />
-      </NotionToolbar>
-      <ListView
-        pagination="loadMore"
-        stickyHeader={{ enabled: true, offset: 57 }}
-      />
-    </DataViewProvider>
+      <DataViewProvider
+        controller={controller}
+        defaults={{
+          filter,
+          group: groupConfigForView,
+          limit,
+          search,
+          sort: sort ?? [],
+        }}
+        properties={productListProperties}
+      >
+        <NotionToolbar enableSettings>
+          <DataViewTab options={productTabOptions} />
+        </NotionToolbar>
+        <ListView
+          pagination="loadMore"
+          stickyHeader={{ enabled: true, offset: 57 }}
+        />
+      </DataViewProvider>
+    </Suspense>
   );
 }
