@@ -1,7 +1,7 @@
 "use client";
 
+import { type TabOption, usePresetTabs } from "@sparkyidea/dataview-react";
 import type { ReactNode } from "react";
-import { type TabOption, usePresetTabs } from "../../hooks/use-preset-tabs";
 import { cn } from "../lib/utils";
 import {
   Select,
@@ -12,7 +12,7 @@ import {
 } from "../ui/select";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 
-export type { TabOption } from "../../hooks/use-preset-tabs";
+export type { TabOption } from "@sparkyidea/dataview-react";
 
 interface PresetTabsProps {
   /** Accessible name for the tab list (and the mobile select) */

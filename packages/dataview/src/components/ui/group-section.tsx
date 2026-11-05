@@ -1,8 +1,8 @@
 "use client";
 
+import type { DataViewProperty, NumberConfig } from "@sparkyidea/dataview-core";
+import { useGroupParams } from "@sparkyidea/dataview-react";
 import { useRef } from "react";
-import { useGroupParams } from "../../hooks/use-group-params";
-import type { DataViewProperty, NumberConfig } from "../../types/property.type";
 import { DataCell } from "../views/data-cell";
 import { StickyGroupLabel } from "../views/sticky-group-label";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "./accordion";

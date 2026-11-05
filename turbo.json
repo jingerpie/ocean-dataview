@@ -17,12 +17,15 @@
       "dependsOn": ["^lint"]
     },
     "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": ["^build", "^check-types"]
     },
-    "test": {},
+    "test": {
+      "dependsOn": ["^build"]
+    },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "dependsOn": ["^build"]
     },
     "db:push": {
       "cache": false,

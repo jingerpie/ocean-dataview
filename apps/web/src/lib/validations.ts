@@ -1,17 +1,17 @@
-import {
-  createDataViewParamsCache,
-  type InferParamsType,
-} from "@sparkyidea/dataview/parsers";
 import type {
   ColumnConfigInput,
   SortQuery,
   WhereNode,
-} from "@sparkyidea/dataview/types";
+} from "@sparkyidea/dataview-core";
 import {
   validateColumn,
   validateFilter,
   validateSort,
-} from "@sparkyidea/dataview/validators";
+} from "@sparkyidea/dataview-core";
+import {
+  createDataViewParamsCache,
+  type InferParamsType,
+} from "@sparkyidea/dataview-react/nuqs/server";
 import { productProperties } from "@/modules/dataview/product-properties";
 
 // ============================================================================

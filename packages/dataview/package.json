@@ -1,19 +1,13 @@
 {
-  "name": "@sparkyidea/dataview",
+  "name": "@sparkyidea/dataview-ui",
   "type": "module",
   "exports": {
     "./styles.css": "./src/styles.css",
     "./postcss.config": "./postcss.config.mjs",
-    "./validators": "./src/validators/index.ts",
-    "./parsers": "./src/parsers/index.ts",
-    "./providers": "./src/lib/providers/index.ts",
     "./views/*": "./src/components/views/*/index.tsx",
     "./toolbars/notion": "./src/components/toolbars/notion/toolbar.tsx",
     "./preset-tabs": "./src/components/preset-tabs/index.tsx",
     "./properties": "./src/components/ui/properties/index.ts",
-    "./hooks": "./src/hooks/index.ts",
-    "./types": "./src/types/index.ts",
-    "./utils": "./src/utils/index.ts",
     "./skeletons": "./src/components/skeletons/index.ts",
     "./image": "./src/components/lib/image.tsx"
   },
@@ -27,22 +21,20 @@
     "@dnd-kit/core": "catalog:",
     "@dnd-kit/sortable": "catalog:",
     "@dnd-kit/utilities": "catalog:",
-    "@tanstack/react-query": "catalog:",
+    "@sparkyidea/dataview-core": "workspace:*",
+    "@sparkyidea/dataview-react": "workspace:*",
     "@tanstack/react-table": "catalog:",
-    "chrono-node": "catalog:",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "cmdk": "catalog:",
     "date-fns": "catalog:",
     "lucide-react": "catalog:",
-    "nuqs": "catalog:",
     "react": "catalog:",
     "react-day-picker": "catalog:",
     "react-dom": "catalog:",
     "recharts": "catalog:",
     "tailwind-merge": "catalog:",
-    "usehooks-ts": "catalog:",
-    "zod": "catalog:"
+    "usehooks-ts": "catalog:"
   },
   "devDependencies": {
     "@sparkyidea/config": "workspace:*",
@@ -57,5 +49,6 @@
   },
   "peerDependencies": {
     "typescript": "catalog:"
-  }
+  },
+  "private": true
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { SelectProperty } from "@sparkyidea/dataview/properties";
+import { SelectProperty } from "@sparkyidea/dataview-ui/properties";
 
 const config = {
   options: [

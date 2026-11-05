@@ -1,5 +1,7 @@
 "use client";
 
+import type { DateConfig } from "@sparkyidea/dataview-core";
+import { getUserLocale } from "@sparkyidea/dataview-core";
 import type { Locale } from "date-fns";
 import {
   differenceInDays,
@@ -10,8 +12,6 @@ import {
 // biome-ignore lint/performance/noNamespaceImport: Dynamic locale lookup requires all locales
 import * as locales from "date-fns/locale";
 import { useMemo } from "react";
-import type { DateConfig } from "../../../types/property.type";
-import { getUserLocale } from "../../../utils/locale-helpers";
 
 /**
  * Get the date-fns locale object for a given locale string

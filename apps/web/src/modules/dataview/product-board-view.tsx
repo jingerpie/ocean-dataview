@@ -1,19 +1,23 @@
 "use client";
 
-import { useInfiniteController } from "@sparkyidea/dataview/hooks";
-import {
-  DataViewContent,
-  DataViewProvider,
-} from "@sparkyidea/dataview/providers";
-import { BoardSkeleton, ToolbarSkeleton } from "@sparkyidea/dataview/skeletons";
-import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import type {
   ColumnConfigInput,
   GroupConfigInput,
   Limit,
   WhereNode,
-} from "@sparkyidea/dataview/types";
-import { BoardView } from "@sparkyidea/dataview/views/board-view";
+} from "@sparkyidea/dataview-core";
+import {
+  DataViewContent,
+  DataViewProvider,
+  useInfiniteController,
+} from "@sparkyidea/dataview-react";
+import { useNuqsDataViewState } from "@sparkyidea/dataview-react/nuqs";
+import {
+  BoardSkeleton,
+  ToolbarSkeleton,
+} from "@sparkyidea/dataview-ui/skeletons";
+import { NotionToolbar } from "@sparkyidea/dataview-ui/toolbars/notion";
+import { BoardView } from "@sparkyidea/dataview-ui/views/board-view";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { DataViewTab } from "./dataview-tab";
@@ -54,6 +58,7 @@ export function ProductBoardView({
   } as const;
   const effectiveColumnConfig = column ?? defaultColumnConfig;
 
+  const state = useNuqsDataViewState();
   const { controller } = useInfiniteController({
     columnQuery: (params) => trpc.product.getGroup.queryOptions(params),
 
@@ -114,6 +119,7 @@ export function ProductBoardView({
           sort: sort ?? [],
         }}
         properties={productProperties}
+        state={state}
       >
         <div className="flex flex-col gap-2">
           <NotionToolbar enableSettings>

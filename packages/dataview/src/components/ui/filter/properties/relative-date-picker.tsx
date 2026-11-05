@@ -5,7 +5,7 @@ import {
   type RelativeDirection,
   type RelativeToTodayValue,
   type RelativeUnit,
-} from "../../../../utils/relative-date";
+} from "@sparkyidea/dataview-core";
 import { Calendar } from "../../calendar";
 import { Input } from "../../input";
 import {
@@ -187,6 +187,6 @@ function RelativeDatePicker({ value, onChange }: RelativeDatePickerProps) {
   return <RelativeDateDropdowns onChange={onChange} value={value} />;
 }
 
-export type { RelativeToTodayValue } from "../../../../utils/relative-date";
+export type { RelativeToTodayValue } from "@sparkyidea/dataview-core";
 export type { RelativeDatePickerProps };
 export { RelativeDatePicker, RelativeDatePickerContent };

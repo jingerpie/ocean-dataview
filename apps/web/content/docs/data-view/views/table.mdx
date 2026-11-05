@@ -22,10 +22,10 @@ import { Callout } from "fumadocs-ui/components/callout";
 ## Basic Usage
 
 ```tsx
-import { usePageController } from "@sparkyidea/dataview/hooks";
-import { DataViewContent, DataViewProvider } from "@sparkyidea/dataview/providers";
-import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
-import { TableView } from "@sparkyidea/dataview/views/table-view";
+import { usePageController } from "@sparkyidea/dataview-react";
+import { DataViewContent, DataViewProvider } from "@sparkyidea/dataview-react";
+import { NotionToolbar } from "@sparkyidea/dataview-ui/toolbars/notion";
+import { TableView } from "@sparkyidea/dataview-ui/views/table-view";
 
 const { controller } = usePageController({
   groupQuery: (params) => trpc.product.getGroup.infiniteQueryOptions({
@@ -54,10 +54,10 @@ const { controller } = usePageController({
 
 ## Loading State
 
-`DataViewProvider` and flat views do not render a built-in Suspense fallback. Wrap the provider in your own `Suspense` boundary and use the skeletons from `@sparkyidea/dataview/skeletons` (`TableSkeleton`, `ListSkeleton`, `BoardSkeleton`, `GallerySkeleton`, `ToolbarSkeleton`). Grouped views still suspend per group section.
+`DataViewProvider` and flat views do not render a built-in Suspense fallback. Wrap the provider in your own `Suspense` boundary and use the skeletons from `@sparkyidea/dataview-ui/skeletons` (`TableSkeleton`, `ListSkeleton`, `BoardSkeleton`, `GallerySkeleton`, `ToolbarSkeleton`). Grouped views still suspend per group section.
 
 ```tsx
-import { TableSkeleton, ToolbarSkeleton } from "@sparkyidea/dataview/skeletons";
+import { TableSkeleton, ToolbarSkeleton } from "@sparkyidea/dataview-ui/skeletons";
 import { Suspense } from "react";
 
 <Suspense
@@ -139,7 +139,7 @@ Handle row clicks for navigation or detail views:
 
 ## Grouped Tables
 
-When grouping is enabled (via `?group=...` URL param), tables render inside accordion sections. Grouping is controlled by URL state and the toolbar's settings panel.
+When grouping is enabled (from the toolbar's settings panel, `defaults.group`, or `?group=...` with URL state), tables render inside accordion sections.
 
 Each group has:
 - Sticky header with group label and count

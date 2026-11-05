@@ -1,6 +1,6 @@
 "use client";
 
-import { NumberProperty } from "@sparkyidea/dataview/properties";
+import { NumberProperty } from "@sparkyidea/dataview-ui/properties";
 
 export function NumberPropertyDemo() {
   return (

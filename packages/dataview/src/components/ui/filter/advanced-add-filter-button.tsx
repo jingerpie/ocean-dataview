@@ -1,9 +1,8 @@
 "use client";
 
+import type { PropertyMeta, WhereRule } from "@sparkyidea/dataview-core";
+import { createRuleFromProperty } from "@sparkyidea/dataview-core";
 import { ChevronDownIcon, CopyPlusIcon, PlusIcon } from "lucide-react";
-import type { WhereRule } from "../../../types/filter.type";
-import type { PropertyMeta } from "../../../types/property.type";
-import { createRuleFromProperty } from "../../../utils/filter-variant";
 import { cn } from "../../lib/utils";
 import { Button } from "../button";
 import {

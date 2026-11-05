@@ -1,8 +1,8 @@
 "use client";
 
+import type { PropertyMeta } from "@sparkyidea/dataview-core";
+import { useSortParams } from "@sparkyidea/dataview-react";
 import { useCallback, useMemo } from "react";
-import { useSortParams } from "../../../hooks/use-sort-params";
-import type { PropertyMeta } from "../../../types/property.type";
 import {
   Command,
   CommandEmpty,

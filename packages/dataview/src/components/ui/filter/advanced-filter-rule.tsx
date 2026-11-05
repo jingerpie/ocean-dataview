@@ -1,16 +1,14 @@
 "use client";
 
-import type { FilterCondition, WhereRule } from "../../../types/filter.type";
-import {
-  getEffectiveType,
-  isDisplayRollup,
-  type PropertyMeta,
-} from "../../../types/property.type";
+import type { FilterCondition, WhereRule } from "@sparkyidea/dataview-core";
 import {
   applyConditionChange,
   applyQuantifierChange,
   createRuleFromProperty,
-} from "../../../utils/filter-variant";
+  getEffectiveType,
+  isDisplayRollup,
+  type PropertyMeta,
+} from "@sparkyidea/dataview-core";
 import { cn } from "../../lib/utils";
 import { AdvancedFilterActions } from "./advanced-filter-actions";
 import { LogicPicker } from "./advanced-filter-logic-picker";

@@ -1,7 +1,7 @@
 "use client";
 
+import type { StatusConfig } from "@sparkyidea/dataview-core";
 import { CircleDashed } from "lucide-react";
-import type { StatusConfig } from "../../../types/property.type";
 import { getBadgeVariant } from "../../lib/get-badge-variant";
 import { Badge } from "../badge";
 

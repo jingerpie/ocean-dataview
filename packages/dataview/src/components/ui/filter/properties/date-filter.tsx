@@ -1,7 +1,6 @@
 "use client";
 
-import type { WhereRule } from "../../../../types/filter.type";
-import type { PropertyMeta } from "../../../../types/property.type";
+import type { PropertyMeta, WhereRule } from "@sparkyidea/dataview-core";
 import type { DateRangeValue } from "./range-date-picker";
 import { RangeDatePicker, RangeDatePickerContent } from "./range-date-picker";
 import type { RelativeToTodayValue } from "./relative-date-picker";

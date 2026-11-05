@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useLoadMoreSentinel } from "../../hooks/use-load-more-sentinel";
+import { useLoadMoreSentinel } from "../hooks/use-load-more-sentinel";
 
 interface InfiniteScrollGroupsSentinelProps {
   hasNext?: boolean;

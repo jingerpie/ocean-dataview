@@ -1,13 +1,14 @@
 "use client";
 
+import {
+  getSkeletonProps,
+  ROW_PATTERNS,
+  ROW_SKELETON_WIDTHS,
+  type SkeletonPropertyLike,
+} from "@sparkyidea/dataview-core";
 import { cn } from "../lib/utils";
 import { PaginationSkeleton } from "../ui/pagination/pagination-skeleton";
 import { Skeleton } from "../ui/skeleton";
-import {
-  getSkeletonProps,
-  type SkeletonPropertyLike,
-} from "./get-skeleton-props";
-import { ROW_PATTERNS, ROW_SKELETON_WIDTHS } from "./skeleton-widths";
 
 type PaginationMode = "page" | "loadMore" | "infiniteScroll";
 

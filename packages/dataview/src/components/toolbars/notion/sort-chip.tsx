@@ -1,8 +1,7 @@
 "use client";
 
-import { useSortBuilder } from "../../../hooks/use-sort-builder";
-import { useSortParams } from "../../../hooks/use-sort-params";
-import type { PropertyMeta } from "../../../types/property.type";
+import type { PropertyMeta } from "@sparkyidea/dataview-core";
+import { useSortBuilder, useSortParams } from "@sparkyidea/dataview-react";
 import { SortBulkEditor } from "../../ui/sort/sort-bulk-editor";
 import { SortTrigger } from "../../ui/sort/sort-trigger";
 

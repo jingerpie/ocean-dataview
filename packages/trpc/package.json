@@ -10,11 +10,11 @@
     }
   },
   "scripts": {
-    "check-types": "tsc --noEmit",
-    "test": "bun test src/lib"
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@sparkyidea/dataview": "workspace:*",
+    "@sparkyidea/dataview-core": "workspace:*",
+    "@sparkyidea/dataview-drizzle": "workspace:*",
     "@sparkyidea/db": "workspace:*",
     "@sparkyidea/env": "workspace:*",
     "@trpc/client": "catalog:",

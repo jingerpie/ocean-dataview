@@ -1,12 +1,12 @@
 "use client";
 
-import { CheckIcon } from "lucide-react";
-import { useCallback } from "react";
+import type { GroupByConfig } from "@sparkyidea/dataview-core";
 import {
   type GroupingMode,
   useGroupingParams,
-} from "../../../hooks/use-grouping-params";
-import type { GroupByConfig } from "../../../types/group.type";
+} from "@sparkyidea/dataview-react";
+import { CheckIcon } from "lucide-react";
+import { useCallback } from "react";
 import { Command, CommandGroup, CommandItem, CommandList } from "../command";
 
 // Property types that support "Show As" options

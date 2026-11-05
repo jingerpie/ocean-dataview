@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckboxProperty } from "@sparkyidea/dataview/properties";
+import { CheckboxProperty } from "@sparkyidea/dataview-ui/properties";
 
 export function CheckboxPropertyDemo() {
   return (

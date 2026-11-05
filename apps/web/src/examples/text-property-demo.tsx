@@ -1,6 +1,6 @@
 "use client";
 
-import { TextProperty } from "@sparkyidea/dataview/properties";
+import { TextProperty } from "@sparkyidea/dataview-ui/properties";
 
 export function TextPropertyDemo() {
   return (

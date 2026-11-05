@@ -1,7 +1,7 @@
 "use client";
 
+import { useToolbarContext } from "@sparkyidea/dataview-react";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { useToolbarContext } from "../../../../lib/providers/toolbar-context";
 import {
   Command,
   CommandEmpty,

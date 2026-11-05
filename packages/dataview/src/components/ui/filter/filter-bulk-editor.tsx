@@ -1,10 +1,10 @@
 "use client";
 
+import type { PropertyMeta } from "@sparkyidea/dataview-core";
+import { isWhereRule, type WhereRule } from "@sparkyidea/dataview-core";
+import { useFilterParams } from "@sparkyidea/dataview-react";
 import { ChevronDownIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { useFilterParams } from "../../../hooks/use-filter-params";
-import { isWhereRule, type WhereRule } from "../../../types/filter.type";
-import type { PropertyMeta } from "../../../types/property.type";
 import {
   Command,
   CommandGroup,

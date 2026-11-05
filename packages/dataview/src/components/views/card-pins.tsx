@@ -3,14 +3,14 @@
 import type {
   CardPinPosition,
   DataViewProperty,
-} from "../../types/property.type";
-import { isPropertyValueEmpty } from "../../utils/is-property-value-empty";
+} from "@sparkyidea/dataview-core";
 import {
   CARD_PIN_POSITIONS,
   type CardPinsByPosition,
+  isPropertyValueEmpty,
   type ResolvedCardPin,
-} from "../../utils/resolve-card-pins";
-import { resolveShowName } from "../../utils/resolve-show-name";
+  resolveShowName,
+} from "@sparkyidea/dataview-core";
 import {
   getShowNameValueClasses,
   getShowNameWrapperClasses,

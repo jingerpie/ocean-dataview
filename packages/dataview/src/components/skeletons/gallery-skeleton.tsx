@@ -1,15 +1,15 @@
 "use client";
 
+import {
+  CARD_SKELETON_WIDTHS,
+  getSkeletonProps,
+  type SkeletonPropertyLike,
+} from "@sparkyidea/dataview-core";
 import { getGalleryCardDimensions } from "../lib/get-card-sizes";
 import { cn } from "../lib/utils";
 import { Card, CardContent } from "../ui/card";
 import { PaginationSkeleton } from "../ui/pagination/pagination-skeleton";
 import { Skeleton } from "../ui/skeleton";
-import {
-  getSkeletonProps,
-  type SkeletonPropertyLike,
-} from "./get-skeleton-props";
-import { CARD_SKELETON_WIDTHS } from "./skeleton-widths";
 
 type PaginationMode = "page" | "loadMore" | "infiniteScroll";
 

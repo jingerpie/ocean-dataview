@@ -1,12 +1,12 @@
 "use client";
 
-import { CheckIcon } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import type { PropertyMeta } from "@sparkyidea/dataview-core";
 import {
   type GroupingMode,
   useGroupingParams,
-} from "../../../hooks/use-grouping-params";
-import type { PropertyMeta } from "../../../types/property.type";
+} from "@sparkyidea/dataview-react";
+import { CheckIcon } from "lucide-react";
+import { useCallback, useMemo } from "react";
 import {
   Command,
   CommandEmpty,

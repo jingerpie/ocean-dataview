@@ -1,12 +1,13 @@
 "use client";
 
+import type { PropertyMeta } from "@sparkyidea/dataview-core";
+import { createRuleFromProperty, isWhereRule } from "@sparkyidea/dataview-core";
+import {
+  useAdvanceFilterBuilder,
+  useFilterParams,
+} from "@sparkyidea/dataview-react";
 import { PlusIcon } from "lucide-react";
 import { useCallback, useMemo } from "react";
-import { useAdvanceFilterBuilder } from "../../../hooks/use-advance-filter-builder";
-import { useFilterParams } from "../../../hooks/use-filter-params";
-import { isWhereRule } from "../../../types/filter.type";
-import type { PropertyMeta } from "../../../types/property.type";
-import { createRuleFromProperty } from "../../../utils/filter-variant";
 import {
   Command,
   CommandEmpty,

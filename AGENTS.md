@@ -21,11 +21,16 @@ This is a Turborepo monorepo containing a full-stack data visualization platform
 
 ### Packages
 
-- **packages/dataview** - Core React components (`@sparkyidea/dataview`)
-  - View components: TableView, ListView, GalleryView, BoardView
-  - Hooks: pagination, filtering, sorting, grouping
-  - Providers: DataViewProvider, QueryBridge, ToolbarContext
-  - UI components: toolbar, filters, pagination controls
+- **packages/dataview-core** - Framework-neutral logic (`@sparkyidea/dataview-core`, published)
+  - Types, validators, URL codecs, transport schemas, `DataViewRegister`
+  - No React, nuqs, or styling imports (enforced by a boundary test)
+- **packages/dataview-react** - Headless React layer (`@sparkyidea/dataview-react`, published)
+  - Providers (DataViewProvider, DataViewContent, QueryBridge), controllers, hooks
+  - `/nuqs` (URL state adapter) and `/nuqs/server` (parsers, params cache)
+- **packages/dataview-drizzle** - PostgreSQL SQL builders (`@sparkyidea/dataview-drizzle`, published)
+- **packages/dataview** - Styled UI (`@sparkyidea/dataview-ui`, private)
+  - Views, Notion toolbar, property renderers, skeletons, shadcn primitives
+  - Imports the headless packages through their public exports only
 
 - **packages/db** - Database layer (`@sparkyidea/db`)
   - Drizzle ORM schema and migrations
@@ -370,20 +375,19 @@ refactor(shared): simplify filter parser
 ### Add a new view type
 
 1. Create `packages/dataview/src/components/views/new-view/index.tsx`
-2. Use `useDataViewContext()` and `useViewSetup()`
+2. Use `useDataViewContext()` and `useViewSetup()` from `@sparkyidea/dataview-react`
 3. Implement with Suspense boundaries per group
-4. Add static properties (`dataViewType`, `defaultLimit`)
-5. Export via package.json exports
+4. Export via package.json exports
 
 ### Add a filter condition
 
-1. Add to conditionValues in `packages/shared/src/types/filter.type.ts`
-2. Implement in `packages/trpc/src/lib/filter-columns.ts`
-3. Add UI in `packages/dataview/src/components/ui/toolbar/filter/`
+1. Add to conditionValues in `packages/dataview-core/src/types/filter.type.ts`
+2. Implement SQL in `packages/dataview-drizzle/src/build-filter.ts`
+3. Add UI in `packages/dataview/src/components/ui/filter/`
 
 ### Add a property type
 
-1. Add to PropertyType enum in `packages/dataview/src/types/`
+1. Add to PropertyType in `packages/dataview-core/src/types/filter.type.ts`
 2. Create config interface
 3. Implement cell rendering
 4. Add filter/group/sort handling
@@ -399,11 +403,13 @@ refactor(shared): simplify filter parser
 | Purpose | Location |
 |---------|----------|
 | View components | `packages/dataview/src/components/views/` |
-| Hooks | `packages/dataview/src/hooks/` |
-| Context providers | `packages/dataview/src/lib/providers/` |
-| Type definitions | `packages/shared/src/types/` |
-| URL parsers | `packages/shared/src/utils/parsers/` |
+| Hooks | `packages/dataview-react/src/hooks/` |
+| Context providers | `packages/dataview-react/src/providers/` |
+| Type definitions | `packages/dataview-core/src/types/` |
+| URL codecs | `packages/dataview-core/src/codecs/` |
+| nuqs parsers | `packages/dataview-react/src/nuqs/` |
 | tRPC routers | `packages/trpc/src/routers/` |
-| SQL builders | `packages/trpc/src/lib/` |
+| SQL builders | `packages/dataview-drizzle/src/` |
+| Package fixtures | `fixtures/` (run `bun run verify:packages`) |
 | DB schema | `packages/db/src/schema/` |
 | Architecture docs | `docs/` |

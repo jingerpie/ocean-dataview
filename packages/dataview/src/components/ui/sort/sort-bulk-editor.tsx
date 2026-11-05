@@ -15,10 +15,10 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import type { PropertyMeta } from "@sparkyidea/dataview-core";
+import { useSortParams } from "@sparkyidea/dataview-react";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { useSortParams } from "../../../hooks/use-sort-params";
-import type { PropertyMeta } from "../../../types/property.type";
 import { Command, CommandGroup, CommandItem, CommandList } from "../command";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { SortEditor } from "./sort-editor";

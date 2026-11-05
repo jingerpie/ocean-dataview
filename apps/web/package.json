@@ -10,11 +10,13 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
-    "@sparkyidea/dataview": "workspace:*",
-    "@sparkyidea/ui": "workspace:*",
     "@base-ui/react": "catalog:",
-    "@sparkyidea/trpc": "workspace:*",
+    "@sparkyidea/dataview-core": "workspace:*",
+    "@sparkyidea/dataview-react": "workspace:*",
+    "@sparkyidea/dataview-ui": "workspace:*",
     "@sparkyidea/env": "workspace:*",
+    "@sparkyidea/trpc": "workspace:*",
+    "@sparkyidea/ui": "workspace:*",
     "@takumi-rs/image-response": "catalog:",
     "@tanstack/react-form": "catalog:",
     "@tanstack/react-query": "catalog:",
@@ -23,7 +25,6 @@
     "@trpc/tanstack-react-query": "catalog:",
     "babel-plugin-react-compiler": "catalog:",
     "class-variance-authority": "catalog:",
-    "nuqs": "catalog:",
     "clsx": "catalog:",
     "dotenv": "catalog:",
     "fumadocs-core": "catalog:",
@@ -32,14 +33,15 @@
     "lucide-react": "catalog:",
     "next": "catalog:",
     "next-themes": "catalog:",
+    "nuqs": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "shadcn": "catalog:",
     "sonner": "catalog:",
+    "superjson": "catalog:",
     "tailwind-merge": "catalog:",
     "tw-animate-css": "catalog:",
-    "zod": "catalog:",
-    "superjson": "catalog:"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@sparkyidea/config": "workspace:*",

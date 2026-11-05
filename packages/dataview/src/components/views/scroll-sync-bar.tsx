@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { ScrollSync } from "../../hooks/use-scroll-sync";
+import type { ScrollSync } from "../hooks/use-scroll-sync";
 
 /**
  * A visible horizontal scrollbar that syncs with all registered scroll

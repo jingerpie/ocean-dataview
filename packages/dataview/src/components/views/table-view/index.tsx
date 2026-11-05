@@ -1,24 +1,30 @@
 "use client";
 
 import type {
+  BulkAction,
+  DataViewProperty,
+  PaginationContext,
+} from "@sparkyidea/dataview-core";
+import { transformData, UNGROUPED_KEY } from "@sparkyidea/dataview-core";
+import type {
+  GroupedDataItem,
+  UseGroupQueryResult,
+  UseInfiniteGroupQueryResult,
+} from "@sparkyidea/dataview-react";
+import {
+  DEFAULT_LIMIT,
+  useDataViewContext,
+  useDisplayProperties,
+  useViewSetup,
+} from "@sparkyidea/dataview-react";
+import type {
   ColumnDef,
   RowSelectionState,
   Table as TanStackTable,
 } from "@tanstack/react-table";
 import { AlertCircle } from "lucide-react";
 import { Suspense, useMemo, useState } from "react";
-import { useDisplayProperties } from "../../../hooks/use-display-properties";
-import type { GroupedDataItem } from "../../../hooks/use-group-config";
-import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
-import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
-import { useScrollSync } from "../../../hooks/use-scroll-sync";
-import { useViewSetup } from "../../../hooks/use-view-setup";
-import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import { DEFAULT_LIMIT } from "../../../lib/providers/data-view-provider";
-import type { BulkAction } from "../../../types/action.type";
-import type { PaginationContext } from "../../../types/pagination";
-import type { DataViewProperty } from "../../../types/property.type";
-import { transformData } from "../../../utils/transform-data";
+import { useScrollSync } from "../../hooks/use-scroll-sync";
 import { TableSkeleton } from "../../skeletons/table-skeleton";
 import { Accordion } from "../../ui/accordion";
 import {
@@ -392,7 +398,7 @@ export function TableView<
       columns={columns}
       enableRowSelection={enableRowSelection}
       groupItem={{
-        key: "__ungrouped__",
+        key: UNGROUPED_KEY,
         items: [],
         count: 0,
         displayCount: "0",
@@ -416,7 +422,7 @@ export function TableView<
       columns={columns}
       enableRowSelection={enableRowSelection}
       groupItem={{
-        key: "__ungrouped__",
+        key: UNGROUPED_KEY,
         items: [],
         count: 0,
         displayCount: "0",

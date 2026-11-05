@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  getSkeletonProps,
+  type SkeletonPropertyLike,
+  TABLE_COLUMN_WIDTHS,
+} from "@sparkyidea/dataview-core";
 import { cn } from "../lib/utils";
 import type { PaginationMode } from "../ui/pagination";
 import { PaginationSkeleton } from "../ui/pagination/pagination-skeleton";
@@ -12,11 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import {
-  getSkeletonProps,
-  type SkeletonPropertyLike,
-} from "./get-skeleton-props";
-import { TABLE_COLUMN_WIDTHS } from "./skeleton-widths";
 
 interface TableSkeletonProps extends React.ComponentProps<"div"> {
   /**

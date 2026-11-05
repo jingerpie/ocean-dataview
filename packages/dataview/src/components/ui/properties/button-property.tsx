@@ -1,6 +1,6 @@
 "use client";
 
-import type { ButtonAction } from "../../../types/property.type";
+import type { ButtonAction } from "@sparkyidea/dataview-core";
 import { Button } from "../button";
 import { ButtonGroup } from "../button-group";
 

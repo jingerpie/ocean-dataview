@@ -1,15 +1,13 @@
 "use client";
 
-import type { FilterCondition, WhereRule } from "../../../types/filter.type";
-import {
-  getEffectiveType,
-  isDisplayRollup,
-  type PropertyMeta,
-} from "../../../types/property.type";
+import type { FilterCondition, WhereRule } from "@sparkyidea/dataview-core";
 import {
   applyConditionChange,
   applyQuantifierChange,
-} from "../../../utils/filter-variant";
+  getEffectiveType,
+  isDisplayRollup,
+  type PropertyMeta,
+} from "@sparkyidea/dataview-core";
 import { ConditionPicker } from "./condition-picker";
 import { CheckboxValueEditor } from "./properties/checkbox-filter";
 import { DateValueEditor } from "./properties/date-filter";

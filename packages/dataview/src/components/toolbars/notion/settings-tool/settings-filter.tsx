@@ -1,7 +1,7 @@
 "use client";
 
-import { useFilterParams } from "../../../../hooks/use-filter-params";
-import type { PropertyMeta } from "../../../../types/property.type";
+import type { PropertyMeta } from "@sparkyidea/dataview-core";
+import { useFilterParams } from "@sparkyidea/dataview-react";
 import { FilterBulkEditor } from "../../../ui/filter/filter-bulk-editor";
 import { SimpleFilterPicker } from "../../../ui/filter/simple-filter-picker";
 

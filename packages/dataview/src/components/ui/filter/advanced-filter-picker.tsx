@@ -1,8 +1,8 @@
 "use client";
 
+import type { PropertyMeta } from "@sparkyidea/dataview-core";
 import { ChevronDownIcon } from "lucide-react";
 import { useMemo, useState } from "react";
-import type { PropertyMeta } from "../../../types/property.type";
 import { Button } from "../button";
 import {
   Command,

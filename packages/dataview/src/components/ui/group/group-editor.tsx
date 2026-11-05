@@ -1,12 +1,12 @@
 "use client";
 
-import { ChevronRightIcon } from "lucide-react";
-import { useState } from "react";
+import type { PropertyMeta } from "@sparkyidea/dataview-core";
 import {
   type GroupingMode,
   useGroupingParams,
-} from "../../../hooks/use-grouping-params";
-import type { PropertyMeta } from "../../../types/property.type";
+} from "@sparkyidea/dataview-react";
+import { ChevronRightIcon } from "lucide-react";
+import { useState } from "react";
 import { Command, CommandGroup, CommandItem, CommandList } from "../command";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { GroupDirectionPicker } from "./group-direction-picker";

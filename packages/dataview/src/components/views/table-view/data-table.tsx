@@ -1,5 +1,6 @@
 "use client";
 
+import { rowId } from "@sparkyidea/dataview-core";
 import {
   type ColumnDef,
   flexRender,
@@ -10,7 +11,7 @@ import {
 } from "@tanstack/react-table";
 import type * as React from "react";
 import { useEffect, useRef } from "react";
-import { useScrollSync } from "../../../hooks/use-scroll-sync";
+import { useScrollSync } from "../../hooks/use-scroll-sync";
 import { cn } from "../../lib/utils";
 import {
   Table,
@@ -21,7 +22,6 @@ import {
   TableRow,
 } from "../../ui/table";
 import { DataTableStickyHeader } from "./data-table-sticky-header";
-import { rowId } from "./row-id";
 
 /**
  * Calculate column width from explicit property.size.

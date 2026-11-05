@@ -1,10 +1,9 @@
 "use client";
 
+import type { PropertyMeta, WhereRule } from "@sparkyidea/dataview-core";
+import { getFilterPreview } from "@sparkyidea/dataview-core";
+import { useSimpleFilterChip } from "@sparkyidea/dataview-react";
 import { ChevronDownIcon } from "lucide-react";
-import { useSimpleFilterChip } from "../../../hooks/use-simple-filter-chip";
-import { getFilterPreview } from "../../../lib/filter-preview";
-import type { WhereRule } from "../../../types/filter.type";
-import type { PropertyMeta } from "../../../types/property.type";
 import { Button } from "../../ui/button";
 import { SimpleFilterEditor } from "../../ui/filter/simple-filter-editor";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";

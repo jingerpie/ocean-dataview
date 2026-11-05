@@ -3,20 +3,29 @@ title: Provider
 description: Compose a data view from a provider, toolbars, and a content boundary
 ---
 
+## Packages
+
+| Package | Contents |
+|---------|----------|
+| `@sparkyidea/dataview-core` | Types, validators, URL codecs, transport schemas. No React. |
+| `@sparkyidea/dataview-react` | Providers and hooks. `/nuqs` and `/nuqs/server` add URL state through nuqs. |
+| `@sparkyidea/dataview-drizzle` | PostgreSQL query builders for Drizzle ORM. |
+
 ## Composition
 
-`DataViewProvider` holds the URL state and toolbar state for one data view. It renders no markup of its own, so you own the layout. Put toolbars anywhere inside it, and wrap the view in `DataViewContent`, which runs the controller queries.
+`DataViewProvider` holds the view state and toolbar state for one data view. It renders no markup of its own, so you own the layout. Put toolbars anywhere inside it, and wrap the view in `DataViewContent`, which runs the controller queries.
 
 ```tsx
-import { usePageController } from "@sparkyidea/dataview/hooks";
-import { DataViewContent, DataViewProvider } from "@sparkyidea/dataview/providers";
-import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
-import { TableView } from "@sparkyidea/dataview/views/table-view";
+import { DataViewContent, DataViewProvider, usePageController } from "@sparkyidea/dataview-react";
+import { useNuqsDataViewState } from "@sparkyidea/dataview-react/nuqs";
+
+const state = useNuqsDataViewState();
 
 <DataViewProvider
   controller={controller}
   defaults={{ limit: 25, sort: [] }}
   properties={productProperties}
+  state={state}
 >
   <div className="flex flex-col gap-2">
     <NotionToolbar enableSettings />
@@ -38,25 +47,37 @@ import { TableView } from "@sparkyidea/dataview/views/table-view";
 | `controller` | `PageController \| InfiniteController` | - | From `usePageController` or `useInfiniteController` |
 | `properties` | `DataViewProperty[]` | - | Property schema |
 | `defaults` | `DefaultsConfig` | - | Values used when the URL has no matching parameter. `limit` defaults to 25 |
-| `urlPrefix` | `string` | `""` | Prefix for every URL parameter key |
+| `state` | `DataViewStateAdapter` | in-memory | Where filter, sort, group, search, limit, and cursors live |
 | `propertyVisibility` | `string[]` | all | Visible property IDs |
+
+## State
+
+Without a `state` prop the provider keeps its state in memory. Pass `useNuqsDataViewState()` to keep it in the URL (requires `nuqs` and its adapter), or pass your own `DataViewStateAdapter` for controlled state:
+
+```ts
+interface DataViewStateAdapter {
+  value: DataViewState;
+  onChange: (update: (previous: DataViewState) => DataViewState) => void;
+  isPending?: boolean;
+}
+```
+
+`DataViewState` holds raw `column`, `cursors`, `filter`, `group`, `limit`, `search`, and `sort`. `null` means "not set" and falls back to `defaults`. The provider validates values against `properties` and resets cursors when the query changes.
 
 ## Several views on one page
 
-Each provider keeps its own toolbar state (open filter and sort popovers, chip row). Give each provider a distinct `urlPrefix` so their URL parameters do not collide:
+Each provider keeps its own toolbar state (open filter and sort popovers, chip row). With URL state, give each view a distinct `urlPrefix` so their parameters do not collide:
 
 ```tsx
-<DataViewProvider controller={orders} properties={orderProperties} urlPrefix="orders.">
-  …
-</DataViewProvider>
-<DataViewProvider controller={returns} properties={returnProperties} urlPrefix="returns.">
-  …
-</DataViewProvider>
+const orders = useNuqsDataViewState({ urlPrefix: "orders." });
+const returns = useNuqsDataViewState({ urlPrefix: "returns." });
 ```
 
 This gives URLs like `?orders.filter=…&returns.sort=…`. On the server, pass the same prefix to the params cache:
 
 ```ts
+import { createDataViewParamsCache } from "@sparkyidea/dataview-react/nuqs/server";
+
 const ordersParams = createDataViewParamsCache({ urlPrefix: "orders." });
 ```
 
@@ -65,7 +86,7 @@ const ordersParams = createDataViewParamsCache({ urlPrefix: "orders." });
 Cards and the files & media property render images with a plain `<img>`. To use a framework image component, such as `next/image`, wrap your app in `DataViewImageProvider`:
 
 ```tsx
-import { DataViewImageProvider } from "@sparkyidea/dataview/image";
+import { DataViewImageProvider } from "@sparkyidea/dataview-ui/image";
 
 <DataViewImageProvider component={MyImage}>{children}</DataViewImageProvider>
 ```

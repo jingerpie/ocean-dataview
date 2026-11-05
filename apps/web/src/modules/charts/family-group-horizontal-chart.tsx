@@ -1,7 +1,7 @@
 "use client";
 
-import { ChartViewProvider } from "@sparkyidea/dataview/providers";
-import { HorizontalBarChartView } from "@sparkyidea/dataview/views/horizontal-bar-chart-view";
+import { ChartViewProvider } from "@sparkyidea/dataview-react";
+import { HorizontalBarChartView } from "@sparkyidea/dataview-ui/views/horizontal-bar-chart-view";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 

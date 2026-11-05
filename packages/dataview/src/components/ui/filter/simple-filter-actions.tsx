@@ -1,14 +1,16 @@
 "use client";
 
-import { ListFilterIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
-import { useCallback } from "react";
-import { useAdvanceFilterBuilder } from "../../../hooks/use-advance-filter-builder";
-import { useFilterParams } from "../../../hooks/use-filter-params";
 import {
   isWhereRule,
   type WhereExpression,
   type WhereRule,
-} from "../../../types/filter.type";
+} from "@sparkyidea/dataview-core";
+import {
+  useAdvanceFilterBuilder,
+  useFilterParams,
+} from "@sparkyidea/dataview-react";
+import { ListFilterIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
+import { useCallback } from "react";
 import { cn } from "../../lib/utils";
 import { Button } from "../button";
 import {

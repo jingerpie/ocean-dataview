@@ -1,8 +1,8 @@
 "use client";
 
+import type { PaginationContext } from "@sparkyidea/dataview-core";
 import { Loader2 } from "lucide-react";
-import { useIntersectionObserver } from "../../../hooks/use-intersection-observer";
-import type { PaginationContext } from "../../../types/pagination";
+import { useIntersectionObserver } from "../../hooks/use-intersection-observer";
 
 type InfiniteScrollPaginationProps = Partial<PaginationContext>;
 

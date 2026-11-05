@@ -1,6 +1,6 @@
 "use client";
 
-import type { UrlConfig } from "../../../types/property.type";
+import type { UrlConfig } from "@sparkyidea/dataview-core";
 
 interface UrlPropertyProps {
   config?: UrlConfig;

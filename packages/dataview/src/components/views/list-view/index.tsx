@@ -1,17 +1,23 @@
 "use client";
 
+import type {
+  DataViewProperty,
+  PaginationContext,
+} from "@sparkyidea/dataview-core";
+import { transformData, UNGROUPED_KEY } from "@sparkyidea/dataview-core";
+import type {
+  GroupedDataItem,
+  UseGroupQueryResult,
+  UseInfiniteGroupQueryResult,
+} from "@sparkyidea/dataview-react";
+import {
+  DEFAULT_LIMIT,
+  useDataViewContext,
+  useDisplayProperties,
+  useViewSetup,
+} from "@sparkyidea/dataview-react";
 import { AlertCircle } from "lucide-react";
 import { Suspense } from "react";
-import { useDisplayProperties } from "../../../hooks/use-display-properties";
-import type { GroupedDataItem } from "../../../hooks/use-group-config";
-import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
-import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
-import { useViewSetup } from "../../../hooks/use-view-setup";
-import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import { DEFAULT_LIMIT } from "../../../lib/providers/data-view-provider";
-import type { PaginationContext } from "../../../types/pagination";
-import type { DataViewProperty } from "../../../types/property.type";
-import { transformData } from "../../../utils/transform-data";
 import { cn } from "../../lib/utils";
 import { ListSkeleton } from "../../skeletons/list-skeleton";
 import { Accordion } from "../../ui/accordion";
@@ -206,7 +212,7 @@ export function ListView<
       className={className}
       displayProperties={displayProperties}
       groupItem={{
-        key: "__ungrouped__",
+        key: UNGROUPED_KEY,
         items: [],
         count: 0,
         displayCount: "0",
@@ -222,7 +228,7 @@ export function ListView<
       className={className}
       displayProperties={displayProperties}
       groupItem={{
-        key: "__ungrouped__",
+        key: UNGROUPED_KEY,
         items: [],
         count: 0,
         displayCount: "0",

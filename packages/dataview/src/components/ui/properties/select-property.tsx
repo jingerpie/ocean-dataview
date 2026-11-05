@@ -1,6 +1,6 @@
 "use client";
 
-import type { SelectConfig } from "../../../types/property.type";
+import type { SelectConfig } from "@sparkyidea/dataview-core";
 import { getBadgeVariant } from "../../lib/get-badge-variant";
 import { Badge } from "../badge";
 

@@ -2,7 +2,7 @@
  * Badge variant utilities for property components
  */
 
-import type { BadgeColor } from "../../types/property.type";
+import type { BadgeColor } from "@sparkyidea/dataview-core";
 
 export type BadgeVariant = BadgeColor;
 

@@ -1,10 +1,11 @@
 "use client";
 
-import { useSearchParams } from "../../../hooks/use-search-params";
-import { useQueryParamsState } from "../../../lib/providers/query-params-context";
-import { useToolbarContext } from "../../../lib/providers/toolbar-context";
-import type { GroupConfigInput } from "../../../types/group.type";
-import type { PropertyMeta } from "../../../types/property.type";
+import type { GroupConfigInput, PropertyMeta } from "@sparkyidea/dataview-core";
+import {
+  useQueryParamsState,
+  useSearchParams,
+  useToolbarContext,
+} from "@sparkyidea/dataview-react";
 import { cn } from "../../lib/utils";
 import { SearchInput } from "../../ui/search/search-input";
 import { FilterTool } from "./filter-tool";

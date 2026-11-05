@@ -1,13 +1,16 @@
 "use client";
 
-import { ChevronDownIcon } from "lucide-react";
-import { useState } from "react";
-import type { FilterCondition, PropertyType } from "../../../types/filter.type";
-import type { PropertyMeta } from "../../../types/property.type";
+import type {
+  FilterCondition,
+  PropertyMeta,
+  PropertyType,
+} from "@sparkyidea/dataview-core";
 import {
   getFilterConditions,
   getFilterConditionsForProperty,
-} from "../../../utils/filter";
+} from "@sparkyidea/dataview-core";
+import { ChevronDownIcon } from "lucide-react";
+import { useState } from "react";
 import { cn } from "../../lib/utils";
 import { Button } from "../button";
 import { Command, CommandGroup, CommandItem, CommandList } from "../command";

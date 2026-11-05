@@ -1,15 +1,15 @@
 "use client";
 
-import { ChevronDownIcon } from "lucide-react";
-import { useState } from "react";
-import type { WhereRule } from "../../../../types/filter.type";
 import type {
   BadgeColor,
   PropertyMeta,
   SelectConfig,
   SelectOption,
-} from "../../../../types/property.type";
-import { extractSelectValues } from "../../../../utils/filter-variant";
+  WhereRule,
+} from "@sparkyidea/dataview-core";
+import { extractSelectValues } from "@sparkyidea/dataview-core";
+import { ChevronDownIcon } from "lucide-react";
+import { useState } from "react";
 import { getBadgeClasses } from "../../../lib/badge-colors";
 import { Button } from "../../button";
 import { Checkbox } from "../../checkbox";

@@ -1,15 +1,15 @@
 "use client";
 
-import {
-  useFilterParams,
-  useGroupParams,
-  useSortParams,
-} from "@sparkyidea/dataview/hooks";
 import type {
   GroupConfigInput,
   SortQuery,
   WhereNode,
-} from "@sparkyidea/dataview/types";
+} from "@sparkyidea/dataview-core";
+import {
+  useFilterParams,
+  useGroupParams,
+  useSortParams,
+} from "@sparkyidea/dataview-react";
 import { Label } from "@sparkyidea/ui/components/label";
 import {
   Select,

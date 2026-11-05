@@ -1,4 +1,4 @@
-import "./register";
+import "@sparkyidea/dataview-react";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 

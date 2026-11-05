@@ -1,22 +1,29 @@
 "use client";
 
-import { AlertCircle } from "lucide-react";
-import { Suspense, useEffect, useRef } from "react";
-import { useBoardModel } from "../../../hooks/use-board-model";
-import { useDisplayProperties } from "../../../hooks/use-display-properties";
-import type { GroupedDataItem } from "../../../hooks/use-group-config";
-import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
-import { useScrollSync } from "../../../hooks/use-scroll-sync";
-import { DEFAULT_LIMIT } from "../../../lib/providers/data-view-provider";
-import type { GroupByConfig } from "../../../types/group.type";
-import type { PaginationContext } from "../../../types/pagination";
-import type { GroupCounts } from "../../../types/pagination-types";
 import type {
   BadgeColor,
   DataViewProperty,
-} from "../../../types/property.type";
-import { groupByProperty as groupDataByProperty } from "../../../utils/compute-data";
-import { transformData } from "../../../utils/transform-data";
+  GroupByConfig,
+  GroupCounts,
+  PaginationContext,
+} from "@sparkyidea/dataview-core";
+import {
+  groupByProperty as groupDataByProperty,
+  transformData,
+  UNGROUPED_KEY,
+} from "@sparkyidea/dataview-core";
+import type {
+  GroupedDataItem,
+  UseInfiniteGroupQueryResult,
+} from "@sparkyidea/dataview-react";
+import {
+  DEFAULT_LIMIT,
+  useBoardModel,
+  useDisplayProperties,
+} from "@sparkyidea/dataview-react";
+import { AlertCircle } from "lucide-react";
+import { Suspense, useEffect, useRef } from "react";
+import { useScrollSync } from "../../hooks/use-scroll-sync";
 import { getBadgeBgTransparentClass } from "../../lib/badge-colors";
 import { getBoardCardDimensions } from "../../lib/get-card-sizes";
 import { cn } from "../../lib/utils";
@@ -471,7 +478,7 @@ export function BoardView<
             columnWidth={columnWidth}
             getCardContent={getCardContent}
             getColumnBgClass={getColumnBgClass}
-            groupKey="__ungrouped__"
+            groupKey={UNGROUPED_KEY}
             keyExtractor={keyExtractor}
             pagination={pagination}
             properties={properties}

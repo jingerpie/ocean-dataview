@@ -1,5 +1,5 @@
-import { FilesMediaProperty } from "@sparkyidea/dataview/properties";
-import type { DataViewProperty } from "@sparkyidea/dataview/types";
+import type { DataViewProperty } from "@sparkyidea/dataview-core";
+import { FilesMediaProperty } from "@sparkyidea/dataview-ui/properties";
 import type { AppRouter } from "@sparkyidea/trpc/routers/index";
 import type { inferRouterOutputs } from "@trpc/server";
 import { AlertCircle, CheckCircle2, Edit, Eye, XCircle } from "lucide-react";

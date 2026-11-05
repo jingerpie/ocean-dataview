@@ -1,9 +1,9 @@
 "use client";
 
+import { useDebouncedCallback } from "@sparkyidea/dataview-react";
 import { flexRender, type Table as TanstackTable } from "@tanstack/react-table";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useDebouncedCallback } from "../../../hooks/use-debounced-callback";
-import { useScrollParent } from "../../../hooks/use-scroll-parent";
+import { useScrollParent } from "../../hooks/use-scroll-parent";
 import { Table, TableHead, TableHeader, TableRow } from "../../ui/table";
 
 const RESIZE_DEBOUNCE_MS = 150;

@@ -82,6 +82,19 @@ Risks: default values, selection identity, and scroll sync can regress. Mitigate
 
 ## Phase 2 — Publish prerelease headless packages
 
+**Status: done.** Decisions (Codex, 2026-11-05):
+
+- Names `@sparkyidea/dataview-{core,react,drizzle}`, version `0.1.0-alpha.0`, `publishConfig` `{ access: public, tag: alpha }`. Build and pack only; publishing to npm is left to the user (`npm publish` from each package after `bun run build`).
+- `schemas.ts` and `build-search.ts` moved to core; `build-filter/sort/group/rollup` and their tests to drizzle. `packages/trpc` depends on core and drizzle.
+- Parsers split: pure codecs (`codecs/`) in core; nuqs `createParser` wrappers and `createDataViewParamsCache` in `dataview-react/nuqs/server`.
+- Controlled state in scope: `DataViewProvider` takes `state?: DataViewStateAdapter` (`{ value, onChange, isPending? }`), in-memory by default; `useNuqsDataViewState({ urlPrefix })` from `/nuqs` keeps it in the URL. It writes only changed keys, because nuqs functional updates read a lazily updated ref and rewriting every key let stale values win.
+- DOM hooks (`useScrollSync`, `useLoadMoreSentinel`, `useInteractiveLegend`, `useScrollParent`, `useIntersectionObserver`) stay with the UI.
+- `packages/dataview` is now private `@sparkyidea/dataview-ui` and imports the headless packages through public exports only.
+- Build: tsdown `unbundle` + `dts`, so each file keeps its `"use client"` directive and `DataViewRegister` stays in its own declaration file (`@sparkyidea/dataview-core/register`) that `dataview-react` augments from every entry. Exports point at `dist`; turbo runs `^build` before `check-types`, `test`, and `dev` (packages run `tsdown --watch` in dev).
+- Exports are root barrels plus `/register`, `/nuqs`, `/nuqs/server` (simpler than per-file subpaths; ESM tree-shakes).
+- `fixtures/{server,react-vite,react-next}` installed from packed tarballs by `bun run verify:packages`: typecheck with `skipLibCheck: false` (errors inside third-party declarations ignored), server runtime asserts, Vite build plus server render with controlled state and no nuqs, Next build with nuqs and the server params cache.
+- Findings: server users of `dataview-react/nuqs/server` need `@types/react` (the augmentation references React types); `useDataViewContext().data` is empty in bridged views, so custom views read rows with `useGroupQuery({ groupKey: UNGROUPED_KEY })` (now an exported constant).
+
 Changes:
 
 1. Create `packages/dataview-core`, `packages/dataview-react`, `packages/dataview-drizzle`; move files per the target layout. Build JS and declarations with `tsdown`; all dependencies external; peers declared.

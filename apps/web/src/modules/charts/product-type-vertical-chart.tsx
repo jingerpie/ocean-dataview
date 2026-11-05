@@ -1,7 +1,7 @@
 "use client";
 
-import { ChartViewProvider } from "@sparkyidea/dataview/providers";
-import { VerticalBarChartView } from "@sparkyidea/dataview/views/vertical-bar-chart-view";
+import { ChartViewProvider } from "@sparkyidea/dataview-react";
+import { VerticalBarChartView } from "@sparkyidea/dataview-ui/views/vertical-bar-chart-view";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 

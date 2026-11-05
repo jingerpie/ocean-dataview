@@ -1,7 +1,7 @@
 "use client";
 
-import { useGroupParams } from "../../../../hooks/use-group-params";
-import type { PropertyMeta } from "../../../../types/property.type";
+import type { PropertyMeta } from "@sparkyidea/dataview-core";
+import { useGroupParams } from "@sparkyidea/dataview-react";
 import { GroupEditor } from "../../../ui/group/group-editor";
 import { GroupPicker } from "../../../ui/group/group-picker";
 import { GroupShowAsPicker } from "../../../ui/group/group-show-as-picker";

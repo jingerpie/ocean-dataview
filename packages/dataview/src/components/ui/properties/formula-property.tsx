@@ -3,8 +3,8 @@
 import type {
   DataViewProperty,
   PropertyRenderFunction,
-} from "../../../types/property.type";
-import { resolveShowName } from "../../../utils/resolve-show-name";
+} from "@sparkyidea/dataview-core";
+import { resolveShowName } from "@sparkyidea/dataview-core";
 import {
   getShowNameValueClasses,
   getShowNameWrapperClasses,

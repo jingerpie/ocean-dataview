@@ -1,14 +1,12 @@
 "use client";
 
-import type { ReactNode } from "react";
 import {
   type UseGroupQueryResult,
-  useGroupQuery,
-} from "../../hooks/use-group-query";
-import {
   type UseInfiniteGroupQueryResult,
+  useGroupQuery,
   useInfiniteGroupQuery,
-} from "../../hooks/use-infinite-group-query";
+} from "@sparkyidea/dataview-react";
+import type { ReactNode } from "react";
 import { EmptyState } from "../views/empty-state";
 
 // ============================================================================

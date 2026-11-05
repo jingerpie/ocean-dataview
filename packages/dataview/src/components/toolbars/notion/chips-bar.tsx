@@ -1,17 +1,19 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { flushSync } from "react-dom";
-import { useFilterParams } from "../../../hooks/use-filter-params";
-import { useSimpleFilterChip } from "../../../hooks/use-simple-filter-chip";
-import { useSortParams } from "../../../hooks/use-sort-params";
 import type {
+  PropertyMeta,
   WhereExpression,
   WhereNode,
   WhereRule,
-} from "../../../types/filter.type";
-import type { PropertyMeta } from "../../../types/property.type";
-import { createRuleFromProperty } from "../../../utils/filter-variant";
+} from "@sparkyidea/dataview-core";
+import { createRuleFromProperty } from "@sparkyidea/dataview-core";
+import {
+  useFilterParams,
+  useSimpleFilterChip,
+  useSortParams,
+} from "@sparkyidea/dataview-react";
+import { useCallback, useState } from "react";
+import { flushSync } from "react-dom";
 import { cn } from "../../lib/utils";
 import { Button } from "../../ui/button";
 import { FilterTrigger } from "../../ui/filter/filter-trigger";

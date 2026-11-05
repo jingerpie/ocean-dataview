@@ -1,6 +1,6 @@
 "use client";
 
-import type { PaginationContext } from "../../../types/pagination";
+import type { PaginationContext } from "@sparkyidea/dataview-core";
 import { InfiniteScrollPagination } from "./infinite-scroll-pagination";
 import { LoadMorePagination } from "./load-more-pagination";
 import { PagePagination } from "./page-pagination";

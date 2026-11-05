@@ -1,5 +1,9 @@
 "use client";
 
+import type {
+  ChartDataPoint,
+  DataLabelFormatType,
+} from "@sparkyidea/dataview-core";
 import { useMemo } from "react";
 import {
   Cell,
@@ -8,9 +12,7 @@ import {
   type PieLabelRenderProps,
   PieChart as RechartsPieChart,
 } from "recharts";
-import { useInteractiveLegend } from "../../../hooks/use-interactive-legend";
-import type { DataLabelFormatType } from "../../../types/chart.type";
-import type { ChartDataPoint } from "../../../utils/compute-data";
+import { useInteractiveLegend } from "../../hooks/use-interactive-legend";
 import {
   ChartContainer,
   ChartTooltip,

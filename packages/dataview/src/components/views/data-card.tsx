@@ -1,11 +1,14 @@
 "use client";
 
+import type { DataViewProperty } from "@sparkyidea/dataview-core";
+import {
+  getCardPinIds,
+  isPropertyValueEmpty,
+  resolveCardPins,
+  resolveShowName,
+} from "@sparkyidea/dataview-core";
 import { ImageIcon } from "lucide-react";
 import { useMemo } from "react";
-import type { DataViewProperty } from "../../types/property.type";
-import { isPropertyValueEmpty } from "../../utils/is-property-value-empty";
-import { getCardPinIds, resolveCardPins } from "../../utils/resolve-card-pins";
-import { resolveShowName } from "../../utils/resolve-show-name";
 import { useDataViewImage } from "../lib/image";
 import {
   getShowNameValueClasses,

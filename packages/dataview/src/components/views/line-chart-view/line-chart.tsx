@@ -1,5 +1,10 @@
 "use client";
 
+import type {
+  AxisNameType,
+  ChartDataPoint,
+  GridLineType,
+} from "@sparkyidea/dataview-core";
 import {
   CartesianGrid,
   Line,
@@ -7,9 +12,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useInteractiveLegend } from "../../../hooks/use-interactive-legend";
-import type { AxisNameType, GridLineType } from "../../../types/chart.type";
-import type { ChartDataPoint } from "../../../utils/compute-data";
+import { useInteractiveLegend } from "../../hooks/use-interactive-legend";
 import {
   ChartContainer,
   ChartTooltip,

@@ -1,18 +1,22 @@
 "use client";
 
-import { useInfiniteController } from "@sparkyidea/dataview/hooks";
-import {
-  DataViewContent,
-  DataViewProvider,
-} from "@sparkyidea/dataview/providers";
-import { ListSkeleton, ToolbarSkeleton } from "@sparkyidea/dataview/skeletons";
-import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import type {
   GroupConfigInput,
   Limit,
   WhereNode,
-} from "@sparkyidea/dataview/types";
-import { ListView } from "@sparkyidea/dataview/views/list-view";
+} from "@sparkyidea/dataview-core";
+import {
+  DataViewContent,
+  DataViewProvider,
+  useInfiniteController,
+} from "@sparkyidea/dataview-react";
+import { useNuqsDataViewState } from "@sparkyidea/dataview-react/nuqs";
+import {
+  ListSkeleton,
+  ToolbarSkeleton,
+} from "@sparkyidea/dataview-ui/skeletons";
+import { NotionToolbar } from "@sparkyidea/dataview-ui/toolbars/notion";
+import { ListView } from "@sparkyidea/dataview-ui/views/list-view";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { DataViewTab } from "./dataview-tab";
@@ -42,6 +46,7 @@ export function ProductListView({
 }: ProductListViewProps) {
   const trpc = useTRPC();
 
+  const state = useNuqsDataViewState();
   const { controller } = useInfiniteController({
     groupQuery: (params) =>
       trpc.product.getGroup.infiniteQueryOptions(params, {
@@ -81,6 +86,7 @@ export function ProductListView({
           sort: sort ?? [],
         }}
         properties={productListProperties}
+        state={state}
       >
         <div className="flex flex-col gap-2">
           <NotionToolbar enableSettings>

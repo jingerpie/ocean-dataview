@@ -1,8 +1,8 @@
 "use client";
 
-import type { DataViewProperty } from "../../../types/property.type";
+import type { DataViewProperty } from "@sparkyidea/dataview-core";
+import { ROW_SKELETON_WIDTHS } from "@sparkyidea/dataview-core";
 import { cn } from "../../lib/utils";
-import { ROW_SKELETON_WIDTHS } from "../../skeletons/skeleton-widths";
 import { Separator } from "../../ui/separator";
 import { DataCell } from "../data-cell";
 

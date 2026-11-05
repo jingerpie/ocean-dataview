@@ -1,14 +1,14 @@
 "use client";
 
-import { ChevronDownIcon, CircleDashed } from "lucide-react";
-import type { WhereRule } from "../../../../types/filter.type";
 import type {
   BadgeColor,
   PropertyMeta,
   StatusConfig,
   StatusGroup,
-} from "../../../../types/property.type";
-import { extractSelectValues } from "../../../../utils/filter-variant";
+  WhereRule,
+} from "@sparkyidea/dataview-core";
+import { extractSelectValues } from "@sparkyidea/dataview-core";
+import { ChevronDownIcon, CircleDashed } from "lucide-react";
 import {
   getBadgeClasses,
   getBadgeTextColorClass,

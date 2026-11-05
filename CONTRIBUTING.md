@@ -85,7 +85,10 @@ bun run db:studio    # Open Drizzle Studio
 | ------------------- | ---------------------------------- |
 | `apps/web`          | Next.js web application            |
 | `apps/server`       | Hono API server                    |
-| `packages/dataview` | Core DataView components           |
+| `packages/dataview-core` | Framework-neutral types and logic |
+| `packages/dataview-react` | Headless React providers and hooks |
+| `packages/dataview-drizzle` | PostgreSQL SQL builders |
+| `packages/dataview` | Styled DataView UI (private) |
 | `packages/db`       | Drizzle schema + migrations        |
 | `packages/shared`   | Shared types and utilities         |
 | `packages/ui`       | UI component library               |

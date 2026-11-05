@@ -1,11 +1,11 @@
 "use client";
 
-import { CheckIcon } from "lucide-react";
-import { useCallback } from "react";
 import {
   type GroupingMode,
   useGroupingParams,
-} from "../../../hooks/use-grouping-params";
+} from "@sparkyidea/dataview-react";
+import { CheckIcon } from "lucide-react";
+import { useCallback } from "react";
 import { Command, CommandGroup, CommandItem, CommandList } from "../command";
 
 type GroupSortOrder = "asc" | "desc";

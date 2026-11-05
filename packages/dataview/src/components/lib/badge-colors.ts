@@ -1,4 +1,4 @@
-import type { BadgeColor } from "../../types/property.type";
+import type { BadgeColor } from "@sparkyidea/dataview-core";
 
 const BASE_COLORS = [
   "gray",

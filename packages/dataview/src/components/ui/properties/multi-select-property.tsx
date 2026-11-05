@@ -1,6 +1,6 @@
 "use client";
 
-import type { MultiSelectConfig } from "../../../types/property.type";
+import type { MultiSelectConfig } from "@sparkyidea/dataview-core";
 import { getBadgeVariant } from "../../lib/get-badge-variant";
 import { Badge } from "../badge";
 

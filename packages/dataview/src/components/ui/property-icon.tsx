@@ -1,6 +1,6 @@
 "use client";
 
-import type { PropertyType } from "../../types/filter.type";
+import type { PropertyType } from "@sparkyidea/dataview-core";
 import { getPropertyIcon } from "../lib/property-icons";
 import { cn } from "../lib/utils";
 

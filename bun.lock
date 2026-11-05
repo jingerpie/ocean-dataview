@@ -40,7 +40,9 @@
       "version": "0.1.0",
       "dependencies": {
         "@base-ui/react": "catalog:",
-        "@sparkyidea/dataview": "workspace:*",
+        "@sparkyidea/dataview-core": "workspace:*",
+        "@sparkyidea/dataview-react": "workspace:*",
+        "@sparkyidea/dataview-ui": "workspace:*",
         "@sparkyidea/env": "workspace:*",
         "@sparkyidea/trpc": "workspace:*",
         "@sparkyidea/ui": "workspace:*",
@@ -87,28 +89,26 @@
       "version": "0.0.0",
     },
     "packages/dataview": {
-      "name": "@sparkyidea/dataview",
+      "name": "@sparkyidea/dataview-ui",
       "dependencies": {
         "@base-ui/react": "catalog:",
         "@dnd-kit/core": "catalog:",
         "@dnd-kit/sortable": "catalog:",
         "@dnd-kit/utilities": "catalog:",
-        "@tanstack/react-query": "catalog:",
+        "@sparkyidea/dataview-core": "workspace:*",
+        "@sparkyidea/dataview-react": "workspace:*",
         "@tanstack/react-table": "catalog:",
-        "chrono-node": "catalog:",
         "class-variance-authority": "catalog:",
         "clsx": "catalog:",
         "cmdk": "catalog:",
         "date-fns": "catalog:",
         "lucide-react": "catalog:",
-        "nuqs": "catalog:",
         "react": "catalog:",
         "react-day-picker": "catalog:",
         "react-dom": "catalog:",
         "recharts": "catalog:",
         "tailwind-merge": "catalog:",
         "usehooks-ts": "catalog:",
-        "zod": "catalog:",
       },
       "devDependencies": {
         "@sparkyidea/config": "workspace:*",
@@ -124,6 +124,66 @@
       "peerDependencies": {
         "typescript": "catalog:",
       },
+    },
+    "packages/dataview-core": {
+      "name": "@sparkyidea/dataview-core",
+      "version": "0.1.0-alpha.0",
+      "devDependencies": {
+        "@sparkyidea/config": "workspace:*",
+        "chrono-node": "catalog:",
+        "date-fns": "catalog:",
+        "tsdown": "catalog:",
+        "typescript": "catalog:",
+        "vitest": "catalog:",
+        "zod": "catalog:",
+      },
+      "peerDependencies": {
+        "chrono-node": "^2.9.0",
+        "date-fns": "^4.1.0",
+        "zod": "^4.3.0",
+      },
+    },
+    "packages/dataview-drizzle": {
+      "name": "@sparkyidea/dataview-drizzle",
+      "version": "0.1.0-alpha.0",
+      "devDependencies": {
+        "@sparkyidea/config": "workspace:*",
+        "@sparkyidea/dataview-core": "workspace:*",
+        "@types/bun": "1.3.9",
+        "date-fns": "catalog:",
+        "drizzle-orm": "catalog:",
+        "tsdown": "catalog:",
+        "typescript": "catalog:",
+      },
+      "peerDependencies": {
+        "@sparkyidea/dataview-core": "workspace:^",
+        "date-fns": "^4.1.0",
+        "drizzle-orm": "^0.45.0",
+      },
+    },
+    "packages/dataview-react": {
+      "name": "@sparkyidea/dataview-react",
+      "version": "0.1.0-alpha.0",
+      "devDependencies": {
+        "@sparkyidea/config": "workspace:*",
+        "@sparkyidea/dataview-core": "workspace:*",
+        "@tanstack/react-query": "catalog:",
+        "@types/react": "catalog:",
+        "nuqs": "catalog:",
+        "react": "catalog:",
+        "tsdown": "catalog:",
+        "typescript": "catalog:",
+        "vitest": "catalog:",
+      },
+      "peerDependencies": {
+        "@sparkyidea/dataview-core": "workspace:^",
+        "@tanstack/react-query": "^5.90.0",
+        "nuqs": "^2.8.0",
+        "react": "^19.0.0",
+      },
+      "optionalPeers": [
+        "nuqs",
+      ],
     },
     "packages/db": {
       "name": "@sparkyidea/db",
@@ -157,7 +217,8 @@
     "packages/trpc": {
       "name": "@sparkyidea/trpc",
       "dependencies": {
-        "@sparkyidea/dataview": "workspace:*",
+        "@sparkyidea/dataview-core": "workspace:*",
+        "@sparkyidea/dataview-drizzle": "workspace:*",
         "@sparkyidea/db": "workspace:*",
         "@sparkyidea/env": "workspace:*",
         "@trpc/client": "catalog:",
@@ -790,7 +851,13 @@
 
     "@sparkyidea/config": ["@sparkyidea/config@workspace:packages/config"],
 
-    "@sparkyidea/dataview": ["@sparkyidea/dataview@workspace:packages/dataview"],
+    "@sparkyidea/dataview-core": ["@sparkyidea/dataview-core@workspace:packages/dataview-core"],
+
+    "@sparkyidea/dataview-drizzle": ["@sparkyidea/dataview-drizzle@workspace:packages/dataview-drizzle"],
+
+    "@sparkyidea/dataview-react": ["@sparkyidea/dataview-react@workspace:packages/dataview-react"],
+
+    "@sparkyidea/dataview-ui": ["@sparkyidea/dataview-ui@workspace:packages/dataview"],
 
     "@sparkyidea/db": ["@sparkyidea/db@workspace:packages/db"],
 

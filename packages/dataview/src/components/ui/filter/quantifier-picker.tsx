@@ -1,8 +1,8 @@
 "use client";
 
+import type { Quantifier } from "@sparkyidea/dataview-core";
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
-import type { Quantifier } from "../../../types/filter.type";
 import { cn } from "../../lib/utils";
 import { Button } from "../button";
 import { Command, CommandGroup, CommandItem, CommandList } from "../command";

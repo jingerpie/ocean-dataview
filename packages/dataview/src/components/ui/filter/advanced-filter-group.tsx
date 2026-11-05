@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  isWhereRule,
-  type WhereExpression,
-  type WhereNode,
-  type WhereRule,
-} from "../../../types/filter.type";
-import type { PropertyMeta } from "../../../types/property.type";
+import type { PropertyMeta } from "@sparkyidea/dataview-core";
 import {
   addCondition,
   addGroup,
@@ -14,10 +8,14 @@ import {
   duplicateItem,
   getFilterItems,
   getFilterLogic,
+  isWhereRule,
   removeItem,
   updateCondition,
+  type WhereExpression,
+  type WhereNode,
+  type WhereRule,
   wrapInGroup,
-} from "../../../utils/filter-builder";
+} from "@sparkyidea/dataview-core";
 import { cn } from "../../lib/utils";
 import { AddFilterButton } from "./advanced-add-filter-button";
 import { AdvancedFilterActions } from "./advanced-filter-actions";

@@ -1,18 +1,22 @@
 "use client";
 
-import { usePageController } from "@sparkyidea/dataview/hooks";
-import {
-  DataViewContent,
-  DataViewProvider,
-} from "@sparkyidea/dataview/providers";
-import { TableSkeleton, ToolbarSkeleton } from "@sparkyidea/dataview/skeletons";
-import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import type {
   GroupConfigInput,
   Limit,
   WhereNode,
-} from "@sparkyidea/dataview/types";
-import { TableView } from "@sparkyidea/dataview/views/table-view";
+} from "@sparkyidea/dataview-core";
+import {
+  DataViewContent,
+  DataViewProvider,
+  usePageController,
+} from "@sparkyidea/dataview-react";
+import { useNuqsDataViewState } from "@sparkyidea/dataview-react/nuqs";
+import {
+  TableSkeleton,
+  ToolbarSkeleton,
+} from "@sparkyidea/dataview-ui/skeletons";
+import { NotionToolbar } from "@sparkyidea/dataview-ui/toolbars/notion";
+import { TableView } from "@sparkyidea/dataview-ui/views/table-view";
 import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { bulkActions } from "./bulk-actions";
@@ -43,6 +47,7 @@ export function ProductTableView({
 }: ProductTableViewProps) {
   const trpc = useTRPC();
 
+  const state = useNuqsDataViewState();
   const { controller } = usePageController({
     groupQuery: (params) =>
       trpc.product.getGroup.infiniteQueryOptions(params, {
@@ -79,6 +84,7 @@ export function ProductTableView({
           sort: sort ?? [],
         }}
         properties={productTableProperties}
+        state={state}
       >
         <div className="flex flex-col gap-2">
           <NotionToolbar enableSettings>

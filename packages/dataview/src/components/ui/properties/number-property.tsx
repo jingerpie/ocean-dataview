@@ -1,8 +1,8 @@
 "use client";
 
+import type { NumberConfig } from "@sparkyidea/dataview-core";
+import { getUserLocale } from "@sparkyidea/dataview-core";
 import { useMemo } from "react";
-import type { NumberConfig } from "../../../types/property.type";
-import { getUserLocale } from "../../../utils/locale-helpers";
 import { getBadgeBgVar, getBadgeForegroundVar } from "../../lib/badge-colors";
 import { cn } from "../../lib/utils";
 

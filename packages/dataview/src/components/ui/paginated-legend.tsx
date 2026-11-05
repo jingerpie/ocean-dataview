@@ -1,10 +1,10 @@
 "use client";
 
+import { useDebouncedCallback } from "@sparkyidea/dataview-react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import type { LegendPayload } from "recharts";
 import { useIsomorphicLayoutEffect, useResizeObserver } from "usehooks-ts";
-import { useDebouncedCallback } from "../../hooks/use-debounced-callback";
 import { cn } from "../lib/utils";
 import { Button } from "./button";
 

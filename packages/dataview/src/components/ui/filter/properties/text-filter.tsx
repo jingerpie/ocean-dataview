@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useDebouncedCallback } from "../../../../hooks/use-debounced-callback";
-import type { WhereRule } from "../../../../types/filter.type";
 import type {
   NumberConfig,
   PropertyMeta,
-} from "../../../../types/property.type";
+  WhereRule,
+} from "@sparkyidea/dataview-core";
+import { useDebouncedCallback } from "@sparkyidea/dataview-react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "../../input";
 
 const FILTER_INPUT_DEBOUNCE_MS = 300;

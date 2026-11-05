@@ -1,8 +1,11 @@
 "use client";
 
-import { useAdvanceFilterBuilder } from "../../../hooks/use-advance-filter-builder";
-import type { WhereExpression, WhereNode } from "../../../types/filter.type";
-import type { PropertyMeta } from "../../../types/property.type";
+import type {
+  PropertyMeta,
+  WhereExpression,
+  WhereNode,
+} from "@sparkyidea/dataview-core";
+import { useAdvanceFilterBuilder } from "@sparkyidea/dataview-react";
 import { AdvancedFilterEditor } from "../../ui/filter/advanced-filter-editor";
 import { FilterTrigger } from "../../ui/filter/filter-trigger";
 

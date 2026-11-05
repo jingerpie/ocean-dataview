@@ -1,12 +1,14 @@
 "use client";
 
+import type { PropertyMeta } from "@sparkyidea/dataview-core";
+import { createRuleFromProperty } from "@sparkyidea/dataview-core";
+import {
+  useFilterParams,
+  useSimpleFilterChip,
+} from "@sparkyidea/dataview-react";
 import { ListFilterIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 import { flushSync } from "react-dom";
-import { useFilterParams } from "../../../hooks/use-filter-params";
-import { useSimpleFilterChip } from "../../../hooks/use-simple-filter-chip";
-import type { PropertyMeta } from "../../../types/property.type";
-import { createRuleFromProperty } from "../../../utils/filter-variant";
 import { Button } from "../../ui/button";
 import { FilterTrigger } from "../../ui/filter/filter-trigger";
 import { SimpleFilterPicker } from "../../ui/filter/simple-filter-picker";

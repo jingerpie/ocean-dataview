@@ -1,6 +1,6 @@
 "use client";
 
-import { StatusProperty } from "@sparkyidea/dataview/properties";
+import { StatusProperty } from "@sparkyidea/dataview-ui/properties";
 import { CheckCircle, CircleDashed, Clock, XCircle } from "lucide-react";
 
 const config = {

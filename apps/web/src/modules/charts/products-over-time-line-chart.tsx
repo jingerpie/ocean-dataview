@@ -1,7 +1,7 @@
 "use client";
 
-import { ChartViewProvider } from "@sparkyidea/dataview/providers";
-import { LineChartView } from "@sparkyidea/dataview/views/line-chart-view";
+import { ChartViewProvider } from "@sparkyidea/dataview-react";
+import { LineChartView } from "@sparkyidea/dataview-ui/views/line-chart-view";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 

@@ -1,10 +1,14 @@
 "use client";
 
+import type {
+  DataViewProperty,
+  HorizontalBarChartConfig,
+} from "@sparkyidea/dataview-core";
+import {
+  useChartTransform,
+  useChartViewContext,
+} from "@sparkyidea/dataview-react";
 import { AlertCircle } from "lucide-react";
-import { useChartTransform } from "../../../hooks/use-chart-transform";
-import { useChartViewContext } from "../../../lib/providers/chart-view-context";
-import type { HorizontalBarChartConfig } from "../../../types/chart.type";
-import type { DataViewProperty } from "../../../types/property.type";
 import { getChartColors, getChartHeight } from "../../lib/chart-colors";
 import { EmptyState } from "../empty-state";
 import { HorizontalBarChartInner } from "./horizontal-bar-chart";

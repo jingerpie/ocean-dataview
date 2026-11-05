@@ -1,7 +1,7 @@
 "use client";
 
+import type { DataViewProperty, RollupConfig } from "@sparkyidea/dataview-core";
 import { memo } from "react";
-import type { DataViewProperty, RollupConfig } from "../../types/property.type";
 import { ButtonProperty } from "../ui/properties/button-property";
 import { CheckboxProperty } from "../ui/properties/checkbox-property";
 import { DateProperty } from "../ui/properties/date-property";
