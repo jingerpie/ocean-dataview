@@ -14,7 +14,6 @@
  * ```
  */
 // biome-ignore lint/suspicious/noEmptyInterface: Augmented by renderers
-// biome-ignore lint/correctness/noUnusedVariables: Augmented by renderers
 export interface DataViewRegister {}
 
 /** Icon type supplied by the renderer, or `unknown` when none is registered. */
