@@ -1,6 +1,6 @@
-import type { FC, SVGProps } from "react";
 import { z } from "zod";
 import type { DataTableConfig } from "./config";
+import type { IconComponent } from "./register";
 
 // ============================================================================
 // UI Types
@@ -8,7 +8,7 @@ import type { DataTableConfig } from "./config";
 
 export interface Option {
   count?: number;
-  icon?: FC<SVGProps<SVGSVGElement>>;
+  icon?: IconComponent;
   label: string;
   value: string;
 }

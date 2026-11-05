@@ -1,11 +1,7 @@
-import type { ComponentType, SVGProps } from "react";
 import type { WhereNode } from "./filter.type";
+import type { IconComponent } from "./register";
 
-/**
- * Generic icon type that accepts any SVG icon component.
- * Works with Lucide, Heroicons, or any custom SVG component.
- */
-export type IconComponent = ComponentType<SVGProps<SVGSVGElement>>;
+export type { IconComponent } from "./register";
 
 export type PropertyType =
   | "text"

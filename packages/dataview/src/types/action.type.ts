@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { RenderNode } from "./register";
 
 /**
  * Bulk action definition for TableView
@@ -8,7 +8,7 @@ export interface BulkAction<T> {
   /**
    * Optional icon to display with the action
    */
-  icon?: ReactNode;
+  icon?: RenderNode;
 
   /**
    * Loading state for async actions
