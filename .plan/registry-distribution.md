@@ -145,6 +145,14 @@ Risks: primitive name conflicts and missing CSS tokens in the consumer app.
 
 ## Phase 4 — Migrate consumers
 
+**Status: blocked on publishing.** Decisions (Codex, 2026-11-05):
+
+- Start only after `0.1.0-alpha.0` is on npm, so consumers install real versions (no `file:`/`link:` dependencies). Publish from each package directory with `bun publish` (it resolves `workspace:` and `catalog:`; `npm publish` would not), in order core, react, drizzle. `publishConfig` already sets `access: public` and `tag: alpha`.
+- Consumers pin exact `0.1.0-alpha.0`: core + react in `apps/app`, core + drizzle in `packages/trpc`.
+- Install UI with `shadcn@latest add` against a local registry server (`build-registry.ts --base-url http://localhost:<port>`) and commit the generated files. Entry items: dashseller `table-view list-view gallery-view notion-toolbar dataview-skeletons`; sellerhunt `table-view gallery-view notion-toolbar preset-tabs dataview-skeletons`; plus directly imported `*-property` items. Keep their `base-lyra` style; review overwrites instead of forcing them.
+- Replace `packages/trpc/src/lib` build-filter/group/rollup/sort with `@sparkyidea/dataview-drizzle`, schemas/build-search with core; keep app-specific helpers; keep app-specific test cases as integration tests against the public packages.
+- Branch `refactor/headless-split` in each consumer (from dashseller `dev`, sellerhunt `main`), one local commit each, no push. sellerhunt first, then dashseller. Both must pass check, check-types, test, build, plus manual URL/filter/sort/group/pagination/bulk/images/dark-mode checks.
+
 Changes:
 
 1. dashseller and sellerhunt: replace the vendored `packages/dataview` (`workspace:*`) with npm versions of the headless packages.
