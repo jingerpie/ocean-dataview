@@ -1,7 +1,7 @@
 "use client";
 
-import { AlertCircle, Loader2 } from "lucide-react";
-import { Suspense, useCallback, useEffect, useRef } from "react";
+import { AlertCircle } from "lucide-react";
+import { Suspense } from "react";
 import { useDisplayProperties } from "../../../hooks/use-display-properties";
 import type { GroupedDataItem } from "../../../hooks/use-group-config";
 import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
@@ -22,6 +22,7 @@ import {
   SuspendingInfiniteGroupContent,
 } from "../../ui/suspending-group-content";
 import { DataCard } from "../data-card";
+import { InfiniteScrollGroupsSentinel } from "../infinite-scroll-groups-sentinel";
 
 export interface GalleryViewProps<TData> {
   /**
@@ -529,74 +530,5 @@ function SuspendingInfiniteGalleryContent<
         );
       }}
     </SuspendingInfiniteGroupContent>
-  );
-}
-
-// ============================================================================
-// Infinite Scroll Groups Sentinel
-// ============================================================================
-
-interface InfiniteScrollGroupsSentinelProps {
-  hasNext?: boolean;
-  isFetching?: boolean;
-  onLoadMore?: () => void;
-}
-
-function InfiniteScrollGroupsSentinel({
-  hasNext,
-  isFetching,
-  onLoadMore,
-}: InfiniteScrollGroupsSentinelProps) {
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  // Use refs to avoid stale closures in the intersection observer callback
-  const stateRef = useRef({ hasNext, isFetching, onLoadMore });
-  stateRef.current = { hasNext, isFetching, onLoadMore };
-
-  const handleIntersect = useCallback(() => {
-    const { hasNext, isFetching, onLoadMore } = stateRef.current;
-    if (hasNext && !isFetching && onLoadMore) {
-      onLoadMore();
-    }
-  }, []);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          handleIntersect();
-        }
-      },
-      {
-        rootMargin: "200px",
-        threshold: 0,
-      }
-    );
-
-    observer.observe(sentinel);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [handleIntersect]);
-
-  if (!(hasNext || isFetching)) {
-    return null;
-  }
-
-  return (
-    <div className="flex items-center justify-center py-4" ref={sentinelRef}>
-      {isFetching && (
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" />
-          <span className="text-sm">Loading more groups...</span>
-        </div>
-      )}
-    </div>
   );
 }

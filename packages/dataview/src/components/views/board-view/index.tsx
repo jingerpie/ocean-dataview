@@ -1,7 +1,7 @@
 "use client";
 
-import { AlertCircle, Loader2 } from "lucide-react";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { AlertCircle } from "lucide-react";
+import { Suspense, useEffect, useRef } from "react";
 import { useBoardModel } from "../../../hooks/use-board-model";
 import { useDisplayProperties } from "../../../hooks/use-display-properties";
 import type { GroupedDataItem } from "../../../hooks/use-group-config";
@@ -29,6 +29,8 @@ import { SuspendingInfiniteGroupContent } from "../../ui/suspending-group-conten
 import { DataCard } from "../data-card";
 import { DataCell } from "../data-cell";
 import { EmptyState } from "../empty-state";
+import { InfiniteScrollGroupsSentinel } from "../infinite-scroll-groups-sentinel";
+import { ScrollSyncBar } from "../scroll-sync-bar";
 import { BoardColumnHeaders, parseColumnWidth } from "./board-column-headers";
 import { BoardColumns } from "./board-columns";
 import { StickyColumnLabel } from "./sticky-column-label";
@@ -267,7 +269,8 @@ export function BoardView<
   const boardContainerRef = useRef<HTMLDivElement>(null);
   const originalHeaderRef = useRef<HTMLDivElement>(null);
   const headerScrollRef = useRef<HTMLDivElement>(null);
-  const { register: registerScroll } = useScrollSync();
+  const scrollSync = useScrollSync();
+  const { register: registerScroll } = scrollSync;
   const columnWidthPx = parseColumnWidth(columnWidth);
 
   // Register the header scroll container with scroll sync
@@ -420,7 +423,7 @@ export function BoardView<
         />
 
         {/* Shared horizontal scrollbar */}
-        <ScrollSyncBar register={registerScroll} />
+        <ScrollSyncBar sync={scrollSync} />
       </div>
     );
   }
@@ -644,75 +647,6 @@ function SuspendingInfiniteBoardContent<
 }
 
 // ============================================================================
-// Infinite Scroll Groups Sentinel
-// ============================================================================
-
-interface InfiniteScrollGroupsSentinelProps {
-  hasNext?: boolean;
-  isFetching?: boolean;
-  onLoadMore?: () => void;
-}
-
-function InfiniteScrollGroupsSentinel({
-  hasNext,
-  isFetching,
-  onLoadMore,
-}: InfiniteScrollGroupsSentinelProps) {
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  // Use refs to avoid stale closures in the intersection observer callback
-  const stateRef = useRef({ hasNext, isFetching, onLoadMore });
-  stateRef.current = { hasNext, isFetching, onLoadMore };
-
-  const handleIntersect = useCallback(() => {
-    const { hasNext, isFetching, onLoadMore } = stateRef.current;
-    if (hasNext && !isFetching && onLoadMore) {
-      onLoadMore();
-    }
-  }, []);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          handleIntersect();
-        }
-      },
-      {
-        rootMargin: "200px",
-        threshold: 0,
-      }
-    );
-
-    observer.observe(sentinel);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [handleIntersect]);
-
-  if (!(hasNext || isFetching)) {
-    return null;
-  }
-
-  return (
-    <div className="flex items-center justify-center py-4" ref={sentinelRef}>
-      {isFetching && (
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" />
-          <span className="text-sm">Loading more groups...</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================================================
 // Synced Scroll Container
 // ============================================================================
 
@@ -745,79 +679,6 @@ function SyncedScrollContainer({
       ref={ref}
     >
       {children}
-    </div>
-  );
-}
-
-// ============================================================================
-// Scroll Sync Bar
-// ============================================================================
-
-/**
- * ScrollSyncBar - A visible horizontal scrollbar that syncs with all
- * registered scroll containers. Measures content width from sibling
- * scroll containers via MutationObserver.
- */
-function ScrollSyncBar({
-  register,
-}: {
-  register: (el: HTMLElement) => () => void;
-}) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [contentWidth, setContentWidth] = useState(0);
-
-  // Register with scroll sync
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) {
-      return;
-    }
-    return register(el);
-  }, [register]);
-
-  // Observe DOM to measure content width from sibling scroll containers
-  useEffect(() => {
-    const scrollEl = scrollRef.current;
-    if (!scrollEl) {
-      return;
-    }
-
-    const updateWidth = () => {
-      // Find any overflow-x-auto sibling/descendant to measure from
-      const parent = scrollEl.parentElement;
-      if (!parent) {
-        return;
-      }
-      const container = parent.querySelector<HTMLElement>(".overflow-x-auto");
-      if (container && container !== scrollEl) {
-        setContentWidth(container.scrollWidth);
-      }
-    };
-
-    // Delay initial check to allow Suspense children to mount
-    const timer = setTimeout(updateWidth, 100);
-
-    const observer = new MutationObserver(updateWidth);
-    const parent = scrollEl.parentElement;
-    if (parent) {
-      observer.observe(parent, { childList: true, subtree: true });
-    }
-
-    return () => {
-      clearTimeout(timer);
-      observer.disconnect();
-    };
-  }, []);
-
-  return (
-    <div
-      className="sticky bottom-0 overflow-x-auto"
-      ref={scrollRef}
-      style={
-        contentWidth === 0 ? { visibility: "hidden", height: 0 } : undefined
-      }
-    >
-      <div style={{ width: contentWidth, height: 1 }} />
     </div>
   );
 }

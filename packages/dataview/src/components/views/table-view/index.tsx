@@ -5,15 +5,8 @@ import type {
   RowSelectionState,
   Table as TanStackTable,
 } from "@tanstack/react-table";
-import { AlertCircle, Loader2 } from "lucide-react";
-import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { AlertCircle } from "lucide-react";
+import { Suspense, useMemo, useState } from "react";
 import { useDisplayProperties } from "../../../hooks/use-display-properties";
 import type { GroupedDataItem } from "../../../hooks/use-group-config";
 import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
@@ -41,6 +34,8 @@ import {
   SuspendingInfiniteGroupContent,
 } from "../../ui/suspending-group-content";
 import { DataCell } from "../data-cell";
+import { InfiniteScrollGroupsSentinel } from "../infinite-scroll-groups-sentinel";
+import { ScrollSyncBar } from "../scroll-sync-bar";
 import { DataTable } from "./data-table";
 
 export interface TableViewProps<TData> {
@@ -127,7 +122,8 @@ export function TableView<
 }: TableViewProps<TData>) {
   const stickyEnabled = stickyHeaderProp?.enabled ?? false;
   const stickyOffset = stickyHeaderProp?.offset ?? 0;
-  const { register: registerScroll } = useScrollSync();
+  const scrollSync = useScrollSync();
+  const { register: registerScroll } = scrollSync;
 
   // Get data and properties from context
   const {
@@ -382,7 +378,7 @@ export function TableView<
         />
 
         {/* Shared horizontal scrollbar for all grouped tables */}
-        <ScrollSyncBar register={registerScroll} />
+        <ScrollSyncBar sync={scrollSync} />
       </div>
     );
   }
@@ -684,179 +680,5 @@ function SuspendingInfiniteTableContent<
         );
       }}
     </SuspendingInfiniteGroupContent>
-  );
-}
-
-// ============================================================================
-// Infinite Scroll Groups Sentinel
-// ============================================================================
-
-interface InfiniteScrollGroupsSentinelProps {
-  hasNext?: boolean;
-  isFetching?: boolean;
-  onLoadMore?: () => void;
-}
-
-function InfiniteScrollGroupsSentinel({
-  hasNext,
-  isFetching,
-  onLoadMore,
-}: InfiniteScrollGroupsSentinelProps) {
-  const observerRef = useRef<IntersectionObserver | null>(null);
-
-  // Use refs to avoid stale closures in the intersection observer callback
-  const stateRef = useRef({ hasNext, isFetching, onLoadMore });
-  stateRef.current = { hasNext, isFetching, onLoadMore };
-
-  const handleIntersect = useCallback(() => {
-    const { hasNext, isFetching, onLoadMore } = stateRef.current;
-    if (hasNext && !isFetching && onLoadMore) {
-      onLoadMore();
-    }
-  }, []);
-
-  const sentinelRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-        observerRef.current = null;
-      }
-
-      if (!node) {
-        return;
-      }
-
-      const observer = new IntersectionObserver(
-        (entries) => {
-          if (entries[0]?.isIntersecting) {
-            handleIntersect();
-          }
-        },
-        {
-          rootMargin: "200px",
-          threshold: 0,
-        }
-      );
-
-      observer.observe(node);
-      observerRef.current = observer;
-    },
-    [handleIntersect] // Re-bind if handleIntersect changes
-  );
-
-  // We need to re-run the intersection observer when isFetching changes
-  // to ensure it checks visibility after fetching state resolves from cache hits.
-  useEffect(() => {
-    // If we're no longer fetching, and we have an observer and a node...
-    // Actually, reconnecting the observer will force an immediate intersection check.
-    if (
-      !isFetching &&
-      observerRef.current &&
-      observerRef.current.takeRecords().length === 0
-    ) {
-      // Disconnect and reconnect to force a re-evaluation
-      observerRef.current.disconnect();
-      const node = document.getElementById("infinite-scroll-sentinel");
-      if (node) {
-        observerRef.current.observe(node);
-      }
-    }
-  }, [isFetching]);
-
-  if (!(hasNext || isFetching)) {
-    return null;
-  }
-
-  return (
-    <div
-      className="flex items-center justify-center py-4"
-      id="infinite-scroll-sentinel"
-      ref={sentinelRef}
-    >
-      {isFetching && (
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" />
-          <span className="text-sm">Loading more groups...</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================================================
-// Scroll Sync Bar
-// ============================================================================
-
-/**
- * ScrollSyncBar - A visible horizontal scrollbar that syncs with all
- * registered scroll containers. Used in grouped mode where individual
- * DataTable scrollbars are hidden.
- *
- * Measures content width from sibling scroll containers via ResizeObserver.
- */
-function ScrollSyncBar({
-  register,
-}: {
-  register: (el: HTMLElement) => () => void;
-}) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const spacerRef = useRef<HTMLDivElement>(null);
-  const [contentWidth, setContentWidth] = useState(0);
-
-  // Register with scroll sync
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) {
-      return;
-    }
-    return register(el);
-  }, [register]);
-
-  // Observe any registered scroll container to measure content width
-  useEffect(() => {
-    const scrollEl = scrollRef.current;
-    if (!scrollEl) {
-      return;
-    }
-
-    const updateWidth = () => {
-      // Find any overflow-x-auto container in the parent tree to measure from
-      const parent = scrollEl.closest(".flex.flex-col");
-      if (!parent) {
-        return;
-      }
-      const container = parent.querySelector<HTMLElement>(".overflow-x-auto");
-      if (!container || container === scrollEl) {
-        setContentWidth(0);
-        return;
-      }
-      setContentWidth(container.scrollWidth);
-    };
-
-    // Delay initial check to allow Suspense children to mount
-    const timer = setTimeout(updateWidth, 100);
-
-    const observer = new MutationObserver(updateWidth);
-    const parent = scrollEl.closest(".flex.flex-col");
-    if (parent) {
-      observer.observe(parent, { childList: true, subtree: true });
-    }
-
-    return () => {
-      clearTimeout(timer);
-      observer.disconnect();
-    };
-  }, []);
-
-  return (
-    <div
-      className="sticky bottom-0 overflow-x-auto"
-      ref={scrollRef}
-      style={
-        contentWidth === 0 ? { visibility: "hidden", height: 0 } : undefined
-      }
-    >
-      <div ref={spacerRef} style={{ width: contentWidth, height: 1 }} />
-    </div>
   );
 }
