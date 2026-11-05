@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import type { GroupedDataItem } from "../types/group.type";
 import type { DataViewProperty } from "../types/property.type";
 import { getGroup, groupByProperty } from "../utils/compute-data";
 import { validateGroupConfig } from "../validators/valid-group";
@@ -29,13 +30,7 @@ export interface GroupConfig {
   startWeekOn?: "monday" | "sunday";
 }
 
-export interface GroupedDataItem<TData> {
-  count: number;
-  displayCount?: string; // "99+" or actual count as string
-  items: TData[];
-  key: string;
-  sortValue: string | number;
-}
+export type { GroupedDataItem } from "../types/group.type";
 
 export interface UseGroupConfigOptions {
   /** Auto-select a suitable property if groupBy not provided (BoardView only) */

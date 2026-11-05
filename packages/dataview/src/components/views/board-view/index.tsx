@@ -1,37 +1,22 @@
 "use client";
 
 import { AlertCircle, Loader2 } from "lucide-react";
-import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useBoardModel } from "../../../hooks/use-board-model";
 import { useDisplayProperties } from "../../../hooks/use-display-properties";
 import type { GroupedDataItem } from "../../../hooks/use-group-config";
-import { useGroupParams } from "../../../hooks/use-group-params";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useScrollSync } from "../../../hooks/use-scroll-sync";
-import { useDataViewContext } from "../../../lib/providers/data-view-context";
-import {
-  DEFAULT_LIMIT,
-  useDataViewSetup,
-} from "../../../lib/providers/data-view-provider";
+import { DEFAULT_LIMIT } from "../../../lib/providers/data-view-provider";
 import type { GroupByConfig } from "../../../types/group.type";
 import type { PaginationContext } from "../../../types/pagination";
-import type {
-  GroupCountInfo,
-  GroupCounts,
-} from "../../../types/pagination-types";
+import type { GroupCounts } from "../../../types/pagination-types";
 import type {
   BadgeColor,
   DataViewProperty,
 } from "../../../types/property.type";
 import { groupByProperty as groupDataByProperty } from "../../../utils/compute-data";
 import { transformData } from "../../../utils/transform-data";
-import { validatePropertyKeys } from "../../../validators/valid-properties";
 import { getBadgeBgTransparentClass } from "../../lib/badge-colors";
 import { getBoardCardDimensions } from "../../lib/get-card-sizes";
 import { cn } from "../../lib/utils";
@@ -166,12 +151,8 @@ export function BoardView<
 }: BoardViewProps<TData>) {
   const stickyEnabled = stickyHeaderProp?.enabled ?? false;
   const stickyOffset = stickyHeaderProp?.offset ?? 0;
-  // Get data and properties from context
-  // Board terminology: column = board columns, group = accordion rows
   const {
     properties,
-    counts: contextCounts,
-    columnCounts: contextColumnCounts,
     propertyVisibility,
     column: columnConfig,
     group: groupConfig,
@@ -182,139 +163,13 @@ export function BoardView<
     isFetchingNextGroupPage,
     onLoadMoreGroups,
     limit,
-  } = useDataViewContext<TData, TProperties>();
-
-  const { controller } = useDataViewSetup();
-  if (controller.type === "page") {
-    throw new Error(
-      "BoardView requires an InfiniteController. " +
-        "Use useInfiniteController() instead of usePageController(). " +
-        "Board views only support infinite pagination modes (loadMore, infiniteScroll)."
-    );
-  }
-
-  // Get sort order from URL params (managed by useGroupParams)
-  const { groupSortOrder } = useGroupParams();
-
-  // Use prop counts if provided, otherwise fall back to context
-  // columnCounts for board columns, contextCounts?.group for accordion rows
-  const columnCounts = _counts ?? contextColumnCounts;
-  const columnSortValues = contextCounts?.groupSortValues;
-  const groupCounts = contextCounts?.group;
-
-  // Validate property keys
-  const propertyValidationError = useMemo(
-    () => validatePropertyKeys(properties),
-    [properties]
-  );
-
-  // Get column property for header display
-  const columnProperty = useMemo(() => {
-    if (columnConfig?.propertyId) {
-      return properties.find((p) => String(p.id) === columnConfig.propertyId);
-    }
-    return undefined;
-  }, [columnConfig, properties]);
-
-  // Get row group property for accordion headers
-  const rowGroupPropertyDef = useMemo(() => {
-    if (groupConfig?.propertyId) {
-      return properties.find((p) => String(p.id) === groupConfig.propertyId);
-    }
-    return undefined;
-  }, [groupConfig, properties]);
-
-  // Build column structure from counts (for headers)
-  const columns: GroupedDataItem<TData>[] = useMemo(() => {
-    if (!columnCounts) {
-      return [];
-    }
-
-    return Object.entries(columnCounts)
-      .map(([key, countInfo]: [string, GroupCountInfo]) => ({
-        key,
-        items: [] as TData[], // Items loaded via Suspense
-        count: countInfo.count,
-        displayCount: countInfo.hasMore ? "99+" : String(countInfo.count),
-        sortValue: columnSortValues?.[key] ?? key,
-      }))
-      .sort((a, b) => {
-        const aVal = a.sortValue;
-        const bVal = b.sortValue;
-        let result: number;
-        if (typeof aVal === "number" && typeof bVal === "number") {
-          result = aVal - bVal;
-        } else {
-          result = String(aVal).localeCompare(String(bVal));
-        }
-        return groupSortOrder === "desc" ? -result : result;
-      });
-  }, [columnCounts, columnSortValues, groupSortOrder]);
-
-  // Build row groups from counts (for accordion)
-  const rowGroups: GroupedDataItem<TData>[] = useMemo(() => {
-    if (!groupCounts) {
-      return [];
-    }
-
-    const rowGroupSortValues = contextCounts?.groupSortValues;
-    const sortOrder = groupConfig?.sort ?? "asc";
-
-    return Object.entries(groupCounts)
-      .map(([key, countInfo]: [string, GroupCountInfo]) => ({
-        key,
-        items: [] as TData[],
-        count: countInfo.count,
-        displayCount: countInfo.hasMore ? "99+" : String(countInfo.count),
-        sortValue: rowGroupSortValues?.[key] ?? key,
-      }))
-      .filter((g) => {
-        if (groupConfig?.hideEmpty ?? false) {
-          return g.count > 0;
-        }
-        return true;
-      })
-      .sort((a, b) => {
-        const aVal = a.sortValue;
-        const bVal = b.sortValue;
-        let result: number;
-        if (typeof aVal === "number" && typeof bVal === "number") {
-          result = aVal - bVal;
-        } else {
-          result = String(aVal).localeCompare(String(bVal));
-        }
-        return sortOrder === "desc" ? -result : result;
-      });
-  }, [
-    groupCounts,
-    contextCounts?.groupSortValues,
-    groupConfig?.sort,
-    groupConfig?.hideEmpty,
-  ]);
-
-  // Get column options from property config
-  const columnOptions = useMemo(() => {
-    if (!columnProperty) {
-      return [];
-    }
-
-    if (columnProperty.type === "select") {
-      return columnProperty.config?.options || [];
-    }
-
-    if (columnProperty.type === "status") {
-      const groups = columnProperty.config?.groups || [];
-      return groups.flatMap((group) =>
-        group.options.map((value) => ({ value, color: group.color }))
-      );
-    }
-
-    if (columnProperty.type === "multiSelect") {
-      return columnProperty.config?.options || [];
-    }
-
-    return [];
-  }, [columnProperty]);
+    columnOptions,
+    columnProperty,
+    columns,
+    propertyValidationError,
+    rowGroupProperty,
+    rowGroups,
+  } = useBoardModel<TData, TProperties>({ columnCounts: _counts });
 
   // Use shared hook for display properties filtering
   const displayProperties = useDisplayProperties(
@@ -510,7 +365,7 @@ export function BoardView<
             return (
               <GroupSection
                 group={rowGroup}
-                groupByPropertyDef={rowGroupPropertyDef}
+                groupByPropertyDef={rowGroupProperty}
                 key={rowGroup.key}
                 showAggregation={groupConfig?.showCount ?? true}
                 stickyHeader={{

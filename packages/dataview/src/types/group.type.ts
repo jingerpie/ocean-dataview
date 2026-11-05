@@ -214,3 +214,13 @@ export const columnConfigInputSchema = groupConfigInputSchema;
 export type GroupByConfigSchema = z.infer<typeof groupByConfigSchema>;
 export type GroupConfigInputSchema = z.infer<typeof groupConfigInputSchema>;
 export type ColumnConfigInputSchema = z.infer<typeof columnConfigInputSchema>;
+
+/** A group (or board column) with its items and count. */
+export interface GroupedDataItem<TData> {
+  count: number;
+  /** "99+" when the server capped the count, otherwise the count as string */
+  displayCount?: string;
+  items: TData[];
+  key: string;
+  sortValue: string | number;
+}
