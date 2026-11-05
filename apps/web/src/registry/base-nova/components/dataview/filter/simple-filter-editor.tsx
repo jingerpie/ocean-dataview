@@ -1,0 +1,192 @@
+"use client";
+
+import type { FilterCondition, WhereRule } from "@sparkyidea/dataview-core";
+import {
+  applyConditionChange,
+  applyQuantifierChange,
+  getEffectiveType,
+  isDisplayRollup,
+  type PropertyMeta,
+} from "@sparkyidea/dataview-core";
+import { ConditionPicker } from "@/registry/base-nova/components/dataview/filter/condition-picker";
+import { CheckboxValueEditor } from "@/registry/base-nova/components/dataview/filter/properties/checkbox-filter";
+import { DateValueEditor } from "@/registry/base-nova/components/dataview/filter/properties/date-filter";
+import { SelectValueEditor } from "@/registry/base-nova/components/dataview/filter/properties/select-filter";
+import { StatusValueEditor } from "@/registry/base-nova/components/dataview/filter/properties/status-filter";
+import { TextValueEditor } from "@/registry/base-nova/components/dataview/filter/properties/text-filter";
+import { QuantifierPicker } from "@/registry/base-nova/components/dataview/filter/quantifier-picker";
+import { SimpleFilterActions } from "@/registry/base-nova/components/dataview/filter/simple-filter-actions";
+
+interface SimpleFilterEditorProps {
+  /** Callback when popover should close */
+  onClose?: () => void;
+  /** Callback when rule changes */
+  onRuleChange: (rule: WhereRule) => void;
+  /** The property being filtered */
+  property: PropertyMeta;
+  /** The filter rule */
+  rule: WhereRule;
+}
+
+/**
+ * Simple filter editor - popover content for editing a single filter rule.
+ *
+ * Structure:
+ * - Header: Property name + Condition picker + Actions menu
+ * - Body: Value input (dispatched by property type)
+ *
+ * Used inside SimpleFilterChip's popover content.
+ */
+function SimpleFilterEditor({
+  rule,
+  property,
+  onRuleChange,
+  onClose,
+}: SimpleFilterEditorProps) {
+  const displayName = property.name ?? String(property.id);
+
+  const handleConditionChange = (newCondition: FilterCondition) => {
+    onRuleChange(applyConditionChange(rule, newCondition));
+  };
+
+  const handleValueChange = (value: unknown) => {
+    onRuleChange({ ...rule, value });
+  };
+
+  // Close popover after actions (called as additional callback)
+  const handleAfterAction = () => {
+    onClose?.();
+  };
+
+  // Check if value input should be hidden (isEmpty/isNotEmpty conditions)
+  const hideValueInput =
+    rule.condition === "isEmpty" || rule.condition === "isNotEmpty";
+
+  return (
+    <div className="flex flex-col gap-1">
+      {/* Header: Property + Condition + Actions */}
+      <div className="flex items-center justify-between px-1">
+        <div className="flex min-w-0 items-center pl-1">
+          <span className="max-w-24 truncate font-medium text-muted-foreground text-xs">
+            {displayName}
+          </span>
+          {isDisplayRollup(property) && (
+            <QuantifierPicker
+              className="p-1 font-semibold text-xs"
+              inline
+              onQuantifierChange={(q) =>
+                onRuleChange(applyQuantifierChange(rule, q))
+              }
+              quantifier={rule.quantifier ?? "any"}
+            />
+          )}
+          <ConditionPicker
+            className="p-1 font-semibold text-xs"
+            condition={rule.condition}
+            inline
+            onConditionChange={handleConditionChange}
+            property={property}
+            propertyType={property.type}
+          />
+        </div>
+        <SimpleFilterActions
+          onAddToAdvanced={handleAfterAction}
+          onRemove={handleAfterAction}
+          rule={rule}
+        />
+      </div>
+
+      {/* Value Input (dispatched by property type) */}
+      {!hideValueInput && (
+        <ValueEditor
+          onValueChange={handleValueChange}
+          property={property}
+          rule={rule}
+        />
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// Value Editor Dispatcher
+// ============================================================================
+
+interface ValueEditorProps {
+  onValueChange: (value: unknown) => void;
+  property: PropertyMeta;
+  rule: WhereRule;
+}
+
+function ValueEditor({ rule, property, onValueChange }: ValueEditorProps) {
+  switch (property.type) {
+    case "text":
+    case "url":
+    case "email":
+    case "phone":
+    case "number":
+      return (
+        <TextValueEditor
+          onValueChange={onValueChange}
+          property={property}
+          rule={rule}
+        />
+      );
+
+    case "checkbox":
+      return (
+        <CheckboxValueEditor
+          onValueChange={onValueChange}
+          property={property}
+          rule={rule}
+        />
+      );
+
+    case "select":
+    case "multiSelect":
+      return (
+        <SelectValueEditor
+          onValueChange={onValueChange}
+          property={property}
+          rule={rule}
+        />
+      );
+
+    case "status":
+      return (
+        <StatusValueEditor
+          onValueChange={onValueChange}
+          property={property}
+          rule={rule}
+        />
+      );
+
+    case "date":
+      return (
+        <DateValueEditor
+          onValueChange={onValueChange}
+          property={property}
+          rule={rule}
+        />
+      );
+
+    case "filesMedia":
+    case "formula":
+      // Only support isEmpty/isNotEmpty (handled above)
+      return null;
+
+    case "rollup":
+      return (
+        <ValueEditor
+          onValueChange={onValueChange}
+          property={{ ...property, type: getEffectiveType(property) }}
+          rule={rule}
+        />
+      );
+
+    default:
+      return null;
+  }
+}
+
+export { SimpleFilterEditor, type SimpleFilterEditorProps };

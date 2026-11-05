@@ -23,8 +23,8 @@ import { Callout } from "fumadocs-ui/components/callout";
 ```tsx
 import { useInfiniteController } from "@sparkyidea/dataview-react";
 import { DataViewContent, DataViewProvider } from "@sparkyidea/dataview-react";
-import { NotionToolbar } from "@sparkyidea/dataview-ui/toolbars/notion";
-import { ListView } from "@sparkyidea/dataview-ui/views/list-view";
+import { NotionToolbar } from "@/components/dataview/toolbars/notion/toolbar";
+import { ListView } from "@/components/dataview/views/list-view/list-view";
 
 const { controller } = useInfiniteController({
   groupQuery: (params) => trpc.product.getGroup.infiniteQueryOptions({

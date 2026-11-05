@@ -3,29 +3,37 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3001",
-    "build": "next build",
+    "dev": "bun scripts/build-registry.ts && next dev --port 3001",
+    "build": "bun scripts/build-registry.ts && next build",
     "start": "next start",
     "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
-    "postinstall": "fumadocs-mdx"
+    "postinstall": "fumadocs-mdx",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "build:registry": "bun scripts/build-registry.ts"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
+    "@dnd-kit/core": "catalog:",
+    "@dnd-kit/sortable": "catalog:",
+    "@dnd-kit/utilities": "catalog:",
     "@sparkyidea/dataview-core": "workspace:*",
     "@sparkyidea/dataview-react": "workspace:*",
-    "@sparkyidea/dataview-ui": "workspace:*",
     "@sparkyidea/env": "workspace:*",
     "@sparkyidea/trpc": "workspace:*",
     "@sparkyidea/ui": "workspace:*",
     "@takumi-rs/image-response": "catalog:",
     "@tanstack/react-form": "catalog:",
     "@tanstack/react-query": "catalog:",
+    "@tanstack/react-table": "catalog:",
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
     "@trpc/tanstack-react-query": "catalog:",
     "babel-plugin-react-compiler": "catalog:",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
+    "cmdk": "catalog:",
+    "date-fns": "catalog:",
     "dotenv": "catalog:",
     "fumadocs-core": "catalog:",
     "fumadocs-mdx": "catalog:",
@@ -35,12 +43,15 @@
     "next-themes": "catalog:",
     "nuqs": "catalog:",
     "react": "catalog:",
+    "react-day-picker": "catalog:",
     "react-dom": "catalog:",
+    "recharts": "catalog:",
     "shadcn": "catalog:",
     "sonner": "catalog:",
     "superjson": "catalog:",
     "tailwind-merge": "catalog:",
     "tw-animate-css": "catalog:",
+    "usehooks-ts": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
@@ -52,6 +63,7 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "tailwindcss": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

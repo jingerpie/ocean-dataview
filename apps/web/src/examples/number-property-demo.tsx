@@ -1,6 +1,6 @@
 "use client";
 
-import { NumberProperty } from "@sparkyidea/dataview-ui/properties";
+import { NumberProperty } from "@/registry/base-nova/components/dataview/properties/number-property";
 
 export function NumberPropertyDemo() {
   return (

@@ -1,9 +1,9 @@
 "use client";
 
 import { ChartViewProvider } from "@sparkyidea/dataview-react";
-import { AreaChartView } from "@sparkyidea/dataview-ui/views/area-chart-view";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
+import { AreaChartView } from "@/registry/base-nova/components/dataview/views/area-chart-view/area-chart-view";
 
 import { useTRPC } from "@/utils/trpc/client";
 

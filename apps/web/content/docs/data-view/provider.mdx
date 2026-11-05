@@ -86,7 +86,7 @@ const ordersParams = createDataViewParamsCache({ urlPrefix: "orders." });
 Cards and the files & media property render images with a plain `<img>`. To use a framework image component, such as `next/image`, wrap your app in `DataViewImageProvider`:
 
 ```tsx
-import { DataViewImageProvider } from "@sparkyidea/dataview-ui/image";
+import { DataViewImageProvider } from "@/lib/dataview/image";
 
 <DataViewImageProvider component={MyImage}>{children}</DataViewImageProvider>
 ```

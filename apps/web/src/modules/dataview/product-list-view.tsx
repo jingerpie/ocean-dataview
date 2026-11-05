@@ -11,13 +11,11 @@ import {
   useInfiniteController,
 } from "@sparkyidea/dataview-react";
 import { useNuqsDataViewState } from "@sparkyidea/dataview-react/nuqs";
-import {
-  ListSkeleton,
-  ToolbarSkeleton,
-} from "@sparkyidea/dataview-ui/skeletons";
-import { NotionToolbar } from "@sparkyidea/dataview-ui/toolbars/notion";
-import { ListView } from "@sparkyidea/dataview-ui/views/list-view";
 import { Suspense } from "react";
+import { ListSkeleton } from "@/registry/base-nova/components/dataview/skeletons/list-skeleton";
+import { ToolbarSkeleton } from "@/registry/base-nova/components/dataview/skeletons/toolbar-skeleton";
+import { NotionToolbar } from "@/registry/base-nova/components/dataview/toolbars/notion/toolbar";
+import { ListView } from "@/registry/base-nova/components/dataview/views/list-view/list-view";
 import { useTRPC } from "@/utils/trpc/client";
 import { DataViewTab } from "./dataview-tab";
 import { productListProperties } from "./product-list-properties";

@@ -1,7 +1,7 @@
 "use client";
 
-import { StatusProperty } from "@sparkyidea/dataview-ui/properties";
 import { CheckCircle, CircleDashed, Clock, XCircle } from "lucide-react";
+import { StatusProperty } from "@/registry/base-nova/components/dataview/properties/status-property";
 
 const config = {
   groups: [

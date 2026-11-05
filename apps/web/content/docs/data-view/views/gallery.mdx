@@ -23,8 +23,8 @@ import { Callout } from "fumadocs-ui/components/callout";
 ```tsx
 import { useInfiniteController } from "@sparkyidea/dataview-react";
 import { DataViewContent, DataViewProvider } from "@sparkyidea/dataview-react";
-import { NotionToolbar } from "@sparkyidea/dataview-ui/toolbars/notion";
-import { GalleryView } from "@sparkyidea/dataview-ui/views/gallery-view";
+import { NotionToolbar } from "@/components/dataview/toolbars/notion/toolbar";
+import { GalleryView } from "@/components/dataview/views/gallery-view/gallery-view";
 
 const { controller } = useInfiniteController({
   groupQuery: (params) =>

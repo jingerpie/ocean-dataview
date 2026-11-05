@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckboxProperty } from "@sparkyidea/dataview-ui/properties";
+import { CheckboxProperty } from "@/registry/base-nova/components/dataview/properties/checkbox-property";
 
 export function CheckboxPropertyDemo() {
   return (

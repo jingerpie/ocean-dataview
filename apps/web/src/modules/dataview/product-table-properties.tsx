@@ -1,9 +1,9 @@
 import type { DataViewProperty } from "@sparkyidea/dataview-core";
-import { FilesMediaProperty } from "@sparkyidea/dataview-ui/properties";
 import type { AppRouter } from "@sparkyidea/trpc/routers/index";
 import type { inferRouterOutputs } from "@trpc/server";
 import { AlertCircle, CheckCircle2, Edit, Eye, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { FilesMediaProperty } from "@/registry/base-nova/components/dataview/properties/files-media-property";
 
 type RouterOutput = inferRouterOutputs<AppRouter>;
 type ProductWithVariants = RouterOutput["product"]["getMany"]["items"][number];

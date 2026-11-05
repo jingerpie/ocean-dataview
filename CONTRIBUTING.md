@@ -88,7 +88,7 @@ bun run db:studio    # Open Drizzle Studio
 | `packages/dataview-core` | Framework-neutral types and logic |
 | `packages/dataview-react` | Headless React providers and hooks |
 | `packages/dataview-drizzle` | PostgreSQL SQL builders |
-| `packages/dataview` | Styled DataView UI (private) |
+| `apps/web/src/registry` | Styled DataView UI (shadcn registry) |
 | `packages/db`       | Drizzle schema + migrations        |
 | `packages/shared`   | Shared types and utilities         |
 | `packages/ui`       | UI component library               |

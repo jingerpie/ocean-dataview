@@ -21,16 +21,17 @@ This is a Turborepo monorepo containing a full-stack data visualization platform
 
 ### Packages
 
-- **packages/dataview-core** - Framework-neutral logic (`@sparkyidea/dataview-core`, published)
+- **packages/dataview-core** - Framework-neutral logic (`@sparkyidea/dataview-core`, npm package)
   - Types, validators, URL codecs, transport schemas, `DataViewRegister`
   - No React, nuqs, or styling imports (enforced by a boundary test)
-- **packages/dataview-react** - Headless React layer (`@sparkyidea/dataview-react`, published)
+- **packages/dataview-react** - Headless React layer (`@sparkyidea/dataview-react`, npm package)
   - Providers (DataViewProvider, DataViewContent, QueryBridge), controllers, hooks
   - `/nuqs` (URL state adapter) and `/nuqs/server` (parsers, params cache)
-- **packages/dataview-drizzle** - PostgreSQL SQL builders (`@sparkyidea/dataview-drizzle`, published)
-- **packages/dataview** - Styled UI (`@sparkyidea/dataview-ui`, private)
-  - Views, Notion toolbar, property renderers, skeletons, shadcn primitives
-  - Imports the headless packages through their public exports only
+- **packages/dataview-drizzle** - PostgreSQL SQL builders (`@sparkyidea/dataview-drizzle`, npm package)
+- **apps/web/src/registry/base-nova** - Styled UI shipped as a shadcn registry
+  - Views, Notion toolbar, property renderers, skeletons, customized primitives
+  - Import other registry files via `@/registry/base-nova/...`, stock primitives via `@sparkyidea/ui/components/*`, `cn` via `@/lib/utils`, logic via the public `@sparkyidea/dataview-*` exports
+  - Items are declared in `apps/web/registry.metadata.json`; `bun run build:registry` generates `public/r`
 
 - **packages/db** - Database layer (`@sparkyidea/db`)
   - Drizzle ORM schema and migrations
@@ -374,16 +375,16 @@ refactor(shared): simplify filter parser
 
 ### Add a new view type
 
-1. Create `packages/dataview/src/components/views/new-view/index.tsx`
+1. Create `apps/web/src/registry/base-nova/components/dataview/views/new-view/new-view.tsx`
 2. Use `useDataViewContext()` and `useViewSetup()` from `@sparkyidea/dataview-react`
 3. Implement with Suspense boundaries per group
-4. Export via package.json exports
+4. Add a registry item in `apps/web/registry.metadata.json` and run `bun run verify:registry`
 
 ### Add a filter condition
 
 1. Add to conditionValues in `packages/dataview-core/src/types/filter.type.ts`
 2. Implement SQL in `packages/dataview-drizzle/src/build-filter.ts`
-3. Add UI in `packages/dataview/src/components/ui/filter/`
+3. Add UI in `apps/web/src/registry/base-nova/components/dataview/filter/`
 
 ### Add a property type
 
@@ -402,7 +403,8 @@ refactor(shared): simplify filter parser
 
 | Purpose | Location |
 |---------|----------|
-| View components | `packages/dataview/src/components/views/` |
+| View components | `apps/web/src/registry/base-nova/components/dataview/views/` |
+| Registry items | `apps/web/registry.metadata.json` |
 | Hooks | `packages/dataview-react/src/hooks/` |
 | Context providers | `packages/dataview-react/src/providers/` |
 | Type definitions | `packages/dataview-core/src/types/` |
@@ -410,6 +412,6 @@ refactor(shared): simplify filter parser
 | nuqs parsers | `packages/dataview-react/src/nuqs/` |
 | tRPC routers | `packages/trpc/src/routers/` |
 | SQL builders | `packages/dataview-drizzle/src/` |
-| Package fixtures | `fixtures/` (run `bun run verify:packages`) |
+| Package and registry fixtures | `fixtures/` (`bun run verify:packages`, `bun run verify:registry`) |
 | DB schema | `packages/db/src/schema/` |
 | Architecture docs | `docs/` |

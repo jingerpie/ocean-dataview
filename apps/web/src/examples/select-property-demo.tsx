@@ -1,6 +1,6 @@
 "use client";
 
-import { SelectProperty } from "@sparkyidea/dataview-ui/properties";
+import { SelectProperty } from "@/registry/base-nova/components/dataview/properties/select-property";
 
 const config = {
   options: [

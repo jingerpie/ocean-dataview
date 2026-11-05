@@ -111,6 +111,18 @@ Risks: a `src` export condition can hide broken published exports during develop
 
 ## Phase 3 — Ship the registry
 
+**Status: done.** Decisions (Codex, 2026-11-05) and findings:
+
+- `packages/dataview` is deleted. The UI lives in `apps/web/src/registry/base-nova/{components/dataview,ui,lib/dataview,hooks/dataview}`; demos import it through `@/registry/base-nova/...`, so the shipped source is the tested source.
+- Registry files import each other only through `@/registry/base-nova/...` aliases (the CLI maps them to the user's aliases), `cn` from `@/lib/utils`, and stock primitives from `@sparkyidea/ui/components/*` (rewritten to `@/registry/base-nova/ui/*` in the payload). `index.tsx` files were renamed (`table-view/table-view.tsx`) and barrels removed so every installed basename is unique.
+- Eight customized primitives plus the chart ship as `dataview-{accordion,badge,button,calendar,checkbox,command,select,table,chart}`; identical primitives (including tabs) are stock registry dependencies.
+- 44 items: 4 views, 5 chart views, `notion-toolbar`, `preset-tabs`, `dataview-skeletons`, editors (`dataview-filter/sort/group/pagination/search/bulk-actions`), 12 `*-property` items, `dataview-view-shared` (also owns `formula-property`, which recurses through `DataCell`), `dataview-chart-legend`, `dataview-ui-lib`, `dataview-dom-hooks`, `dataview-styles`, primitives.
+- `dataview-styles` carries badge and chart tokens as `cssVars` (light, dark, theme) read from `packages/ui/src/styles/globals.css`; every item depends on it. `styles.css`/`@source` is gone.
+- `apps/web/registry.metadata.json` is the source of truth; `apps/web/scripts/build-registry.ts` assigns file ownership, follows imports with the TypeScript preprocessor, rejects relative/app-only/private imports and cycles, validates with `shadcn/schema`, and runs `shadcn build` into `public/r` and `public/r/<version>` (generated, gitignored; `apps/web` `build`/`dev` run it).
+- `bun run verify:registry` serves the registry on localhost and runs the real CLI into `fixtures/registry-vite` (default aliases, every item, typecheck + Vite build + server render of two views + token check) and `fixtures/registry-next` (aliases under `@/shared/...`, nuqs, typecheck + Next build).
+- Deviation from Codex: the docs and verifier use `shadcn@latest`, not `shadcn@3.6.2`. With 3.6.2, the stock base-nova `dialog` and `dropdown-menu` from the live upstream registry install with an untransformed `remixicon` placeholder and fail to typecheck; the latest CLI installs them correctly.
+- Limitation: nested folders are kept only if the user's `components` alias ends in a `components` directory (shadcn places files by matching that segment); documented on the Installation page.
+
 Changes:
 
 1. Move the canonical UI into `apps/web/src/registry`; demos consume that source directly, so shipped code is the tested code.
