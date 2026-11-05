@@ -261,18 +261,21 @@ function buildCondition<T extends Table>(
   // Column not found on primary table — try relation
   if (!column) {
     if (relations && property.includes(".")) {
-      const dotIndex = property.indexOf(".");
-      const relationName = property.slice(0, dotIndex);
-      const fieldName = property.slice(dotIndex + 1);
-      const relation = relations[relationName];
-
-      // Check if this is a scalar rollup (from client rollups input)
-      const rollup = rollups?.find((r) => r.key === property);
-      if (rollup && relation) {
-        return buildScalarRollupCondition(table, filter, relation, {
-          field: fieldName,
-          calculation: rollup.calculation,
-        });
+      // Scalar rollup (from client rollups input). Match the unique extrasKey
+      // first so multiple calculations on one relation field stay distinct;
+      // fall back to the plain key for clients that send the field key.
+      const rollup =
+        rollups?.find((r) => r.extrasKey === property) ??
+        rollups?.find((r) => r.key === property);
+      if (rollup) {
+        const dotIndex = rollup.key.indexOf(".");
+        const relation = relations[rollup.key.slice(0, dotIndex)];
+        if (dotIndex > 0 && relation) {
+          return buildScalarRollupCondition(table, filter, relation, {
+            field: rollup.key.slice(dotIndex + 1),
+            calculation: rollup.calculation,
+          });
+        }
       }
 
       return buildRelationCondition(table, filter, relations);
@@ -744,7 +747,12 @@ function buildRelationCondition<T extends Table>(
  * Builds a quantified EXISTS/NOT EXISTS subquery for array-returning rollup filters.
  * - "any"   → EXISTS (SELECT 1 WHERE fk=pk AND condition)
  * - "none"  → NOT EXISTS (SELECT 1 WHERE fk=pk AND condition)
- * - "every" → NOT EXISTS (SELECT 1 WHERE fk=pk AND NOT(condition))
+ * - "every" → EXISTS (SELECT 1 WHERE fk=pk)
+ *             AND NOT EXISTS (SELECT 1 WHERE fk=pk AND (condition) IS NOT TRUE)
+ *
+ * "every" needs at least one related row (empty relations do not match).
+ * `IS NOT TRUE` counts NULL results (e.g. NULL field values) as violations;
+ * plain `NOT (condition)` would yield NULL and let those rows slip through.
  */
 function buildQuantifiedRelationCondition(
   joinCond: SQL,
@@ -771,7 +779,7 @@ function buildQuantifiedRelationCondition(
     case "none":
       return sql`NOT EXISTS (SELECT 1 FROM ${sql.identifier(relTableName)} WHERE ${joinCond} AND ${innerCondition})`;
     case "every":
-      return sql`EXISTS (SELECT 1 FROM ${sql.identifier(relTableName)} WHERE ${joinCond}) AND NOT EXISTS (SELECT 1 FROM ${sql.identifier(relTableName)} WHERE ${joinCond} AND NOT (${innerCondition}))`;
+      return sql`(EXISTS (SELECT 1 FROM ${sql.identifier(relTableName)} WHERE ${joinCond}) AND NOT EXISTS (SELECT 1 FROM ${sql.identifier(relTableName)} WHERE ${joinCond} AND (${innerCondition}) IS NOT TRUE))`;
     default: {
       const exhaustiveCheck: never = quantifier;
       throw new Error(`Unknown quantifier: ${exhaustiveCheck}`);

@@ -230,6 +230,74 @@ describe("buildWhere with scalar rollups", () => {
     expect(s).not.toContain("EXISTS");
   });
 
+  it("matches scalar rollup by extrasKey when several calculations share a field", () => {
+    const rollups = [
+      {
+        extrasKey: "children.quantity_minQty",
+        key: "children.quantity",
+        calculation: "min",
+      },
+      {
+        extrasKey: "children.quantity_maxQty",
+        key: "children.quantity",
+        calculation: "max",
+      },
+    ];
+    const max = filterToSQL(
+      buildWhere(
+        parentTable,
+        [
+          {
+            property: "children.quantity_maxQty",
+            condition: "gt",
+            value: 3,
+          },
+        ],
+        relations,
+        rollups
+      )
+    );
+    expect(max).toContain("MAX(");
+    expect(max).not.toContain("MIN(");
+    expect(max).toContain('"quantity"');
+
+    const min = filterToSQL(
+      buildWhere(
+        parentTable,
+        [
+          {
+            property: "children.quantity_minQty",
+            condition: "gt",
+            value: 3,
+          },
+        ],
+        relations,
+        rollups
+      )
+    );
+    expect(min).toContain("MIN(");
+    expect(min).not.toContain("MAX(");
+  });
+
+  it("falls back to matching scalar rollup by plain key", () => {
+    const s = filterToSQL(
+      buildWhere(
+        parentTable,
+        [{ property: "children.quantity", condition: "gt", value: 3 }],
+        relations,
+        [
+          {
+            extrasKey: "children.quantity_total",
+            key: "children.quantity",
+            calculation: "sum",
+          },
+        ]
+      )
+    );
+    expect(s).toContain("SUM(");
+    expect(s).not.toContain("EXISTS");
+  });
+
   it("falls through to EXISTS for non-rollup relation property", () => {
     // children.model is NOT in rollups, so it should use EXISTS
     const result = buildWhere(
@@ -459,7 +527,7 @@ describe("buildWhere with quantifier", () => {
     expect(s).toContain("ILIKE");
   });
 
-  it('generates NOT EXISTS with NOT(condition) for "every" quantifier', () => {
+  it('generates NOT EXISTS with IS NOT TRUE for "every" quantifier', () => {
     const result = buildWhere(
       parentTable,
       [
@@ -475,8 +543,70 @@ describe("buildWhere with quantifier", () => {
     expect(result).toBeDefined();
     const s = filterToSQL(result);
     expect(s).toContain("NOT EXISTS");
-    expect(s).toContain("NOT (");
+    expect(s).toContain("IS NOT TRUE");
     expect(s).toContain("ILIKE");
+  });
+
+  it('"every" requires at least one related row (empty relation does not match)', () => {
+    const result = buildWhere(
+      parentTable,
+      [
+        {
+          property: "children.sku",
+          condition: "iLike",
+          value: "ABC",
+          quantifier: "every",
+        },
+      ],
+      relations
+    );
+    const s = filterToSQL(result);
+    // Leading EXISTS guard, then the NOT EXISTS violation check
+    expect(s).toContain(
+      'where (EXISTS (SELECT 1 FROM "child" WHERE "child"."parent_id" = "parent"."id") AND NOT EXISTS'
+    );
+  });
+
+  it('"every" stays grouped when combined with OR', () => {
+    const result = buildWhere(
+      parentTable,
+      [
+        {
+          or: [
+            { property: "name", condition: "eq", value: "x" },
+            {
+              property: "children.sku",
+              condition: "eq",
+              value: "A",
+              quantifier: "every",
+            },
+          ],
+        },
+      ],
+      relations
+    );
+    const s = filterToSQL(result);
+    expect(s).toContain(' or (EXISTS (SELECT 1 FROM "child"');
+  });
+
+  it('"every" counts NULL child values as violations', () => {
+    const result = buildWhere(
+      parentTable,
+      [
+        {
+          property: "children.quantity",
+          condition: "gt",
+          value: 5,
+          quantifier: "every",
+        },
+      ],
+      relations
+    );
+    const s = filterToSQL(result);
+    // NOT (quantity > 5) is NULL for a NULL quantity and would not count as
+    // a violation; IS NOT TRUE treats it as one.
+    expect(s).toContain("IS NOT TRUE");
+    expect(s).not.toContain("NOT (");
   });
 
   it("skips draft filters with quantifier", () => {
@@ -516,7 +646,7 @@ describe("buildWhere with quantifier", () => {
     expect(s).not.toContain("NOT ILIKE");
   });
 
-  it('"every" with eq condition wraps in NOT', () => {
+  it('"every" with eq condition checks IS NOT TRUE', () => {
     const result = buildWhere(
       parentTable,
       [
@@ -532,6 +662,6 @@ describe("buildWhere with quantifier", () => {
     expect(result).toBeDefined();
     const s = filterToSQL(result);
     expect(s).toContain("NOT EXISTS");
-    expect(s).toContain("NOT (");
+    expect(s).toContain("IS NOT TRUE");
   });
 });

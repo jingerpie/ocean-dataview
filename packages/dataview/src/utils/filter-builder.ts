@@ -6,7 +6,11 @@ import {
   type WhereNode,
   type WhereRule,
 } from "../types/filter.type";
-import type { PropertyMeta } from "../types/property.type";
+import {
+  getScalarRollupExtrasKey,
+  isDisplayRollup,
+  type PropertyMeta,
+} from "../types/property.type";
 
 // ============================================================================
 // Basic Helpers
@@ -648,13 +652,17 @@ export function getConditionSummary(
 /**
  * Build a map from property id to key for properties where they differ.
  * Properties without a key, or where id === key, are excluded.
+ * Scalar rollups map to their unique extras key, so the server can tell
+ * apart multiple calculations on the same relation field.
  */
 export function buildIdToKeyMap(
-  properties: readonly Pick<PropertyMeta, "id" | "key">[]
+  properties: readonly Pick<PropertyMeta, "config" | "id" | "key" | "type">[]
 ): Map<string, string> {
   const map = new Map<string, string>();
   for (const p of properties) {
-    if (p.key && p.id !== p.key) {
+    if (p.type === "rollup" && !isDisplayRollup(p)) {
+      map.set(p.id, getScalarRollupExtrasKey(p));
+    } else if (p.key && p.id !== p.key) {
       map.set(p.id, p.key);
     }
   }

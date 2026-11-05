@@ -660,7 +660,9 @@ export type {
  * Returns true if the property is a display rollup (showOriginal / showUnique).
  * Display rollups return arrays and support array quantifier filters (any/none/every).
  */
-export function isDisplayRollup(property: PropertyMeta): boolean {
+export function isDisplayRollup(
+  property: Pick<PropertyMeta, "config" | "type">
+): boolean {
   if (property.type !== "rollup") {
     return false;
   }
@@ -757,17 +759,25 @@ export function getScalarRollups<T>(
     );
   });
 
-  return scalars.map((p) => {
-    const key = p.key ?? p.id;
-    const id = p.id ?? p.key ?? p.name ?? "";
-    // Always append id with _ to avoid collisions with display rollups sharing the same key
-    const extrasKey = `${key}_${id}`;
-    return {
-      extrasKey,
-      key,
-      calculation: (p.config as RollupConfig).calculation,
-    };
-  });
+  return scalars.map((p) => ({
+    extrasKey: getScalarRollupExtrasKey(p),
+    key: p.key ?? p.id,
+    calculation: (p.config as RollupConfig).calculation,
+  }));
+}
+
+/**
+ * Unique key for a scalar rollup: `${key}_${id}`.
+ * Used as the SQL extras alias and as the filter property sent to the server,
+ * so multiple calculations on the same relation field stay distinct.
+ */
+export function getScalarRollupExtrasKey(
+  property: Pick<PropertyMeta, "id" | "key" | "name">
+): string {
+  const key = property.key ?? property.id;
+  const id = property.id ?? property.key ?? property.name ?? "";
+  // Always append id with _ to avoid collisions with display rollups sharing the same key
+  return `${key}_${id}`;
 }
 
 // Sort configuration (simple client-side sorting)
