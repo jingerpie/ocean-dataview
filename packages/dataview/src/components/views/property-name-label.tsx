@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "../../lib/utils";
 import type { ResolvedShowName } from "../../utils/resolve-show-name";
+import { cn } from "../lib/utils";
 
 interface PropertyNameLabelProps {
   name: string;

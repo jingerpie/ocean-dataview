@@ -4,9 +4,9 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFilterParams } from "../../../hooks/use-filter-params";
 import { useSortParams } from "../../../hooks/use-sort-params";
 import { useToolbarContext } from "../../../lib/providers/toolbar-context";
-import { cn } from "../../../lib/utils";
 import type { PropertyMeta } from "../../../types/property.type";
 import { analyzeFilter } from "../../../utils/filter-builder";
+import { cn } from "../../lib/utils";
 import { Separator } from "../../ui/separator";
 import { ChipsBar } from "./chips-bar";
 

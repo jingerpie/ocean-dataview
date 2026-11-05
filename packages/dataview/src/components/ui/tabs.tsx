@@ -2,7 +2,7 @@
 
 import { Tabs as TabsPrimitive } from "@base-ui/react/tabs";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "../../lib/utils";
+import { cn } from "../lib/utils";
 
 // Vendored from packages/ui/src/components/tabs.tsx — dataview keeps its
 // own UI primitives to avoid a dependency on @sparkyidea/ui.

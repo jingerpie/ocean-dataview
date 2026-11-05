@@ -3,9 +3,9 @@
 import { useSearchParams } from "../../../hooks/use-search-params";
 import { useQueryParamsState } from "../../../lib/providers/query-params-context";
 import { useToolbarContext } from "../../../lib/providers/toolbar-context";
-import { cn } from "../../../lib/utils";
 import type { GroupConfigInput } from "../../../types/group.type";
 import type { PropertyMeta } from "../../../types/property.type";
+import { cn } from "../../lib/utils";
 import { SearchInput } from "../../ui/search/search-input";
 import { FilterTool } from "./filter-tool";
 import { SettingsTool } from "./settings-tool";

@@ -3,7 +3,7 @@
 import { FileIcon } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { cn } from "../../../lib/utils";
+import { cn } from "../../lib/utils";
 import { Skeleton } from "../skeleton";
 
 const IMAGE_EXTENSION_REGEX = /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?|#|$)/i;

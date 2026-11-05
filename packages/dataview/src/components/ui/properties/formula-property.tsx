@@ -4,11 +4,11 @@ import type {
   DataViewProperty,
   PropertyRenderFunction,
 } from "../../../types/property.type";
+import { resolveShowName } from "../../../utils/resolve-show-name";
 import {
   getShowNameValueClasses,
   getShowNameWrapperClasses,
-  resolveShowName,
-} from "../../../utils/resolve-show-name";
+} from "../../lib/show-name-classes";
 import { DataCell } from "../../views/data-cell";
 import { PropertyNameLabel } from "../../views/property-name-label";
 

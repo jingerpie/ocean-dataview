@@ -3,7 +3,7 @@
 import type { Table } from "@tanstack/react-table";
 import { type ReactNode, useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { cn } from "../../../lib/utils";
+import { cn } from "../../lib/utils";
 
 interface DataActionBarProps<TData> {
   /**

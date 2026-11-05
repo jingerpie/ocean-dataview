@@ -2,8 +2,8 @@
 "use client";
 
 import type { ComponentProps, ReactNode } from "react";
-import { cn } from "../../../lib/utils";
 import type { PropertyMeta } from "../../../types/property.type";
+import { cn } from "../../lib/utils";
 import { NotionToolbarActions } from "./toolbar-actions";
 import { NotionToolbarChips } from "./toolbar-chips";
 

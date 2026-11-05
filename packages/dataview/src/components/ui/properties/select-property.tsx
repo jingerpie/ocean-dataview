@@ -1,7 +1,7 @@
 "use client";
 
 import type { SelectConfig } from "../../../types/property.type";
-import { getBadgeVariant } from "../../../utils/get-badge-variant";
+import { getBadgeVariant } from "../../lib/get-badge-variant";
 import { Badge } from "../badge";
 
 interface SelectPropertyProps {

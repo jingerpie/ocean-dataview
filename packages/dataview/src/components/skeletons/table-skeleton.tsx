@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "../../lib/utils";
+import { cn } from "../lib/utils";
 import type { PaginationMode } from "../ui/pagination";
 import { PaginationSkeleton } from "../ui/pagination/pagination-skeleton";
 import { Skeleton } from "../ui/skeleton";

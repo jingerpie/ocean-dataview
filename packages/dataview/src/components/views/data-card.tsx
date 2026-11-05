@@ -3,15 +3,15 @@
 import { ImageIcon } from "lucide-react";
 import Image from "next/image";
 import { useMemo } from "react";
-import { cn } from "../../lib/utils";
 import type { DataViewProperty } from "../../types/property.type";
 import { isPropertyValueEmpty } from "../../utils/is-property-value-empty";
 import { getCardPinIds, resolveCardPins } from "../../utils/resolve-card-pins";
+import { resolveShowName } from "../../utils/resolve-show-name";
 import {
   getShowNameValueClasses,
   getShowNameWrapperClasses,
-  resolveShowName,
-} from "../../utils/resolve-show-name";
+} from "../lib/show-name-classes";
+import { cn } from "../lib/utils";
 import { Card, CardContent } from "../ui/card";
 import { CardPinOverlay } from "./card-pins";
 import { DataCell } from "./data-cell";

@@ -1,10 +1,10 @@
 "use client";
 
 import { ChevronDownIcon, CopyPlusIcon, PlusIcon } from "lucide-react";
-import { cn } from "../../../lib/utils";
 import type { WhereRule } from "../../../types/filter.type";
 import type { PropertyMeta } from "../../../types/property.type";
 import { createRuleFromProperty } from "../../../utils/filter-variant";
+import { cn } from "../../lib/utils";
 import { Button } from "../button";
 import {
   DropdownMenu,

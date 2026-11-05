@@ -8,12 +8,11 @@ import type {
   StatusConfig,
   StatusGroup,
 } from "../../../../types/property.type";
+import { extractSelectValues } from "../../../../utils/filter-variant";
 import {
   getBadgeClasses,
   getBadgeTextColorClass,
-} from "../../../../utils/badge-colors";
-
-import { extractSelectValues } from "../../../../utils/filter-variant";
+} from "../../../lib/badge-colors";
 import { Button } from "../../button";
 import { Checkbox } from "../../checkbox";
 import {

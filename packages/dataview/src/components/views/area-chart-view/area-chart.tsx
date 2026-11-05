@@ -9,8 +9,8 @@ import {
 } from "recharts";
 import { useInteractiveLegend } from "../../../hooks/use-interactive-legend";
 import type { AxisNameType, GridLineType } from "../../../types/chart.type";
-import type { ChartColorScheme } from "../../../utils/chart-colors";
 import type { ChartDataPoint } from "../../../utils/compute-data";
+import type { ChartColorScheme } from "../../lib/chart-colors";
 import {
   ChartContainer,
   ChartTooltip,

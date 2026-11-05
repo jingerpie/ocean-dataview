@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { cn } from "../../../lib/utils";
+import { cn } from "../../lib/utils";
 
 /** Regex to extract width number from Tailwind class (e.g., "w-80" -> "80") */
 const TAILWIND_WIDTH_REGEX = /w-(\d+)/;

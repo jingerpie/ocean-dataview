@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { useScrollParent } from "../../../hooks/use-scroll-parent";
-import { cn } from "../../../lib/utils";
+import { cn } from "../../lib/utils";
 
 interface StickyColumnLabelProps {
   /**

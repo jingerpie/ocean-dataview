@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "../../../lib/utils";
 import {
   isWhereRule,
   type WhereExpression,
@@ -19,6 +18,7 @@ import {
   updateCondition,
   wrapInGroup,
 } from "../../../utils/filter-builder";
+import { cn } from "../../lib/utils";
 import { AddFilterButton } from "./advanced-add-filter-button";
 import { AdvancedFilterActions } from "./advanced-filter-actions";
 import { LogicPicker } from "./advanced-filter-logic-picker";

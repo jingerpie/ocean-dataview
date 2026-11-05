@@ -1,4 +1,4 @@
-import type { BadgeColor } from "../types/property.type";
+import type { BadgeColor } from "../../types/property.type";
 
 const BASE_COLORS = [
   "gray",

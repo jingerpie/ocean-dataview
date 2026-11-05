@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "../../lib/utils";
-import { getGalleryCardDimensions } from "../../utils/get-card-sizes";
+import { getGalleryCardDimensions } from "../lib/get-card-sizes";
+import { cn } from "../lib/utils";
 import { Card, CardContent } from "../ui/card";
 import { PaginationSkeleton } from "../ui/pagination/pagination-skeleton";
 import { Skeleton } from "../ui/skeleton";

@@ -5,7 +5,6 @@ import { flushSync } from "react-dom";
 import { useFilterParams } from "../../../hooks/use-filter-params";
 import { useSimpleFilterChip } from "../../../hooks/use-simple-filter-chip";
 import { useSortParams } from "../../../hooks/use-sort-params";
-import { cn } from "../../../lib/utils";
 import type {
   WhereExpression,
   WhereNode,
@@ -13,6 +12,7 @@ import type {
 } from "../../../types/filter.type";
 import type { PropertyMeta } from "../../../types/property.type";
 import { createRuleFromProperty } from "../../../utils/filter-variant";
+import { cn } from "../../lib/utils";
 import { Button } from "../../ui/button";
 import { FilterTrigger } from "../../ui/filter/filter-trigger";
 import { SimpleFilterPicker } from "../../ui/filter/simple-filter-picker";

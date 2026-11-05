@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "../../lib/utils";
 import type {
   CardPinPosition,
   DataViewProperty,
@@ -11,11 +10,12 @@ import {
   type CardPinsByPosition,
   type ResolvedCardPin,
 } from "../../utils/resolve-card-pins";
+import { resolveShowName } from "../../utils/resolve-show-name";
 import {
   getShowNameValueClasses,
   getShowNameWrapperClasses,
-  resolveShowName,
-} from "../../utils/resolve-show-name";
+} from "../lib/show-name-classes";
+import { cn } from "../lib/utils";
 import { DataCell } from "./data-cell";
 import { PropertyNameLabel } from "./property-name-label";
 

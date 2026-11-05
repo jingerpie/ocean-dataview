@@ -9,8 +9,8 @@ import type {
   SelectConfig,
   SelectOption,
 } from "../../../../types/property.type";
-import { getBadgeClasses } from "../../../../utils/badge-colors";
 import { extractSelectValues } from "../../../../utils/filter-variant";
+import { getBadgeClasses } from "../../../lib/badge-colors";
 import { Button } from "../../button";
 import { Checkbox } from "../../checkbox";
 import {

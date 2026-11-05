@@ -4,7 +4,6 @@ import { type ReactNode, useEffect, useMemo, useRef } from "react";
 import { useFilterParams } from "../../hooks/use-filter-params";
 import { useGroupParams } from "../../hooks/use-group-params";
 import { useSortParams } from "../../hooks/use-sort-params";
-import { cn } from "../../lib/utils";
 import { encodeFilter } from "../../parsers/filter";
 import type { SortQuery, WhereNode } from "../../types/filter.type";
 import type { GroupConfigInput } from "../../types/group.type";
@@ -13,6 +12,7 @@ import {
   extractPropertiesFromFilter,
   removePropertiesFromFilter,
 } from "../../utils/where-filter";
+import { cn } from "../lib/utils";
 import {
   Select,
   SelectContent,

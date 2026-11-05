@@ -5,7 +5,7 @@ import { useCallback, useRef, useState } from "react";
 import type { LegendPayload } from "recharts/types/component/DefaultLegendContent";
 import { useIsomorphicLayoutEffect, useResizeObserver } from "usehooks-ts";
 import { useDebouncedCallback } from "../../hooks/use-debounced-callback";
-import { cn } from "../../lib/utils";
+import { cn } from "../lib/utils";
 import { Button } from "./button";
 
 const RESIZE_DEBOUNCE_MS = 150;

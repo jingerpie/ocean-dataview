@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   getShowNameValueClasses,
   getShowNameWrapperClasses,
-  resolveShowName,
-} from "../resolve-show-name";
+} from "../../components/lib/show-name-classes";
+import { resolveShowName } from "../resolve-show-name";
 
 describe("resolveShowName", () => {
   it("returns null when hidden", () => {

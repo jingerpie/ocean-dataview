@@ -2,8 +2,8 @@
 
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { cn } from "../../../lib/utils";
 import type { PaginationContext } from "../../../types/pagination";
+import { cn } from "../../lib/utils";
 import { Button } from "../button";
 import {
   Select,

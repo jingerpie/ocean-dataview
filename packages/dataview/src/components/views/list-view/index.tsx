@@ -9,10 +9,10 @@ import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-gr
 import { useViewSetup } from "../../../hooks/use-view-setup";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
 import { DEFAULT_LIMIT } from "../../../lib/providers/data-view-provider";
-import { cn } from "../../../lib/utils";
 import type { PaginationContext } from "../../../types/pagination";
 import type { DataViewProperty } from "../../../types/property.type";
 import { transformData } from "../../../utils/transform-data";
+import { cn } from "../../lib/utils";
 import { ListSkeleton } from "../../skeletons/list-skeleton";
 import { Accordion } from "../../ui/accordion";
 import { GroupSection } from "../../ui/group-section";

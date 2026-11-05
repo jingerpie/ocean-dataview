@@ -2,7 +2,7 @@
 
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
-import { cn } from "../../../lib/utils";
+import { cn } from "../../lib/utils";
 import { Button } from "../button";
 import { Command, CommandGroup, CommandItem, CommandList } from "../command";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";

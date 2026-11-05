@@ -11,7 +11,7 @@ import {
 import type * as React from "react";
 import { useEffect, useRef } from "react";
 import { useScrollSync } from "../../../hooks/use-scroll-sync";
-import { cn } from "../../../lib/utils";
+import { cn } from "../../lib/utils";
 import {
   Table,
   TableBody,

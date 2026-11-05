@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "../../lib/utils";
+import { cn } from "../lib/utils";
 import { Skeleton } from "../ui/skeleton";
 
 const TAB_WIDTHS = [48, 64, 56, 72, 52, 60] as const;

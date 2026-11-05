@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "../../../lib/utils";
 import type { DataViewProperty } from "../../../types/property.type";
+import { cn } from "../../lib/utils";
 import { ROW_SKELETON_WIDTHS } from "../../skeletons/skeleton-widths";
 import { Separator } from "../../ui/separator";
 import { DataCell } from "../data-cell";

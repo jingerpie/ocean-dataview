@@ -19,7 +19,6 @@ import {
   DEFAULT_LIMIT,
   useDataViewSetup,
 } from "../../../lib/providers/data-view-provider";
-import { cn } from "../../../lib/utils";
 import type { GroupByConfig } from "../../../types/group.type";
 import type { PaginationContext } from "../../../types/pagination";
 import type {
@@ -30,11 +29,12 @@ import type {
   BadgeColor,
   DataViewProperty,
 } from "../../../types/property.type";
-import { getBadgeBgTransparentClass } from "../../../utils/badge-colors";
 import { groupByProperty as groupDataByProperty } from "../../../utils/compute-data";
-import { getBoardCardDimensions } from "../../../utils/get-card-sizes";
 import { transformData } from "../../../utils/transform-data";
 import { validatePropertyKeys } from "../../../validators/valid-properties";
+import { getBadgeBgTransparentClass } from "../../lib/badge-colors";
+import { getBoardCardDimensions } from "../../lib/get-card-sizes";
+import { cn } from "../../lib/utils";
 import { BoardSkeleton } from "../../skeletons/board-skeleton";
 import { Accordion } from "../../ui/accordion";
 import { Badge } from "../../ui/badge";

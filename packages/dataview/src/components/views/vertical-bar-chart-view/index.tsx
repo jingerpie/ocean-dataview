@@ -5,7 +5,7 @@ import { useChartTransform } from "../../../hooks/use-chart-transform";
 import { useChartViewContext } from "../../../lib/providers/chart-view-context";
 import type { VerticalBarChartConfig } from "../../../types/chart.type";
 import type { DataViewProperty } from "../../../types/property.type";
-import { getChartColors, getChartHeight } from "../../../utils/chart-colors";
+import { getChartColors, getChartHeight } from "../../lib/chart-colors";
 import { EmptyState } from "../empty-state";
 import { VerticalBarChartInner } from "./vertical-bar-chart";
 

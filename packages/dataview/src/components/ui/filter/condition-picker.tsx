@@ -2,13 +2,13 @@
 
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
-import { cn } from "../../../lib/utils";
 import type { FilterCondition, PropertyType } from "../../../types/filter.type";
 import type { PropertyMeta } from "../../../types/property.type";
 import {
   getFilterConditions,
   getFilterConditionsForProperty,
 } from "../../../utils/filter";
+import { cn } from "../../lib/utils";
 import { Button } from "../button";
 import { Command, CommandGroup, CommandItem, CommandList } from "../command";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";

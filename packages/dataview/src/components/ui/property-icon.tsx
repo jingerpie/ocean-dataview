@@ -1,8 +1,8 @@
 "use client";
 
-import { getPropertyIcon } from "../../lib/property-icons";
-import { cn } from "../../lib/utils";
 import type { PropertyType } from "../../types/filter.type";
+import { getPropertyIcon } from "../lib/property-icons";
+import { cn } from "../lib/utils";
 
 interface PropertyIconProps {
   /** Additional class names */

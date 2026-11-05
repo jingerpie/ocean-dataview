@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "../../../lib/utils";
 import type { FilterCondition, WhereRule } from "../../../types/filter.type";
 import {
   getEffectiveType,
@@ -12,6 +11,7 @@ import {
   applyQuantifierChange,
   createRuleFromProperty,
 } from "../../../utils/filter-variant";
+import { cn } from "../../lib/utils";
 import { AdvancedFilterActions } from "./advanced-filter-actions";
 import { LogicPicker } from "./advanced-filter-logic-picker";
 import { AdvancedFilterPicker } from "./advanced-filter-picker";
