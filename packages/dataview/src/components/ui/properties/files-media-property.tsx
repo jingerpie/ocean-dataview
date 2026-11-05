@@ -1,7 +1,7 @@
 "use client";
 
 import { FileIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDataViewImage } from "../../lib/image";
 import { cn } from "../../lib/utils";
 import { Skeleton } from "../skeleton";
@@ -76,6 +76,16 @@ interface ImageThumbnailProps {
 function ImageThumbnail({ url, className }: ImageThumbnailProps) {
   const Image = useDataViewImage();
   const [isLoaded, setIsLoaded] = useState(false);
+  const linkRef = useRef<HTMLAnchorElement>(null);
+
+  // A server-rendered image can finish loading before hydration attaches
+  // onLoad, so check whether it is already complete.
+  useEffect(() => {
+    const img = linkRef.current?.querySelector("img");
+    if (img?.complete && img.naturalWidth > 0) {
+      setIsLoaded(true);
+    }
+  }, []);
 
   return (
     <a
@@ -85,6 +95,7 @@ function ImageThumbnail({ url, className }: ImageThumbnailProps) {
       )}
       href={url}
       onClick={(e) => e.stopPropagation()}
+      ref={linkRef}
       rel="noopener noreferrer"
       target="_blank"
     >
