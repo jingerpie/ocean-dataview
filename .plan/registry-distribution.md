@@ -41,6 +41,14 @@ Decisions:
 
 ## Phase 1 — Decouple in place
 
+**Status: done (branch `refactor/headless-split`).** Decisions made while implementing:
+
+- Composition: `DataViewProvider` renders no markup; toolbars go anywhere inside it; the view goes inside `DataViewContent`, which runs the queries. `defaults.limit` falls back to 25 for every view. `BoardView` checks the controller type itself.
+- Toolbar popover state lives in a per-provider context (zustand removed). `urlPrefix` namespaces URL keys; `createDataViewParamsCache({ urlPrefix })` matches it.
+- React types in `types/` come from a `DataViewRegister` interface the React layer augments.
+- `useRowSelection` was not extracted: selection is already one per-instance `useState` over TanStack Table's `RowSelectionState`, which stays in registry UI.
+- Image slot is `DataViewImageProvider` (default `<img>`); the demo app uses the default.
+
 Stay in the single `packages/dataview` package so the demos keep exercising every change. Update call sites directly; no adapters.
 
 Changes:

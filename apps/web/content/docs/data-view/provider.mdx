@@ -1,0 +1,73 @@
+---
+title: Provider
+description: Compose a data view from a provider, toolbars, and a content boundary
+---
+
+## Composition
+
+`DataViewProvider` holds the URL state and toolbar state for one data view. It renders no markup of its own, so you own the layout. Put toolbars anywhere inside it, and wrap the view in `DataViewContent`, which runs the controller queries.
+
+```tsx
+import { usePageController } from "@sparkyidea/dataview/hooks";
+import { DataViewContent, DataViewProvider } from "@sparkyidea/dataview/providers";
+import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
+import { TableView } from "@sparkyidea/dataview/views/table-view";
+
+<DataViewProvider
+  controller={controller}
+  defaults={{ limit: 25, sort: [] }}
+  properties={productProperties}
+>
+  <div className="flex flex-col gap-2">
+    <NotionToolbar enableSettings />
+    <DataViewContent>
+      <TableView pagination="page" />
+    </DataViewContent>
+  </div>
+</DataViewProvider>
+```
+
+`DataViewContent` suspends while the first page loads. Toolbars outside it keep rendering. Wrap the provider in a `Suspense` boundary with a skeleton fallback (see [Table View](/docs/data-view/views/table#loading-state)).
+
+`BoardView` needs an infinite controller (`useInfiniteController`) and throws when given a page controller.
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `controller` | `PageController \| InfiniteController` | - | From `usePageController` or `useInfiniteController` |
+| `properties` | `DataViewProperty[]` | - | Property schema |
+| `defaults` | `DefaultsConfig` | - | Values used when the URL has no matching parameter. `limit` defaults to 25 |
+| `urlPrefix` | `string` | `""` | Prefix for every URL parameter key |
+| `propertyVisibility` | `string[]` | all | Visible property IDs |
+
+## Several views on one page
+
+Each provider keeps its own toolbar state (open filter and sort popovers, chip row). Give each provider a distinct `urlPrefix` so their URL parameters do not collide:
+
+```tsx
+<DataViewProvider controller={orders} properties={orderProperties} urlPrefix="orders.">
+  …
+</DataViewProvider>
+<DataViewProvider controller={returns} properties={returnProperties} urlPrefix="returns.">
+  …
+</DataViewProvider>
+```
+
+This gives URLs like `?orders.filter=…&returns.sort=…`. On the server, pass the same prefix to the params cache:
+
+```ts
+const ordersParams = createDataViewParamsCache({ urlPrefix: "orders." });
+```
+
+## Images
+
+Cards and the files & media property render images with a plain `<img>`. To use a framework image component, such as `next/image`, wrap your app in `DataViewImageProvider`:
+
+```tsx
+import { DataViewImageProvider } from "@sparkyidea/dataview/image";
+
+<DataViewImageProvider component={MyImage}>{children}</DataViewImageProvider>
+```
+
+`MyImage` receives standard `<img>` props (`src`, `alt`, `className`, `loading`, `sizes`, `onLoad`) and sizes itself with the classes it is given.

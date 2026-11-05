@@ -76,7 +76,9 @@ export function CustomToolbar() {
 ```tsx
 <DataViewProvider controller={controller} defaults={defaults} properties={properties}>
   <CustomToolbar />
-  <TableView pagination="page" />
+  <DataViewContent>
+    <TableView pagination="page" />
+  </DataViewContent>
 </DataViewProvider>
 ```
 

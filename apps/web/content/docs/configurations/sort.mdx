@@ -20,7 +20,9 @@ Set default sort in `DataViewProvider`:
   properties={properties}
 >
   <NotionToolbar enableSettings />
-  <TableView pagination="page" />
+  <DataViewContent>
+    <TableView pagination="page" />
+  </DataViewContent>
 </DataViewProvider>
 ```
 

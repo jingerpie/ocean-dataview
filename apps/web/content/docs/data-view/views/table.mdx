@@ -23,7 +23,7 @@ import { Callout } from "fumadocs-ui/components/callout";
 
 ```tsx
 import { usePageController } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
+import { DataViewContent, DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { TableView } from "@sparkyidea/dataview/views/table-view";
 
@@ -46,7 +46,9 @@ const { controller } = usePageController({
   properties={productProperties}
 >
   <NotionToolbar enableSettings />
-  <TableView pagination="page" />
+  <DataViewContent>
+    <TableView pagination="page" />
+  </DataViewContent>
 </DataViewProvider>
 ```
 
@@ -68,7 +70,9 @@ import { Suspense } from "react";
 >
   <DataViewProvider controller={controller} properties={productProperties}>
     <NotionToolbar enableSettings />
-    <TableView pagination="page" />
+    <DataViewContent>
+      <TableView pagination="page" />
+    </DataViewContent>
   </DataViewProvider>
 </Suspense>
 ```

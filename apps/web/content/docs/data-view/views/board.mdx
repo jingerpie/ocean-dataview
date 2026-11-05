@@ -23,7 +23,7 @@ import { Callout } from "fumadocs-ui/components/callout";
 
 ```tsx
 import { useInfiniteController } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
+import { DataViewContent, DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { BoardView } from "@sparkyidea/dataview/views/board-view";
 
@@ -74,7 +74,9 @@ const { controller } = useInfiniteController({
   <NotionToolbar enableSettings>
     <DataViewTab options={productTabOptions} />
   </NotionToolbar>
-  <BoardView cardSize="medium" colorColumns pagination="loadMore" />
+  <DataViewContent>
+    <BoardView cardSize="medium" colorColumns pagination="loadMore" />
+  </DataViewContent>
 </DataViewProvider>
 ```
 

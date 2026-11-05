@@ -22,7 +22,7 @@ import { Callout } from "fumadocs-ui/components/callout";
 
 ```tsx
 import { useInfiniteController } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
+import { DataViewContent, DataViewProvider } from "@sparkyidea/dataview/providers";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import { GalleryView } from "@sparkyidea/dataview/views/gallery-view";
 
@@ -47,7 +47,9 @@ const { controller } = useInfiniteController({
   properties={productProperties}
 >
   <NotionToolbar enableSettings />
-  <GalleryView cardSize="medium" cardPreview="productImage" pagination="loadMore" />
+  <DataViewContent>
+    <GalleryView cardSize="medium" cardPreview="productImage" pagination="loadMore" />
+  </DataViewContent>
 </DataViewProvider>
 ```
 
@@ -71,7 +73,7 @@ const { controller } = useInfiniteController({
 | `medium` | Balanced size (default) |
 | `large` | Larger cards, fewer columns |
 
-**Default Limit:** 50 items
+**Default Limit:** 25 items (set `defaults.limit` on the provider to change it)
 
 ## Media Preview
 
