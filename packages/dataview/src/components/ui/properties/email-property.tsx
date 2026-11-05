@@ -6,7 +6,7 @@ interface EmailPropertyProps {
 
 export function EmailProperty({ value }: EmailPropertyProps) {
   if (!value) {
-    return <span className="text-muted-foreground text-sm">-</span>;
+    return null;
   }
 
   const email = String(value);

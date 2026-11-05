@@ -1,10 +1,12 @@
 "use client";
 
 import { ListFilterIcon } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { flushSync } from "react-dom";
 import { useFilterParams } from "../../../hooks/use-filter-params";
 import { useSimpleFilterChip } from "../../../hooks/use-simple-filter-chip";
 import type { PropertyMeta } from "../../../types/property.type";
+import { createRuleFromProperty } from "../../../utils/filter-variant";
 import { Button } from "../../ui/button";
 import { FilterTrigger } from "../../ui/filter/filter-trigger";
 import { SimpleFilterPicker } from "../../ui/filter/simple-filter-picker";
@@ -24,7 +26,7 @@ interface FilterToolProps {
  * - If no filters → clicking opens picker to add first filter
  */
 function FilterTool({ properties, onToggle }: FilterToolProps) {
-  const { filter } = useFilterParams();
+  const { filter, addFilter } = useFilterParams();
   const { open: openFilterChip } = useSimpleFilterChip();
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -39,12 +41,18 @@ function FilterTool({ properties, onToggle }: FilterToolProps) {
     );
   }
 
-  // No filters - render trigger with picker
-  // SimpleFilterPicker handles setFilter internally
-  const handleAddFilter = (property: PropertyMeta) => {
-    setPickerOpen(false);
-    openFilterChip(String(property.id));
-  };
+  // Flush the close so the popover exits at its original position before the filter shifts the trigger
+  const handleAddFilter = useCallback(
+    (property: PropertyMeta) => {
+      flushSync(() => {
+        setPickerOpen(false);
+      });
+      const rule = createRuleFromProperty(property);
+      addFilter(rule);
+      openFilterChip(String(property.id));
+    },
+    [addFilter, openFilterChip]
+  );
 
   return (
     <FilterTrigger

@@ -6,7 +6,7 @@ interface PhonePropertyProps {
 
 export function PhoneProperty({ value }: PhonePropertyProps) {
   if (!value) {
-    return <span className="text-muted-foreground text-sm">-</span>;
+    return null;
   }
 
   const phone = String(value);

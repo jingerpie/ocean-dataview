@@ -1,5 +1,9 @@
 "use client";
 
+import { useCallback, useState } from "react";
+import { flushSync } from "react-dom";
+import { useFilterParams } from "../../../hooks/use-filter-params";
+import { useSimpleFilterChip } from "../../../hooks/use-simple-filter-chip";
 import { useSortParams } from "../../../hooks/use-sort-params";
 import { cn } from "../../../lib/utils";
 import type {
@@ -8,6 +12,7 @@ import type {
   WhereRule,
 } from "../../../types/filter.type";
 import type { PropertyMeta } from "../../../types/property.type";
+import { createRuleFromProperty } from "../../../utils/filter-variant";
 import { Button } from "../../ui/button";
 import { FilterTrigger } from "../../ui/filter/filter-trigger";
 import { SimpleFilterPicker } from "../../ui/filter/simple-filter-picker";
@@ -58,6 +63,22 @@ export function ChipsBar({
   className,
 }: ChipsBarProps) {
   const { sort: sorts } = useSortParams();
+  const { addFilter } = useFilterParams();
+  const { open: openFilterChip } = useSimpleFilterChip();
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  // Flush the close so the popover exits at its original position before the filter shifts the trigger
+  const handlePickFilter = useCallback(
+    (property: PropertyMeta) => {
+      flushSync(() => {
+        setPickerOpen(false);
+      });
+      const rule = createRuleFromProperty(property);
+      addFilter(rule);
+      openFilterChip(String(property.id));
+    },
+    [addFilter, openFilterChip]
+  );
 
   const handleRuleChange = (index: number, newRule: WhereRule) => {
     if (!filter) {
@@ -133,8 +154,15 @@ export function ChipsBar({
           })}
 
           {/* 4. + Filter Button */}
-          <FilterTrigger variant="add">
-            <SimpleFilterPicker properties={properties} />
+          <FilterTrigger
+            onOpenChange={setPickerOpen}
+            open={pickerOpen}
+            variant="add"
+          >
+            <SimpleFilterPicker
+              onAddFilter={handlePickFilter}
+              properties={properties}
+            />
           </FilterTrigger>
         </div>
       </div>

@@ -154,29 +154,32 @@ export function DataTableStickyHeader<TData>({
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header, headerIndex) => (
-                    <TableHead
-                      className="truncate"
-                      colSpan={header.colSpan}
-                      key={header.id}
-                      style={{
-                        ...(columnWidths[headerIndex]
-                          ? {
-                              width: columnWidths[headerIndex],
-                              minWidth: columnWidths[headerIndex],
-                              maxWidth: columnWidths[headerIndex],
-                            }
-                          : {}),
-                      }}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  ))}
+                  {headerGroup.headers.map((header, headerIndex) => {
+                    const isSelect = header.column.id === "__row_select__";
+                    return (
+                      <TableHead
+                        className={isSelect ? "w-0" : "truncate"}
+                        colSpan={header.colSpan}
+                        key={header.id}
+                        style={{
+                          ...(columnWidths[headerIndex]
+                            ? {
+                                width: columnWidths[headerIndex],
+                                minWidth: columnWidths[headerIndex],
+                                maxWidth: columnWidths[headerIndex],
+                              }
+                            : {}),
+                        }}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    );
+                  })}
                 </TableRow>
               ))}
             </TableHeader>

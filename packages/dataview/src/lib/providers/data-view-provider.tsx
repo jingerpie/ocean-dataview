@@ -4,20 +4,10 @@ import {
   Children,
   isValidElement,
   type ReactNode,
-  Suspense,
   useMemo,
   useState,
 } from "react";
-import { GroupSectionSkeleton } from "../../components/ui/group-section-skeleton";
-import { BoardSkeleton } from "../../components/views/board-view/board-skeleton";
-import { GallerySkeleton } from "../../components/views/gallery-view/gallery-skeleton";
-import { ListSkeleton } from "../../components/views/list-view/list-skeleton";
-import { TableSkeleton } from "../../components/views/table-view/table-skeleton";
-import type {
-  PropertyType,
-  SortQuery,
-  WhereNode,
-} from "../../types/filter.type";
+import type { SortQuery, WhereNode } from "../../types/filter.type";
 import type {
   ColumnConfigInput,
   GroupConfigInput,
@@ -40,10 +30,7 @@ import {
   type PaginationOutput,
 } from "./data-view-context";
 import { InfiniteQueryBridge, PageQueryBridge } from "./query-bridge";
-import {
-  QueryParamsProvider,
-  useQueryParamsState,
-} from "./query-params-context";
+import { QueryParamsProvider } from "./query-params-context";
 import { ToolbarContextProvider } from "./toolbar-context";
 
 // ============================================================================
@@ -116,45 +103,6 @@ function detectViewMetadata(children: ReactNode[]): ViewComponent {
   throw new Error(
     "DataViewProvider requires a view component (TableView, ListView, GalleryView, or BoardView) as a child."
   );
-}
-
-/**
- * Render the appropriate skeleton based on detected view type.
- */
-function renderViewSkeleton(
-  viewType: DataViewType,
-  propertyTypes: PropertyType[],
-  rowCount: number,
-  isGrouped: boolean
-): ReactNode {
-  // For grouped views (except board which handles it internally), show group section skeleton
-  if (isGrouped && viewType !== "board") {
-    return <GroupSectionSkeleton />;
-  }
-
-  switch (viewType) {
-    case "board":
-      return (
-        <BoardSkeleton
-          cardsPerColumn={rowCount}
-          columnCount={10}
-          groupCount={isGrouped ? 10 : 0}
-          propertyTypes={propertyTypes}
-        />
-      );
-    case "table":
-      return (
-        <TableSkeleton propertyTypes={propertyTypes} rowCount={rowCount} />
-      );
-    case "list":
-      return <ListSkeleton propertyTypes={propertyTypes} rowCount={rowCount} />;
-    case "gallery":
-      return (
-        <GallerySkeleton cardCount={rowCount} propertyTypes={propertyTypes} />
-      );
-    default:
-      throw new Error(`Unknown view type: ${viewType}`);
-  }
 }
 
 // ============================================================================
@@ -315,11 +263,6 @@ function DataViewProviderWithQueryParams<
   propertyVisibility,
   viewMetadata,
 }: DataViewProviderWithQueryParamsProps<TData, TProperties, TQueryOptions>) {
-  // Read validated state from QueryParamsContext
-  const queryParams = useQueryParamsState();
-  const { group, limit } = queryParams;
-  const isGrouped = group !== null;
-
   // Split children
   const { toolbarChildren, contentChildren } = splitChildren(children);
 
@@ -333,18 +276,6 @@ function DataViewProviderWithQueryParams<
     properties,
     propertyVisibility,
   };
-
-  // Calculate skeleton values from validated state
-  const visibleProperties = properties.filter((p) => !p.hidden);
-  const propertyTypes = visibleProperties.map((p) => p.type);
-
-  // Choose appropriate skeleton based on detected view type and validated group state
-  const fallbackSkeleton = renderViewSkeleton(
-    viewMetadata.dataViewType,
-    propertyTypes,
-    limit,
-    isGrouped
-  );
 
   // Determine controller type
   const isPage = isPageController(controller);
@@ -362,29 +293,23 @@ function DataViewProviderWithQueryParams<
     <ToolbarContextProvider properties={propertyMetas}>
       <div className={cn("flex flex-col gap-2", className)}>
         {toolbarChildren}
-        {/* Key changes when isGrouped changes, forcing new Suspense boundary with correct fallback */}
-        <Suspense
-          fallback={fallbackSkeleton}
-          key={isGrouped ? "grouped" : "flat"}
-        >
-          {isPage ? (
-            <PageQueryBridge<TData, TProperties, TQueryOptions>
-              controller={controller as PageController<TQueryOptions>}
-              defaults={mergedDefaults}
-              viewProps={viewProps}
-            >
-              {contentChildren}
-            </PageQueryBridge>
-          ) : (
-            <InfiniteQueryBridge<TData, TProperties, TQueryOptions>
-              controller={controller as InfiniteController<TQueryOptions>}
-              defaults={mergedDefaults}
-              viewProps={viewProps}
-            >
-              {contentChildren}
-            </InfiniteQueryBridge>
-          )}
-        </Suspense>
+        {isPage ? (
+          <PageQueryBridge<TData, TProperties, TQueryOptions>
+            controller={controller as PageController<TQueryOptions>}
+            defaults={mergedDefaults}
+            viewProps={viewProps}
+          >
+            {contentChildren}
+          </PageQueryBridge>
+        ) : (
+          <InfiniteQueryBridge<TData, TProperties, TQueryOptions>
+            controller={controller as InfiniteController<TQueryOptions>}
+            defaults={mergedDefaults}
+            viewProps={viewProps}
+          >
+            {contentChildren}
+          </InfiniteQueryBridge>
+        )}
       </div>
     </ToolbarContextProvider>
   );

@@ -31,9 +31,9 @@
       "@types/react": "19.2.7",
       "@types/react-dom": "19.2.3",
       "babel-plugin-react-compiler": "1.0.0",
+      "chrono-node": "^2.9.0",
       "class-variance-authority": "0.7.1",
       "clsx": "2.1.1",
-      "chrono-node": "^2.9.0",
       "cmdk": "1.1.1",
       "date-fns": "4.1.0",
       "dotenv": "17.2.3",
@@ -69,6 +69,7 @@
       "typescript": "5.9.3",
       "usehooks-ts": "3.1.1",
       "vaul": "1.1.2",
+      "vitest": "3.2.4",
       "zod": "4.3.6",
       "zustand": "5.0.10"
     }
@@ -82,6 +83,7 @@
     "build": "turbo build",
     "start": "turbo start",
     "check-types": "turbo check-types",
+    "test": "turbo test",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F server dev",
     "db:push": "turbo -F @sparkyidea/db db:push",

@@ -7,25 +7,25 @@ const config = {
   groups: [
     {
       name: "Not Started",
-      color: "gray" as const,
+      color: "gray-subtle" as const,
       icon: CircleDashed,
       options: ["backlog", "todo"],
     },
     {
       name: "In Progress",
-      color: "blue" as const,
+      color: "blue-subtle" as const,
       icon: Clock,
       options: ["in_progress", "in_review"],
     },
     {
       name: "Complete",
-      color: "green" as const,
+      color: "green-subtle" as const,
       icon: CheckCircle,
       options: ["done"],
     },
     {
       name: "Cancelled",
-      color: "red" as const,
+      color: "red-subtle" as const,
       icon: XCircle,
       options: ["cancelled"],
     },

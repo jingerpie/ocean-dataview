@@ -1,40 +1,11 @@
+// biome-ignore-all lint/performance/noBarrelFile: `./toolbars/notion` package export path — surfaces the pieces for app consumers
 "use client";
 
 import type { ComponentProps, ReactNode } from "react";
-import { useFilterParams } from "../../../hooks/use-filter-params";
-import { useSearchParams } from "../../../hooks/use-search-params";
-import { useSortParams } from "../../../hooks/use-sort-params";
-import { useToolbarState } from "../../../hooks/use-toolbar-state";
-import { useQueryParamsState } from "../../../lib/providers/query-params-context";
-import { useToolbarContextOptional } from "../../../lib/providers/toolbar-context";
 import { cn } from "../../../lib/utils";
-import type { GroupConfigInput } from "../../../types/group.type";
 import type { PropertyMeta } from "../../../types/property.type";
-import { SearchInput } from "../../ui/search/search-input";
-import { Separator } from "../../ui/separator";
-import { ChipsBar } from "./chips-bar";
-import { FilterTool } from "./filter-tool";
-import { SettingsTool } from "./settings-tool";
-import { SortTool } from "./sort-tool";
-
-/**
- * Extract the property ID from a GroupConfigInput.
- */
-function getGroupPropertyId(
-  group: GroupConfigInput | null | undefined
-): string | null {
-  return group?.propertyId ?? null;
-}
-
-/**
- * Extract the property ID from a ColumnConfig.
- * ColumnConfig uses the same structure as GroupConfigInput.
- */
-function getColumnPropertyId(
-  column: GroupConfigInput | null | undefined
-): string | null {
-  return getGroupPropertyId(column);
-}
+import { NotionToolbarActions } from "./toolbar-actions";
+import { NotionToolbarChips } from "./toolbar-chips";
 
 interface NotionToolbarProps extends ComponentProps<"div"> {
   /** Children (tabs, etc.) - always visible on left */
@@ -58,25 +29,33 @@ interface NotionToolbarProps extends ComponentProps<"div"> {
 }
 
 /**
- * Notion-style toolbar with two-row layout.
+ * Notion-style toolbar with two-row layout — the composition of
+ * `NotionToolbarActions` (row 1, right) and `NotionToolbarChips` (row 2).
  *
- * When used inside DataViewProvider, reads properties and visibility from context.
- * Props can override context values if needed.
+ * When used inside DataViewProvider, reads properties and visibility from
+ * context. Props can override context values if needed.
  *
  * State managed via nuqs URL params:
  * - ?filter={...} for filters
  * - ?sort=[...] for sorting
  * - ?search=... for search
  *
- * Row 1: [children] -------- [Filter] [Sort] [Search] [Properties] [Settings]
+ * Row 1: [children] -------- [Filter] [Sort] [Search] [Settings]
  * Row 2: [SortList] [Filter Chips...] [+ Filter] (conditional)
  *
  * @example
  * ```tsx
- * // Inside DataViewProvider - uses context automatically
- * <DataViewProvider properties={productProperties} ...>
+ * // Plain view — recommended when there are no preset rows
+ * <DataViewProvider properties={productProperties} …>
  *   <NotionToolbar enableSettings />
  *   <TableView />
+ * </DataViewProvider>
+ *
+ * // Preset rows — use the pieces directly so the actions sit on the tab row
+ * <DataViewProvider …>
+ *   <PresetTabs options={presets} trailing={<NotionToolbarActions enableSettings />} />
+ *   <NotionToolbarChips />
+ *   <GalleryView … />
  * </DataViewProvider>
  * ```
  */
@@ -84,131 +63,35 @@ function NotionToolbarComponent({
   children,
   className,
   columnProperty,
-  enableColumn = false,
-  enableFilter = true,
-  enableSearch = true,
-  enableSettings = false,
-  enableSort = true,
+  enableColumn,
+  enableFilter,
+  enableSearch,
+  enableSettings,
+  enableSort,
   groupProperty,
-  properties: propProperties,
+  properties,
   ...props
 }: NotionToolbarProps) {
-  // Get properties from ToolbarContext
-  const ctx = useToolbarContextOptional();
-  // Get query params (group, column) from QueryParamsContext
-  const queryParams = useQueryParamsState();
-
-  const properties = propProperties ?? ctx?.properties ?? [];
-
-  // Derive group property name from context if not provided
-  const derivedGroupProperty = (() => {
-    if (groupProperty !== undefined) {
-      return groupProperty;
-    }
-    const groupPropertyId = getGroupPropertyId(queryParams.group);
-    if (!groupPropertyId) {
-      return undefined;
-    }
-    const meta = properties.find((p) => p.id === groupPropertyId);
-    return meta?.name ?? groupPropertyId;
-  })();
-
-  // Derive column property name from context if not provided
-  const derivedColumnProperty = (() => {
-    if (columnProperty !== undefined) {
-      return columnProperty;
-    }
-    const colPropertyId = getColumnPropertyId(queryParams.column);
-    if (!colPropertyId) {
-      return undefined;
-    }
-    const meta = properties.find((p) => p.id === colPropertyId);
-    return meta?.name ?? colPropertyId;
-  })();
-
-  // Auto-enable column settings when column config exists (board view)
-  const shouldEnableColumn = enableColumn || queryParams.column != null;
-
-  // State managed via hooks that read/write URL directly
-  const { filter, setFilter: onFilterChange, resetFilter } = useFilterParams();
-  const { search, setSearch: onSearchChange } = useSearchParams();
-  const { sort: sorts, resetSort } = useSortParams();
-
-  const {
-    hasActiveControls,
-    row2Visible,
-    toggleRow2,
-    simpleFilterConditions,
-    advancedFilter,
-    advancedFilterIndex,
-    ruleCount,
-  } = useToolbarState({ filter, sorts });
-
   return (
-    <div
-      aria-orientation="horizontal"
-      className={cn("flex flex-col gap-2", className)}
-      role="toolbar"
-      {...props}
-    >
-      {/* Row 1: Primary Toolbar */}
+    <div className={cn("flex flex-col gap-2", className)} {...props}>
+      {/* Row 1: children left, actions right */}
       <div className="flex h-9 items-center gap-2">
-        {/* Left side: Children (tabs, etc.) */}
         {children && <div className="flex flex-1 gap-2">{children}</div>}
-
-        {/* Right side: Controls */}
-        <div className="ml-auto flex items-center">
-          {/* Filter */}
-          {enableFilter && (
-            <FilterTool onToggle={toggleRow2} properties={properties} />
-          )}
-
-          {/* Sort */}
-          {enableSort && (
-            <SortTool onToggle={toggleRow2} properties={properties} />
-          )}
-
-          {/* Search Input */}
-          {enableSearch && (
-            <SearchInput
-              onChange={onSearchChange}
-              placeholder="Type to search..."
-              value={search}
-              variant="icon"
-            />
-          )}
-
-          {/* Settings */}
-          {enableSettings && (
-            <SettingsTool
-              columnProperty={derivedColumnProperty}
-              enableColumn={shouldEnableColumn}
-              groupProperty={derivedGroupProperty}
-              variant="icon"
-            />
-          )}
-        </div>
+        <NotionToolbarActions
+          className="ml-auto"
+          columnProperty={columnProperty}
+          enableColumn={enableColumn}
+          enableFilter={enableFilter}
+          enableSearch={enableSearch}
+          enableSettings={enableSettings}
+          enableSort={enableSort}
+          groupProperty={groupProperty}
+          properties={properties}
+        />
       </div>
 
-      {/* Row 2: Chips Bar (conditional) */}
-      {hasActiveControls && row2Visible && (
-        <>
-          <Separator orientation="horizontal" />
-          <ChipsBar
-            advancedFilter={advancedFilter}
-            advancedFilterIndex={advancedFilterIndex}
-            filter={filter}
-            onFilterChange={onFilterChange}
-            onReset={() => {
-              resetFilter();
-              resetSort();
-            }}
-            properties={properties}
-            ruleCount={ruleCount}
-            simpleFilterConditions={simpleFilterConditions}
-          />
-        </>
-      )}
+      {/* Row 2: chips bar (conditional) */}
+      <NotionToolbarChips properties={properties} />
     </div>
   );
 }
@@ -225,4 +108,9 @@ export const NotionToolbar =
     dataViewSlot: "toolbar";
   };
 
+export type { NotionToolbarActionsProps } from "./toolbar-actions";
+
+export { NotionToolbarActions } from "./toolbar-actions";
+export type { NotionToolbarChipsProps } from "./toolbar-chips";
+export { NotionToolbarChips } from "./toolbar-chips";
 export type { NotionToolbarProps };

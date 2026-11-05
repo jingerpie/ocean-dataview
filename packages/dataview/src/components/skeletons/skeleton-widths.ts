@@ -18,6 +18,7 @@ export const TABLE_COLUMN_WIDTHS: Record<PropertyType, number> = {
   url: 200,
   text: 200,
   formula: 300,
+  rollup: 200,
 };
 
 /**
@@ -38,6 +39,7 @@ export const ROW_SKELETON_WIDTHS: Record<PropertyType, string> = {
   url: "180px",
   text: "150px",
   formula: "200px",
+  rollup: "150px",
 };
 
 /**
@@ -58,6 +60,7 @@ export const CARD_SKELETON_WIDTHS: Record<PropertyType, string> = {
   url: "140px",
   text: "75%",
   formula: "100%",
+  rollup: "75%",
 };
 
 /**

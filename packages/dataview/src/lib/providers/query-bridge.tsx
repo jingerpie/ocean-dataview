@@ -35,6 +35,11 @@ import type {
 } from "../../types/pagination-types";
 import type { DataViewProperty } from "../../types/property.type";
 import {
+  buildIdToKeyMap,
+  resolveFilterKeys,
+  resolveSortKeys,
+} from "../../utils/filter-builder";
+import {
   type CoreProviderProps,
   DataViewProviderCore,
 } from "./data-view-provider";
@@ -459,6 +464,25 @@ export function PageQueryBridge<
   } = queryParamsActions;
 
   // ============================================================================
+  // Resolve property id → key for server queries
+  // ============================================================================
+
+  const idToKeyMap = useMemo(
+    () => buildIdToKeyMap(viewProps.properties),
+    [viewProps.properties]
+  );
+
+  const serverFilter = useMemo(
+    () => resolveFilterKeys(filter, idToKeyMap),
+    [filter, idToKeyMap]
+  );
+
+  const serverSort = useMemo(
+    () => resolveSortKeys(sort, idToKeyMap),
+    [sort, idToKeyMap]
+  );
+
+  // ============================================================================
   // Group Mode Detection
   // ============================================================================
 
@@ -514,6 +538,8 @@ export function PageQueryBridge<
         limit={limit}
         onLoadMoreGroups={onLoadMoreGroups}
         search={search}
+        serverFilter={serverFilter}
+        serverSort={serverSort}
         setColumn={setColumn}
         setCursor={setCursor}
         setFilter={setFilter}
@@ -538,6 +564,8 @@ export function PageQueryBridge<
       limit,
       dataQuery,
       search,
+      serverFilter,
+      serverSort,
       setColumn,
       setCursor,
       setFilter,
@@ -569,7 +597,7 @@ export function PageQueryBridge<
   // GROUPED MODE: Use InfiniteGroupKeys to suspend until group data is ready
   return (
     <InfiniteGroupKeys
-      filter={filter}
+      filter={serverFilter}
       groupByConfig={groupByConfig}
       groupQuery={groupQuery}
       hideEmpty={group?.hideEmpty ?? false}
@@ -605,6 +633,10 @@ interface PageQueryBridgeInnerProps<
   limit: Limit;
   onLoadMoreGroups: () => void;
   search: SearchQuery | null;
+  /** Filter with property ids resolved to keys for server queries */
+  serverFilter: WhereNode[] | null;
+  /** Sort with property ids resolved to keys for server queries */
+  serverSort: SortQuery[];
   setColumn: (column: ColumnConfigInput | null) => void;
   setCursor: (groupKey: string, cursor: CursorValue | null) => void;
   setFilter: (filter: WhereNode[] | null) => void;
@@ -655,6 +687,8 @@ function PageQueryBridgeInner<
   onLoadMoreGroups,
   dataQuery,
   search,
+  serverFilter,
+  serverSort,
   setColumn,
   setCursor,
   setFilter,
@@ -687,7 +721,7 @@ function PageQueryBridgeInner<
     () => ({
       cursors,
       expandedGroups,
-      filter,
+      filter: serverFilter,
       group,
       groupCounts,
       groupKeys,
@@ -706,13 +740,13 @@ function PageQueryBridgeInner<
       setLimit,
       setSearch,
       setSort,
-      sort,
+      sort: serverSort,
       type: "page",
     }),
     [
       cursors,
       expandedGroups,
-      filter,
+      serverFilter,
       group,
       groupCounts,
       groupKeys,
@@ -731,7 +765,7 @@ function PageQueryBridgeInner<
       setLimit,
       setSearch,
       setSort,
-      sort,
+      serverSort,
     ]
   );
 
@@ -856,6 +890,25 @@ export function InfiniteQueryBridge<
     queryParamsActions;
 
   // ============================================================================
+  // Resolve property id → key for server queries
+  // ============================================================================
+
+  const idToKeyMap = useMemo(
+    () => buildIdToKeyMap(viewProps.properties),
+    [viewProps.properties]
+  );
+
+  const serverFilter = useMemo(
+    () => resolveFilterKeys(filter, idToKeyMap),
+    [filter, idToKeyMap]
+  );
+
+  const serverSort = useMemo(
+    () => resolveSortKeys(sort, idToKeyMap),
+    [sort, idToKeyMap]
+  );
+
+  // ============================================================================
   // Column & Group Mode Detection
   // ============================================================================
 
@@ -920,6 +973,8 @@ export function InfiniteQueryBridge<
         limit={limit}
         onLoadMoreGroups={onLoadMoreGroups}
         search={search}
+        serverFilter={serverFilter}
+        serverSort={serverSort}
         setColumn={setColumn}
         setFilter={setFilter}
         setGroup={setGroup}
@@ -942,6 +997,8 @@ export function InfiniteQueryBridge<
       limit,
       dataQuery,
       search,
+      serverFilter,
+      serverSort,
       setColumn,
       setFilter,
       setGroup,
@@ -964,7 +1021,7 @@ export function InfiniteQueryBridge<
     if (isGrouped && groupByConfig && groupQuery) {
       return (
         <InfiniteGroupKeys
-          filter={filter}
+          filter={serverFilter}
           groupByConfig={groupByConfig}
           groupQuery={groupQuery}
           hideEmpty={group?.hideEmpty ?? false}
@@ -1009,7 +1066,7 @@ export function InfiniteQueryBridge<
       <SuspendingColumnKeys
         columnByConfig={columnByConfig}
         columnQuery={columnQuery}
-        filter={filter}
+        filter={serverFilter}
         hideEmpty={column?.hideEmpty ?? false}
         search={search}
       >
@@ -1046,6 +1103,10 @@ interface InfiniteQueryBridgeInnerProps<
   limit: Limit;
   onLoadMoreGroups: () => void;
   search: SearchQuery | null;
+  /** Filter with property ids resolved to keys for server queries */
+  serverFilter: WhereNode[] | null;
+  /** Sort with property ids resolved to keys for server queries */
+  serverSort: SortQuery[];
   setColumn: (column: ColumnConfigInput | null) => void;
   setFilter: (filter: WhereNode[] | null) => void;
   setGroup: (group: GroupConfigInput | null) => void;
@@ -1095,6 +1156,8 @@ function InfiniteQueryBridgeInner<
   onLoadMoreGroups,
   dataQuery,
   search,
+  serverFilter,
+  serverSort,
   setColumn,
   setFilter,
   setGroup,
@@ -1127,7 +1190,7 @@ function InfiniteQueryBridgeInner<
     () => ({
       cursors: {},
       expandedGroups,
-      filter,
+      filter: serverFilter,
       group,
       groupCounts,
       groupKeys,
@@ -1146,12 +1209,12 @@ function InfiniteQueryBridgeInner<
       setLimit,
       setSearch,
       setSort,
-      sort,
+      sort: serverSort,
       type: "infinite",
     }),
     [
       expandedGroups,
-      filter,
+      serverFilter,
       group,
       groupCounts,
       groupKeys,
@@ -1169,7 +1232,7 @@ function InfiniteQueryBridgeInner<
       setLimit,
       setSearch,
       setSort,
-      sort,
+      serverSort,
     ]
   );
 

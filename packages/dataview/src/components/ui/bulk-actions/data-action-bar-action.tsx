@@ -35,14 +35,10 @@ export function DataActionBarAction({
 }: DataActionBarActionProps) {
   const trigger = (
     <Button
-      className={cn(
-        "gap-2 border border-secondary bg-secondary/50 hover:bg-secondary/70 [&>svg]:size-4",
-        size === "icon" ? "size-9" : "h-9",
-        className
-      )}
+      className={cn(className)}
       disabled={disabled || isPending}
       size={size}
-      variant="secondary"
+      variant="outline"
       {...props}
     >
       {isPending ? <Loader className="animate-spin" /> : children}
@@ -56,12 +52,7 @@ export function DataActionBarAction({
   return (
     <Tooltip>
       <TooltipTrigger render={trigger} />
-      <TooltipContent
-        className="border bg-accent font-semibold text-foreground"
-        sideOffset={6}
-      >
-        <p>{tooltip}</p>
-      </TooltipContent>
+      <TooltipContent sideOffset={6}>{tooltip}</TooltipContent>
     </Tooltip>
   );
 }

@@ -1,12 +1,15 @@
 "use client";
 
-import { cn } from "../../../lib/utils";
-import type { PropertyType } from "../../../types/filter.type";
-import { getBoardCardDimensions } from "../../../utils/get-card-sizes";
-import { Card, CardContent } from "../../ui/card";
-import { PaginationSkeleton } from "../../ui/pagination/pagination-skeleton";
-import { Skeleton } from "../../ui/skeleton";
-import { CARD_SKELETON_WIDTHS } from "../skeleton-widths";
+import { cn } from "../../lib/utils";
+import { getBoardCardDimensions } from "../../utils/get-card-sizes";
+import { Card, CardContent } from "../ui/card";
+import { PaginationSkeleton } from "../ui/pagination/pagination-skeleton";
+import { Skeleton } from "../ui/skeleton";
+import {
+  getSkeletonProps,
+  type SkeletonPropertyLike,
+} from "./get-skeleton-props";
+import { CARD_SKELETON_WIDTHS } from "./skeleton-widths";
 
 type PaginationMode = "page" | "loadMore" | "infiniteScroll";
 
@@ -41,14 +44,9 @@ interface BoardSkeletonProps extends React.ComponentProps<"div"> {
    */
   pagination?: PaginationMode;
   /**
-   * Property sizes (in pixels) - per-property size override.
-   * Falls back to CARD_SKELETON_WIDTHS[type] when undefined.
+   * Property schema - derives types and sizes automatically, filtering hidden properties.
    */
-  propertySizes?: (number | undefined)[];
-  /**
-   * Property types - determines realistic widths per property
-   */
-  propertyTypes: PropertyType[];
+  properties?: readonly SkeletonPropertyLike[];
   /**
    * Show image placeholder in cards
    * @default true
@@ -63,14 +61,16 @@ export function BoardSkeleton({
   columnCount = 4,
   groupCount = 0,
   pagination,
-  propertySizes,
-  propertyTypes,
+  properties,
   withImage = true,
   className,
   ...props
 }: BoardSkeletonProps) {
   const isCompact = cardLayout === "compact";
   const { imageHeight, columnWidth } = getBoardCardDimensions(cardSize);
+  const { propertyTypes, propertySizes } = getSkeletonProps(properties ?? [], {
+    excludePinned: withImage,
+  });
 
   // Grouped board mode: show column headers + accordion group skeletons
   if (groupCount > 0) {
@@ -97,11 +97,8 @@ export function BoardSkeleton({
           {Array.from({ length: groupCount }).map((_, groupIndex) => (
             <div className="border-b" key={groupIndex}>
               <div className="flex items-center gap-2 py-3">
-                {/* Chevron icon */}
                 <Skeleton className="size-4" />
-                {/* Group label */}
                 <Skeleton className="h-5 w-24" />
-                {/* Count badge */}
                 <Skeleton className="h-4 w-8 rounded-full" />
               </div>
             </div>
@@ -142,10 +139,8 @@ export function BoardSkeleton({
             )}
             key={colIndex}
           >
-            {/* Cards */}
             {Array.from({ length: cardsPerColumn }).map((_, cardIndex) => (
               <Card className="gap-0 overflow-hidden py-0" key={cardIndex}>
-                {/* Image placeholder */}
                 {withImage && (
                   <Skeleton
                     className="w-full rounded-none"
@@ -153,7 +148,6 @@ export function BoardSkeleton({
                   />
                 )}
 
-                {/* Card content */}
                 <CardContent
                   className={cn(
                     "flex gap-2 p-3",
@@ -161,7 +155,7 @@ export function BoardSkeleton({
                   )}
                 >
                   {propertyTypes.map((type, j) => {
-                    const width = propertySizes?.[j]
+                    const width = propertySizes[j]
                       ? `${propertySizes[j]}px`
                       : CARD_SKELETON_WIDTHS[type];
                     return (

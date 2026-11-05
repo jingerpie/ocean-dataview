@@ -4,7 +4,8 @@ import type { Table } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
 import { useCallback } from "react";
 import { Button } from "../button";
-import { Separator } from "../separator";
+import { ButtonGroup, ButtonGroupText } from "../button-group";
+import { Kbd } from "../kbd";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
 
 interface DataActionBarSelectionProps<TData> {
@@ -46,35 +47,27 @@ export function DataActionBarSelection<TData>({
   }, [table, onClearSelection]);
 
   return (
-    <div className="flex h-9 items-center rounded-md border pr-2 pl-3">
-      <span className="whitespace-nowrap text-sm">
+    <ButtonGroup>
+      <ButtonGroupText className="h-7 whitespace-nowrap">
         {selectedCount} selected
-      </span>
-      <Separator className="mr-1 ml-2 h-4" orientation="vertical" />
+      </ButtonGroupText>
       <Tooltip>
         <TooltipTrigger
           render={
             <Button
               onClick={handleClearSelection}
-              size="icon"
-              variant="ghost"
+              size="icon-sm"
+              variant="outline"
             />
           }
         >
           <XIcon />
         </TooltipTrigger>
-        <TooltipContent
-          className="flex items-center gap-2 border bg-accent px-2 py-1 font-semibold text-foreground"
-          sideOffset={10}
-        >
-          <p>Clear selection</p>
-          <kbd className="select-none rounded border bg-background px-1.5 py-px font-mono font-normal text-[0.7rem] text-foreground shadow-sm">
-            <abbr className="no-underline" title="Escape">
-              Esc
-            </abbr>
-          </kbd>
+        <TooltipContent className="flex items-center gap-2" sideOffset={10}>
+          Clear selection
+          <Kbd>Esc</Kbd>
         </TooltipContent>
       </Tooltip>
-    </div>
+    </ButtonGroup>
   );
 }

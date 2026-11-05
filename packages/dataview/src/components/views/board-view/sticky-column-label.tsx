@@ -162,7 +162,7 @@ export function StickyColumnLabel({
   return (
     <div
       aria-hidden="true"
-      className="sticky z-40"
+      className="sticky z-50"
       style={{ top: offset, height: 0, overflow: "visible" }}
     >
       {showStickyHeader && (

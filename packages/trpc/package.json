@@ -9,7 +9,10 @@
       "default": "./src/*.ts"
     }
   },
-  "scripts": {},
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test src/lib"
+  },
   "dependencies": {
     "@sparkyidea/dataview": "workspace:*",
     "@sparkyidea/db": "workspace:*",

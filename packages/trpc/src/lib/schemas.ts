@@ -34,12 +34,24 @@ const groupBySchema = z
   })
   .nullish();
 
+/** Rollup input: scalar rollup calculations to compute as extras */
+const rollupSchema = z
+  .array(
+    z.object({
+      extrasKey: z.string(),
+      key: z.string(),
+      calculation: z.string(),
+    })
+  )
+  .default([]);
+
 /** Shared query fields for getMany-style procedures */
 export const getManyInput = z.object({
   cursor: z.union([cursorValueSchema, z.string()]).optional(),
   filter: filterSchema,
   groupBy: groupBySchema,
   limit: z.number().int().min(1).max(100).default(25),
+  rollups: rollupSchema,
   search: searchSchema,
   sort: sortSchema,
 });
@@ -52,6 +64,7 @@ export const getManyByColumnInput = z.object({
   filter: filterSchema,
   groupBy: groupBySchema,
   limit: z.number().int().min(1).max(100).default(10),
+  rollups: rollupSchema,
   search: searchSchema,
   sort: sortSchema,
 });
@@ -63,6 +76,7 @@ export const getGroupInput = z.object({
   groupBy: groupByConfigSchema,
   hideEmpty: z.boolean().default(false),
   limit: z.number().int().min(1).max(100).default(25),
+  rollups: rollupSchema,
   search: searchSchema,
   sort: z.enum(["asc", "desc"]).optional(),
 });

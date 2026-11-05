@@ -4,9 +4,9 @@ import { SelectProperty } from "@sparkyidea/dataview/properties";
 
 const config = {
   options: [
-    { value: "electronics", color: "blue" as const },
-    { value: "clothing", color: "purple" as const },
-    { value: "food", color: "green" as const },
+    { value: "electronics", color: "blue-subtle" as const },
+    { value: "clothing", color: "purple-subtle" as const },
+    { value: "food", color: "green-subtle" as const },
   ],
 };
 

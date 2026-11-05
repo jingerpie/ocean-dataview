@@ -2,9 +2,10 @@
 
 import { FileIcon } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 import { cn } from "../../../lib/utils";
+import { Skeleton } from "../skeleton";
 
-// Regex patterns compiled at module level for performance
 const IMAGE_EXTENSION_REGEX = /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?|#|$)/i;
 const NON_IMAGE_EXTENSION_REGEX =
   /\.(pdf|doc|docx|xls|xlsx|zip|txt|csv|mp4|mov|avi)(\?|#|$)/i;
@@ -20,24 +21,16 @@ export function FilesMediaProperty({
   className,
 }: FilesMediaPropertyProps) {
   if (!value) {
-    return (
-      <span className={cn("text-muted-foreground text-sm", className)}>-</span>
-    );
+    return null;
   }
 
-  // Handle single URL string
   if (typeof value === "string") {
     return renderFile(value, className);
   }
 
-  // Handle array of URLs
   if (Array.isArray(value)) {
     if (value.length === 0) {
-      return (
-        <span className={cn("text-muted-foreground text-sm", className)}>
-          -
-        </span>
-      );
+      return null;
     }
 
     return (
@@ -55,10 +48,7 @@ export function FilesMediaProperty({
 }
 
 function renderFile(url: string, className?: string) {
-  const isImage = checkIsImage(url);
-
-  // Non-image files: show file icon
-  if (!isImage) {
+  if (!checkIsImage(url)) {
     return (
       <a
         className={cn(
@@ -75,11 +65,21 @@ function renderFile(url: string, className?: string) {
     );
   }
 
-  // Image files: show image thumbnail
+  return <ImageThumbnail className={className} url={url} />;
+}
+
+interface ImageThumbnailProps {
+  className?: string;
+  url: string;
+}
+
+function ImageThumbnail({ url, className }: ImageThumbnailProps) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
   return (
     <a
       className={cn(
-        "inline-block shrink-0 overflow-hidden rounded align-top hover:opacity-80",
+        "relative inline-block h-[26px] min-w-[26px] shrink-0 overflow-hidden rounded align-top hover:opacity-80",
         className
       )}
       href={url}
@@ -87,28 +87,30 @@ function renderFile(url: string, className?: string) {
       rel="noopener noreferrer"
       target="_blank"
     >
+      {!isLoaded && <Skeleton className="absolute inset-0 rounded" />}
       <Image
         alt="Media"
-        className="h-[26px] w-auto object-contain"
-        height={26}
+        className={cn(
+          "h-[26px] w-auto object-contain transition-opacity",
+          isLoaded ? "opacity-100" : "opacity-0"
+        )}
+        height={0}
+        onLoad={() => setIsLoaded(true)}
         src={url}
-        width={26}
+        width={0}
       />
     </a>
   );
 }
 
 function checkIsImage(url: string): boolean {
-  // Check for known image extensions (with query params/fragments)
   if (IMAGE_EXTENSION_REGEX.test(url)) {
     return true;
   }
 
-  // Check for known non-image extensions
   if (NON_IMAGE_EXTENSION_REGEX.test(url)) {
     return false;
   }
 
-  // If no extension found (e.g., Unsplash URLs), treat as image
   return !ANY_EXTENSION_REGEX.test(url);
 }

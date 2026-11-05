@@ -1,9 +1,10 @@
 import type {
   FilterCondition,
-  PropertyType,
+  Quantifier,
   WhereRule,
 } from "../types/filter.type";
-import { getDefaultFilterCondition } from "./filter";
+import { isDisplayRollup, type PropertyMeta } from "../types/property.type";
+import { getDefaultFilterConditionForProperty } from "./filter";
 
 // ============================================================================
 // Filter Value Transformation (for condition changes)
@@ -40,19 +41,10 @@ function transformValueForCondition(
 // ============================================================================
 
 /**
- * Property metadata required for creating filter rules.
- * Minimal interface to avoid dependency on full PropertyMeta type.
- */
-interface PropertyForFilter {
-  id: string;
-  type: PropertyType;
-}
-
-/**
  * Creates a default filter rule from a property.
- * Uses property type directly to determine the default condition and value.
+ * Resolves rollup effective type to determine the default condition and value.
  *
- * @param property - Property with id and type
+ * @param property - Property metadata (id, type, and config for rollups)
  * @returns A new WhereRule with default condition and value for the property type
  *
  * @example
@@ -62,13 +54,21 @@ interface PropertyForFilter {
  * const rule = createRuleFromProperty({ id: "createdAt", type: "date" });
  * // { property: "createdAt", condition: "isRelativeToToday", value: ["this", 1, "week"] }
  */
-export function createRuleFromProperty(property: PropertyForFilter): WhereRule {
-  const condition = getDefaultFilterCondition(property.type);
-  return {
+export function createRuleFromProperty(
+  property: Pick<PropertyMeta, "config" | "id" | "type">
+): WhereRule {
+  const condition = getDefaultFilterConditionForProperty(
+    property as PropertyMeta
+  );
+  const rule: WhereRule = {
     property: String(property.id),
     condition,
     value: getDefaultValueForCondition(condition),
   };
+  if (isDisplayRollup(property as PropertyMeta)) {
+    rule.quantifier = "any";
+  }
+  return rule;
 }
 
 /**
@@ -98,6 +98,16 @@ export function applyConditionChange(
     condition: newCondition,
     value: newValue,
   };
+}
+
+/**
+ * Applies a quantifier change to a rule. Returns a new rule object (immutable).
+ */
+export function applyQuantifierChange(
+  rule: WhereRule,
+  quantifier: Quantifier
+): WhereRule {
+  return { ...rule, quantifier };
 }
 
 /**

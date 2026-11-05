@@ -20,16 +20,22 @@ import type { PropertyMeta } from "../../types/property.type";
  * Query params (filter, sort, group, column) are managed by QueryParamsContext.
  */
 export interface ToolbarContextValue {
+  /** Whether the chips row (filter chips + sort list) is expanded */
+  chipsRowVisible: boolean;
   /** Hide all properties */
   hideAllProperties: () => void;
   /** Array of property metadata */
   properties: readonly PropertyMeta[];
   /** Array of currently visible property IDs */
   propertyVisibility: string[];
+  /** Set chips-row visibility */
+  setChipsRowVisible: (visible: boolean) => void;
   /** Set the full list of visible property IDs */
   setPropertyVisibility: (ids: string[]) => void;
   /** Show all properties */
   showAllProperties: () => void;
+  /** Toggle chips-row visibility */
+  toggleChipsRow: () => void;
   /** Toggle visibility of a single property */
   toggleProperty: (id: string) => void;
 }
@@ -138,21 +144,35 @@ export function ToolbarContextProvider({
     setHiddenByUser(new Set(visiblePropertyIds));
   }, [visiblePropertyIds]);
 
+  // Chips-row (filter chips + sort list) visibility. Shared so that
+  // NotionToolbarActions (toggle) and NotionToolbarChips (render) can be
+  // placed as separate toolbar-slot siblings.
+  const [chipsRowVisible, setChipsRowVisible] = useState(false);
+
+  const toggleChipsRow = useCallback(() => {
+    setChipsRowVisible((prev) => !prev);
+  }, []);
+
   const value = useMemo<ToolbarContextValue>(
     () => ({
+      chipsRowVisible,
       hideAllProperties,
       properties,
       propertyVisibility,
+      setChipsRowVisible,
       setPropertyVisibility,
       showAllProperties,
+      toggleChipsRow,
       toggleProperty,
     }),
     [
+      chipsRowVisible,
       hideAllProperties,
       properties,
       propertyVisibility,
       setPropertyVisibility,
       showAllProperties,
+      toggleChipsRow,
       toggleProperty,
     ]
   );

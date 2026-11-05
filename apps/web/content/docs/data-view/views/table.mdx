@@ -50,6 +50,31 @@ const { controller } = usePageController({
 </DataViewProvider>
 ```
 
+## Loading State
+
+`DataViewProvider` and flat views do not render a built-in Suspense fallback. Wrap the provider in your own `Suspense` boundary and use the skeletons from `@sparkyidea/dataview/skeletons` (`TableSkeleton`, `ListSkeleton`, `BoardSkeleton`, `GallerySkeleton`, `ToolbarSkeleton`). Grouped views still suspend per group section.
+
+```tsx
+import { TableSkeleton, ToolbarSkeleton } from "@sparkyidea/dataview/skeletons";
+import { Suspense } from "react";
+
+<Suspense
+  fallback={
+    <div className="flex flex-col gap-2">
+      <ToolbarSkeleton enableSettings />
+      <TableSkeleton pagination="page" properties={productProperties} rowCount={25} />
+    </div>
+  }
+>
+  <DataViewProvider controller={controller} properties={productProperties}>
+    <NotionToolbar enableSettings />
+    <TableView pagination="page" />
+  </DataViewProvider>
+</Suspense>
+```
+
+Filter, sort, and search changes run in a transition, so the fallback only shows on first load.
+
 ## Props
 
 | Prop | Type | Default | Description |

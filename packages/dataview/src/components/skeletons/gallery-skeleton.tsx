@@ -1,12 +1,15 @@
 "use client";
 
-import { cn } from "../../../lib/utils";
-import type { PropertyType } from "../../../types/filter.type";
-import { getGalleryCardDimensions } from "../../../utils/get-card-sizes";
-import { Card, CardContent } from "../../ui/card";
-import { PaginationSkeleton } from "../../ui/pagination/pagination-skeleton";
-import { Skeleton } from "../../ui/skeleton";
-import { CARD_SKELETON_WIDTHS } from "../skeleton-widths";
+import { cn } from "../../lib/utils";
+import { getGalleryCardDimensions } from "../../utils/get-card-sizes";
+import { Card, CardContent } from "../ui/card";
+import { PaginationSkeleton } from "../ui/pagination/pagination-skeleton";
+import { Skeleton } from "../ui/skeleton";
+import {
+  getSkeletonProps,
+  type SkeletonPropertyLike,
+} from "./get-skeleton-props";
+import { CARD_SKELETON_WIDTHS } from "./skeleton-widths";
 
 type PaginationMode = "page" | "loadMore" | "infiniteScroll";
 
@@ -30,14 +33,9 @@ interface GallerySkeletonProps extends React.ComponentProps<"div"> {
    */
   pagination?: PaginationMode;
   /**
-   * Property sizes (in pixels) - per-property size override.
-   * Falls back to CARD_SKELETON_WIDTHS[type] when undefined.
+   * Property schema - derives types and sizes automatically, filtering hidden properties.
    */
-  propertySizes?: (number | undefined)[];
-  /**
-   * Property types - determines realistic widths per property
-   */
-  propertyTypes: PropertyType[];
+  properties?: readonly SkeletonPropertyLike[];
   /**
    * Show image placeholder in cards
    * @default true
@@ -50,14 +48,16 @@ export function GallerySkeleton({
   cardLayout = "list",
   cardSize = "medium",
   pagination,
-  propertySizes,
-  propertyTypes,
+  properties,
   withImage = true,
   className,
   ...props
 }: GallerySkeletonProps) {
   const isCompact = cardLayout === "compact";
   const { imageHeight, minWidth } = getGalleryCardDimensions(cardSize);
+  const { propertyTypes, propertySizes } = getSkeletonProps(properties ?? [], {
+    excludePinned: withImage,
+  });
 
   return (
     <div
@@ -85,7 +85,7 @@ export function GallerySkeleton({
               )}
             >
               {propertyTypes.map((type, j) => {
-                const width = propertySizes?.[j]
+                const width = propertySizes[j]
                   ? `${propertySizes[j]}px`
                   : CARD_SKELETON_WIDTHS[type];
                 return (

@@ -2,6 +2,10 @@
 
 import { useInfiniteController } from "@sparkyidea/dataview/hooks";
 import { DataViewProvider } from "@sparkyidea/dataview/providers";
+import {
+  GallerySkeleton,
+  ToolbarSkeleton,
+} from "@sparkyidea/dataview/skeletons";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import type {
   GroupConfigInput,
@@ -9,6 +13,7 @@ import type {
   WhereNode,
 } from "@sparkyidea/dataview/types";
 import { GalleryView } from "@sparkyidea/dataview/views/gallery-view";
+import { Suspense } from "react";
 import { useTRPC } from "@/utils/trpc/client";
 import { DataViewTab } from "./dataview-tab";
 import { productProperties } from "./product-properties";
@@ -54,29 +59,45 @@ export function ProductGalleryView({
   const groupConfigForView = group ? { ...group, showCount: true } : undefined;
 
   return (
-    <DataViewProvider
-      controller={controller}
-      defaults={{
-        filter,
-        group: groupConfigForView,
-        limit,
-        search,
-        sort: sort ?? [],
-      }}
-      properties={productProperties}
+    <Suspense
+      fallback={
+        <div className="flex flex-col gap-2">
+          <ToolbarSkeleton enableSettings tabCount={productTabOptions.length} />
+          <GallerySkeleton
+            cardCount={limit}
+            cardLayout="compact"
+            cardSize="medium"
+            pagination="loadMore"
+            properties={productProperties}
+            withImage
+          />
+        </div>
+      }
     >
-      <NotionToolbar enableSettings>
-        <DataViewTab options={productTabOptions} />
-      </NotionToolbar>
-      <GalleryView
-        cardLayout="compact"
-        cardPreview="productImage"
-        cardSize="medium"
-        fitMedia
-        pagination="loadMore"
-        showPropertyNames={true}
-        stickyHeader={{ enabled: true, offset: 57 }}
-      />
-    </DataViewProvider>
+      <DataViewProvider
+        controller={controller}
+        defaults={{
+          filter,
+          group: groupConfigForView,
+          limit,
+          search,
+          sort: sort ?? [],
+        }}
+        properties={productProperties}
+      >
+        <NotionToolbar enableSettings>
+          <DataViewTab options={productTabOptions} />
+        </NotionToolbar>
+        <GalleryView
+          cardLayout="compact"
+          cardPreview="productImage"
+          cardSize="medium"
+          fitMedia
+          pagination="loadMore"
+          showPropertyNames={true}
+          stickyHeader={{ enabled: true, offset: 57 }}
+        />
+      </DataViewProvider>
+    </Suspense>
   );
 }

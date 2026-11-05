@@ -42,7 +42,7 @@ function getSearchablePropertyIds(
  *
  * @example
  * ```ts
- * const result = validateSearch("iphone", listingProperties);
+ * const result = validateSearch("iphone", productProperties);
  * // → { search: "iphone", searchFields: ["title", "subTitle", "brand", ...] }
  * ```
  */
