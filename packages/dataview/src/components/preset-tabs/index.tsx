@@ -92,7 +92,7 @@ interface PresetTabsProps {
  * </DataViewProvider>
  * ```
  */
-function PresetTabsComponent({
+export function PresetTabs({
   "aria-label": ariaLabel,
   className,
   mobileSelect = true,
@@ -263,17 +263,3 @@ function PresetTabsComponent({
     </Tabs>
   );
 }
-
-// Static slot marker for DataViewProvider child splitting (NotionToolbar
-// pattern): a PresetTabs placed directly under DataViewProvider renders in
-// the toolbar slot, above the content.
-PresetTabsComponent.dataViewSlot = "toolbar" as const;
-
-/**
- * PresetTabs with static slot marker.
- * When placed inside DataViewProvider, it renders outside the suspending
- * QueryBridge, in JSX order with other toolbar-slot children.
- */
-export const PresetTabs = PresetTabsComponent as typeof PresetTabsComponent & {
-  dataViewSlot: "toolbar";
-};

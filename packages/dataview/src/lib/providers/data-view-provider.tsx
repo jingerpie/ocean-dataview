@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  Children,
-  isValidElement,
+  createContext,
   type ReactNode,
+  useContext,
   useMemo,
   useState,
 } from "react";
@@ -23,7 +23,6 @@ import {
   toPropertyMetaArray,
 } from "../../types/property.type";
 import { normalizeProperties } from "../../utils/normalize-properties";
-import { cn } from "../utils";
 import {
   DataViewContext,
   type DataViewContextValue,
@@ -32,78 +31,6 @@ import {
 import { InfiniteQueryBridge, PageQueryBridge } from "./query-bridge";
 import { QueryParamsProvider } from "./query-params-context";
 import { ToolbarContextProvider } from "./toolbar-context";
-
-// ============================================================================
-// Child Slot Splitting & View Type Detection
-// ============================================================================
-
-/** Static marker for toolbar components */
-export const TOOLBAR_SLOT = "toolbar" as const;
-
-/** View type markers for skeleton selection */
-export type DataViewType = "board" | "table" | "list" | "gallery";
-
-/**
- * Component type for toolbar slot detection.
- */
-interface MarkedComponent {
-  dataViewSlot?: typeof TOOLBAR_SLOT;
-}
-
-/**
- * Split children into toolbar and content groups.
- * Toolbar children are identified by the static `dataViewSlot = "toolbar"` marker.
- */
-function splitChildren(children: ReactNode): {
-  toolbarChildren: ReactNode[];
-  contentChildren: ReactNode[];
-} {
-  const toolbarChildren: ReactNode[] = [];
-  const contentChildren: ReactNode[] = [];
-
-  for (const child of Children.toArray(children)) {
-    if (isValidElement(child)) {
-      const type = child.type as MarkedComponent;
-      if (type.dataViewSlot === TOOLBAR_SLOT) {
-        toolbarChildren.push(child);
-        continue;
-      }
-    }
-    contentChildren.push(child);
-  }
-
-  return { toolbarChildren, contentChildren };
-}
-
-/**
- * Component type with required view markers.
- */
-interface ViewComponent {
-  dataViewType: DataViewType;
-  defaultLimit: Limit;
-}
-
-/**
- * Detect view metadata from content children.
- * Views define their type via `dataViewType` and default limit via `defaultLimit` markers.
- * Throws if no view component is found.
- */
-function detectViewMetadata(children: ReactNode[]): ViewComponent {
-  for (const child of children) {
-    if (isValidElement(child)) {
-      const type = child.type as Partial<ViewComponent>;
-      if (type.dataViewType && type.defaultLimit !== undefined) {
-        return {
-          dataViewType: type.dataViewType,
-          defaultLimit: type.defaultLimit,
-        };
-      }
-    }
-  }
-  throw new Error(
-    "DataViewProvider requires a view component (TableView, ListView, GalleryView, or BoardView) as a child."
-  );
-}
 
 // ============================================================================
 // Defaults Config
@@ -130,17 +57,37 @@ export interface DefaultsConfig {
   sort?: SortQuery[];
 }
 
+/** Page size used when `defaults.limit` is not set. */
+export const DEFAULT_LIMIT: Limit = 25;
+
 // ============================================================================
-// Type Guards
+// Setup Context (consumed by DataViewContent)
 // ============================================================================
 
+interface DataViewSetupContextValue {
+  columnCounts?: GroupCounts;
+  // biome-ignore lint/suspicious/noExplicitAny: Controller is generic
+  controller: PageController<any> | InfiniteController<any>;
+  counts?: Partial<ViewCounts>;
+  defaults: DefaultsConfig;
+  properties: readonly DataViewProperty<unknown>[];
+  propertyVisibility?: string[];
+}
+
+const DataViewSetupContext = createContext<
+  DataViewSetupContextValue | undefined
+>(undefined);
+
 /**
- * Check if controller prop is a PageController.
+ * Read the provider setup (controller, defaults, properties).
+ * Must be used inside DataViewProvider.
  */
-function isPageController<TQueryOptions>(
-  controller: PageController<TQueryOptions> | InfiniteController<TQueryOptions>
-): controller is PageController<TQueryOptions> {
-  return controller.type === "page";
+export function useDataViewSetup(): DataViewSetupContextValue {
+  const value = useContext(DataViewSetupContext);
+  if (!value) {
+    throw new Error("useDataViewSetup must be used within DataViewProvider");
+  }
+  return value;
 }
 
 // ============================================================================
@@ -157,8 +104,7 @@ export interface DataViewProviderProps<
   TQueryOptions,
 > {
   children: ReactNode;
-  className?: string;
-  /** Column counts - passed directly for board views (deprecated, use columnQuery in controller hook) */
+  /** Column counts - passed directly for board views */
   columnCounts?: GroupCounts;
   controller: PageController<TQueryOptions> | InfiniteController<TQueryOptions>;
   counts?: Partial<ViewCounts>;
@@ -172,6 +118,11 @@ export interface DataViewProviderProps<
 // Component
 // ============================================================================
 
+/**
+ * Provides URL state and toolbar state for a data view.
+ * Renders no markup. Place toolbars anywhere inside it, and wrap the view in
+ * `DataViewContent`, which runs the queries.
+ */
 export function DataViewProvider<
   TData = unknown,
   TProperties extends
@@ -180,7 +131,6 @@ export function DataViewProvider<
   TQueryOptions = any,
 >({
   children,
-  className,
   columnCounts,
   controller,
   counts,
@@ -194,124 +144,89 @@ export function DataViewProvider<
     [properties]
   );
 
-  // Detect view metadata (type and default limit)
-  const { contentChildren } = splitChildren(children);
-  const viewMetadata = detectViewMetadata(contentChildren);
-  const mergedDefaults = {
-    ...defaults,
-    limit: defaults?.limit ?? viewMetadata.defaultLimit,
-  };
+  const mergedDefaults = useMemo(
+    () => ({ ...defaults, limit: defaults?.limit ?? DEFAULT_LIMIT }),
+    [defaults]
+  );
 
-  // Wrap with QueryParamsProvider for single source of truth
+  const propertyMetas = useMemo(
+    () => toPropertyMetaArray(normalizedProperties),
+    [normalizedProperties]
+  );
+
+  const setup = useMemo<DataViewSetupContextValue>(
+    () => ({
+      columnCounts,
+      controller,
+      counts,
+      defaults: mergedDefaults,
+      properties: normalizedProperties as readonly DataViewProperty<unknown>[],
+      propertyVisibility,
+    }),
+    [
+      columnCounts,
+      controller,
+      counts,
+      mergedDefaults,
+      normalizedProperties,
+      propertyVisibility,
+    ]
+  );
+
   return (
     <QueryParamsProvider
       defaults={mergedDefaults}
       properties={normalizedProperties}
     >
-      <DataViewProviderWithQueryParams<TData, TProperties, TQueryOptions>
-        className={className}
-        columnCounts={columnCounts}
-        controller={controller}
-        counts={counts}
-        mergedDefaults={mergedDefaults}
-        properties={normalizedProperties}
-        propertyVisibility={propertyVisibility}
-        viewMetadata={viewMetadata}
-      >
-        {children}
-      </DataViewProviderWithQueryParams>
+      <ToolbarContextProvider properties={propertyMetas}>
+        <DataViewSetupContext.Provider value={setup}>
+          {children}
+        </DataViewSetupContext.Provider>
+      </ToolbarContextProvider>
     </QueryParamsProvider>
   );
 }
 
 // ============================================================================
-// Inner Component (uses QueryParamsContext)
+// Content (runs queries)
 // ============================================================================
 
-interface DataViewProviderWithQueryParamsProps<
-  TData,
-  TProperties extends readonly DataViewProperty<TData>[],
-  TQueryOptions,
-> {
-  children: ReactNode;
-  className?: string;
-  columnCounts?: GroupCounts;
-  controller: PageController<TQueryOptions> | InfiniteController<TQueryOptions>;
-  counts?: Partial<ViewCounts>;
-  mergedDefaults: DefaultsConfig;
-  properties: TProperties;
-  propertyVisibility?: TProperties[number]["id"][];
-  viewMetadata: { dataViewType: DataViewType; defaultLimit: Limit };
-}
-
 /**
- * Inner component that reads from QueryParamsContext for skeleton logic.
- * This component is rendered inside QueryParamsProvider.
+ * Runs the controller queries and provides the resolved data to the view.
+ * Suspends while the first page loads; wrap it (or the provider) in Suspense.
  */
-function DataViewProviderWithQueryParams<
-  TData,
-  TProperties extends readonly DataViewProperty<TData>[],
-  TQueryOptions,
->({
-  children,
-  className,
-  columnCounts,
-  controller,
-  counts,
-  mergedDefaults,
-  properties,
-  propertyVisibility,
-  viewMetadata,
-}: DataViewProviderWithQueryParamsProps<TData, TProperties, TQueryOptions>) {
-  // Split children
-  const { toolbarChildren, contentChildren } = splitChildren(children);
-
-  // Convert properties to PropertyMeta array for ToolbarContextProvider
-  const propertyMetas = toPropertyMetaArray(properties);
-
-  // Build view props for QueryBridge
-  const viewProps = {
+export function DataViewContent({ children }: { children: ReactNode }) {
+  const {
     columnCounts,
+    controller,
     counts,
+    defaults,
     properties,
     propertyVisibility,
-  };
+  } = useDataViewSetup();
 
-  // Determine controller type
-  const isPage = isPageController(controller);
+  const viewProps = { columnCounts, counts, properties, propertyVisibility };
 
-  // BoardView requires InfiniteController - fail fast with actionable error
-  if (viewMetadata.dataViewType === "board" && isPage) {
-    throw new Error(
-      "BoardView requires an InfiniteController. " +
-        "Use useInfiniteController() instead of usePageController(). " +
-        "Board views only support infinite pagination modes (loadMore, infiniteScroll)."
+  if (controller.type === "page") {
+    return (
+      <PageQueryBridge
+        controller={controller}
+        defaults={defaults}
+        viewProps={viewProps}
+      >
+        {children}
+      </PageQueryBridge>
     );
   }
 
   return (
-    <ToolbarContextProvider properties={propertyMetas}>
-      <div className={cn("flex flex-col gap-2", className)}>
-        {toolbarChildren}
-        {isPage ? (
-          <PageQueryBridge<TData, TProperties, TQueryOptions>
-            controller={controller as PageController<TQueryOptions>}
-            defaults={mergedDefaults}
-            viewProps={viewProps}
-          >
-            {contentChildren}
-          </PageQueryBridge>
-        ) : (
-          <InfiniteQueryBridge<TData, TProperties, TQueryOptions>
-            controller={controller as InfiniteController<TQueryOptions>}
-            defaults={mergedDefaults}
-            viewProps={viewProps}
-          >
-            {contentChildren}
-          </InfiniteQueryBridge>
-        )}
-      </div>
-    </ToolbarContextProvider>
+    <InfiniteQueryBridge
+      controller={controller}
+      defaults={defaults}
+      viewProps={viewProps}
+    >
+      {children}
+    </InfiniteQueryBridge>
   );
 }
 
@@ -461,6 +376,3 @@ export function DataViewProviderCore<
     </DataViewContext.Provider>
   );
 }
-
-// Re-export PaginationOutput for backward compatibility
-export type { PaginationOutput } from "./data-view-context";

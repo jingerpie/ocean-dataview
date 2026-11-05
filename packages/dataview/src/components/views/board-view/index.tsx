@@ -15,6 +15,10 @@ import { useGroupParams } from "../../../hooks/use-group-params";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useScrollSync } from "../../../hooks/use-scroll-sync";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
+import {
+  DEFAULT_LIMIT,
+  useDataViewSetup,
+} from "../../../lib/providers/data-view-provider";
 import { cn } from "../../../lib/utils";
 import type { GroupByConfig } from "../../../types/group.type";
 import type { PaginationContext } from "../../../types/pagination";
@@ -179,6 +183,15 @@ export function BoardView<
     onLoadMoreGroups,
     limit,
   } = useDataViewContext<TData, TProperties>();
+
+  const { controller } = useDataViewSetup();
+  if (controller.type === "page") {
+    throw new Error(
+      "BoardView requires an InfiniteController. " +
+        "Use useInfiniteController() instead of usePageController(). " +
+        "Board views only support infinite pagination modes (loadMore, infiniteScroll)."
+    );
+  }
 
   // Get sort order from URL params (managed by useGroupParams)
   const { groupSortOrder } = useGroupParams();
@@ -442,7 +455,7 @@ export function BoardView<
         <BoardSkeleton
           cardLayout={cardLayout}
           cardSize={cardSize}
-          cardsPerColumn={limit ?? BoardView.defaultLimit}
+          cardsPerColumn={limit ?? DEFAULT_LIMIT}
           columnCount={columns.length || 3}
           pagination={pagination}
           properties={displayProperties}
@@ -511,7 +524,7 @@ export function BoardView<
                       <BoardSkeleton
                         cardLayout={cardLayout}
                         cardSize={cardSize}
-                        cardsPerColumn={limit ?? BoardView.defaultLimit}
+                        cardsPerColumn={limit ?? DEFAULT_LIMIT}
                         columnCount={columns.length}
                         properties={displayProperties}
                         withImage={Boolean(cardPreview)}
@@ -613,8 +626,6 @@ export function BoardView<
 }
 
 // Static marker for view type detection in DataViewProvider
-BoardView.dataViewType = "board" as const;
-BoardView.defaultLimit = 25;
 
 // ============================================================================
 // Suspending Group Content Components

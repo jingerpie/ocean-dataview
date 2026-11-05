@@ -8,6 +8,7 @@ import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useViewSetup } from "../../../hooks/use-view-setup";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
+import { DEFAULT_LIMIT } from "../../../lib/providers/data-view-provider";
 import { cn } from "../../../lib/utils";
 import type { PaginationContext } from "../../../types/pagination";
 import type { DataViewProperty } from "../../../types/property.type";
@@ -155,7 +156,7 @@ export function ListView<
                     fallback={
                       <ListSkeleton
                         properties={displayProperties}
-                        rowCount={limit ?? ListView.defaultLimit}
+                        rowCount={limit ?? DEFAULT_LIMIT}
                       />
                     }
                   >
@@ -235,8 +236,6 @@ export function ListView<
 }
 
 // Static marker for view type detection in DataViewProvider
-ListView.dataViewType = "list" as const;
-ListView.defaultLimit = 25;
 
 // ============================================================================
 // Suspending Group Content Components

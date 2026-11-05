@@ -71,7 +71,7 @@ interface NotionToolbarActionsProps {
  * </DataViewProvider>
  * ```
  */
-function NotionToolbarActionsComponent({
+export function NotionToolbarActions({
   "aria-label": ariaLabel = "View controls",
   className,
   columnProperty,
@@ -155,19 +155,5 @@ function NotionToolbarActionsComponent({
     </div>
   );
 }
-
-// Static slot marker for DataViewProvider child splitting. Inside a
-// PresetTabs `trailing` slot the marker is ignored; as a direct provider
-// child it keeps the cluster in the toolbar group, outside the suspending
-// QueryBridge.
-NotionToolbarActionsComponent.dataViewSlot = "toolbar" as const;
-
-/**
- * NotionToolbarActions with static slot marker.
- */
-export const NotionToolbarActions =
-  NotionToolbarActionsComponent as typeof NotionToolbarActionsComponent & {
-    dataViewSlot: "toolbar";
-  };
 
 export type { NotionToolbarActionsProps };

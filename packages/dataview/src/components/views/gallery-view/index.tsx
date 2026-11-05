@@ -8,6 +8,7 @@ import type { UseGroupQueryResult } from "../../../hooks/use-group-query";
 import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-group-query";
 import { useViewSetup } from "../../../hooks/use-view-setup";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
+import { DEFAULT_LIMIT } from "../../../lib/providers/data-view-provider";
 import type { PaginationContext } from "../../../types/pagination";
 import type { DataViewProperty } from "../../../types/property.type";
 import { getGalleryCardDimensions } from "../../../utils/get-card-sizes";
@@ -194,7 +195,7 @@ export function GalleryView<
                   <Suspense
                     fallback={
                       <GallerySkeleton
-                        cardCount={limit ?? GalleryView.defaultLimit}
+                        cardCount={limit ?? DEFAULT_LIMIT}
                         cardLayout={cardLayout}
                         cardSize={cardSize}
                         properties={displayProperties}
@@ -302,8 +303,6 @@ export function GalleryView<
 }
 
 // Static marker for view type detection in DataViewProvider
-GalleryView.dataViewType = "gallery" as const;
-GalleryView.defaultLimit = 50;
 
 // ============================================================================
 // Suspending Group Content Components

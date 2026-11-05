@@ -59,7 +59,7 @@ interface NotionToolbarProps extends ComponentProps<"div"> {
  * </DataViewProvider>
  * ```
  */
-function NotionToolbarComponent({
+export function NotionToolbar({
   children,
   className,
   columnProperty,
@@ -95,18 +95,6 @@ function NotionToolbarComponent({
     </div>
   );
 }
-
-// Add static slot marker for DataViewProvider child splitting
-NotionToolbarComponent.dataViewSlot = "toolbar" as const;
-
-/**
- * NotionToolbar with static slot marker.
- * When placed inside DataViewProvider, it renders outside the suspending QueryBridge.
- */
-export const NotionToolbar =
-  NotionToolbarComponent as typeof NotionToolbarComponent & {
-    dataViewSlot: "toolbar";
-  };
 
 export type { NotionToolbarActionsProps } from "./toolbar-actions";
 

@@ -1,7 +1,10 @@
 "use client";
 
 import { useInfiniteController } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
+import {
+  DataViewContent,
+  DataViewProvider,
+} from "@sparkyidea/dataview/providers";
 import { ListSkeleton, ToolbarSkeleton } from "@sparkyidea/dataview/skeletons";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import type {
@@ -79,13 +82,17 @@ export function ProductListView({
         }}
         properties={productListProperties}
       >
-        <NotionToolbar enableSettings>
-          <DataViewTab options={productTabOptions} />
-        </NotionToolbar>
-        <ListView
-          pagination="loadMore"
-          stickyHeader={{ enabled: true, offset: 57 }}
-        />
+        <div className="flex flex-col gap-2">
+          <NotionToolbar enableSettings>
+            <DataViewTab options={productTabOptions} />
+          </NotionToolbar>
+          <DataViewContent>
+            <ListView
+              pagination="loadMore"
+              stickyHeader={{ enabled: true, offset: 57 }}
+            />
+          </DataViewContent>
+        </div>
       </DataViewProvider>
     </Suspense>
   );

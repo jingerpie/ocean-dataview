@@ -55,7 +55,6 @@ export interface SimpleDataViewProviderProps<
   TProperties extends readonly DataViewProperty<TData>[],
 > {
   children: ReactNode;
-  className?: string;
   /** Static data array to display */
   data: TData[];
   /** URL defaults. Accepts a shorthand `group` that infers propertyType from properties. */
@@ -72,7 +71,6 @@ export function SimpleDataViewProvider<
     readonly DataViewProperty<TData>[] = readonly DataViewProperty<TData>[],
 >({
   children,
-  className,
   data,
   defaults,
   properties,
@@ -291,7 +289,6 @@ export function SimpleDataViewProvider<
 
   return (
     <DataViewProvider
-      className={className}
       controller={controller}
       defaults={mergedDefaults}
       properties={properties}

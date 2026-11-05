@@ -1,7 +1,10 @@
 "use client";
 
 import { usePageController } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
+import {
+  DataViewContent,
+  DataViewProvider,
+} from "@sparkyidea/dataview/providers";
 import { TableSkeleton, ToolbarSkeleton } from "@sparkyidea/dataview/skeletons";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import type {
@@ -77,16 +80,20 @@ export function ProductTableView({
         }}
         properties={productTableProperties}
       >
-        <NotionToolbar enableSettings>
-          <DataViewTab options={productTabOptions} />
-        </NotionToolbar>
-        <TableView
-          bulkActions={bulkActions}
-          pagination="page"
-          showVerticalLines={false}
-          stickyHeader={{ enabled: true, offset: 57 }}
-          wrapAllProperties={false}
-        />
+        <div className="flex flex-col gap-2">
+          <NotionToolbar enableSettings>
+            <DataViewTab options={productTabOptions} />
+          </NotionToolbar>
+          <DataViewContent>
+            <TableView
+              bulkActions={bulkActions}
+              pagination="page"
+              showVerticalLines={false}
+              stickyHeader={{ enabled: true, offset: 57 }}
+              wrapAllProperties={false}
+            />
+          </DataViewContent>
+        </div>
       </DataViewProvider>
     </Suspense>
   );

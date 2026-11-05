@@ -1,7 +1,10 @@
 "use client";
 
 import { useInfiniteController } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
+import {
+  DataViewContent,
+  DataViewProvider,
+} from "@sparkyidea/dataview/providers";
 import {
   GallerySkeleton,
   ToolbarSkeleton,
@@ -85,18 +88,22 @@ export function ProductGalleryView({
         }}
         properties={productProperties}
       >
-        <NotionToolbar enableSettings>
-          <DataViewTab options={productTabOptions} />
-        </NotionToolbar>
-        <GalleryView
-          cardLayout="compact"
-          cardPreview="productImage"
-          cardSize="medium"
-          fitMedia
-          pagination="loadMore"
-          showPropertyNames={true}
-          stickyHeader={{ enabled: true, offset: 57 }}
-        />
+        <div className="flex flex-col gap-2">
+          <NotionToolbar enableSettings>
+            <DataViewTab options={productTabOptions} />
+          </NotionToolbar>
+          <DataViewContent>
+            <GalleryView
+              cardLayout="compact"
+              cardPreview="productImage"
+              cardSize="medium"
+              fitMedia
+              pagination="loadMore"
+              showPropertyNames={true}
+              stickyHeader={{ enabled: true, offset: 57 }}
+            />
+          </DataViewContent>
+        </div>
       </DataViewProvider>
     </Suspense>
   );

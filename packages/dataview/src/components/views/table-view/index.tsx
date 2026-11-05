@@ -21,6 +21,7 @@ import type { UseInfiniteGroupQueryResult } from "../../../hooks/use-infinite-gr
 import { useScrollSync } from "../../../hooks/use-scroll-sync";
 import { useViewSetup } from "../../../hooks/use-view-setup";
 import { useDataViewContext } from "../../../lib/providers/data-view-context";
+import { DEFAULT_LIMIT } from "../../../lib/providers/data-view-provider";
 import type { BulkAction } from "../../../types/action.type";
 import type { PaginationContext } from "../../../types/pagination";
 import type { DataViewProperty } from "../../../types/property.type";
@@ -323,7 +324,7 @@ export function TableView<
                       <TableSkeleton
                         bulkActions={enableRowSelection}
                         properties={displayProperties}
-                        rowCount={limit ?? TableView.defaultLimit}
+                        rowCount={limit ?? DEFAULT_LIMIT}
                       />
                     }
                   >
@@ -440,8 +441,6 @@ export function TableView<
 }
 
 // Static marker for view type detection in DataViewProvider
-TableView.dataViewType = "table" as const;
-TableView.defaultLimit = 25;
 
 // ============================================================================
 // Suspending Group Content Components

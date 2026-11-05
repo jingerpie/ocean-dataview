@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 import { useMemo } from "react";
 import type { DataViewProperty } from "../../types/property.type";
-import { cn } from "../utils";
 import {
   ChartViewContext,
   type ChartViewContextValue,
@@ -14,7 +13,6 @@ export interface ChartViewProviderProps<
   TProperties extends readonly DataViewProperty<NoInfer<TData>>[],
 > {
   children: ReactNode;
-  className?: string;
   data: TData[];
   properties: TProperties;
 }
@@ -22,12 +20,7 @@ export interface ChartViewProviderProps<
 export function ChartViewProvider<
   TData,
   const TProperties extends readonly DataViewProperty<NoInfer<TData>>[],
->({
-  data,
-  properties,
-  children,
-  className,
-}: ChartViewProviderProps<TData, TProperties>) {
+>({ data, properties, children }: ChartViewProviderProps<TData, TProperties>) {
   const contextValue = useMemo<ChartViewContextValue<TData, TProperties>>(
     () => ({ data, properties }),
     [data, properties]
@@ -42,7 +35,7 @@ export function ChartViewProvider<
         >
       }
     >
-      <div className={cn("flex flex-col", className)}>{children}</div>
+      {children}
     </ChartViewContext.Provider>
   );
 }

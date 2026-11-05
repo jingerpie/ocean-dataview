@@ -1,7 +1,10 @@
 "use client";
 
 import { useInfiniteController } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
+import {
+  DataViewContent,
+  DataViewProvider,
+} from "@sparkyidea/dataview/providers";
 import { BoardSkeleton, ToolbarSkeleton } from "@sparkyidea/dataview/skeletons";
 import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
 import type {
@@ -112,17 +115,21 @@ export function ProductBoardView({
         }}
         properties={productProperties}
       >
-        <NotionToolbar enableSettings>
-          <DataViewTab options={productTabOptions} />
-        </NotionToolbar>
-        <BoardView
-          cardPreview="productImage"
-          cardSize="medium"
-          colorColumns
-          fitMedia
-          pagination="loadMore"
-          stickyHeader={{ enabled: true, offset: 57 }}
-        />
+        <div className="flex flex-col gap-2">
+          <NotionToolbar enableSettings>
+            <DataViewTab options={productTabOptions} />
+          </NotionToolbar>
+          <DataViewContent>
+            <BoardView
+              cardPreview="productImage"
+              cardSize="medium"
+              colorColumns
+              fitMedia
+              pagination="loadMore"
+              stickyHeader={{ enabled: true, offset: 57 }}
+            />
+          </DataViewContent>
+        </div>
       </DataViewProvider>
     </Suspense>
   );

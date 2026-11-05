@@ -29,7 +29,7 @@ interface NotionToolbarChipsProps {
  * Place it as a direct `DataViewProvider` child, after the row(s) that
  * hold the actions.
  */
-function NotionToolbarChipsComponent({
+export function NotionToolbarChips({
   className,
   properties: propProperties,
 }: NotionToolbarChipsProps) {
@@ -85,17 +85,5 @@ function NotionToolbarChipsComponent({
     </div>
   );
 }
-
-// Static slot marker for DataViewProvider child splitting: renders in the
-// toolbar group, in JSX order with the other toolbar-slot children.
-NotionToolbarChipsComponent.dataViewSlot = "toolbar" as const;
-
-/**
- * NotionToolbarChips with static slot marker.
- */
-export const NotionToolbarChips =
-  NotionToolbarChipsComponent as typeof NotionToolbarChipsComponent & {
-    dataViewSlot: "toolbar";
-  };
 
 export type { NotionToolbarChipsProps };
