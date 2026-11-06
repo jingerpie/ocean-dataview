@@ -4,7 +4,7 @@ import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const GITHUB_REPO = "jingerpie/ocean-dataview";
+const GITHUB_REPO = "jingerpie/dataview";
 const TRAILING_ZERO_REGEX = /\.0$/;
 
 export function GitHubLink() {

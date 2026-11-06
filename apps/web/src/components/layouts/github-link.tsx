@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Icons } from "@/components/icons";
 
-const GITHUB_REPO = "jingerpie/ocean-dataview";
+const GITHUB_REPO = "jingerpie/dataview";
 const TRAILING_ZERO_REGEX = /\.0$/;
 
 export function GitHubLink() {

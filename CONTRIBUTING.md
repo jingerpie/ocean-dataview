@@ -16,7 +16,7 @@ Thanks for helping! This guide covers development setup and workflow expectation
 ### 1. Clone and Install
 
 ```bash
-git clone https://github.com/ocean-dataview/ocean-dataview.git
+git clone https://github.com/jingerpie/dataview.git
 cd ocean-dataview
 bun install
 ```
@@ -160,7 +160,7 @@ The shadcn registry ships with the `apps/web` deploy, not with this workflow.
 
 ## Links
 
-- GitHub Issues: https://github.com/ocean-dataview/ocean-dataview/issues
-- Discussions: https://github.com/ocean-dataview/ocean-dataview/discussions
+- GitHub Issues: https://github.com/jingerpie/dataview/issues
+- Discussions: https://github.com/jingerpie/dataview/discussions
 
 Thanks for contributing!

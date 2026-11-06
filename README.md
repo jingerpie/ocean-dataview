@@ -4,8 +4,8 @@ Notion-style data views for React: table, list, gallery, board, and charts with 
 
 [![Ocean DataView](./showcase/output/showcase.gif)](https://ocean-dataview.sparkyidea.com)
 
-[![License: MIT](https://img.shields.io/github/license/jingerpie/ocean-dataview)](./LICENSE)
-[![CI](https://github.com/jingerpie/ocean-dataview/actions/workflows/ci.yml/badge.svg)](https://github.com/jingerpie/ocean-dataview/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/github/license/jingerpie/dataview)](./LICENSE)
+[![CI](https://github.com/jingerpie/dataview/actions/workflows/ci.yml/badge.svg)](https://github.com/jingerpie/dataview/actions/workflows/ci.yml)
 
 ## Why I Built This
 
@@ -100,7 +100,7 @@ flowchart TB
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/jingerpie/ocean-dataview
+   git clone https://github.com/jingerpie/dataview
    cd ocean-dataview
    ```
 
