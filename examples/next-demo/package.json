@@ -6,7 +6,7 @@
     "dev": "bun scripts/serve.ts dev",
     "build": "next build",
     "start": "bun scripts/serve.ts start",
-    "check-types": "tsc --noEmit",
+    "check-types": "next typegen && tsc --noEmit",
     "refresh:packages": "bun scripts/refresh-packages.ts",
     "refresh:ui": "bun scripts/refresh-ui.ts"
   },
