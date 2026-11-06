@@ -174,5 +174,5 @@ Risks: local customizations in the vendored copies need manual merging.
 ## Deferred
 
 - Base UI vs Radix registry variants (better-auth-ui override-list pattern). Not needed while all apps use Base UI.
-- Fixed-version release automation across the three packages: done (`.github/workflows/release.yml`, tag-triggered, `NPM_TOKEN` secret with provenance; see CONTRIBUTING.md). Changelog generation from conventional commits still open.
+- Fixed-version release automation across the three packages: done (`.github/workflows/release.yml`, tag-triggered, npm trusted publishing with an optional `NPM_TOKEN` fallback; see CONTRIBUTING.md). Changelog generation from conventional commits still open.
 - Additional visual styles.

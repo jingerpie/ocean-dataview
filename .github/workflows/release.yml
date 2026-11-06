@@ -3,9 +3,9 @@ name: Release
 # Publishes @jingerpie/dataview-{core,react,drizzle} to npm when a version
 # tag is pushed. Bump all three first: bun scripts/release-version.ts <version>
 #
-# npm auth uses the NPM_TOKEN repository secret: a granular access token
-# with read and write on the three packages and "Bypass 2FA" enabled.
-# npm write tokens expire, so replace the secret before it does.
+# npm auth: trusted publishing (OIDC). Each package lists jingerpie/dataview
+# and release.yml under Settings → Trusted Publisher on npmjs.com. An optional
+# NPM_TOKEN secret (granular token, "Bypass 2FA") is the fallback.
 
 on:
   push:
@@ -26,7 +26,7 @@ concurrency:
 
 permissions:
   contents: write # create the GitHub Release
-  id-token: write # npm provenance (links each version to this workflow run)
+  id-token: write # npm trusted publishing and provenance
 
 jobs:
   release:
@@ -43,7 +43,8 @@ jobs:
       - name: Setup tools
         uses: ./.github/actions/setup-tools
 
-      # registry-url writes an .npmrc that reads NODE_AUTH_TOKEN
+      # Trusted publishing needs npm 11.5.1 or later; registry-url writes an
+      # .npmrc that reads NODE_AUTH_TOKEN for the token fallback
       - uses: actions/setup-node@v4
         with:
           node-version: 24
