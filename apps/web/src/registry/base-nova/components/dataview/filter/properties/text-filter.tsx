@@ -168,13 +168,13 @@ function TextValueEditor({
 
   return (
     <div className="p-1">
-      <Input
+      <DebouncedTextInput
         className="h-8"
         inputMode={isNumber ? "numeric" : undefined}
-        onChange={(e) =>
+        onChange={(value) =>
           isNumber
-            ? toStoredValue(e.target.value, scale, onValueChange)
-            : onValueChange(e.target.value || undefined)
+            ? toStoredValue(value, scale, onValueChange)
+            : onValueChange(value || undefined)
         }
         placeholder="Enter value..."
         type={isNumber ? "number" : "text"}

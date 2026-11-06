@@ -34,15 +34,6 @@ function FilterTool({ properties, onToggle }: FilterToolProps) {
 
   const hasFilters = filter && filter.length > 0;
 
-  // If filters exist, render a plain button that toggles row2
-  if (hasFilters && onToggle) {
-    return (
-      <Button onClick={onToggle} size="icon" variant="ghost">
-        <ListFilterIcon />
-      </Button>
-    );
-  }
-
   // Flush the close so the popover exits at its original position before the filter shifts the trigger
   const handleAddFilter = useCallback(
     (property: PropertyMeta) => {
@@ -55,6 +46,15 @@ function FilterTool({ properties, onToggle }: FilterToolProps) {
     },
     [addFilter, openFilterChip]
   );
+
+  // If filters exist, render a plain button that toggles row2
+  if (hasFilters && onToggle) {
+    return (
+      <Button onClick={onToggle} size="icon" variant="ghost">
+        <ListFilterIcon />
+      </Button>
+    );
+  }
 
   return (
     <FilterTrigger

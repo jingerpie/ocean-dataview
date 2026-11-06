@@ -261,7 +261,12 @@ export function BoardView<
             allProperties={properties}
             item={{} as TData}
             property={columnProperty}
-            value={columnName}
+            value={
+              // Checkbox column keys are "true"/"false" strings
+              columnProperty.type === "checkbox"
+                ? columnName === "true"
+                : columnName
+            }
           />
         ) : (
           <Badge variant="gray-subtle">{columnName}</Badge>

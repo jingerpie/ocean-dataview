@@ -7,6 +7,7 @@ import {
   type RelativeUnit,
 } from "@jingerpie/dataview-core";
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
 import { Calendar } from "@/components/ui/dataview-calendar";
 import {
   Select,
@@ -66,10 +67,18 @@ function RelativeDateDropdowns({
     onChange([newDirection, count, unit]);
   };
 
+  // Typed text stays local until blur, so filter-state updates can't reset
+  // it mid-typing; valid counts (>= 1) apply as you type
+  const [countDraft, setCountDraft] = useState<string | null>(null);
+
   // Handle count change
   const handleCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newCount = Math.max(1, Number.parseInt(e.target.value, 10) || 1);
-    onChange([direction, newCount, unit]);
+    const draft = e.target.value;
+    setCountDraft(draft);
+    const newCount = Number.parseInt(draft, 10);
+    if (newCount >= 1) {
+      onChange([direction, newCount, unit]);
+    }
   };
 
   // Handle unit change
@@ -106,9 +115,10 @@ function RelativeDateDropdowns({
         <Input
           className="w-16"
           min={1}
+          onBlur={() => setCountDraft(null)}
           onChange={handleCountChange}
           type="number"
-          value={count}
+          value={countDraft ?? count}
         />
       )}
 
