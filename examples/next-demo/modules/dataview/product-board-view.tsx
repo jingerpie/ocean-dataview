@@ -1,14 +1,9 @@
 "use client";
 
-import type {
-  ColumnConfigInput,
-  GroupConfigInput,
-  Limit,
-  WhereNode,
-} from "@jingerpie/dataview-core";
 import {
   DataViewContent,
   DataViewProvider,
+  DEFAULT_LIMIT,
   useInfiniteController,
 } from "@jingerpie/dataview-react";
 import { useNuqsDataViewState } from "@jingerpie/dataview-react/nuqs";
@@ -17,21 +12,11 @@ import { BoardSkeleton } from "@/components/dataview/skeletons/board-skeleton";
 import { ToolbarSkeleton } from "@/components/dataview/skeletons/toolbar-skeleton";
 import { NotionToolbar } from "@/components/dataview/toolbars/notion/toolbar";
 import { BoardView } from "@/components/dataview/views/board-view/board-view";
+import { validateProductColumn } from "@/modules/dataview/validations";
 import { useTRPC } from "@/utils/trpc/client";
 import { DataViewTab } from "./dataview-tab";
 import { productProperties } from "./product-properties";
 import { productTabOptions } from "./product-tab-options";
-
-interface ProductBoardViewProps {
-  /** Column configuration (board columns) */
-  column: ColumnConfigInput | null;
-  filter: WhereNode[] | null;
-  /** Group configuration (board rows/accordion) */
-  group: GroupConfigInput | null;
-  limit: Limit;
-  search: string;
-  sort: { property: string; direction: "asc" | "desc" }[];
-}
 
 /**
  * Product Board View - auto flat/grouped based on column param.
@@ -39,24 +24,19 @@ interface ProductBoardViewProps {
  * NotionToolbar uses context from DataViewProvider (never suspends).
  * BoardView may suspend while loading data.
  */
-export function ProductBoardView({
-  column,
-  filter,
-  group,
-  limit,
-  search,
-  sort,
-}: ProductBoardViewProps) {
+export function ProductBoardView() {
   const trpc = useTRPC();
 
-  // Default column config for boards (always need columns)
+  const state = useNuqsDataViewState();
+  const limit = state.value.limit ?? DEFAULT_LIMIT;
+
+  // Boards always need columns; the URL column wins over this default
   const defaultColumnConfig = {
     propertyType: "select",
     propertyId: "category",
   } as const;
-  const effectiveColumnConfig = column ?? defaultColumnConfig;
-
-  const state = useNuqsDataViewState();
+  const effectiveColumnConfig =
+    validateProductColumn(state.value.column) ?? defaultColumnConfig;
   const { controller } = useInfiniteController({
     columnQuery: (params) => trpc.product.getGroup.queryOptions(params),
 
@@ -89,7 +69,6 @@ export function ProductBoardView({
 
   // Prepare view configs and labels
   const columnConfigForView = { ...effectiveColumnConfig, showCount: true };
-  const groupConfigForView = group ? { ...group, showCount: true } : undefined;
 
   return (
     <Suspense
@@ -108,14 +87,7 @@ export function ProductBoardView({
     >
       <DataViewProvider
         controller={controller}
-        defaults={{
-          column: columnConfigForView,
-          filter,
-          group: groupConfigForView,
-          limit,
-          search,
-          sort: sort ?? [],
-        }}
+        defaults={{ column: columnConfigForView }}
         properties={productProperties}
         state={state}
       >

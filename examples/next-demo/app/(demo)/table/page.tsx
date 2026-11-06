@@ -1,11 +1,9 @@
-import { ProductTableDemo } from "./components/hybrid-table-demo";
+import { connection } from "next/server";
+import { ProductTableView } from "@/modules/dataview/product-table-view";
 
-interface TablePageProps {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}
+export default async function TablePage() {
+  // Render per request so the view reads its URL state on the server
+  await connection();
 
-export default async function TablePage({ searchParams }: TablePageProps) {
-  const params = await searchParams;
-
-  return <ProductTableDemo params={params} />;
+  return <ProductTableView />;
 }

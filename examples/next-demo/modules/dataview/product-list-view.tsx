@@ -1,13 +1,9 @@
 "use client";
 
-import type {
-  GroupConfigInput,
-  Limit,
-  WhereNode,
-} from "@jingerpie/dataview-core";
 import {
   DataViewContent,
   DataViewProvider,
+  DEFAULT_LIMIT,
   useInfiniteController,
 } from "@jingerpie/dataview-react";
 import { useNuqsDataViewState } from "@jingerpie/dataview-react/nuqs";
@@ -21,30 +17,17 @@ import { DataViewTab } from "./dataview-tab";
 import { productListProperties } from "./product-list-properties";
 import { productTabOptions } from "./product-tab-options";
 
-interface ProductListViewProps {
-  filter: WhereNode[] | null;
-  group: GroupConfigInput | null;
-  limit: Limit;
-  search: string;
-  sort: { property: string; direction: "asc" | "desc" }[];
-}
-
 /**
  * Product List View - auto flat/grouped based on URL group param.
  *
  * NotionToolbar uses context from DataViewProvider (never suspends).
  * ListView may suspend while loading data.
  */
-export function ProductListView({
-  filter,
-  group,
-  limit,
-  search,
-  sort,
-}: ProductListViewProps) {
+export function ProductListView() {
   const trpc = useTRPC();
 
   const state = useNuqsDataViewState();
+  const limit = state.value.limit ?? DEFAULT_LIMIT;
   const { controller } = useInfiniteController({
     groupQuery: (params) =>
       trpc.product.getGroup.infiniteQueryOptions(params, {
@@ -57,9 +40,6 @@ export function ProductListView({
           lastPage.hasNextPage ? lastPage.endCursor : undefined,
       }),
   });
-
-  // Add view options to group config
-  const groupConfigForView = group ? { ...group, showCount: true } : undefined;
 
   return (
     <Suspense
@@ -76,13 +56,6 @@ export function ProductListView({
     >
       <DataViewProvider
         controller={controller}
-        defaults={{
-          filter,
-          group: groupConfigForView,
-          limit,
-          search,
-          sort: sort ?? [],
-        }}
         properties={productListProperties}
         state={state}
       >

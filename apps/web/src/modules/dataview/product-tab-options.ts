@@ -27,8 +27,12 @@ export const productTabOptions: TabOption[] = [
     filter: [
       {
         and: [
-          { property: "category", condition: "eq", value: "Jewelry" },
-          { property: "availability", condition: "eq", value: "In stock" },
+          { property: "category", condition: "inArray", value: ["Jewelry"] },
+          {
+            property: "availability",
+            condition: "inArray",
+            value: ["In stock"],
+          },
         ],
       },
     ],
@@ -61,11 +65,15 @@ export const productTabOptions: TabOption[] = [
           // Low stock or out of stock (nested OR)
           {
             or: [
-              { property: "availability", condition: "eq", value: "Low stock" },
               {
                 property: "availability",
-                condition: "eq",
-                value: "Out of stock",
+                condition: "inArray",
+                value: ["Low stock"],
+              },
+              {
+                property: "availability",
+                condition: "inArray",
+                value: ["Out of stock"],
               },
             ],
           },

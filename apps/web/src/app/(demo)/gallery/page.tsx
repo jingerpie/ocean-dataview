@@ -1,11 +1,9 @@
-import { ProductGalleryDemo } from "./components/hybrid-gallery-demo";
+import { connection } from "next/server";
+import { ProductGalleryView } from "@/modules/dataview/product-gallery-view";
 
-interface GalleryPageProps {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}
+export default async function GalleryPage() {
+  // Render per request so the view reads its URL state on the server
+  await connection();
 
-export default async function GalleryPage({ searchParams }: GalleryPageProps) {
-  const params = await searchParams;
-
-  return <ProductGalleryDemo params={params} />;
+  return <ProductGalleryView />;
 }

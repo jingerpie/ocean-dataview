@@ -1,13 +1,9 @@
 "use client";
 
-import type {
-  GroupConfigInput,
-  Limit,
-  WhereNode,
-} from "@jingerpie/dataview-core";
 import {
   DataViewContent,
   DataViewProvider,
+  DEFAULT_LIMIT,
   useInfiniteController,
 } from "@jingerpie/dataview-react";
 import { useNuqsDataViewState } from "@jingerpie/dataview-react/nuqs";
@@ -21,30 +17,17 @@ import { DataViewTab } from "./dataview-tab";
 import { productProperties } from "./product-properties";
 import { productTabOptions } from "./product-tab-options";
 
-interface ProductGalleryViewProps {
-  filter: WhereNode[] | null;
-  group: GroupConfigInput | null;
-  limit: Limit;
-  search: string;
-  sort: { property: string; direction: "asc" | "desc" }[];
-}
-
 /**
  * Product Gallery View - auto flat/grouped based on URL group param.
  *
  * NotionToolbar uses context from DataViewProvider (never suspends).
  * GalleryView may suspend while loading data.
  */
-export function ProductGalleryView({
-  filter,
-  group,
-  limit,
-  search,
-  sort,
-}: ProductGalleryViewProps) {
+export function ProductGalleryView() {
   const trpc = useTRPC();
 
   const state = useNuqsDataViewState();
+  const limit = state.value.limit ?? DEFAULT_LIMIT;
   const { controller } = useInfiniteController({
     groupQuery: (params) =>
       trpc.product.getGroup.infiniteQueryOptions(params, {
@@ -57,9 +40,6 @@ export function ProductGalleryView({
           lastPage.hasNextPage ? lastPage.endCursor : undefined,
       }),
   });
-
-  // Add view options to group config
-  const groupConfigForView = group ? { ...group, showCount: true } : undefined;
 
   return (
     <Suspense
@@ -79,13 +59,6 @@ export function ProductGalleryView({
     >
       <DataViewProvider
         controller={controller}
-        defaults={{
-          filter,
-          group: groupConfigForView,
-          limit,
-          search,
-          sort: sort ?? [],
-        }}
         properties={productProperties}
         state={state}
       >

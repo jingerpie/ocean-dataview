@@ -1,11 +1,9 @@
-import { ProductListDemo } from "./components/hybrid-list-demo";
+import { connection } from "next/server";
+import { ProductListView } from "@/modules/dataview/product-list-view";
 
-interface ListPageProps {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}
+export default async function ListPage() {
+  // Render per request so the view reads its URL state on the server
+  await connection();
 
-export default async function ListPage({ searchParams }: ListPageProps) {
-  const params = await searchParams;
-
-  return <ProductListDemo params={params} />;
+  return <ProductListView />;
 }
