@@ -33,7 +33,9 @@ const properties = [
   propertyVisibility={["productName", "price", "availability"]}
 >
   <NotionToolbar enableSettings />
-  <TableView pagination="page" />
+  <DataViewContent>
+    <TableView pagination="page" />
+  </DataViewContent>
 </DataViewProvider>
 ```
 

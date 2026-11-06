@@ -40,19 +40,26 @@
       "version": "0.1.0",
       "dependencies": {
         "@base-ui/react": "catalog:",
-        "@sparkyidea/dataview": "workspace:*",
+        "@dnd-kit/core": "catalog:",
+        "@dnd-kit/sortable": "catalog:",
+        "@dnd-kit/utilities": "catalog:",
+        "@jingerpie/dataview-core": "workspace:*",
+        "@jingerpie/dataview-react": "workspace:*",
         "@sparkyidea/env": "workspace:*",
         "@sparkyidea/trpc": "workspace:*",
         "@sparkyidea/ui": "workspace:*",
         "@takumi-rs/image-response": "catalog:",
         "@tanstack/react-form": "catalog:",
         "@tanstack/react-query": "catalog:",
+        "@tanstack/react-table": "catalog:",
         "@trpc/client": "catalog:",
         "@trpc/server": "catalog:",
         "@trpc/tanstack-react-query": "catalog:",
         "babel-plugin-react-compiler": "catalog:",
         "class-variance-authority": "catalog:",
         "clsx": "catalog:",
+        "cmdk": "catalog:",
+        "date-fns": "catalog:",
         "dotenv": "catalog:",
         "fumadocs-core": "catalog:",
         "fumadocs-mdx": "catalog:",
@@ -62,12 +69,15 @@
         "next-themes": "catalog:",
         "nuqs": "catalog:",
         "react": "catalog:",
+        "react-day-picker": "catalog:",
         "react-dom": "catalog:",
+        "recharts": "catalog:",
         "shadcn": "catalog:",
         "sonner": "catalog:",
         "superjson": "catalog:",
         "tailwind-merge": "catalog:",
         "tw-animate-css": "catalog:",
+        "usehooks-ts": "catalog:",
         "zod": "catalog:",
       },
       "devDependencies": {
@@ -80,61 +90,72 @@
         "@types/react-dom": "catalog:",
         "tailwindcss": "catalog:",
         "typescript": "catalog:",
+        "vitest": "catalog:",
       },
     },
     "packages/config": {
       "name": "@sparkyidea/config",
       "version": "0.0.0",
     },
-    "packages/dataview": {
-      "name": "@sparkyidea/dataview",
-      "dependencies": {
-        "@base-ui/react": "catalog:",
-        "@dnd-kit/core": "catalog:",
-        "@dnd-kit/sortable": "catalog:",
-        "@dnd-kit/utilities": "catalog:",
-        "@hookform/resolvers": "catalog:",
-        "@tanstack/react-query": "catalog:",
-        "@tanstack/react-table": "catalog:",
-        "chrono-node": "catalog:",
-        "class-variance-authority": "catalog:",
-        "clsx": "catalog:",
-        "cmdk": "catalog:",
-        "date-fns": "catalog:",
-        "embla-carousel-react": "catalog:",
-        "input-otp": "catalog:",
-        "lucide-react": "catalog:",
-        "next": "catalog:",
-        "next-themes": "catalog:",
-        "nuqs": "catalog:",
-        "react": "catalog:",
-        "react-day-picker": "catalog:",
-        "react-dom": "catalog:",
-        "react-hook-form": "catalog:",
-        "react-resizable-panels": "catalog:",
-        "recharts": "catalog:",
-        "sonner": "catalog:",
-        "tailwind-merge": "catalog:",
-        "tw-animate-css": "catalog:",
-        "usehooks-ts": "catalog:",
-        "vaul": "catalog:",
-        "zod": "catalog:",
-        "zustand": "catalog:",
-      },
+    "packages/dataview-core": {
+      "name": "@jingerpie/dataview-core",
+      "version": "0.1.0-alpha.1",
       "devDependencies": {
         "@sparkyidea/config": "workspace:*",
-        "@tailwindcss/postcss": "catalog:",
-        "@turbo/gen": "catalog:",
-        "@types/node": "catalog:",
-        "@types/react": "catalog:",
-        "@types/react-dom": "catalog:",
-        "tailwindcss": "catalog:",
+        "chrono-node": "catalog:",
+        "date-fns": "catalog:",
         "tsdown": "catalog:",
+        "typescript": "catalog:",
+        "vitest": "catalog:",
+        "zod": "catalog:",
+      },
+      "peerDependencies": {
+        "chrono-node": "^2.9.0",
+        "date-fns": "^4.1.0",
+        "zod": "^4.3.0",
+      },
+    },
+    "packages/dataview-drizzle": {
+      "name": "@jingerpie/dataview-drizzle",
+      "version": "0.1.0-alpha.1",
+      "devDependencies": {
+        "@jingerpie/dataview-core": "workspace:*",
+        "@sparkyidea/config": "workspace:*",
+        "@types/bun": "1.3.9",
+        "date-fns": "catalog:",
+        "drizzle-orm": "catalog:",
+        "tsdown": "catalog:",
+        "typescript": "catalog:",
+      },
+      "peerDependencies": {
+        "@jingerpie/dataview-core": "workspace:^",
+        "date-fns": "^4.1.0",
+        "drizzle-orm": "^0.45.0",
+      },
+    },
+    "packages/dataview-react": {
+      "name": "@jingerpie/dataview-react",
+      "version": "0.1.0-alpha.1",
+      "devDependencies": {
+        "@jingerpie/dataview-core": "workspace:*",
+        "@sparkyidea/config": "workspace:*",
+        "@tanstack/react-query": "catalog:",
+        "@types/react": "catalog:",
+        "nuqs": "catalog:",
+        "react": "catalog:",
+        "tsdown": "catalog:",
+        "typescript": "catalog:",
         "vitest": "catalog:",
       },
       "peerDependencies": {
-        "typescript": "catalog:",
+        "@jingerpie/dataview-core": "workspace:^",
+        "@tanstack/react-query": "^5.90.0",
+        "nuqs": "^2.8.0",
+        "react": "^19.0.0",
       },
+      "optionalPeers": [
+        "nuqs",
+      ],
     },
     "packages/db": {
       "name": "@sparkyidea/db",
@@ -168,7 +189,8 @@
     "packages/trpc": {
       "name": "@sparkyidea/trpc",
       "dependencies": {
-        "@sparkyidea/dataview": "workspace:*",
+        "@jingerpie/dataview-core": "workspace:*",
+        "@jingerpie/dataview-drizzle": "workspace:*",
         "@sparkyidea/db": "workspace:*",
         "@sparkyidea/env": "workspace:*",
         "@trpc/client": "catalog:",
@@ -499,8 +521,6 @@
 
     "@hono/trpc-server": ["@hono/trpc-server@0.4.1", "", { "peerDependencies": { "@trpc/server": "^10.10.0 || >11.0.0-rc", "hono": ">=4.0.0" } }, "sha512-5D4gA+MpJxUzqCEDgZMlhxz1G8BkoneR+N+bD7Kt28LPJ0jAhXp1GA3ucpV6KxMBBLvFXIAFAfzdBeRmz12Pkw=="],
 
-    "@hookform/resolvers": ["@hookform/resolvers@5.2.2", "", { "dependencies": { "@standard-schema/utils": "^0.3.0" }, "peerDependencies": { "react-hook-form": "^7.55.0" } }, "sha512-A/IxlMLShx3KjV/HeTcTfaMxdwy690+L/ZADoeaTltLx+CVuzkeVIPuybK3jrRfw7YZnmdKsVVHAlEPIAEUNlA=="],
-
     "@img/colour": ["@img/colour@1.1.0", "", {}, "sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ=="],
 
     "@img/sharp-darwin-arm64": ["@img/sharp-darwin-arm64@0.34.5", "", { "optionalDependencies": { "@img/sharp-libvips-darwin-arm64": "1.2.4" }, "os": "darwin", "cpu": "arm64" }, "sha512-imtQ3WMJXbMY4fxb/Ndp6HBTNVtWCUI0WdobyheGf5+ad6xX8VIDO8u2xE4qc/fr08CKG/7dDseFtn6M6g/r3w=="],
@@ -560,6 +580,12 @@
     "@inquirer/figures": ["@inquirer/figures@1.0.15", "", {}, "sha512-t2IEY+unGHOzAaVM5Xx6DEWKeXlDDcNPeDyUpsRc6CUhBfU3VQOEl+Vssh7VNp1dR8MdUJBWhuObjXCsVpjN5g=="],
 
     "@inquirer/type": ["@inquirer/type@3.0.10", "", { "peerDependencies": { "@types/node": ">=18" }, "optionalPeers": ["@types/node"] }, "sha512-BvziSRxfz5Ov8ch0z/n3oijRSEcEsHnhggm4xFZe93DHcUCTlutlq9Ox4SVENAfcRD22UQq7T/atg9Wr3k09eA=="],
+
+    "@jingerpie/dataview-core": ["@jingerpie/dataview-core@workspace:packages/dataview-core"],
+
+    "@jingerpie/dataview-drizzle": ["@jingerpie/dataview-drizzle@workspace:packages/dataview-drizzle"],
+
+    "@jingerpie/dataview-react": ["@jingerpie/dataview-react@workspace:packages/dataview-react"],
 
     "@jridgewell/gen-mapping": ["@jridgewell/gen-mapping@0.3.13", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA=="],
 
@@ -802,8 +828,6 @@
     "@sindresorhus/merge-streams": ["@sindresorhus/merge-streams@4.0.0", "", {}, "sha512-tlqY9xq5ukxTUZBmoOp+m61cqwQD5pHJtFY3Mn8CA8ps6yghLH/Hw8UPdqg4OLmFW3IFlcXnQNmo/dh8HzXYIQ=="],
 
     "@sparkyidea/config": ["@sparkyidea/config@workspace:packages/config"],
-
-    "@sparkyidea/dataview": ["@sparkyidea/dataview@workspace:packages/dataview"],
 
     "@sparkyidea/db": ["@sparkyidea/db@workspace:packages/db"],
 
@@ -2013,8 +2037,6 @@
 
     "react-dom": ["react-dom@19.2.3", "", { "dependencies": { "scheduler": "^0.27.0" }, "peerDependencies": { "react": "^19.2.3" } }, "sha512-yELu4WmLPw5Mr/lmeEpox5rw3RETacE++JgHqQzd2dg+YbJuat3jH4ingc+WPZhxaoFzdv9y33G+F7Nl5O0GBg=="],
 
-    "react-hook-form": ["react-hook-form@7.69.0", "", { "peerDependencies": { "react": "^16.8.0 || ^17 || ^18 || ^19" } }, "sha512-yt6ZGME9f4F6WHwevrvpAjh42HMvocuSnSIHUGycBqXIJdhqGSPQzTpGF+1NLREk/58IdPxEMfPcFCjlMhclGw=="],
-
     "react-is": ["react-is@19.2.4", "", {}, "sha512-W+EWGn2v0ApPKgKKCy/7s7WHXkboGcsrXE+2joLyVxkbyVQfO3MUEaUQDHoSmb8TFFrSKYa9mw64WZHNHSDzYA=="],
 
     "react-medium-image-zoom": ["react-medium-image-zoom@5.4.1", "", { "peerDependencies": { "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0", "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-DD2iZYaCfAwiQGR8AN62r/cDJYoXhezlYJc5HY4TzBUGuGge43CptG0f7m0PEIM72aN6GfpjohvY1yYdtCJB7g=="],
@@ -2432,8 +2454,6 @@
     "zod": ["zod@4.3.6", "", {}, "sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg=="],
 
     "zod-to-json-schema": ["zod-to-json-schema@3.25.1", "", { "peerDependencies": { "zod": "^3.25 || ^4" } }, "sha512-pM/SU9d3YAggzi6MtR4h7ruuQlqKtad8e9S0fmxcMi+ueAK5Korys/aWcV9LIIHTVbj01NdzxcnXSN+O74ZIVA=="],
-
-    "zustand": ["zustand@5.0.10", "", { "peerDependencies": { "@types/react": ">=18.0.0", "immer": ">=9.0.6", "react": ">=18.0.0", "use-sync-external-store": ">=1.2.0" }, "optionalPeers": ["@types/react", "immer", "react", "use-sync-external-store"] }, "sha512-U1AiltS1O9hSy3rul+Ub82ut2fqIAefiSuwECWt6jlMVUGejvf+5omLcRBSzqbRagSM3hQZbtzdeRc6QVScXTg=="],
 
     "zwitch": ["zwitch@2.0.4", "", {}, "sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A=="],
 

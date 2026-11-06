@@ -32,7 +32,9 @@ Set default column config in `DataViewProvider`:
   properties={properties}
 >
   <NotionToolbar enableSettings />
-  <BoardView pagination="loadMore" />
+  <DataViewContent>
+    <BoardView pagination="loadMore" />
+  </DataViewContent>
 </DataViewProvider>
 ```
 

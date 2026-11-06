@@ -1,28 +1,21 @@
 "use client";
 
-import { useInfiniteController } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
-import { ListSkeleton, ToolbarSkeleton } from "@sparkyidea/dataview/skeletons";
-import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
-import type {
-  GroupConfigInput,
-  Limit,
-  WhereNode,
-} from "@sparkyidea/dataview/types";
-import { ListView } from "@sparkyidea/dataview/views/list-view";
+import {
+  DataViewContent,
+  DataViewProvider,
+  DEFAULT_LIMIT,
+  useInfiniteController,
+} from "@jingerpie/dataview-react";
+import { useNuqsDataViewState } from "@jingerpie/dataview-react/nuqs";
 import { Suspense } from "react";
+import { ListSkeleton } from "@/registry/base-nova/components/dataview/skeletons/list-skeleton";
+import { ToolbarSkeleton } from "@/registry/base-nova/components/dataview/skeletons/toolbar-skeleton";
+import { NotionToolbar } from "@/registry/base-nova/components/dataview/toolbars/notion/toolbar";
+import { ListView } from "@/registry/base-nova/components/dataview/views/list-view/list-view";
 import { useTRPC } from "@/utils/trpc/client";
 import { DataViewTab } from "./dataview-tab";
 import { productListProperties } from "./product-list-properties";
 import { productTabOptions } from "./product-tab-options";
-
-interface ProductListViewProps {
-  filter: WhereNode[] | null;
-  group: GroupConfigInput | null;
-  limit: Limit;
-  search: string;
-  sort: { property: string; direction: "asc" | "desc" }[];
-}
 
 /**
  * Product List View - auto flat/grouped based on URL group param.
@@ -30,15 +23,11 @@ interface ProductListViewProps {
  * NotionToolbar uses context from DataViewProvider (never suspends).
  * ListView may suspend while loading data.
  */
-export function ProductListView({
-  filter,
-  group,
-  limit,
-  search,
-  sort,
-}: ProductListViewProps) {
+export function ProductListView() {
   const trpc = useTRPC();
 
+  const state = useNuqsDataViewState();
+  const limit = state.value.limit ?? DEFAULT_LIMIT;
   const { controller } = useInfiniteController({
     groupQuery: (params) =>
       trpc.product.getGroup.infiniteQueryOptions(params, {
@@ -51,9 +40,6 @@ export function ProductListView({
           lastPage.hasNextPage ? lastPage.endCursor : undefined,
       }),
   });
-
-  // Add view options to group config
-  const groupConfigForView = group ? { ...group, showCount: true } : undefined;
 
   return (
     <Suspense
@@ -70,22 +56,20 @@ export function ProductListView({
     >
       <DataViewProvider
         controller={controller}
-        defaults={{
-          filter,
-          group: groupConfigForView,
-          limit,
-          search,
-          sort: sort ?? [],
-        }}
         properties={productListProperties}
+        state={state}
       >
-        <NotionToolbar enableSettings>
-          <DataViewTab options={productTabOptions} />
-        </NotionToolbar>
-        <ListView
-          pagination="loadMore"
-          stickyHeader={{ enabled: true, offset: 57 }}
-        />
+        <div className="flex flex-col gap-2">
+          <NotionToolbar enableSettings>
+            <DataViewTab options={productTabOptions} />
+          </NotionToolbar>
+          <DataViewContent>
+            <ListView
+              pagination="loadMore"
+              stickyHeader={{ enabled: true, offset: 57 }}
+            />
+          </DataViewContent>
+        </div>
       </DataViewProvider>
     </Suspense>
   );

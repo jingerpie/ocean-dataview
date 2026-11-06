@@ -22,7 +22,7 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
 
   const gitConfig = {
     user: "jingerpie",
-    repo: "ocean-dataview",
+    repo: "dataview",
     branch: "main",
   };
 

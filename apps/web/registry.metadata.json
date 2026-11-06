@@ -1,0 +1,323 @@
+{
+  "$comment": "Source of truth for the DataView shadcn registry. scripts/build-registry.ts expands files, follows imports, and generates registry.json and public/r.",
+  "name": "ocean-dataview",
+  "homepage": "https://ocean-dataview.sparkyidea.com",
+  "version": "0.1.0-alpha.0",
+  "registryRoot": "src/registry/base-nova",
+  "stylesSource": "../../packages/ui/src/styles/globals.css",
+  "items": [
+    {
+      "name": "dataview-styles",
+      "type": "registry:item",
+      "title": "DataView styles",
+      "description": "Badge and chart colour tokens (light and dark) used by DataView components.",
+      "files": [],
+      "css": true
+    },
+    {
+      "name": "dataview-ui-lib",
+      "type": "registry:lib",
+      "title": "DataView UI helpers",
+      "description": "Badge and chart colour maps, card sizes, property icons, and the image slot.",
+      "files": ["lib/dataview/"]
+    },
+    {
+      "name": "dataview-dom-hooks",
+      "type": "registry:hook",
+      "title": "DataView DOM hooks",
+      "description": "Scroll sync, load-more sentinel, intersection observer, and chart legend hooks.",
+      "files": ["hooks/dataview/"]
+    },
+    {
+      "name": "dataview-accordion",
+      "type": "registry:ui",
+      "title": "DataView accordion",
+      "description": "Accordion with DataView group-section layout.",
+      "files": ["ui/dataview-accordion.tsx"]
+    },
+    {
+      "name": "dataview-badge",
+      "type": "registry:ui",
+      "title": "DataView badge",
+      "description": "Badge with size and colour variants for property values.",
+      "files": ["ui/dataview-badge.tsx"]
+    },
+    {
+      "name": "dataview-button",
+      "type": "registry:ui",
+      "title": "DataView button",
+      "description": "Button with DataView destructive styling.",
+      "files": ["ui/dataview-button.tsx"]
+    },
+    {
+      "name": "dataview-calendar",
+      "type": "registry:ui",
+      "title": "DataView calendar",
+      "description": "Calendar with a readOnly mode.",
+      "files": ["ui/dataview-calendar.tsx"]
+    },
+    {
+      "name": "dataview-checkbox",
+      "type": "registry:ui",
+      "title": "DataView checkbox",
+      "description": "Checkbox with an indeterminate state.",
+      "files": ["ui/dataview-checkbox.tsx"]
+    },
+    {
+      "name": "dataview-command",
+      "type": "registry:ui",
+      "title": "DataView command",
+      "description": "Command menu with CommandChips.",
+      "files": ["ui/dataview-command.tsx"]
+    },
+    {
+      "name": "dataview-select",
+      "type": "registry:ui",
+      "title": "DataView select",
+      "description": "Select with custom trigger rendering.",
+      "files": ["ui/dataview-select.tsx"]
+    },
+    {
+      "name": "dataview-table",
+      "type": "registry:ui",
+      "title": "DataView table",
+      "description": "Table without the scroll wrapper, for synced scrolling.",
+      "files": ["ui/dataview-table.tsx"]
+    },
+    {
+      "name": "dataview-chart",
+      "type": "registry:ui",
+      "title": "DataView chart",
+      "description": "Chart container, tooltip, and legend for Recharts.",
+      "files": ["ui/dataview-chart.tsx"]
+    },
+    {
+      "name": "dataview-view-shared",
+      "type": "registry:component",
+      "title": "DataView view parts",
+      "description": "Cards, cells (including formula cells), group sections, empty state, and scroll helpers shared by the views.",
+      "files": [
+        "components/dataview/shared/",
+        "components/dataview/views/*.tsx",
+        "components/dataview/properties/formula-property.tsx"
+      ]
+    },
+    {
+      "name": "dataview-chart-legend",
+      "type": "registry:component",
+      "title": "Chart legend",
+      "description": "Paginated legend for DataView charts.",
+      "files": ["components/dataview/charts/"]
+    },
+    {
+      "name": "button-property",
+      "type": "registry:component",
+      "title": "Button Property",
+      "description": "Renders a button property value.",
+      "files": ["components/dataview/properties/button-property.tsx"]
+    },
+    {
+      "name": "checkbox-property",
+      "type": "registry:component",
+      "title": "Checkbox Property",
+      "description": "Renders a checkbox property value.",
+      "files": ["components/dataview/properties/checkbox-property.tsx"]
+    },
+    {
+      "name": "date-property",
+      "type": "registry:component",
+      "title": "Date Property",
+      "description": "Renders a date property value.",
+      "files": ["components/dataview/properties/date-property.tsx"]
+    },
+    {
+      "name": "email-property",
+      "type": "registry:component",
+      "title": "Email Property",
+      "description": "Renders a email property value.",
+      "files": ["components/dataview/properties/email-property.tsx"]
+    },
+    {
+      "name": "files-media-property",
+      "type": "registry:component",
+      "title": "Files Media Property",
+      "description": "Renders a files media property value.",
+      "files": ["components/dataview/properties/files-media-property.tsx"]
+    },
+    {
+      "name": "multi-select-property",
+      "type": "registry:component",
+      "title": "Multi Select Property",
+      "description": "Renders a multi select property value.",
+      "files": ["components/dataview/properties/multi-select-property.tsx"]
+    },
+    {
+      "name": "number-property",
+      "type": "registry:component",
+      "title": "Number Property",
+      "description": "Renders a number property value.",
+      "files": ["components/dataview/properties/number-property.tsx"]
+    },
+    {
+      "name": "phone-property",
+      "type": "registry:component",
+      "title": "Phone Property",
+      "description": "Renders a phone property value.",
+      "files": ["components/dataview/properties/phone-property.tsx"]
+    },
+    {
+      "name": "select-property",
+      "type": "registry:component",
+      "title": "Select Property",
+      "description": "Renders a select property value.",
+      "files": ["components/dataview/properties/select-property.tsx"]
+    },
+    {
+      "name": "status-property",
+      "type": "registry:component",
+      "title": "Status Property",
+      "description": "Renders a status property value.",
+      "files": ["components/dataview/properties/status-property.tsx"]
+    },
+    {
+      "name": "text-property",
+      "type": "registry:component",
+      "title": "Text Property",
+      "description": "Renders a text property value.",
+      "files": ["components/dataview/properties/text-property.tsx"]
+    },
+    {
+      "name": "url-property",
+      "type": "registry:component",
+      "title": "Url Property",
+      "description": "Renders a url property value.",
+      "files": ["components/dataview/properties/url-property.tsx"]
+    },
+    {
+      "name": "dataview-filter",
+      "type": "registry:component",
+      "title": "DataView filter",
+      "description": "Simple and advanced filter editors.",
+      "files": ["components/dataview/filter/"]
+    },
+    {
+      "name": "dataview-sort",
+      "type": "registry:component",
+      "title": "DataView sort",
+      "description": "Sort editor and pickers.",
+      "files": ["components/dataview/sort/"]
+    },
+    {
+      "name": "dataview-group",
+      "type": "registry:component",
+      "title": "DataView group",
+      "description": "Group-by editor and pickers.",
+      "files": ["components/dataview/group/"]
+    },
+    {
+      "name": "dataview-pagination",
+      "type": "registry:component",
+      "title": "DataView pagination",
+      "description": "Page, load-more, and infinite-scroll pagination.",
+      "files": ["components/dataview/pagination/"]
+    },
+    {
+      "name": "dataview-search",
+      "type": "registry:component",
+      "title": "DataView search",
+      "description": "Search input.",
+      "files": ["components/dataview/search/"]
+    },
+    {
+      "name": "dataview-bulk-actions",
+      "type": "registry:component",
+      "title": "DataView bulk actions",
+      "description": "Floating action bar for selected rows.",
+      "files": ["components/dataview/bulk-actions/"]
+    },
+    {
+      "name": "dataview-skeletons",
+      "type": "registry:component",
+      "title": "DataView skeletons",
+      "description": "Loading skeletons for views and the toolbar.",
+      "files": ["components/dataview/skeletons/"]
+    },
+    {
+      "name": "notion-toolbar",
+      "type": "registry:component",
+      "title": "Notion toolbar",
+      "description": "Notion-style toolbar with filter, sort, search, and settings.",
+      "files": ["components/dataview/toolbars/"]
+    },
+    {
+      "name": "preset-tabs",
+      "type": "registry:component",
+      "title": "Preset tabs",
+      "description": "Tabs that apply preset filters, sorts, and groups.",
+      "files": ["components/dataview/preset-tabs/"]
+    },
+    {
+      "name": "area-chart-view",
+      "type": "registry:block",
+      "title": "Area Chart View",
+      "description": "Area Chart view for DataView.",
+      "files": ["components/dataview/views/area-chart-view/"]
+    },
+    {
+      "name": "board-view",
+      "type": "registry:block",
+      "title": "Board View",
+      "description": "Board view for DataView.",
+      "files": ["components/dataview/views/board-view/"]
+    },
+    {
+      "name": "donut-chart-view",
+      "type": "registry:block",
+      "title": "Donut Chart View",
+      "description": "Donut Chart view for DataView.",
+      "files": ["components/dataview/views/donut-chart-view/"]
+    },
+    {
+      "name": "gallery-view",
+      "type": "registry:block",
+      "title": "Gallery View",
+      "description": "Gallery view for DataView.",
+      "files": ["components/dataview/views/gallery-view/"]
+    },
+    {
+      "name": "horizontal-bar-chart-view",
+      "type": "registry:block",
+      "title": "Horizontal Bar Chart View",
+      "description": "Horizontal Bar Chart view for DataView.",
+      "files": ["components/dataview/views/horizontal-bar-chart-view/"]
+    },
+    {
+      "name": "line-chart-view",
+      "type": "registry:block",
+      "title": "Line Chart View",
+      "description": "Line Chart view for DataView.",
+      "files": ["components/dataview/views/line-chart-view/"]
+    },
+    {
+      "name": "list-view",
+      "type": "registry:block",
+      "title": "List View",
+      "description": "List view for DataView.",
+      "files": ["components/dataview/views/list-view/"]
+    },
+    {
+      "name": "table-view",
+      "type": "registry:block",
+      "title": "Table View",
+      "description": "Table view for DataView.",
+      "files": ["components/dataview/views/table-view/"]
+    },
+    {
+      "name": "vertical-bar-chart-view",
+      "type": "registry:block",
+      "title": "Vertical Bar Chart View",
+      "description": "Vertical Bar Chart view for DataView.",
+      "files": ["components/dataview/views/vertical-bar-chart-view/"]
+    }
+  ]
+}

@@ -1,29 +1,22 @@
 "use client";
 
-import { usePageController } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
-import { TableSkeleton, ToolbarSkeleton } from "@sparkyidea/dataview/skeletons";
-import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
-import type {
-  GroupConfigInput,
-  Limit,
-  WhereNode,
-} from "@sparkyidea/dataview/types";
-import { TableView } from "@sparkyidea/dataview/views/table-view";
+import {
+  DataViewContent,
+  DataViewProvider,
+  DEFAULT_LIMIT,
+  usePageController,
+} from "@jingerpie/dataview-react";
+import { useNuqsDataViewState } from "@jingerpie/dataview-react/nuqs";
 import { Suspense } from "react";
+import { TableSkeleton } from "@/registry/base-nova/components/dataview/skeletons/table-skeleton";
+import { ToolbarSkeleton } from "@/registry/base-nova/components/dataview/skeletons/toolbar-skeleton";
+import { NotionToolbar } from "@/registry/base-nova/components/dataview/toolbars/notion/toolbar";
+import { TableView } from "@/registry/base-nova/components/dataview/views/table-view/table-view";
 import { useTRPC } from "@/utils/trpc/client";
 import { bulkActions } from "./bulk-actions";
 import { DataViewTab } from "./dataview-tab";
 import { productTabOptions } from "./product-tab-options";
 import { productTableProperties } from "./product-table-properties";
-
-interface ProductTableViewProps {
-  filter: WhereNode[] | null;
-  group: GroupConfigInput | null;
-  limit: Limit;
-  search: string;
-  sort: { property: string; direction: "asc" | "desc" }[];
-}
 
 /**
  * Product Table View - auto flat/grouped based on group param.
@@ -31,15 +24,11 @@ interface ProductTableViewProps {
  * NotionToolbar uses context from DataViewProvider (never suspends).
  * TableView may suspend while loading data.
  */
-export function ProductTableView({
-  filter,
-  group,
-  limit,
-  search,
-  sort,
-}: ProductTableViewProps) {
+export function ProductTableView() {
   const trpc = useTRPC();
 
+  const state = useNuqsDataViewState();
+  const limit = state.value.limit ?? DEFAULT_LIMIT;
   const { controller } = usePageController({
     groupQuery: (params) =>
       trpc.product.getGroup.infiniteQueryOptions(params, {
@@ -48,9 +37,6 @@ export function ProductTableView({
 
     dataQuery: (params) => trpc.product.getMany.queryOptions(params),
   });
-
-  // Add view options to group config
-  const groupConfigForView = group ? { ...group, showCount: true } : undefined;
 
   return (
     <Suspense
@@ -68,25 +54,23 @@ export function ProductTableView({
     >
       <DataViewProvider
         controller={controller}
-        defaults={{
-          filter,
-          group: groupConfigForView,
-          limit,
-          search,
-          sort: sort ?? [],
-        }}
         properties={productTableProperties}
+        state={state}
       >
-        <NotionToolbar enableSettings>
-          <DataViewTab options={productTabOptions} />
-        </NotionToolbar>
-        <TableView
-          bulkActions={bulkActions}
-          pagination="page"
-          showVerticalLines={false}
-          stickyHeader={{ enabled: true, offset: 57 }}
-          wrapAllProperties={false}
-        />
+        <div className="flex flex-col gap-2">
+          <NotionToolbar enableSettings>
+            <DataViewTab options={productTabOptions} />
+          </NotionToolbar>
+          <DataViewContent>
+            <TableView
+              bulkActions={bulkActions}
+              pagination="page"
+              showVerticalLines={false}
+              stickyHeader={{ enabled: true, offset: 57 }}
+              wrapAllProperties={false}
+            />
+          </DataViewContent>
+        </div>
       </DataViewProvider>
     </Suspense>
   );

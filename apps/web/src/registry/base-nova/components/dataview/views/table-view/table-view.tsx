@@ -1,0 +1,691 @@
+"use client";
+
+import type {
+  BulkAction,
+  DataViewProperty,
+  PaginationContext,
+} from "@jingerpie/dataview-core";
+import { transformData, UNGROUPED_KEY } from "@jingerpie/dataview-core";
+import type {
+  GroupedDataItem,
+  UseGroupQueryResult,
+  UseInfiniteGroupQueryResult,
+} from "@jingerpie/dataview-react";
+import {
+  DEFAULT_LIMIT,
+  useDataViewContext,
+  useDisplayProperties,
+  useViewSetup,
+} from "@jingerpie/dataview-react";
+import type {
+  ColumnDef,
+  RowSelectionState,
+  Table as TanStackTable,
+} from "@tanstack/react-table";
+import { AlertCircle } from "lucide-react";
+import { Suspense, useMemo, useState } from "react";
+import { DataActionBar } from "@/registry/base-nova/components/dataview/bulk-actions/data-action-bar";
+import { DataActionBarAction } from "@/registry/base-nova/components/dataview/bulk-actions/data-action-bar-action";
+import { DataActionBarSelection } from "@/registry/base-nova/components/dataview/bulk-actions/data-action-bar-selection";
+import {
+  Pagination,
+  type PaginationMode,
+} from "@/registry/base-nova/components/dataview/pagination/pagination";
+import { GroupSection } from "@/registry/base-nova/components/dataview/shared/group-section";
+import {
+  SuspendingGroupContent,
+  SuspendingInfiniteGroupContent,
+} from "@/registry/base-nova/components/dataview/shared/suspending-group-content";
+import { TableSkeleton } from "@/registry/base-nova/components/dataview/skeletons/table-skeleton";
+import { DataCell } from "@/registry/base-nova/components/dataview/views/data-cell";
+import { InfiniteScrollGroupsSentinel } from "@/registry/base-nova/components/dataview/views/infinite-scroll-groups-sentinel";
+import { ScrollSyncBar } from "@/registry/base-nova/components/dataview/views/scroll-sync-bar";
+import { DataTable } from "@/registry/base-nova/components/dataview/views/table-view/data-table";
+import { useScrollSync } from "@/registry/base-nova/hooks/dataview/use-scroll-sync";
+import { Accordion } from "@/registry/base-nova/ui/dataview-accordion";
+import { Checkbox } from "@/registry/base-nova/ui/dataview-checkbox";
+
+export interface TableViewProps<TData> {
+  /**
+   * Bulk actions for operations on selected rows.
+   * When provided, automatically enables:
+   * - Row selection with checkboxes
+   * - Floating action bar for bulk operations
+   *
+   * Selection is keyed by each row's `id` (see `row-id.ts`), so it follows the
+   * records across refetches and drops rows that disappear.
+   *
+   * For row-level actions, use button property type instead.
+   */
+  bulkActions?: BulkAction<TData>[];
+
+  /**
+   * Additional className for the table wrapper
+   */
+  className?: string;
+
+  /**
+   * Row click handler
+   */
+  onRowClick?: (row: TData) => void;
+
+  /**
+   * Pagination mode for the table.
+   * - "page": Classic prev/next pagination with "Showing X-Y"
+   * - "loadMore": "Load more" button
+   * - "infiniteScroll": Auto-load on scroll
+   * - undefined: No pagination UI
+   *
+   * For grouped tables: renders inside each group
+   * For flat tables: renders below the table
+   */
+  pagination?: PaginationMode;
+
+  /**
+   * Default for showing property names in column headers.
+   * Per-property `showName` overrides this.
+   * @default true
+   */
+  showPropertyNames?: boolean;
+
+  /**
+   * Show vertical lines between columns
+   * @default true
+   */
+  showVerticalLines?: boolean;
+
+  /**
+   * Sticky header configuration.
+   * @default { enabled: false }
+   */
+  stickyHeader?: { enabled: boolean; offset?: number };
+
+  /**
+   * Default for wrapping text in cells.
+   * Per-property `wrap` overrides this.
+   * @default true
+   */
+  wrapAllProperties?: boolean;
+}
+
+/**
+ * TableView - Spreadsheet-style data display
+ * Auto-generates columns from properties
+ * Supports row selection and action bars
+ */
+export function TableView<
+  TData,
+  TProperties extends
+    readonly DataViewProperty<TData>[] = DataViewProperty<TData>[],
+>({
+  bulkActions,
+  className,
+  onRowClick,
+  pagination,
+  showPropertyNames = true,
+  showVerticalLines = true,
+  stickyHeader: stickyHeaderProp,
+  wrapAllProperties = true,
+}: TableViewProps<TData>) {
+  const stickyEnabled = stickyHeaderProp?.enabled ?? false;
+  const stickyOffset = stickyHeaderProp?.offset ?? 0;
+  const scrollSync = useScrollSync();
+  const { register: registerScroll } = scrollSync;
+
+  // Get data and properties from context
+  const {
+    data,
+    limit,
+    properties,
+    propertyVisibility,
+    pagination: contextPagination,
+    counts,
+    group,
+    groupKeys,
+    expandedGroups,
+    onExpandedGroupsChange,
+    hasNextGroupPage,
+    isFetchingNextGroupPage,
+    onLoadMoreGroups,
+  } = useDataViewContext<TData, TProperties>();
+
+  // Use shared view setup hook
+  const {
+    groupedData,
+    groupByProperty,
+    validationError,
+    propertyValidationError,
+  } = useViewSetup({
+    data: data as TData[],
+    properties,
+    group,
+    contextPagination,
+    counts,
+  });
+
+  // Enable row selection when bulkActions are provided
+  const enableRowSelection = Boolean(bulkActions && bulkActions.length > 0);
+
+  // Internal row selection state (always internal when using bulkActions)
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+
+  // Use shared hook for display properties filtering
+  const displayProperties = useDisplayProperties(
+    properties,
+    propertyVisibility
+  );
+
+  // Determine if we're using infinite pagination for data
+  const useInfinitePagination =
+    pagination === "loadMore" || pagination === "infiniteScroll";
+
+  // Generate columns from properties
+  const columns = useMemo<ColumnDef<TData>[]>(() => {
+    const propertyColumns: ColumnDef<TData>[] = displayProperties.map(
+      (property) => {
+        // Table headers only honour show/hide; layout is a card concern.
+        const resolvedShowName = Boolean(
+          property.showName ?? showPropertyNames
+        );
+        const resolvedWrap = property.wrap ?? wrapAllProperties;
+
+        return {
+          id: String(property.id),
+          accessorFn: (row: TData) =>
+            (row as Record<string, unknown>)[property.id],
+          header: resolvedShowName
+            ? (property.name ?? String(property.id))
+            : "",
+          cell: ({ getValue, row }) => (
+            <DataCell
+              allProperties={properties}
+              item={row.original}
+              property={property}
+              value={getValue()}
+            />
+          ),
+          meta: {
+            propertyType: property.type,
+            propertySize: property.size,
+            wrap: resolvedWrap,
+          },
+        };
+      }
+    );
+
+    const allColumns: ColumnDef<TData>[] = [];
+
+    // Add selection column if rowActions provided
+    if (enableRowSelection) {
+      allColumns.push({
+        id: "__row_select__",
+        header: ({ table }) => (
+          <Checkbox
+            aria-label="Select all"
+            checked={table.getIsAllPageRowsSelected()}
+            indeterminate={
+              !table.getIsAllPageRowsSelected() &&
+              table.getIsSomePageRowsSelected()
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            aria-label="Select row"
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+        size: 40,
+      });
+    }
+
+    // Add property columns
+    allColumns.push(...propertyColumns);
+
+    return allColumns;
+  }, [displayProperties, properties, enableRowSelection]);
+
+  // Generate action bar if bulkActions provided
+  const actionBar = useMemo(() => {
+    if (!bulkActions || bulkActions.length === 0) {
+      return undefined;
+    }
+
+    // Capture bulkActions in closure to satisfy TypeScript
+    const actions = bulkActions;
+
+    function TableActionBar(table: TanStackTable<TData>) {
+      const selectedRows = table
+        .getFilteredSelectedRowModel()
+        .rows.map((r) => r.original);
+
+      return (
+        <DataActionBar table={table}>
+          <DataActionBarSelection table={table} />
+          {actions.map((action) => (
+            <DataActionBarAction
+              isPending={action.isPending}
+              key={action.label}
+              onClick={() => action.onClick(selectedRows)}
+              tooltip={action.label}
+            >
+              {action.icon}
+              {action.label}
+            </DataActionBarAction>
+          ))}
+        </DataActionBar>
+      );
+    }
+
+    return TableActionBar;
+  }, [bulkActions]);
+
+  // Error state
+  if (validationError || propertyValidationError) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-lg border border-destructive/50 bg-destructive/5 p-8">
+        <AlertCircle className="mb-4 h-12 w-12 text-destructive" />
+        <p className="font-medium text-destructive">
+          Invalid table configuration
+        </p>
+        <p className="mt-2 text-muted-foreground text-sm">
+          {validationError || propertyValidationError}
+        </p>
+      </div>
+    );
+  }
+
+  // GROUPED VIEW with Per-Group Suspense
+  if (group && groupKeys && groupKeys.length > 0) {
+    return (
+      <div className="flex flex-col">
+        <Accordion
+          multiple
+          onValueChange={onExpandedGroupsChange}
+          value={expandedGroups ?? []}
+        >
+          {groupedData?.map((groupItem: GroupedDataItem<TData>) => {
+            const isExpanded = expandedGroups?.includes(groupItem.key) ?? false;
+
+            return (
+              <GroupSection
+                group={groupItem}
+                groupByPropertyDef={groupByProperty}
+                key={groupItem.key}
+                showAggregation={group.showCount ?? true}
+                stickyHeader={{ enabled: stickyEnabled, offset: stickyOffset }}
+              >
+                {isExpanded ? (
+                  <Suspense
+                    fallback={
+                      <TableSkeleton
+                        bulkActions={enableRowSelection}
+                        properties={displayProperties}
+                        rowCount={limit ?? DEFAULT_LIMIT}
+                      />
+                    }
+                  >
+                    {useInfinitePagination ? (
+                      <SuspendingInfiniteTableContent<TData, TProperties>
+                        actionBar={actionBar}
+                        className={className}
+                        columns={columns}
+                        enableRowSelection={enableRowSelection}
+                        groupItem={groupItem}
+                        headerOffset={stickyOffset + 44}
+                        hideScrollbar
+                        onRowClick={onRowClick}
+                        onRowSelectionChange={setRowSelection}
+                        pagination={pagination}
+                        properties={properties}
+                        registerScroll={registerScroll}
+                        rowSelection={rowSelection}
+                        showVerticalLines={showVerticalLines}
+                        stickyEnabled={stickyEnabled}
+                        wrapAllProperties={wrapAllProperties}
+                      />
+                    ) : (
+                      <SuspendingPageTableContent<TData, TProperties>
+                        actionBar={actionBar}
+                        className={className}
+                        columns={columns}
+                        enableRowSelection={enableRowSelection}
+                        groupItem={groupItem}
+                        headerOffset={stickyOffset + 44}
+                        hideScrollbar
+                        onRowClick={onRowClick}
+                        onRowSelectionChange={setRowSelection}
+                        pagination={pagination}
+                        properties={properties}
+                        registerScroll={registerScroll}
+                        rowSelection={rowSelection}
+                        showVerticalLines={showVerticalLines}
+                        stickyEnabled={stickyEnabled}
+                        wrapAllProperties={wrapAllProperties}
+                      />
+                    )}
+                  </Suspense>
+                ) : null}
+              </GroupSection>
+            );
+          })}
+        </Accordion>
+
+        {/* Infinite scroll sentinel for groups */}
+        <InfiniteScrollGroupsSentinel
+          hasNext={hasNextGroupPage}
+          isFetching={isFetchingNextGroupPage}
+          onLoadMore={onLoadMoreGroups}
+        />
+
+        {/* Shared horizontal scrollbar for all grouped tables */}
+        <ScrollSyncBar sync={scrollSync} />
+      </div>
+    );
+  }
+
+  // FLAT VIEW: Uses SuspendingGroupContent with __ungrouped__ key
+  // Suspension is caught by the outer Suspense in DataViewProvider
+  return useInfinitePagination ? (
+    <SuspendingInfiniteTableContent<TData, TProperties>
+      actionBar={actionBar}
+      className={className}
+      columns={columns}
+      enableRowSelection={enableRowSelection}
+      groupItem={{
+        key: UNGROUPED_KEY,
+        items: [],
+        count: 0,
+        displayCount: "0",
+        sortValue: "",
+      }}
+      headerOffset={stickyOffset}
+      onRowClick={onRowClick}
+      onRowSelectionChange={setRowSelection}
+      pagination={pagination}
+      properties={properties}
+      registerScroll={registerScroll}
+      rowSelection={rowSelection}
+      showVerticalLines={showVerticalLines}
+      stickyEnabled={stickyEnabled}
+      wrapAllProperties={wrapAllProperties}
+    />
+  ) : (
+    <SuspendingPageTableContent<TData, TProperties>
+      actionBar={actionBar}
+      className={className}
+      columns={columns}
+      enableRowSelection={enableRowSelection}
+      groupItem={{
+        key: UNGROUPED_KEY,
+        items: [],
+        count: 0,
+        displayCount: "0",
+        sortValue: "",
+      }}
+      headerOffset={stickyOffset}
+      onRowClick={onRowClick}
+      onRowSelectionChange={setRowSelection}
+      pagination={pagination}
+      properties={properties}
+      registerScroll={registerScroll}
+      rowSelection={rowSelection}
+      showVerticalLines={showVerticalLines}
+      stickyEnabled={stickyEnabled}
+      wrapAllProperties={wrapAllProperties}
+    />
+  );
+}
+
+// Static marker for view type detection in DataViewProvider
+
+// ============================================================================
+// Suspending Group Content Components
+// ============================================================================
+
+interface SuspendingGroupTableContentProps<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+> {
+  actionBar?: (table: TanStackTable<TData>) => React.ReactNode;
+  className?: string;
+  columns: ColumnDef<TData>[];
+  enableRowSelection: boolean;
+  groupItem: GroupedDataItem<TData>;
+  /** Offset for sticky header */
+  headerOffset: number;
+  /** Hide individual scrollbars (shared scrollbar provided at view level) */
+  hideScrollbar?: boolean;
+  onRowClick?: (row: TData) => void;
+  onRowSelectionChange: (state: RowSelectionState) => void;
+  pagination?: PaginationMode;
+  properties: TProperties;
+  /** External scroll sync registration for cross-group horizontal scroll */
+  registerScroll?: (el: HTMLElement) => () => void;
+  rowSelection: RowSelectionState;
+  showVerticalLines: boolean;
+  stickyEnabled: boolean;
+  wrapAllProperties: boolean;
+}
+
+/**
+ * Table content renderer - used by both page and infinite pagination variants.
+ */
+function TableContentRenderer<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+>({
+  actionBar,
+  className,
+  columns,
+  data,
+  enableRowSelection,
+  headerOffset,
+  hideScrollbar,
+  onRowClick,
+  onRowSelectionChange,
+  paginationNode,
+  properties,
+  registerScroll,
+  rowSelection,
+  showVerticalLines,
+  stickyEnabled,
+  wrapAllProperties,
+}: {
+  actionBar?: (table: TanStackTable<TData>) => React.ReactNode;
+  className?: string;
+  columns: ColumnDef<TData>[];
+  data: TData[];
+  enableRowSelection: boolean;
+  headerOffset: number;
+  hideScrollbar?: boolean;
+  onRowClick?: (row: TData) => void;
+  onRowSelectionChange: (state: RowSelectionState) => void;
+  paginationNode: React.ReactNode;
+  properties: TProperties;
+  registerScroll?: (el: HTMLElement) => () => void;
+  rowSelection: RowSelectionState;
+  showVerticalLines: boolean;
+  stickyEnabled: boolean;
+  wrapAllProperties: boolean;
+}) {
+  // Transform data with property schema
+  const transformedItems = transformData(data, properties) as TData[];
+
+  return (
+    <>
+      <DataTable
+        actionBar={actionBar}
+        className={className}
+        columns={columns}
+        data={transformedItems}
+        enableRowSelection={enableRowSelection}
+        header={{ enabled: true, sticky: stickyEnabled }}
+        hideScrollbar={hideScrollbar}
+        offset={headerOffset}
+        onRowClick={onRowClick}
+        onRowSelectionChange={onRowSelectionChange}
+        registerScroll={registerScroll}
+        rowSelection={rowSelection}
+        showVerticalLines={showVerticalLines}
+        wrapAllProperties={wrapAllProperties}
+      />
+      {paginationNode}
+    </>
+  );
+}
+
+/**
+ * Page pagination variant - uses useGroupQuery for prev/next navigation.
+ */
+function SuspendingPageTableContent<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+>({
+  actionBar,
+  className,
+  columns,
+  enableRowSelection,
+  groupItem,
+  headerOffset,
+  hideScrollbar,
+  onRowClick,
+  onRowSelectionChange,
+  pagination,
+  properties,
+  registerScroll,
+  rowSelection,
+  showVerticalLines,
+  stickyEnabled,
+  wrapAllProperties,
+}: SuspendingGroupTableContentProps<TData, TProperties>) {
+  return (
+    <SuspendingGroupContent<TData> groupKey={groupItem.key}>
+      {(result: UseGroupQueryResult<TData>) => {
+        // Build pagination context from query result
+        const paginationContext: PaginationContext = {
+          displayEnd: result.displayEnd,
+          displayStart: result.displayStart,
+          hasMoreThanMax: groupItem.displayCount === "99+",
+          hasNext: result.hasNext,
+          hasPrev: result.hasPrev,
+          isFetching: result.isFetching,
+          limit: result.limit,
+          onLimitChange: result.onLimitChange,
+          onNext: () => {
+            onRowSelectionChange({});
+            result.onNext();
+          },
+          onPrev: () => {
+            onRowSelectionChange({});
+            result.onPrev();
+          },
+          totalCount: groupItem.count,
+        };
+
+        return (
+          <TableContentRenderer
+            actionBar={actionBar}
+            className={className}
+            columns={columns}
+            data={result.data}
+            enableRowSelection={enableRowSelection}
+            headerOffset={headerOffset}
+            hideScrollbar={hideScrollbar}
+            onRowClick={onRowClick}
+            onRowSelectionChange={onRowSelectionChange}
+            paginationNode={
+              <Pagination context={paginationContext} mode={pagination} />
+            }
+            properties={properties}
+            registerScroll={registerScroll}
+            rowSelection={rowSelection}
+            showVerticalLines={showVerticalLines}
+            stickyEnabled={stickyEnabled}
+            wrapAllProperties={wrapAllProperties}
+          />
+        );
+      }}
+    </SuspendingGroupContent>
+  );
+}
+
+/**
+ * Infinite pagination variant - uses useInfiniteGroupQuery for load more / infinite scroll.
+ */
+function SuspendingInfiniteTableContent<
+  TData,
+  TProperties extends readonly DataViewProperty<TData>[],
+>({
+  actionBar,
+  className,
+  columns,
+  enableRowSelection,
+  groupItem,
+  headerOffset,
+  hideScrollbar,
+  onRowClick,
+  onRowSelectionChange,
+  pagination,
+  properties,
+  registerScroll,
+  rowSelection,
+  showVerticalLines,
+  stickyEnabled,
+  wrapAllProperties,
+}: SuspendingGroupTableContentProps<TData, TProperties>) {
+  return (
+    <SuspendingInfiniteGroupContent<TData> groupKey={groupItem.key}>
+      {(result: UseInfiniteGroupQueryResult<TData>) => {
+        // hasNextPage can be boolean or Record<string, boolean>
+        // Convert to simple boolean for PaginationContext
+        const hasNext =
+          typeof result.hasNextPage === "boolean"
+            ? result.hasNextPage
+            : Object.values(result.hasNextPage).some(Boolean);
+
+        // Build pagination context from infinite query result
+        // Map infinite query properties to PaginationContext
+        const paginationContext: PaginationContext = {
+          hasMoreThanMax: groupItem.displayCount === "99+",
+          hasNext,
+          isFetching: result.isFetching,
+          isFetchingNextPage: result.isFetchingNextPage,
+          limit: result.limit,
+          onLimitChange: result.onLimitChange,
+          onNext: result.onLoadMore,
+          totalCount: groupItem.count,
+        };
+
+        return (
+          <TableContentRenderer
+            actionBar={actionBar}
+            className={className}
+            columns={columns}
+            data={result.data}
+            enableRowSelection={enableRowSelection}
+            headerOffset={headerOffset}
+            hideScrollbar={hideScrollbar}
+            onRowClick={onRowClick}
+            onRowSelectionChange={onRowSelectionChange}
+            paginationNode={
+              <Pagination context={paginationContext} mode={pagination} />
+            }
+            properties={properties}
+            registerScroll={registerScroll}
+            rowSelection={rowSelection}
+            showVerticalLines={showVerticalLines}
+            stickyEnabled={stickyEnabled}
+            wrapAllProperties={wrapAllProperties}
+          />
+        );
+      }}
+    </SuspendingInfiniteGroupContent>
+  );
+}

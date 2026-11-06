@@ -1,0 +1,63 @@
+import Link from "next/link";
+import { Suspense } from "react";
+import { Icons } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const GITHUB_REPO = "jingerpie/dataview";
+const TRAILING_ZERO_REGEX = /\.0$/;
+
+export function GitHubLink() {
+  return (
+    <Button
+      className="h-8 shadow-none"
+      nativeButton={false}
+      render={
+        <Link
+          href={`https://github.com/${GITHUB_REPO}`}
+          rel="noreferrer"
+          target="_blank"
+        />
+      }
+      variant="ghost"
+    >
+      <Icons.gitHub className="size-4" />
+      <Suspense fallback={<Skeleton className="h-4 w-10" />}>
+        <StarsCount />
+      </Suspense>
+    </Button>
+  );
+}
+
+async function StarsCount() {
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}`,
+      {
+        next: { revalidate: 86_400 },
+      }
+    );
+    if (!response.ok) {
+      return null;
+    }
+    const json = await response.json();
+
+    const count = json.stargazers_count;
+    if (count === undefined) {
+      return null;
+    }
+
+    const formattedCount =
+      count >= 1000
+        ? `${(count / 1000).toFixed(1).replace(TRAILING_ZERO_REGEX, "")}k`
+        : count.toLocaleString();
+
+    return (
+      <span className="w-fit text-muted-foreground text-xs tabular-nums">
+        {formattedCount}
+      </span>
+    );
+  } catch {
+    return null;
+  }
+}

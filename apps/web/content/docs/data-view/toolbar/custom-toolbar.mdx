@@ -7,7 +7,7 @@ import { Callout } from "fumadocs-ui/components/callout";
 
 ## Overview
 
-If `NotionToolbar` does not match your UX, you can build a custom toolbar with the public hooks from `@sparkyidea/dataview/hooks` and your own UI components.
+If `NotionToolbar` does not match your UX, you can build a custom toolbar with the public hooks from `@jingerpie/dataview-react` and your own UI components.
 
 ## Public Building Blocks
 
@@ -17,10 +17,10 @@ import {
   useGroupParams,
   useSearchParams,
   useSortParams,
-} from "@sparkyidea/dataview/hooks";
+} from "@jingerpie/dataview-react";
 ```
 
-These hooks keep your custom controls synced with URL state through `DataViewProvider`.
+These hooks keep your custom controls synced with the view state held by `DataViewProvider` (in memory, in the URL, or controlled; see [Provider](/docs/data-view/provider#state)).
 
 ## Minimal Custom Toolbar Example
 
@@ -32,7 +32,7 @@ import {
   useGroupParams,
   useSearchParams,
   useSortParams,
-} from "@sparkyidea/dataview/hooks";
+} from "@jingerpie/dataview-react";
 import { Button } from "@sparkyidea/ui/components/button";
 import { Input } from "@sparkyidea/ui/components/input";
 
@@ -76,7 +76,9 @@ export function CustomToolbar() {
 ```tsx
 <DataViewProvider controller={controller} defaults={defaults} properties={properties}>
   <CustomToolbar />
-  <TableView pagination="page" />
+  <DataViewContent>
+    <TableView pagination="page" />
+  </DataViewContent>
 </DataViewProvider>
 ```
 

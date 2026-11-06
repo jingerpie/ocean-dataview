@@ -28,7 +28,10 @@ Add any other context, mockups, or screenshots about the feature request here.
 
 Which package(s) would this affect?
 
-- [ ] `@sparkyidea/dataview`
+- [ ] `@jingerpie/dataview-core`
+- [ ] `@jingerpie/dataview-react`
+- [ ] `@jingerpie/dataview-drizzle`
+- [ ] Registry UI (`apps/web/src/registry`)
 - [ ] `@sparkyidea/trpc`
 - [ ] `@sparkyidea/db`
 - [ ] `@sparkyidea/shared`

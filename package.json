@@ -90,7 +90,10 @@
     "db:studio": "turbo -F @sparkyidea/db db:studio",
     "db:generate": "turbo -F @sparkyidea/db db:generate",
     "db:migrate": "turbo -F @sparkyidea/db db:migrate",
-    "db:seed": "turbo -F @sparkyidea/db db:seed"
+    "db:seed": "turbo -F @sparkyidea/db db:seed",
+    "verify:packages": "bun scripts/verify-packages.ts",
+    "verify:registry": "bun scripts/verify-registry.ts",
+    "build:registry": "bun --cwd apps/web scripts/build-registry.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.7",

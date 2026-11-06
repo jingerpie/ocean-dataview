@@ -56,3 +56,9 @@ tmp
 temp
 .gstack/
 .review
+
+# Generated shadcn registry (apps/web/scripts/build-registry.ts)
+apps/web/public/r
+apps/web/registry.json
+apps/web/.registry-build
+release-tarballs/

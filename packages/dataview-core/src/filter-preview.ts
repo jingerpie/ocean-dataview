@@ -1,0 +1,276 @@
+import { format, parseISO } from "date-fns";
+import type { FilterCondition, PropertyType } from "./types/filter.type";
+import type { NumberConfig, PropertyConfig } from "./types/property.type";
+
+/**
+ * Date range value for isBetween condition: [from, to]
+ */
+type DateRangeValue = [string | null, string | null];
+
+/**
+ * Relative date value for isRelativeToToday condition: [direction, count, unit]
+ */
+type RelativeToTodayValue = [
+  "past" | "this" | "next",
+  number,
+  "day" | "week" | "month" | "year",
+];
+
+interface GetFilterPreviewOptions {
+  condition: FilterCondition;
+  config?: PropertyConfig;
+  propertyType: PropertyType;
+  value: unknown;
+}
+
+/**
+ * Format a date string to short format (e.g., "Jan 22")
+ */
+function formatDateShort(dateStr: string): string {
+  try {
+    const date = parseISO(dateStr);
+    return format(date, "MMM d");
+  } catch {
+    return dateStr;
+  }
+}
+
+/**
+ * Format relative date value to display string
+ */
+function formatRelativeDate(value: RelativeToTodayValue): string {
+  const [direction, count, unit] = value;
+
+  // Capitalize for display
+  const displayDirection =
+    direction.charAt(0).toUpperCase() + direction.slice(1);
+
+  if (direction === "this") {
+    return `This ${unit}`;
+  }
+
+  const pluralUnit = count === 1 ? unit : `${unit}s`;
+  return `${displayDirection} ${count} ${pluralUnit}`;
+}
+
+/**
+ * Get display text for select value(s)
+ * Since SelectOption no longer has label, value is used directly
+ */
+function getSelectDisplayText(value: unknown): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const values = Array.isArray(value) ? value : [value];
+  if (values.length === 0) {
+    return null;
+  }
+
+  return values.join(", ");
+}
+
+/**
+ * Get preview for boolean (checkbox) variant
+ * Includes ": " prefix
+ */
+function getBooleanPreview(value: unknown): string {
+  if (value === true) {
+    return ": Checked";
+  }
+  if (value === false) {
+    return ": Unchecked";
+  }
+  return "";
+}
+
+/**
+ * Get preview for number variant
+ * Uses operators as separator (space + operator), no colon
+ */
+function getNumberPreview(
+  condition: FilterCondition,
+  value: unknown,
+  scale?: number
+): string {
+  // Only show preview if value is set (not null, undefined, or empty string)
+  if (value == null || value === "") {
+    return "";
+  }
+  const numValue = scale ? String(Number(value) / scale) : String(value);
+  switch (condition) {
+    case "eq":
+      return ` = ${numValue}`;
+    case "ne":
+      return ` ≠ ${numValue}`;
+    case "gt":
+      return ` > ${numValue}`;
+    case "lt":
+      return ` < ${numValue}`;
+    case "gte":
+      return ` ≥ ${numValue}`;
+    case "lte":
+      return ` ≤ ${numValue}`;
+    default:
+      return ` = ${numValue}`;
+  }
+}
+
+/**
+ * Get preview for date variant
+ * Includes ": " prefix
+ */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Date conditions require explicit handling
+function getDatePreview(condition: FilterCondition, value: unknown): string {
+  if (condition === "isRelativeToToday" && value) {
+    return `: ${formatRelativeDate(value as RelativeToTodayValue)}`;
+  }
+
+  if (condition === "isBetween" && value) {
+    const range = value as DateRangeValue;
+    const from = range[0] ? formatDateShort(range[0]) : "?";
+    const to = range[1] ? formatDateShort(range[1]) : "?";
+    return `: ${from} → ${to}`;
+  }
+
+  const dateStr = value ? formatDateShort(value as string) : "";
+
+  switch (condition) {
+    case "eq":
+      return dateStr ? `: ${dateStr}` : "";
+    case "lt":
+      return dateStr ? `: Before ${dateStr}` : "";
+    case "gt":
+      return dateStr ? `: After ${dateStr}` : "";
+    case "lte":
+      return dateStr ? `: On or before ${dateStr}` : "";
+    case "gte":
+      return dateStr ? `: On or after ${dateStr}` : "";
+    default:
+      return dateStr ? `: ${dateStr}` : "";
+  }
+}
+
+/**
+ * Get preview for select variant
+ * Includes ": " prefix
+ */
+function getSelectPreview(condition: FilterCondition, value: unknown): string {
+  const displayText = getSelectDisplayText(value);
+  if (!displayText) {
+    return "";
+  }
+
+  switch (condition) {
+    case "eq":
+    case "inArray":
+      return `: ${displayText}`;
+    case "ne":
+    case "notInArray":
+      return `: Not ${displayText}`;
+    default:
+      return `: ${displayText}`;
+  }
+}
+
+/**
+ * Get preview for multi-select variant
+ * Includes ": " prefix
+ */
+function getMultiSelectPreview(
+  condition: FilterCondition,
+  value: unknown
+): string {
+  const displayText = getSelectDisplayText(value);
+  if (!displayText) {
+    return "";
+  }
+
+  switch (condition) {
+    case "inArray":
+      return `: ${displayText}`;
+    case "notInArray":
+      return `: Not ${displayText}`;
+    default:
+      return `: ${displayText}`;
+  }
+}
+
+/**
+ * Get preview for text variant
+ * Includes ": " prefix
+ */
+function getTextPreview(condition: FilterCondition, value: unknown): string {
+  const textValue = value == null ? "" : String(value);
+
+  switch (condition) {
+    case "eq":
+    case "iLike":
+      return textValue ? `: ${textValue}` : "";
+    case "ne":
+    case "notILike":
+      return textValue ? `: Not ${textValue}` : "";
+    case "startsWith":
+      return textValue ? `: Starts with ${textValue}` : "";
+    case "endsWith":
+      return textValue ? `: Ends with ${textValue}` : "";
+    default:
+      return textValue ? `: ${textValue}` : "";
+  }
+}
+
+/**
+ * Generate preview string for a filter condition.
+ * Returns string with appropriate separator prefix:
+ * - ": value" for most conditions
+ * - " = value" for number operators (no colon)
+ */
+export function getFilterPreview({
+  condition,
+  config,
+  value,
+  propertyType,
+}: GetFilterPreviewOptions): string {
+  // Empty conditions - same for all property types, with colon
+  if (condition === "isEmpty") {
+    return ": Is empty";
+  }
+  if (condition === "isNotEmpty") {
+    return ": Is not empty";
+  }
+
+  switch (propertyType) {
+    case "checkbox":
+      return getBooleanPreview(value);
+
+    case "number": {
+      const scale = (config as NumberConfig | undefined)?.scale;
+      return getNumberPreview(condition, value, scale);
+    }
+
+    case "date":
+      return getDatePreview(condition, value);
+
+    case "select":
+    case "status":
+      return getSelectPreview(condition, value);
+
+    case "multiSelect":
+      return getMultiSelectPreview(condition, value);
+
+    // Text-like types
+    case "text":
+    case "url":
+    case "email":
+    case "phone":
+      return getTextPreview(condition, value);
+
+    case "filesMedia":
+    case "formula":
+      // Only isEmpty/isNotEmpty (handled above)
+      return "";
+
+    default:
+      return getTextPreview(condition, value);
+  }
+}

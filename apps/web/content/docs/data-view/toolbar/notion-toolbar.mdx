@@ -19,14 +19,16 @@ Row 2 (ChipsBar) appears conditionally when active filters or sorts exist.
 ## Basic Usage
 
 ```tsx
-import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
+import { NotionToolbar } from "@/components/dataview/toolbars/notion/toolbar";
 
 <DataViewProvider controller={controller} properties={schema} defaults={defaults}>
   <NotionToolbar enableSettings>
     {/* Optional: tabs or other left-side content */}
     <ViewTabs />
   </NotionToolbar>
-  <TableView pagination="page" />
+  <DataViewContent>
+    <TableView pagination="page" />
+  </DataViewContent>
 </DataViewProvider>
 ```
 
@@ -87,7 +89,7 @@ When filters or sorts are active, Row 2 displays:
 ## With View Tabs
 
 ```tsx
-import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
+import { NotionToolbar } from "@/components/dataview/toolbars/notion/toolbar";
 
 const viewOptions = [
   { value: "table", label: "Table", icon: <TableIcon /> },

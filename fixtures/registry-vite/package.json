@@ -1,0 +1,8 @@
+{
+  "name": "fixture-registry-vite",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "verify": "vite build && bun run ssr-check.tsx"
+  }
+}

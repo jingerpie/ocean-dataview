@@ -1,15 +1,15 @@
 "use client";
 
-import {
-  useFilterParams,
-  useGroupParams,
-  useSortParams,
-} from "@sparkyidea/dataview/hooks";
 import type {
   GroupConfigInput,
   SortQuery,
   WhereNode,
-} from "@sparkyidea/dataview/types";
+} from "@jingerpie/dataview-core";
+import {
+  useFilterParams,
+  useGroupParams,
+  useSortParams,
+} from "@jingerpie/dataview-react";
 import { Label } from "@sparkyidea/ui/components/label";
 import {
   Select,
@@ -59,7 +59,7 @@ interface DataViewTabProps {
  * <DataViewTab
  *   options={[
  *     { label: "All", filter: null },
- *     { label: "In Stock", filter: [{ property: "availability", condition: "eq", value: "In stock" }] },
+ *     { label: "In Stock", filter: [{ property: "availability", condition: "inArray", value: ["In stock"] }] },
  *   ]}
  * />
  *
@@ -73,14 +73,21 @@ interface DataViewTabProps {
  * ```
  */
 export function DataViewTab({ options, className }: DataViewTabProps) {
-  const { setGroup, clearGroup } = useGroupParams();
-  const { setFilter, clearFilter } = useFilterParams();
-  const { setSort, clearSort } = useSortParams();
+  const { group, setGroup, clearGroup } = useGroupParams();
+  const { filter, setFilter, clearFilter } = useFilterParams();
+  const { sort, setSort, clearSort } = useSortParams();
 
-  // Track selected tab by label (defaults to first option)
-  const [selectedValue, setSelectedValue] = useState(
-    () => options[0]?.label ?? ""
-  );
+  // Track selected tab by label: the option matching the URL state on
+  // load, else the first option
+  const [selectedValue, setSelectedValue] = useState(() => {
+    const matching = options.find(
+      (option) =>
+        (option.group?.propertyId ?? null) === (group?.propertyId ?? null) &&
+        JSON.stringify(option.filter ?? null) === JSON.stringify(filter) &&
+        JSON.stringify(option.sort ?? []) === JSON.stringify(sort)
+    );
+    return (matching ?? options[0])?.label ?? "";
+  });
 
   const handleValueChange = (label: string | null) => {
     if (!label) {

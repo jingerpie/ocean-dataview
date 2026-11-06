@@ -21,10 +21,10 @@ import { Callout } from "fumadocs-ui/components/callout";
 ## Basic Usage
 
 ```tsx
-import { useInfiniteController } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
-import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
-import { ListView } from "@sparkyidea/dataview/views/list-view";
+import { useInfiniteController } from "@jingerpie/dataview-react";
+import { DataViewContent, DataViewProvider } from "@jingerpie/dataview-react";
+import { NotionToolbar } from "@/components/dataview/toolbars/notion/toolbar";
+import { ListView } from "@/components/dataview/views/list-view/list-view";
 
 const { controller } = useInfiniteController({
   groupQuery: (params) => trpc.product.getGroup.infiniteQueryOptions({
@@ -45,7 +45,9 @@ const { controller } = useInfiniteController({
   properties={productProperties}
 >
   <NotionToolbar enableSettings />
-  <ListView pagination="loadMore" />
+  <DataViewContent>
+    <ListView pagination="loadMore" />
+  </DataViewContent>
 </DataViewProvider>
 ```
 
@@ -79,7 +81,7 @@ Handle item clicks for navigation or detail views:
 
 ## Grouped Lists
 
-When grouping is enabled (via `?group=...` URL param), list items render inside accordion sections.
+When grouping is enabled (from the toolbar, `defaults.group`, or `?group=...` with URL state), list items render inside accordion sections.
 
 Each group has:
 - Sticky header with group label and count

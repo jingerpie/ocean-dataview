@@ -22,10 +22,10 @@ import { Callout } from "fumadocs-ui/components/callout";
 ## Basic Usage
 
 ```tsx
-import { usePageController } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
-import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
-import { TableView } from "@sparkyidea/dataview/views/table-view";
+import { usePageController } from "@jingerpie/dataview-react";
+import { DataViewContent, DataViewProvider } from "@jingerpie/dataview-react";
+import { NotionToolbar } from "@/components/dataview/toolbars/notion/toolbar";
+import { TableView } from "@/components/dataview/views/table-view/table-view";
 
 const { controller } = usePageController({
   groupQuery: (params) => trpc.product.getGroup.infiniteQueryOptions({
@@ -46,16 +46,19 @@ const { controller } = usePageController({
   properties={productProperties}
 >
   <NotionToolbar enableSettings />
-  <TableView pagination="page" />
+  <DataViewContent>
+    <TableView pagination="page" />
+  </DataViewContent>
 </DataViewProvider>
 ```
 
 ## Loading State
 
-`DataViewProvider` and flat views do not render a built-in Suspense fallback. Wrap the provider in your own `Suspense` boundary and use the skeletons from `@sparkyidea/dataview/skeletons` (`TableSkeleton`, `ListSkeleton`, `BoardSkeleton`, `GallerySkeleton`, `ToolbarSkeleton`). Grouped views still suspend per group section.
+`DataViewProvider` and flat views do not render a built-in Suspense fallback. Wrap the provider in your own `Suspense` boundary and install the `dataview-skeletons` registry item and use its skeletons (`TableSkeleton`, `ListSkeleton`, `BoardSkeleton`, `GallerySkeleton`, `ToolbarSkeleton`). Grouped views still suspend per group section.
 
 ```tsx
-import { TableSkeleton, ToolbarSkeleton } from "@sparkyidea/dataview/skeletons";
+import { TableSkeleton } from "@/components/dataview/skeletons/table-skeleton";
+import { ToolbarSkeleton } from "@/components/dataview/skeletons/toolbar-skeleton";
 import { Suspense } from "react";
 
 <Suspense
@@ -68,7 +71,9 @@ import { Suspense } from "react";
 >
   <DataViewProvider controller={controller} properties={productProperties}>
     <NotionToolbar enableSettings />
-    <TableView pagination="page" />
+    <DataViewContent>
+      <TableView pagination="page" />
+    </DataViewContent>
   </DataViewProvider>
 </Suspense>
 ```
@@ -135,7 +140,7 @@ Handle row clicks for navigation or detail views:
 
 ## Grouped Tables
 
-When grouping is enabled (via `?group=...` URL param), tables render inside accordion sections. Grouping is controlled by URL state and the toolbar's settings panel.
+When grouping is enabled (from the toolbar's settings panel, `defaults.group`, or `?group=...` with URL state), tables render inside accordion sections.
 
 Each group has:
 - Sticky header with group label and count

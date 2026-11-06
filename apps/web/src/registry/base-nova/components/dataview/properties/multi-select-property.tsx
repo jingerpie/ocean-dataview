@@ -1,0 +1,50 @@
+"use client";
+
+import type { MultiSelectConfig } from "@jingerpie/dataview-core";
+import { getBadgeVariant } from "@/registry/base-nova/lib/dataview/get-badge-variant";
+import { Badge } from "@/registry/base-nova/ui/dataview-badge";
+
+interface MultiSelectPropertyProps {
+  config?: MultiSelectConfig;
+  size?: "sm" | "md" | "lg";
+  value: string[];
+}
+
+export function MultiSelectProperty({
+  value,
+  config,
+  size,
+}: MultiSelectPropertyProps) {
+  if (!value || (Array.isArray(value) && value.length === 0)) {
+    return null;
+  }
+
+  const values = Array.isArray(value) ? value : [value];
+  const options = config?.options ?? [];
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {values.map((val) => {
+        const stringValue = String(val);
+        const option = options.find((opt) => opt.value === stringValue);
+
+        // If option not found, still render as badge with gray color
+        if (!option) {
+          return (
+            <Badge key={stringValue} size={size} variant="gray-subtle">
+              {stringValue}
+            </Badge>
+          );
+        }
+
+        const variant = getBadgeVariant(option.color);
+
+        return (
+          <Badge key={option.value} size={size} variant={variant}>
+            {option.name ?? option.value}
+          </Badge>
+        );
+      })}
+    </div>
+  );
+}

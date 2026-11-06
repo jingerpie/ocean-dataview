@@ -21,11 +21,17 @@ This is a Turborepo monorepo containing a full-stack data visualization platform
 
 ### Packages
 
-- **packages/dataview** - Core React components (`@sparkyidea/dataview`)
-  - View components: TableView, ListView, GalleryView, BoardView
-  - Hooks: pagination, filtering, sorting, grouping
-  - Providers: DataViewProvider, QueryBridge, ToolbarContext
-  - UI components: toolbar, filters, pagination controls
+- **packages/dataview-core** - Framework-neutral logic (`@jingerpie/dataview-core`, npm package)
+  - Types, validators, URL codecs, transport schemas, `DataViewRegister`
+  - No React, nuqs, or styling imports (enforced by a boundary test)
+- **packages/dataview-react** - Headless React layer (`@jingerpie/dataview-react`, npm package)
+  - Providers (DataViewProvider, DataViewContent, QueryBridge), controllers, hooks
+  - `/nuqs` (URL state adapter) and `/nuqs/server` (parsers, params cache)
+- **packages/dataview-drizzle** - PostgreSQL SQL builders (`@jingerpie/dataview-drizzle`, npm package)
+- **apps/web/src/registry/base-nova** - Styled UI shipped as a shadcn registry
+  - Views, Notion toolbar, property renderers, skeletons, customized primitives
+  - Import other registry files via `@/registry/base-nova/...`, stock primitives via `@sparkyidea/ui/components/*`, `cn` via `@/lib/utils`, logic via the public `@jingerpie/dataview-*` exports
+  - Items are declared in `apps/web/registry.metadata.json`; `bun run build:registry` generates `public/r`
 
 - **packages/db** - Database layer (`@sparkyidea/db`)
   - Drizzle ORM schema and migrations
@@ -369,21 +375,20 @@ refactor(shared): simplify filter parser
 
 ### Add a new view type
 
-1. Create `packages/dataview/src/components/views/new-view/index.tsx`
-2. Use `useDataViewContext()` and `useViewSetup()`
+1. Create `apps/web/src/registry/base-nova/components/dataview/views/new-view/new-view.tsx`
+2. Use `useDataViewContext()` and `useViewSetup()` from `@jingerpie/dataview-react`
 3. Implement with Suspense boundaries per group
-4. Add static properties (`dataViewType`, `defaultLimit`)
-5. Export via package.json exports
+4. Add a registry item in `apps/web/registry.metadata.json` and run `bun run verify:registry`
 
 ### Add a filter condition
 
-1. Add to conditionValues in `packages/shared/src/types/filter.type.ts`
-2. Implement in `packages/trpc/src/lib/filter-columns.ts`
-3. Add UI in `packages/dataview/src/components/ui/toolbar/filter/`
+1. Add to conditionValues in `packages/dataview-core/src/types/filter.type.ts`
+2. Implement SQL in `packages/dataview-drizzle/src/build-filter.ts`
+3. Add UI in `apps/web/src/registry/base-nova/components/dataview/filter/`
 
 ### Add a property type
 
-1. Add to PropertyType enum in `packages/dataview/src/types/`
+1. Add to PropertyType in `packages/dataview-core/src/types/filter.type.ts`
 2. Create config interface
 3. Implement cell rendering
 4. Add filter/group/sort handling
@@ -398,12 +403,16 @@ refactor(shared): simplify filter parser
 
 | Purpose | Location |
 |---------|----------|
-| View components | `packages/dataview/src/components/views/` |
-| Hooks | `packages/dataview/src/hooks/` |
-| Context providers | `packages/dataview/src/lib/providers/` |
-| Type definitions | `packages/shared/src/types/` |
-| URL parsers | `packages/shared/src/utils/parsers/` |
+| View components | `apps/web/src/registry/base-nova/components/dataview/views/` |
+| Registry items | `apps/web/registry.metadata.json` |
+| Hooks | `packages/dataview-react/src/hooks/` |
+| Context providers | `packages/dataview-react/src/providers/` |
+| Type definitions | `packages/dataview-core/src/types/` |
+| URL codecs | `packages/dataview-core/src/codecs/` |
+| nuqs parsers | `packages/dataview-react/src/nuqs/` |
 | tRPC routers | `packages/trpc/src/routers/` |
-| SQL builders | `packages/trpc/src/lib/` |
+| SQL builders | `packages/dataview-drizzle/src/` |
+| Package and registry fixtures | `fixtures/` (`bun run verify:packages`, `bun run verify:registry`) |
+| npm usage demo (outside workspaces) | `examples/next-demo/` (own `bun.lock`; `refresh:packages`, `refresh:ui`) |
 | DB schema | `packages/db/src/schema/` |
 | Architecture docs | `docs/` |

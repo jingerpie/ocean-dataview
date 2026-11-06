@@ -1,6 +1,6 @@
 "use client";
 
-import { DateProperty } from "@sparkyidea/dataview/properties";
+import { DateProperty } from "@/registry/base-nova/components/dataview/properties/date-property";
 
 export function DatePropertyDemo() {
   const date = new Date("2026-03-15T14:30:00");

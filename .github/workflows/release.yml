@@ -1,0 +1,82 @@
+name: Release
+
+# Publishes @jingerpie/dataview-{core,react,drizzle} to npm when a version
+# tag is pushed. Bump all three first: bun scripts/release-version.ts <version>
+#
+# npm auth: trusted publishing (OIDC). Each package lists jingerpie/dataview
+# and release.yml under Settings → Trusted Publisher on npmjs.com. An optional
+# NPM_TOKEN secret (granular token, "Bypass 2FA") is the fallback.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release, e.g. v0.1.0-alpha.1"
+        required: true
+      dry-run:
+        description: "Pack and run npm publish --dry-run only"
+        type: boolean
+        default: true
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write # create the GitHub Release
+  id-token: write # npm trusted publishing and provenance
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+      DRY_RUN: ${{ inputs.dry-run && '--dry-run' || '' }}
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
+
+      # Trusted publishing needs npm 11.5.1 or later; registry-url writes an
+      # .npmrc that reads NODE_AUTH_TOKEN for the token fallback
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Check
+        run: |
+          bun run check
+          bun run check-types
+          bun run test
+
+      - name: Build
+        run: bun run build
+
+      - name: Verify packed packages
+        run: bun run verify:packages
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: bun scripts/release-publish.ts "$TAG" $DRY_RUN
+
+      - name: Create GitHub Release
+        if: ${{ env.DRY_RUN == '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob # no tarballs when every version was already on npm
+          prerelease=""
+          if [[ "$TAG" == *-* ]]; then prerelease="--prerelease"; fi
+          gh release create "$TAG" release-tarballs/*.tgz \
+            --title "$TAG" --generate-notes $prerelease

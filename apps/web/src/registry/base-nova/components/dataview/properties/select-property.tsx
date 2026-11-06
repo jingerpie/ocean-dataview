@@ -1,0 +1,44 @@
+"use client";
+
+import type { SelectConfig } from "@jingerpie/dataview-core";
+import { getBadgeVariant } from "@/registry/base-nova/lib/dataview/get-badge-variant";
+import { Badge } from "@/registry/base-nova/ui/dataview-badge";
+
+interface SelectPropertyProps {
+  config?: SelectConfig;
+  size?: "sm" | "md" | "lg";
+  value: string | null;
+}
+
+/**
+ * Displays single-select values as styled badges
+ * Automatically generates badge colors from config options
+ * @param value - The selected value
+ * @param config - Select configuration with options
+ * @returns Colored badge with option label
+ */
+export function SelectProperty({ value, config, size }: SelectPropertyProps) {
+  if (!value) {
+    return null;
+  }
+
+  const stringValue = String(value);
+  const option = config?.options?.find((opt) => opt.value === stringValue);
+
+  // If option not found, still render as badge with gray color
+  if (!option) {
+    return (
+      <Badge size={size} variant="gray-subtle">
+        {stringValue}
+      </Badge>
+    );
+  }
+
+  const variant = getBadgeVariant(option.color);
+
+  return (
+    <Badge size={size} variant={variant}>
+      {option.name ?? option.value}
+    </Badge>
+  );
+}

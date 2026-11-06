@@ -1,0 +1,38 @@
+"use client";
+
+import type { PropertyMeta } from "@jingerpie/dataview-core";
+import { useSortBuilder, useSortParams } from "@jingerpie/dataview-react";
+import { SortBulkEditor } from "@/components/dataview/sort/sort-bulk-editor";
+import { SortTrigger } from "@/components/dataview/sort/sort-trigger";
+
+interface SortChipProps {
+  /** Available properties to sort by */
+  properties: readonly PropertyMeta[];
+}
+
+/**
+ * Sort chip that shows sort count and opens the sort builder.
+ * Appearance: [↕ N sorts ▾]
+ *
+ * Composes SortTrigger + SortBulkEditor.
+ */
+function SortChip({ properties }: SortChipProps) {
+  const { sort: sorts } = useSortParams();
+  const { isOpen, setOpen } = useSortBuilder();
+
+  return (
+    <SortTrigger
+      count={sorts.length}
+      onOpenChange={setOpen}
+      open={isOpen}
+      variant="count"
+    >
+      <SortBulkEditor
+        onDeleteAll={() => setOpen(false)}
+        properties={properties}
+      />
+    </SortTrigger>
+  );
+}
+
+export { SortChip, type SortChipProps };

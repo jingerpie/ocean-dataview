@@ -1,9 +1,9 @@
 "use client";
 
-import { ChartViewProvider } from "@sparkyidea/dataview/providers";
-import { HorizontalBarChartView } from "@sparkyidea/dataview/views/horizontal-bar-chart-view";
+import { ChartViewProvider } from "@jingerpie/dataview-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
+import { HorizontalBarChartView } from "@/registry/base-nova/components/dataview/views/horizontal-bar-chart-view/horizontal-bar-chart-view";
 
 import { useTRPC } from "@/utils/trpc/client";
 

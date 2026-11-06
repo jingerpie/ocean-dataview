@@ -1,14 +1,27 @@
-import { FilesMediaProperty } from "@sparkyidea/dataview/properties";
-import type { DataViewProperty } from "@sparkyidea/dataview/types";
+import type { DataViewProperty } from "@jingerpie/dataview-core";
 import type { AppRouter } from "@sparkyidea/trpc/routers/index";
 import type { inferRouterOutputs } from "@trpc/server";
 import { Edit, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { FilesMediaProperty } from "@/registry/base-nova/components/dataview/properties/files-media-property";
+import { productProperties } from "./product-properties";
 
 type RouterOutput = inferRouterOutputs<AppRouter>;
 type ProductWithVariants = RouterOutput["product"]["getMany"]["items"][number];
 
 export type Product = ProductWithVariants;
+
+/**
+ * Properties the preset tabs group, sort, and filter by. The list does not
+ * display them, but they must exist or validation drops those presets.
+ */
+const presetOnlyProperties = productProperties
+  .filter((property) =>
+    ["availability", "lastRestocked", "price", "stockLevel"].includes(
+      property.key ?? ""
+    )
+  )
+  .map((property) => ({ ...property, hidden: true }));
 
 export const productListProperties = [
   {
@@ -90,4 +103,5 @@ export const productListProperties = [
       },
     ],
   },
+  ...presetOnlyProperties,
 ] as DataViewProperty<Product>[];

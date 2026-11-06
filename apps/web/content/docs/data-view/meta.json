@@ -1,4 +1,4 @@
 {
   "title": "Data View",
-  "pages": ["properties", "...views", "toolbar"]
+  "pages": ["installation", "provider", "properties", "...views", "toolbar"]
 }

@@ -1,0 +1,128 @@
+---
+title: Installation
+description: Install the headless packages from npm and the styled components from the shadcn registry
+---
+
+Ocean DataView ships in two parts:
+
+- **npm packages** hold the logic. You update them with a version bump.
+- **A shadcn registry** holds the styled components. `shadcn add` copies their source into your app, and you own and restyle it.
+
+## Requirements
+
+- React 19 with Tailwind CSS 4.
+- A shadcn project using the `base-nova` style (Base UI primitives). Run `npx shadcn@latest init` first if you have no `components.json`.
+- TanStack Query 5, with a `QueryClientProvider` above your views.
+- Optional: `nuqs` 2.8+ to keep view state in the URL.
+
+## 1. Install the packages
+
+```bash
+npm install @jingerpie/dataview-core@alpha @jingerpie/dataview-react@alpha @tanstack/react-query
+# Optional: URL state
+npm install nuqs
+# Server: PostgreSQL query builders for Drizzle ORM
+npm install @jingerpie/dataview-drizzle@alpha drizzle-orm
+```
+
+## 2. Add components
+
+```bash
+npx shadcn@latest add https://ocean-dataview.sparkyidea.com/r/table-view.json
+npx shadcn@latest add https://ocean-dataview.sparkyidea.com/r/notion-toolbar.json
+```
+
+Each item pulls in what it needs: other DataView items, stock shadcn primitives, npm packages, and the `dataview-styles` colour tokens (added to your CSS file for light and dark mode).
+
+Files land under your `components.json` aliases. With the default aliases:
+
+| Item files | Destination |
+|------------|-------------|
+| Views, toolbar, editors | `components/dataview/...` |
+| Customized primitives | `components/ui/dataview-*.tsx` (they never overwrite your `button.tsx` and others) |
+| Helpers | `lib/dataview/...` |
+| DOM hooks | `hooks/dataview/...` |
+
+Nested folders are kept as long as your `components` alias ends in a `components` directory (for example `@/components` or `@/shared/components`).
+
+To pin a release, use the versioned URLs, for example `https://ocean-dataview.sparkyidea.com/r/0.1.0-alpha.0/table-view.json`.
+
+## 3. Use them
+
+```tsx
+"use client";
+
+import { DataViewContent, DataViewProvider, usePageController } from "@jingerpie/dataview-react";
+import { useNuqsDataViewState } from "@jingerpie/dataview-react/nuqs";
+import { NotionToolbar } from "@/components/dataview/toolbars/notion/toolbar";
+import { TableView } from "@/components/dataview/views/table-view/table-view";
+
+export function Products() {
+  const state = useNuqsDataViewState();
+  const { controller } = usePageController({
+    dataQuery: (params) => trpc.product.getMany.queryOptions(params),
+  });
+
+  return (
+    <DataViewProvider controller={controller} properties={productProperties} state={state}>
+      <div className="flex flex-col gap-2">
+        <NotionToolbar enableSettings />
+        <DataViewContent>
+          <TableView pagination="page" />
+        </DataViewContent>
+      </div>
+    </DataViewProvider>
+  );
+}
+```
+
+See [Provider](/docs/data-view/provider) for state options and [Table View](/docs/data-view/views/table) for view props. The copied components are yours: edit their markup and classes freely. Logic updates arrive through the npm packages.
+
+## Registry items
+
+| Item | Contents |
+|------|----------|
+| `dataview-styles` | Badge and chart colour tokens (light and dark) used by DataView components. |
+| `dataview-ui-lib` | Badge and chart colour maps, card sizes, property icons, and the image slot. |
+| `dataview-dom-hooks` | Scroll sync, load-more sentinel, intersection observer, and chart legend hooks. |
+| `dataview-accordion` | Accordion with DataView group-section layout. |
+| `dataview-badge` | Badge with size and colour variants for property values. |
+| `dataview-button` | Button with DataView destructive styling. |
+| `dataview-calendar` | Calendar with a readOnly mode. |
+| `dataview-checkbox` | Checkbox with an indeterminate state. |
+| `dataview-command` | Command menu with CommandChips. |
+| `dataview-select` | Select with custom trigger rendering. |
+| `dataview-table` | Table without the scroll wrapper, for synced scrolling. |
+| `dataview-chart` | Chart container, tooltip, and legend for Recharts. |
+| `dataview-view-shared` | Cards, cells (including formula cells), group sections, empty state, and scroll helpers shared by the views. |
+| `dataview-chart-legend` | Paginated legend for DataView charts. |
+| `button-property` | Renders a button property value. |
+| `checkbox-property` | Renders a checkbox property value. |
+| `date-property` | Renders a date property value. |
+| `email-property` | Renders a email property value. |
+| `files-media-property` | Renders a files media property value. |
+| `multi-select-property` | Renders a multi select property value. |
+| `number-property` | Renders a number property value. |
+| `phone-property` | Renders a phone property value. |
+| `select-property` | Renders a select property value. |
+| `status-property` | Renders a status property value. |
+| `text-property` | Renders a text property value. |
+| `url-property` | Renders a url property value. |
+| `dataview-filter` | Simple and advanced filter editors. |
+| `dataview-sort` | Sort editor and pickers. |
+| `dataview-group` | Group-by editor and pickers. |
+| `dataview-pagination` | Page, load-more, and infinite-scroll pagination. |
+| `dataview-search` | Search input. |
+| `dataview-bulk-actions` | Floating action bar for selected rows. |
+| `dataview-skeletons` | Loading skeletons for views and the toolbar. |
+| `notion-toolbar` | Notion-style toolbar with filter, sort, search, and settings. |
+| `preset-tabs` | Tabs that apply preset filters, sorts, and groups. |
+| `area-chart-view` | Area Chart view for DataView. |
+| `board-view` | Board view for DataView. |
+| `donut-chart-view` | Donut Chart view for DataView. |
+| `gallery-view` | Gallery view for DataView. |
+| `horizontal-bar-chart-view` | Horizontal Bar Chart view for DataView. |
+| `line-chart-view` | Line Chart view for DataView. |
+| `list-view` | List view for DataView. |
+| `table-view` | Table view for DataView. |
+| `vertical-bar-chart-view` | Vertical Bar Chart view for DataView. |

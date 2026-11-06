@@ -1,0 +1,47 @@
+{
+  "name": "@jingerpie/dataview-drizzle",
+  "version": "0.1.0-alpha.1",
+  "description": "PostgreSQL query builders (Drizzle ORM) for Ocean DataView filters, sorts, groups, and rollups",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jingerpie/dataview.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "alpha"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch --no-clean",
+    "check-types": "tsc --noEmit",
+    "test": "bun test src"
+  },
+  "peerDependencies": {
+    "@jingerpie/dataview-core": "workspace:^",
+    "date-fns": "^4.1.0",
+    "drizzle-orm": "^0.45.0"
+  },
+  "devDependencies": {
+    "@sparkyidea/config": "workspace:*",
+    "@jingerpie/dataview-core": "workspace:*",
+    "@types/bun": "1.3.9",
+    "date-fns": "catalog:",
+    "drizzle-orm": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  }
+}

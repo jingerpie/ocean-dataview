@@ -22,10 +22,10 @@ import { Callout } from "fumadocs-ui/components/callout";
 ## Basic Usage
 
 ```tsx
-import { useInfiniteController } from "@sparkyidea/dataview/hooks";
-import { DataViewProvider } from "@sparkyidea/dataview/providers";
-import { NotionToolbar } from "@sparkyidea/dataview/toolbars/notion";
-import { BoardView } from "@sparkyidea/dataview/views/board-view";
+import { useInfiniteController } from "@jingerpie/dataview-react";
+import { DataViewContent, DataViewProvider } from "@jingerpie/dataview-react";
+import { NotionToolbar } from "@/components/dataview/toolbars/notion/toolbar";
+import { BoardView } from "@/components/dataview/views/board-view/board-view";
 
 const columnConfig = { propertyType: "select", propertyId: "category" };
 
@@ -74,7 +74,9 @@ const { controller } = useInfiniteController({
   <NotionToolbar enableSettings>
     <DataViewTab options={productTabOptions} />
   </NotionToolbar>
-  <BoardView cardSize="medium" colorColumns pagination="loadMore" />
+  <DataViewContent>
+    <BoardView cardSize="medium" colorColumns pagination="loadMore" />
+  </DataViewContent>
 </DataViewProvider>
 ```
 

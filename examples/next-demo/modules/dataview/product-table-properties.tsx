@@ -1,0 +1,193 @@
+import type { DataViewProperty } from "@jingerpie/dataview-core";
+import type { inferRouterOutputs } from "@trpc/server";
+import { AlertCircle, CheckCircle2, Edit, Eye, XCircle } from "lucide-react";
+import { toast } from "sonner";
+import { FilesMediaProperty } from "@/components/dataview/properties/files-media-property";
+import type { AppRouter } from "@/server/router";
+
+type RouterOutput = inferRouterOutputs<AppRouter>;
+type ProductWithVariants = RouterOutput["product"]["getMany"]["items"][number];
+
+export type Product = ProductWithVariants;
+
+export const productTableProperties = [
+  {
+    key: "productName",
+    name: "Text",
+    type: "text",
+    size: 300,
+  },
+  {
+    key: "price",
+    name: "Number",
+    type: "number",
+    config: {
+      numberFormat: "dollar",
+      decimalPlaces: 2,
+    },
+    size: 100,
+  },
+  {
+    key: "stockLevel",
+    name: "Number (Bar)",
+    type: "number",
+    config: {
+      showAs: {
+        type: "bar",
+        color: "red",
+        divideBy: 100,
+      },
+    },
+    size: 120,
+  },
+  {
+    key: "rating",
+    name: "Number (Ring)",
+    type: "number",
+    config: {
+      showAs: {
+        type: "ring",
+        color: "green",
+        divideBy: 100,
+      },
+    },
+    size: 120,
+  },
+  {
+    key: "category",
+    name: "Select",
+    type: "select",
+    config: {
+      options: [
+        { value: "Accessories", color: "blue-subtle" },
+        { value: "Bottoms", color: "purple-subtle" },
+        { value: "Dresses", color: "pink-subtle" },
+        { value: "Footwear", color: "yellow-subtle" },
+        { value: "Garden", color: "green-subtle" },
+        { value: "Home", color: "teal-subtle" },
+        { value: "Jewelry", color: "gray-subtle" },
+        { value: "Lingerie", color: "red-subtle" },
+        { value: "Outerwear", color: "gray-subtle" },
+        { value: "Tops", color: "blue-subtle" },
+      ],
+    },
+    size: 150,
+  },
+  {
+    key: "tags",
+    name: "Multi Select",
+    type: "multiSelect",
+    config: {
+      options: [
+        { value: "Bestseller", color: "yellow-subtle" },
+        { value: "Eco-friendly", color: "green-subtle" },
+        { value: "Limited Edition", color: "purple-subtle" },
+        { value: "New Arrival", color: "blue-subtle" },
+        { value: "On Sale", color: "red-subtle" },
+        { value: "Seasonal", color: "pink-subtle" },
+      ],
+    },
+    size: 150,
+  },
+  {
+    key: "availability",
+    name: "Status",
+    type: "status",
+    config: {
+      groups: [
+        {
+          name: "Available",
+          color: "green-subtle",
+          options: ["In stock"],
+          icon: CheckCircle2,
+        },
+        {
+          name: "Warning",
+          color: "yellow-subtle",
+          options: ["Low stock"],
+          icon: AlertCircle,
+        },
+        {
+          name: "Unavailable",
+          color: "red-subtle",
+          options: ["Out of stock"],
+          icon: XCircle,
+        },
+      ],
+    },
+    size: 150,
+  },
+  {
+    key: "lastRestocked",
+    name: "Date",
+    type: "date",
+    size: 200,
+  },
+  {
+    key: "featured",
+    name: "Checkbox",
+    type: "checkbox",
+    size: 50,
+  },
+  {
+    key: "productImage",
+    name: "Files & Media",
+    type: "filesMedia",
+    size: 100,
+  },
+  {
+    key: "productLink",
+    name: "URL",
+    type: "url",
+    enableGroup: false,
+    size: 150,
+  },
+  {
+    key: "supplierPhone",
+    name: "Phone",
+    type: "phone",
+    size: 150,
+  },
+  {
+    key: "supplierEmail",
+    name: "Email",
+    type: "email",
+    size: 150,
+  },
+  {
+    id: "_totalWorth",
+    name: "Formula",
+    type: "formula",
+    value: (property, item) => (
+      <div className="flex items-center gap-4">
+        <FilesMediaProperty value={item.productImage} />
+        <div className="flex flex-col items-start justify-center gap-2">
+          {property("productName")}
+          <div className="flex items-center gap-2">
+            {property("price")}
+            {property("category")}
+            {property("availability")}
+          </div>
+        </div>
+      </div>
+    ),
+    size: 300,
+  },
+  {
+    id: "actions",
+    name: "Actions",
+    type: "button",
+    value: (item) => [
+      {
+        label: "View",
+        icon: Eye,
+        onClick: () => toast.info(`Viewing: ${item.productName}`),
+      },
+      {
+        label: "Edit",
+        icon: Edit,
+        onClick: () => toast.info(`Editing: ${item.productName}`),
+      },
+    ],
+  },
+] as DataViewProperty<Product>[];

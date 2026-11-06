@@ -1,0 +1,8 @@
+{
+  "name": "fixture-registry-next",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "verify": "next build"
+  }
+}

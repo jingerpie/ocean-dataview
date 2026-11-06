@@ -1,0 +1,8 @@
+{
+  "name": "fixture-server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "verify": "bun run index.ts"
+  }
+}

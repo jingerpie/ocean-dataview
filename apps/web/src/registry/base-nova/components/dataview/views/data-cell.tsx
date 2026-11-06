@@ -1,0 +1,304 @@
+"use client";
+
+import type { DataViewProperty, RollupConfig } from "@jingerpie/dataview-core";
+import { memo } from "react";
+import { ButtonProperty } from "@/registry/base-nova/components/dataview/properties/button-property";
+import { CheckboxProperty } from "@/registry/base-nova/components/dataview/properties/checkbox-property";
+import { DateProperty } from "@/registry/base-nova/components/dataview/properties/date-property";
+import { EmailProperty } from "@/registry/base-nova/components/dataview/properties/email-property";
+import { FilesMediaProperty } from "@/registry/base-nova/components/dataview/properties/files-media-property";
+import { createFormulaRenderer } from "@/registry/base-nova/components/dataview/properties/formula-property";
+import { MultiSelectProperty } from "@/registry/base-nova/components/dataview/properties/multi-select-property";
+import { NumberProperty } from "@/registry/base-nova/components/dataview/properties/number-property";
+import { PhoneProperty } from "@/registry/base-nova/components/dataview/properties/phone-property";
+import { SelectProperty } from "@/registry/base-nova/components/dataview/properties/select-property";
+import { StatusProperty } from "@/registry/base-nova/components/dataview/properties/status-property";
+import { TextProperty } from "@/registry/base-nova/components/dataview/properties/text-property";
+import { UrlProperty } from "@/registry/base-nova/components/dataview/properties/url-property";
+
+interface DataCellProps<T> {
+  /**
+   * All property schema - required for formula properties
+   * to render other properties via `property(id)` renderer
+   */
+  allProperties?: readonly DataViewProperty<T>[];
+  /**
+   * Override property config for specific rendering contexts (e.g., group headers)
+   * Merged with property.config, with configOverride taking precedence
+   */
+  configOverride?: Record<string, unknown>;
+  item: T;
+  property: DataViewProperty<T>;
+  /**
+   * Internal: tracks renderedProperties formula IDs to detect circular references
+   */
+  renderedProperties?: Set<string>;
+  /**
+   * Global default for showing property names in formula sub-properties.
+   * Each sub-property's `showName` overrides this.
+   * Only used by formula properties to pass through to createFormulaRenderer.
+   */
+  showPropertyNames?: boolean;
+  value: unknown;
+  wrap?: boolean;
+}
+
+// ============================================================================
+// Rollup Array Display — renders each item using the underlying type's component
+// ============================================================================
+
+function RollupArrayDisplay({
+  items,
+  rollupConfig,
+  wrap,
+}: {
+  items: unknown[];
+  rollupConfig: RollupConfig;
+  wrap: boolean;
+}) {
+  switch (rollupConfig.type) {
+    case "select":
+    case "multiSelect":
+    case "status":
+      return (
+        <div className="flex flex-wrap gap-1">
+          {items.map((v, i) => (
+            <SelectProperty
+              config={{ options: rollupConfig.options ?? [] }}
+              key={`${String(v)}-${i}`}
+              value={v as string | null}
+            />
+          ))}
+        </div>
+      );
+
+    case "date":
+      return (
+        <span className="text-sm">
+          {items.map((v, i) => (
+            <span key={`${String(v)}-${i}`}>
+              {i > 0 && ", "}
+              <DateProperty
+                config={{
+                  dateFormat: rollupConfig.dateFormat,
+                  timeFormat: rollupConfig.timeFormat,
+                }}
+                value={v as Date | string | null}
+              />
+            </span>
+          ))}
+        </span>
+      );
+
+    case "checkbox":
+      return (
+        <div className="flex flex-wrap gap-1">
+          {items.map((v, i) => (
+            <CheckboxProperty
+              key={`${String(v)}-${i}`}
+              value={v as boolean | null}
+            />
+          ))}
+        </div>
+      );
+
+    case "filesMedia":
+      return <FilesMediaProperty value={items as string[]} />;
+
+    case "number":
+      return (
+        <span className="text-sm">
+          {items.map((v, i) => (
+            <span key={`${String(v)}-${i}`}>
+              {i > 0 && ", "}
+              <NumberProperty
+                config={{
+                  numberFormat: rollupConfig.numberFormat,
+                  decimalPlaces: rollupConfig.decimalPlaces,
+                  scale: rollupConfig.scale,
+                  showAs: rollupConfig.showAs,
+                }}
+                value={v as number | null}
+              />
+            </span>
+          ))}
+        </span>
+      );
+
+    case "url":
+      return (
+        <span className="text-sm">
+          {items.map((v, i) => (
+            <span key={`${String(v)}-${i}`}>
+              {i > 0 && ", "}
+              <UrlProperty value={v as string | null} />
+            </span>
+          ))}
+        </span>
+      );
+
+    // text, email, phone — render as comma-separated text
+    default:
+      return <TextProperty value={items.join(", ")} wrap={wrap} />;
+  }
+}
+
+/**
+ * Property value renderer — delegates to type-specific property components.
+ * Name labels are NOT rendered here; they are handled by the consumer
+ * (DataCard for top-level properties, createFormulaRenderer for sub-properties).
+ * Memoized to prevent unnecessary re-renders in table cells.
+ */
+function DataCellComponent<T>({
+  value,
+  property,
+  item,
+  wrap,
+  allProperties,
+  configOverride,
+  renderedProperties = new Set(),
+  showPropertyNames = false,
+}: DataCellProps<T>) {
+  const displayValue = value;
+
+  // Helper to merge property config with override
+  const getConfig = <C,>(baseConfig: C | undefined): C | undefined => {
+    if (!configOverride) {
+      return baseConfig;
+    }
+    return { ...baseConfig, ...configOverride } as C;
+  };
+
+  switch (property.type) {
+    case "formula": {
+      const valueFn = property.value;
+      if (!(valueFn && allProperties)) {
+        return null;
+      }
+      const propertyRender = createFormulaRenderer(
+        item,
+        allProperties,
+        renderedProperties,
+        showPropertyNames
+      );
+      return <>{valueFn(propertyRender, item)}</>;
+    }
+
+    case "text":
+      return (
+        <TextProperty
+          value={displayValue as string | null}
+          wrap={wrap ?? property.wrap ?? false}
+        />
+      );
+
+    case "number":
+      return (
+        <NumberProperty
+          config={property.config}
+          value={displayValue as number | null}
+        />
+      );
+
+    case "select":
+      return (
+        <SelectProperty
+          config={property.config}
+          value={displayValue as string | null}
+        />
+      );
+
+    case "multiSelect":
+      return (
+        <MultiSelectProperty
+          config={property.config}
+          value={displayValue as string[]}
+        />
+      );
+
+    case "status":
+      return (
+        <StatusProperty
+          config={property.config}
+          value={displayValue as string | null}
+        />
+      );
+
+    case "date":
+      return (
+        <DateProperty
+          config={getConfig(property.config)}
+          value={displayValue as Date | string | null}
+        />
+      );
+
+    case "checkbox":
+      return <CheckboxProperty value={displayValue as boolean | null} />;
+
+    case "url":
+      return (
+        <UrlProperty
+          config={property.config}
+          value={displayValue as string | null}
+        />
+      );
+
+    case "email":
+      return <EmailProperty value={displayValue as string | null} />;
+
+    case "phone":
+      return <PhoneProperty value={displayValue as string | null} />;
+
+    case "filesMedia":
+      return <FilesMediaProperty value={displayValue as string[]} />;
+
+    case "button": {
+      const buttons = property.value(item);
+      return <ButtonProperty buttons={buttons} />;
+    }
+
+    case "rollup": {
+      const rollupConfig = property.config as RollupConfig;
+      if (
+        rollupConfig.calculation === "showOriginal" ||
+        rollupConfig.calculation === "showUnique"
+      ) {
+        const rawItems = Array.isArray(displayValue) ? displayValue : [];
+        const items = rawItems.filter((v) => v != null && v !== "");
+        if (items.length === 0) {
+          return null;
+        }
+        return (
+          <RollupArrayDisplay
+            items={items}
+            rollupConfig={rollupConfig}
+            wrap={wrap ?? property.wrap ?? false}
+          />
+        );
+      }
+      return (
+        <NumberProperty
+          config={{
+            numberFormat: rollupConfig.numberFormat,
+            decimalPlaces: rollupConfig.decimalPlaces,
+            scale: rollupConfig.scale,
+            showAs: rollupConfig.showAs,
+          }}
+          value={displayValue as number | null}
+        />
+      );
+    }
+
+    default:
+      if (displayValue == null) {
+        return null;
+      }
+      return <span className="text-sm">{String(displayValue)}</span>;
+  }
+}
+
+/**
+ * Memoized DataCell component
+ * Prevents unnecessary re-renders in table cells and list items
+ */
+export const DataCell = memo(DataCellComponent) as typeof DataCellComponent;
