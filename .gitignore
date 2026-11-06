@@ -61,3 +61,4 @@ temp
 apps/web/public/r
 apps/web/registry.json
 apps/web/.registry-build
+release-tarballs/

@@ -144,6 +144,20 @@ Scopes: `dataview`, `web`, `server`, `db`, `ui`, `shared`, `docs`
 - [ ] Docs updated (if user-facing)
 - [ ] Screenshot attached (if visual change)
 
+## Releasing the npm packages
+
+`@jingerpie/dataview-core`, `-react`, and `-drizzle` always release together at one version.
+
+1. Bump all three: `bun scripts/release-version.ts 0.1.0-alpha.1`
+2. Commit the bump and merge it.
+3. Tag and push: `git tag v0.1.0-alpha.1 && git push origin v0.1.0-alpha.1`
+
+The tag starts `.github/workflows/release.yml`. It runs the checks, builds, verifies the packed packages, publishes in dependency order, and creates a GitHub Release. Prerelease versions publish under their channel (`-alpha.N` → `alpha`); others under `latest`. Versions already on npm are skipped, so a failed run can be re-run. Run it manually (Actions → Release) with dry run on to test without publishing.
+
+Publishing uses npm trusted publishing: each package lists this repository and `release.yml` under Settings → Trusted publishing on npmjs.com. No npm token is stored.
+
+The shadcn registry ships with the `apps/web` deploy, not with this workflow.
+
 ## Links
 
 - GitHub Issues: https://github.com/ocean-dataview/ocean-dataview/issues
