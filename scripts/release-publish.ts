@@ -2,8 +2,9 @@
  * Pack and publish the headless packages (run by the Release workflow).
  *
  * `bun pm pack` resolves `workspace:` and `catalog:` ranges; `npm publish`
- * then uploads each tarball, so npm trusted publishing (OIDC) and provenance
- * apply. Versions already on npm are skipped, so a failed run can be re-run.
+ * then uploads each tarball (auth from NODE_AUTH_TOKEN, with provenance in
+ * GitHub Actions). Versions already on npm are skipped, so a failed run can be
+ * re-run.
  *
  * Usage: bun scripts/release-publish.ts <tag> [--dry-run]
  *   <tag> is the git tag, e.g. v0.1.0-alpha.1
@@ -65,6 +66,9 @@ for (const pkg of PACKAGES) {
   }
 
   const args = [join(OUT, tarball), "--access", "public", "--tag", distTag];
+  if (process.env.GITHUB_ACTIONS === "true") {
+    args.push("--provenance");
+  }
   if (dryRun) {
     args.push("--dry-run");
   }

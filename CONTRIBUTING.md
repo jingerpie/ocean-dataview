@@ -154,7 +154,7 @@ Scopes: `dataview`, `web`, `server`, `db`, `ui`, `shared`, `docs`
 
 The tag starts `.github/workflows/release.yml`. It runs the checks, builds, verifies the packed packages, publishes in dependency order, and creates a GitHub Release. Prerelease versions publish under their channel (`-alpha.N` → `alpha`); others under `latest`. Versions already on npm are skipped, so a failed run can be re-run. Run it manually (Actions → Release) with dry run on to test without publishing.
 
-Publishing uses npm trusted publishing: each package lists this repository and `release.yml` under Settings → Trusted publishing on npmjs.com. No npm token is stored.
+Publishing uses the `NPM_TOKEN` repository secret: a granular npm access token with read and write on the three packages and "Bypass 2FA" enabled. npm write tokens expire, so replace the secret before it does. Each version gets npm provenance linking it to the workflow run.
 
 The shadcn registry ships with the `apps/web` deploy, not with this workflow.
 
