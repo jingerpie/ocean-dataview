@@ -1,0 +1,251 @@
+"use client";
+
+import type { FilterCondition, WhereRule } from "@jingerpie/dataview-core";
+import {
+  applyConditionChange,
+  applyQuantifierChange,
+  createRuleFromProperty,
+  getEffectiveType,
+  isDisplayRollup,
+  type PropertyMeta,
+} from "@jingerpie/dataview-core";
+import { cn } from "@/lib/utils";
+import { AdvancedFilterActions } from "@/components/dataview/filter/advanced-filter-actions";
+import { LogicPicker } from "@/components/dataview/filter/advanced-filter-logic-picker";
+import { AdvancedFilterPicker } from "@/components/dataview/filter/advanced-filter-picker";
+import { ConditionPicker } from "@/components/dataview/filter/condition-picker";
+import { CheckboxAdvanceFilter } from "@/components/dataview/filter/properties/checkbox-filter";
+import { DateAdvanceFilter } from "@/components/dataview/filter/properties/date-filter";
+import { SelectAdvanceFilter } from "@/components/dataview/filter/properties/select-filter";
+import { StatusAdvanceFilter } from "@/components/dataview/filter/properties/status-filter";
+import { TextAdvanceFilter } from "@/components/dataview/filter/properties/text-filter";
+import { QuantifierPicker } from "@/components/dataview/filter/quantifier-picker";
+
+// ============================================================================
+// FilterRule Component
+// ============================================================================
+
+interface FilterRuleProps {
+  /** Whether this rule can be wrapped in a group */
+  canWrapInGroup: boolean;
+  /** Additional class names */
+  className?: string;
+  /** Whether this is the first rule in the group (shows "Where") */
+  isFirst: boolean;
+  /** Whether this is the second rule in the group (shows dropdown) */
+  isSecond: boolean;
+  /** Current group logic */
+  logic: "and" | "or";
+  /** Callback to duplicate this rule */
+  onDuplicate: () => void;
+  /** Callback when group logic changes (affects all rules in group) */
+  onLogicChange: (logic: "and" | "or") => void;
+  /** Callback to remove this rule */
+  onRemove: () => void;
+  /** Callback when rule changes */
+  onRuleChange: (rule: WhereRule) => void;
+  /** Callback to wrap this rule in a group */
+  onWrapInGroup: () => void;
+  /** Available properties to filter on */
+  properties: readonly PropertyMeta[];
+  /** The filter rule */
+  rule: WhereRule;
+}
+
+/**
+ * Single filter rule row in the filter builder.
+ * Contains: LogicPicker, PropertySelector, ConditionPicker, ValueInput, ActionsMenu
+ */
+function FilterRule({
+  rule,
+  properties,
+  isFirst,
+  isSecond,
+  logic,
+  onRuleChange,
+  onLogicChange,
+  onRemove,
+  onDuplicate,
+  onWrapInGroup,
+  canWrapInGroup,
+  className,
+}: FilterRuleProps) {
+  // Find the property for this rule
+  const property = properties.find((p) => String(p.id) === rule.property);
+
+  // Update helper that maintains type safety
+  const updateRule = (updates: Partial<WhereRule>) => {
+    onRuleChange({ ...rule, ...updates });
+  };
+
+  // Handle property selection
+  const handlePropertySelect = (newProperty: PropertyMeta) => {
+    onRuleChange(createRuleFromProperty(newProperty));
+  };
+
+  // Handle condition change
+  const handleConditionChange = (newCondition: FilterCondition) => {
+    onRuleChange(applyConditionChange(rule, newCondition));
+  };
+
+  return (
+    <div className={cn("flex items-center gap-1.5", className)}>
+      {/* Logic Picker */}
+      <LogicPicker
+        isFirst={isFirst}
+        isSecond={isSecond}
+        logic={logic}
+        onLogicChange={onLogicChange}
+      />
+
+      {/* Property Selector */}
+      <AdvancedFilterPicker
+        onPropertyChange={handlePropertySelect}
+        properties={properties}
+        value={property}
+      />
+
+      {/* Quantifier Picker (for display rollups: showOriginal/showUnique) */}
+      {property && isDisplayRollup(property) && (
+        <QuantifierPicker
+          onQuantifierChange={(q) =>
+            onRuleChange(applyQuantifierChange(rule, q))
+          }
+          quantifier={rule.quantifier ?? "any"}
+        />
+      )}
+
+      {/* Condition Picker */}
+      {property && (
+        <ConditionPicker
+          condition={rule.condition}
+          onConditionChange={handleConditionChange}
+          property={property}
+          propertyType={property.type}
+        />
+      )}
+
+      {/* Value Input */}
+      {property && (
+        <ValueInput
+          onValueChange={(value) => updateRule({ value })}
+          property={property}
+          rule={rule}
+        />
+      )}
+
+      {/* Actions Menu */}
+      <AdvancedFilterActions
+        onDuplicate={onDuplicate}
+        onRemove={onRemove}
+        onWrapInGroup={canWrapInGroup ? onWrapInGroup : undefined}
+      />
+    </div>
+  );
+}
+
+// ============================================================================
+// Filter Value Component (exported for reuse)
+// ============================================================================
+
+interface FilterValueProps {
+  onValueChange: (value: unknown) => void;
+  property: PropertyMeta;
+  rule: WhereRule;
+}
+
+function FilterValue({ rule, property, onValueChange }: FilterValueProps) {
+  return (
+    <ValueInput onValueChange={onValueChange} property={property} rule={rule} />
+  );
+}
+
+// ============================================================================
+// Internal Value Input Component - Dispatcher
+// ============================================================================
+
+interface ValueInputProps {
+  onValueChange: (value: unknown) => void;
+  property: PropertyMeta;
+  rule: WhereRule;
+}
+
+function ValueInput({ rule, property, onValueChange }: ValueInputProps) {
+  // Empty/Not Empty conditions don't need value input
+  if (rule.condition === "isEmpty" || rule.condition === "isNotEmpty") {
+    return null;
+  }
+
+  switch (property.type) {
+    case "text":
+    case "url":
+    case "email":
+    case "phone":
+    case "number":
+      return (
+        <TextAdvanceFilter
+          onValueChange={onValueChange}
+          property={property}
+          rule={rule}
+        />
+      );
+
+    case "checkbox":
+      return (
+        <CheckboxAdvanceFilter
+          onValueChange={onValueChange}
+          property={property}
+          rule={rule}
+        />
+      );
+
+    case "select":
+    case "multiSelect":
+      return (
+        <SelectAdvanceFilter
+          onValueChange={onValueChange}
+          property={property}
+          rule={rule}
+        />
+      );
+
+    case "status":
+      return (
+        <StatusAdvanceFilter
+          onValueChange={onValueChange}
+          property={property}
+          rule={rule}
+        />
+      );
+
+    case "date":
+      return (
+        <DateAdvanceFilter
+          onValueChange={onValueChange}
+          property={property}
+          rule={rule}
+        />
+      );
+
+    case "filesMedia":
+    case "formula":
+      // Only support isEmpty/isNotEmpty (handled above)
+      return null;
+
+    case "rollup":
+      // Delegate to the effective output type's filter component
+      return (
+        <ValueInput
+          onValueChange={onValueChange}
+          property={{ ...property, type: getEffectiveType(property) }}
+          rule={rule}
+        />
+      );
+
+    default:
+      return null;
+  }
+}
+
+export type { FilterRuleProps, FilterValueProps };
+export { FilterRule, FilterValue };

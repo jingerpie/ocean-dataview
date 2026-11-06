@@ -413,5 +413,6 @@ refactor(shared): simplify filter parser
 | tRPC routers | `packages/trpc/src/routers/` |
 | SQL builders | `packages/dataview-drizzle/src/` |
 | Package and registry fixtures | `fixtures/` (`bun run verify:packages`, `bun run verify:registry`) |
+| npm usage demo (outside workspaces) | `examples/next-demo/` (own `bun.lock`; `refresh:packages`, `refresh:ui`) |
 | DB schema | `packages/db/src/schema/` |
 | Architecture docs | `docs/` |

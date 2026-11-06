@@ -149,7 +149,7 @@ Risks: primitive name conflicts and missing CSS tokens in the consumer app.
 
 - Providers render no markup, so each page adds the `flex flex-col gap-2` wrapper the old provider built in (and the `className` it passed through).
 - `DataViewProvider` pages use `useNuqsDataViewState()`; `SimpleDataViewProvider` lists stay in-memory.
-- Install with `yes n | shadcn add ...`: answering yes overwrites the consumer's stock primitives. shadcn also rewrites `catalog:` ranges and adds a bogus `cn` util; revert those.
+- Install with `yes n | shadcn add ...`: answering yes overwrites the consumer's stock primitives. shadcn also rewrites `catalog:` ranges and adds a `lib/utils.ts` that re-exports shadcn's new `cn` npm package; revert both in consumers that already have `cn`.
 - Registry `toolbar.tsx` no longer re-exports `NotionToolbarActions`/`NotionToolbarChips` (consumer `noBarrelFile` lint).
 
 Decisions (Codex, 2026-11-05):

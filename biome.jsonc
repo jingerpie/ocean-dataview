@@ -7,5 +7,18 @@
         "noVoid": "off"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      // Registry output installed by `shadcn add`; refreshed, not hand-edited
+      "includes": [
+        "examples/next-demo/components/**",
+        "examples/next-demo/hooks/**",
+        "examples/next-demo/lib/**"
+      ],
+      "assist": { "enabled": false },
+      "formatter": { "enabled": false },
+      "linter": { "enabled": false }
+    }
+  ]
 }

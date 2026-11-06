@@ -1,0 +1,48 @@
+export type CardSize = "small" | "medium" | "large";
+
+export interface BoardCardDimensions {
+  columnWidth: string; // Tailwind class e.g., "w-64"
+  imageHeight: number;
+}
+
+export interface GalleryCardDimensions {
+  imageHeight: number;
+  minWidth: number; // minimum card width in px for auto-fill
+}
+
+/**
+ * Board view card dimensions by size
+ * Note: imageHeight values match gallery for visual consistency
+ */
+export const BOARD_CARD_SIZES: Record<CardSize, BoardCardDimensions> = {
+  small: { imageHeight: 150, columnWidth: "w-64" }, // 256px
+  medium: { imageHeight: 200, columnWidth: "w-80" }, // 320px
+  large: { imageHeight: 260, columnWidth: "w-96" }, // 384px
+};
+
+/**
+ * Gallery view card dimensions by size
+ */
+export const GALLERY_CARD_SIZES: Record<CardSize, GalleryCardDimensions> = {
+  small: { imageHeight: 150, minWidth: 180 },
+  medium: { imageHeight: 200, minWidth: 250 },
+  large: { imageHeight: 260, minWidth: 320 },
+};
+
+/**
+ * Get board card dimensions by size
+ */
+export function getBoardCardDimensions(
+  cardSize: CardSize = "medium"
+): BoardCardDimensions {
+  return BOARD_CARD_SIZES[cardSize];
+}
+
+/**
+ * Get gallery card dimensions by size
+ */
+export function getGalleryCardDimensions(
+  cardSize: CardSize = "medium"
+): GalleryCardDimensions {
+  return GALLERY_CARD_SIZES[cardSize];
+}
