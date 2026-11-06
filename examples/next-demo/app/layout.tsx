@@ -1,18 +1,49 @@
-import "./globals.css";
 import type { Metadata } from "next";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
-import type { ReactNode } from "react";
+import { Geist, Geist_Mono } from "next/font/google";
+import ClientProviders from "@/components/client-providers";
+import { SiteHeader } from "@/components/layouts/site-header";
+import ServerProviders from "@/components/server-providers";
+import { cn } from "@/lib/utils";
+
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
-  title: "DataView npm demo",
-  description: "DataView installed from npm and the shadcn registry.",
+  title: "DataView demo",
+  description:
+    "DataView built from the published npm packages and shadcn registry",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-background text-foreground antialiased">
-        <NuqsAdapter>{children}</NuqsAdapter>
+      <body
+        className={cn(
+          "min-h-screen bg-background font-sans antialiased",
+          `${geistSans.variable} ${geistMono.variable}`
+        )}
+      >
+        <ServerProviders>
+          <ClientProviders>
+            <div className="relative flex min-h-screen flex-col">
+              <SiteHeader />
+              <main className="container flex-1">{children}</main>
+            </div>
+          </ClientProviders>
+        </ServerProviders>
       </body>
     </html>
   );

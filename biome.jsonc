@@ -12,7 +12,8 @@
     {
       // Registry output installed by `shadcn add`; refreshed, not hand-edited
       "includes": [
-        "examples/next-demo/components/**",
+        "examples/next-demo/components/dataview/**",
+        "examples/next-demo/components/ui/**",
         "examples/next-demo/hooks/**",
         "examples/next-demo/lib/**"
       ],

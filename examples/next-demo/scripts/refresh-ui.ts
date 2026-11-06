@@ -14,9 +14,13 @@ const ITEMS = [
   "table-view",
   "list-view",
   "gallery-view",
+  "board-view",
   "notion-toolbar",
   "dataview-skeletons",
+  "files-media-property",
 ];
+/** Stock shadcn items the demo pages use directly. */
+const STOCK_ITEMS = ["label", "select", "sonner", "tabs"];
 const DEMO = join(import.meta.dir, "..");
 const WEB = join(DEMO, "../../apps/web");
 
@@ -40,8 +44,11 @@ if (!baseUrl) {
 }
 
 try {
-  const urls = ITEMS.map((item) => `${baseUrl}/r/${item}.json`);
-  console.log(`shadcn add ${ITEMS.join(" ")}`);
+  const urls = [
+    ...ITEMS.map((item) => `${baseUrl}/r/${item}.json`),
+    ...STOCK_ITEMS,
+  ];
+  console.log(`shadcn add ${[...ITEMS, ...STOCK_ITEMS].join(" ")}`);
   await $`bunx shadcn@latest add ${urls} --yes --overwrite`.cwd(DEMO);
 } finally {
   server?.stop(true);
