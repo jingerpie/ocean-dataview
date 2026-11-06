@@ -1,5 +1,6 @@
 import type { GroupConfigInput } from "../types/group.type";
 import type { DataViewProperty, PropertyMeta } from "../types/property.type";
+import { resolvePropertyIds } from "./resolve-ids";
 
 // ============================================================================
 // ShowAs Validation
@@ -145,6 +146,8 @@ export function validateGroup<T>(
   if (!group) {
     return null;
   }
-  const validPropertyIds = getGroupablePropertyIds(properties);
+  const validPropertyIds = getGroupablePropertyIds(
+    resolvePropertyIds(properties)
+  );
   return validPropertyIds.has(group.propertyId) ? group : null;
 }

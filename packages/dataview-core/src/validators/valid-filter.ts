@@ -10,6 +10,7 @@ import {
   type PropertyMeta,
 } from "../types/property.type";
 import { isValidConditionForPropertyType } from "../utils/filter";
+import { resolvePropertyIds } from "./resolve-ids";
 
 // ============================================================================
 // Property Extraction
@@ -141,7 +142,8 @@ export function validateFilter<T>(
   if (!filter) {
     return null;
   }
-  const propertyMap = getFilterablePropertyMap(properties);
-  const rollupIds = getDisplayRollupIds(properties);
+  const resolved = resolvePropertyIds(properties);
+  const propertyMap = getFilterablePropertyMap(resolved);
+  const rollupIds = getDisplayRollupIds(resolved);
   return filterInvalidNodes(filter, propertyMap, rollupIds);
 }

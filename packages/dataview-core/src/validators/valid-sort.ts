@@ -1,5 +1,6 @@
 import type { SortQuery } from "../types/filter.type";
 import type { DataViewProperty, PropertyMeta } from "../types/property.type";
+import { resolvePropertyIds } from "./resolve-ids";
 
 // ============================================================================
 // Property Extraction
@@ -50,7 +51,9 @@ export function validateSort<T>(
   if (!sort) {
     return null;
   }
-  const validPropertyIds = getSortablePropertyIds(properties);
+  const validPropertyIds = getSortablePropertyIds(
+    resolvePropertyIds(properties)
+  );
   const filtered = sort.filter((s) => validPropertyIds.has(s.property));
   return filtered.length > 0 ? filtered : null;
 }

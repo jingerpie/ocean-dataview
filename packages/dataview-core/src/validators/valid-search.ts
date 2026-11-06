@@ -1,5 +1,6 @@
 import type { SearchQuery } from "../types/filter.type";
 import type { DataViewProperty, PropertyMeta } from "../types/property.type";
+import { resolvePropertyIds } from "./resolve-ids";
 
 /** Property types excluded from search by default */
 const NON_SEARCHABLE_TYPES = new Set([
@@ -57,7 +58,7 @@ export function validateSearch<T>(
   if (!trimmed) {
     return null;
   }
-  const searchFields = getSearchablePropertyIds(properties);
+  const searchFields = getSearchablePropertyIds(resolvePropertyIds(properties));
   if (searchFields.length === 0) {
     return null;
   }
