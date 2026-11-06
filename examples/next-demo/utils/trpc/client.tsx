@@ -12,6 +12,15 @@ import { makeQueryClient } from "./query-client";
 export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
 let browserQueryClient: QueryClient;
 
+// Server-side render runs in Node, where fetch needs an absolute URL
+function getUrl() {
+  const base =
+    typeof window === "undefined"
+      ? `http://localhost:${process.env.PORT ?? 3005}`
+      : "";
+  return `${base}/api/trpc`;
+}
+
 function getQueryClient() {
   if (typeof window === "undefined") {
     // Server: always make a new query client
@@ -41,7 +50,7 @@ export function TRPCReactProvider(
     createTRPCClient<AppRouter>({
       links: [
         httpBatchLink({
-          url: "/api/trpc",
+          url: getUrl(),
           transformer: superjson,
         }),
       ],
