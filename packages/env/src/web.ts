@@ -9,5 +9,8 @@ export const env = createEnv({
     NEXT_PUBLIC_SERVER_URL: process.env.NEXT_PUBLIC_SERVER_URL,
   },
   emptyStringAsUndefined: true,
-  skipValidation: process.env.npm_lifecycle_event === "build",
+  // Builds and typechecks (next typegen loads next.config) run without env
+  skipValidation: ["build", "check-types"].includes(
+    process.env.npm_lifecycle_event ?? ""
+  ),
 });
