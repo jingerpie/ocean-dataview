@@ -145,7 +145,14 @@ Risks: primitive name conflicts and missing CSS tokens in the consumer app.
 
 ## Phase 4 — Migrate consumers
 
-**Status: blocked on publishing.** Decisions (Codex, 2026-11-05):
+**Status: migrated locally, pending manual browser checks.** Published `@jingerpie/dataview-{core,react,drizzle}@0.1.0-alpha.0` (renamed from `@sparkyidea`, which is a personal npm scope). Consumer commits on `refactor/headless-split` (not pushed): sellerhunt `f471b83`, dashseller `d43fbed`. Both pass check, check-types, test, and the Next production build. Notes:
+
+- Providers render no markup, so each page adds the `flex flex-col gap-2` wrapper the old provider built in (and the `className` it passed through).
+- `DataViewProvider` pages use `useNuqsDataViewState()`; `SimpleDataViewProvider` lists stay in-memory.
+- Install with `yes n | shadcn add ...`: answering yes overwrites the consumer's stock primitives. shadcn also rewrites `catalog:` ranges and adds a bogus `cn` util; revert those.
+- Registry `toolbar.tsx` no longer re-exports `NotionToolbarActions`/`NotionToolbarChips` (consumer `noBarrelFile` lint).
+
+Decisions (Codex, 2026-11-05):
 
 - Start only after `0.1.0-alpha.0` is on npm, so consumers install real versions (no `file:`/`link:` dependencies). Publish from each package directory with `bun publish` (it resolves `workspace:` and `catalog:`; `npm publish` would not), in order core, react, drizzle. `publishConfig` already sets `access: public` and `tag: alpha`.
 - Consumers pin exact `0.1.0-alpha.0`: core + react in `apps/app`, core + drizzle in `packages/trpc`.
