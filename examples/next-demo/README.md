@@ -21,7 +21,7 @@ app to see what users get from the published release.
 
 ```bash
 bun install
-bun run dev      # http://localhost:3005
+bun run dev      # http://localhost:3000, or next free port
 ```
 
 ## Refresh

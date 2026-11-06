@@ -16,7 +16,7 @@ let browserQueryClient: QueryClient;
 function getUrl() {
   const base =
     typeof window === "undefined"
-      ? `http://localhost:${process.env.PORT ?? 3005}`
+      ? `http://localhost:${process.env.PORT ?? 3000}`
       : "";
   return `${base}/api/trpc`;
 }
