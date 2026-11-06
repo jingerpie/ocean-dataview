@@ -96,9 +96,4 @@ export function NotionToolbar({
   );
 }
 
-export type { NotionToolbarActionsProps } from "@/registry/base-nova/components/dataview/toolbars/notion/toolbar-actions";
-
-export { NotionToolbarActions } from "@/registry/base-nova/components/dataview/toolbars/notion/toolbar-actions";
-export type { NotionToolbarChipsProps } from "@/registry/base-nova/components/dataview/toolbars/notion/toolbar-chips";
-export { NotionToolbarChips } from "@/registry/base-nova/components/dataview/toolbars/notion/toolbar-chips";
 export type { NotionToolbarProps };
