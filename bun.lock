@@ -99,7 +99,7 @@
     },
     "packages/dataview-core": {
       "name": "@jingerpie/dataview-core",
-      "version": "0.1.0-alpha.0",
+      "version": "0.1.0-alpha.1",
       "devDependencies": {
         "@sparkyidea/config": "workspace:*",
         "chrono-node": "catalog:",
@@ -117,7 +117,7 @@
     },
     "packages/dataview-drizzle": {
       "name": "@jingerpie/dataview-drizzle",
-      "version": "0.1.0-alpha.0",
+      "version": "0.1.0-alpha.1",
       "devDependencies": {
         "@jingerpie/dataview-core": "workspace:*",
         "@sparkyidea/config": "workspace:*",
@@ -135,7 +135,7 @@
     },
     "packages/dataview-react": {
       "name": "@jingerpie/dataview-react",
-      "version": "0.1.0-alpha.0",
+      "version": "0.1.0-alpha.1",
       "devDependencies": {
         "@jingerpie/dataview-core": "workspace:*",
         "@sparkyidea/config": "workspace:*",

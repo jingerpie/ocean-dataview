@@ -1,6 +1,6 @@
 {
   "name": "@jingerpie/dataview-react",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "Headless React providers and hooks for Ocean DataView",
   "license": "MIT",
   "type": "module",

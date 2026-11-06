@@ -1,6 +1,6 @@
 {
   "name": "@jingerpie/dataview-drizzle",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "PostgreSQL query builders (Drizzle ORM) for Ocean DataView filters, sorts, groups, and rollups",
   "license": "MIT",
   "type": "module",
